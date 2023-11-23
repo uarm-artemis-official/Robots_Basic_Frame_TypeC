@@ -1,0 +1,67 @@
+/*******************************************************************************
+* @file           : Timer_App.c
+* @brief          : A software timer task to register different periodical task.
+* @created time	  : Dec, 2020
+* @creator        : AzureRin
+*
+* @restructed     : Jul, 2023
+* @maintainer     : Haoran
+******************************************************************************
+* Copyright (c) 2023 UARM Artemis.
+* All rights reserved.
+*******************************************************************************/
+
+#include "Timer_App.h"
+#include "Shoot_App.h"
+#include "public_defines.h"
+/**
+* @brief  Timer app used to update the CAN data
+* 		  Also reserve for other real time tasks
+* @param  Not used
+* @retval None
+*/
+
+/* Task execution time (per loop): 1ms */
+//FIXME: this task takes too much time to run, try to optimize it within 2-3ms
+void Timer_Task_Func(void const * argument){
+
+	/* set task exec period */
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 1ms
+
+	/* init the task ticks */
+	xLastWakeTime = xTaskGetTickCount();
+
+	for (;;){
+
+		//FIXME: may put this read fucntion to can pending callback function
+		Motor_Data_Read(&hcan1);
+		/* CAN data  */
+		if(board_status == CHASSIS_BOARD){
+			Motor_Data_Send(&hcan1, MOTOR_3508_STDID,
+							motor_data[0].tx_data,
+							motor_data[1].tx_data,
+							motor_data[2].tx_data,
+							motor_data[3].tx_data);
+		}
+		else if(board_status == GIMBAL_BOARD){
+			Motor_Data_Send(&hcan1, MOTOR_6020_STDID,
+							motor_data[4].tx_data,
+							motor_data[5].tx_data,
+							motor_data[6].tx_data,
+							0);
+#ifdef USE_CAN_FRIC
+			Motor_Data_Send(&hcan1, MOTOR_3508_STDID,
+							motor_data[0].tx_data,
+							motor_data[1].tx_data,
+							0,
+							0);
+#endif
+		}
+
+		/* delay until wake time */
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+	}
+}
+
+

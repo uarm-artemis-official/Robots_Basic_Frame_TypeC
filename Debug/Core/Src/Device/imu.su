@@ -1,0 +1,15 @@
+imu.c:43:9:mpu_set_gyro_range	16	static
+imu.c:55:9:mpu_set_accel_range	16	static
+imu.c:67:9:mpu_device_init	40	static
+imu.c:102:6:mpu_get_offset	24	static
+imu.c:138:9:mpu_write_byte	24	static
+imu.c:154:9:mpu_read_byte	24	static
+imu.c:170:9:mpu_read_bytes	24	static
+imu.c:185:6:mpu_get_data	16	static
+imu.c:233:9:ist8310_init	8	static
+imu.c:294:13:get_ist_mag_offset	32	static
+imu.c:326:6:mpu_master_i2c_auto_read_config	16	static
+imu.c:366:6:ist8310_get_data	16	static
+imu.c:372:6:ist_reg_write_by_mpu	16	static
+imu.c:393:9:ist_reg_read_by_mpu	24	static
+imu.c:413:6:mpu_get_temp	16	static
