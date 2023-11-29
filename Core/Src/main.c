@@ -195,7 +195,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_I2C3_Init();
-  MX_IWDG_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 #ifdef USE_IWDG
@@ -293,7 +292,7 @@ HAL_StatusTypeDef firmware_and_system_init(void){
    	 return HAL_ERROR;
  }
  /* Read Board Status */
- if(HAL_GPIO_ReadPin(Board_Status_GPIO_Port, Board_Status_Pin) == GPIO_PIN_SET)
+ if(HAL_GPIO_ReadPin(Board_Status_GPIO_Port, Board_Status_Pin) == GPIO_PIN_RESET)
 	  board_status = CHASSIS_BOARD;
  else
 	  board_status = GIMBAL_BOARD;
@@ -386,11 +385,11 @@ void XferCpltCallback(DMA_HandleTypeDef *hdma){
  *
  * */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-  if(huart == &huart3 && board_status == CHASSIS_BOARD){
+  if(huart == &huart2 && board_status == CHASSIS_BOARD){
 	 /*read data*/
 	 referee_read_data(&referee, ref_rx_frame);
 	 /* re-activate DMA */
-	 HAL_UART_Receive_DMA(&huart3, ref_rx_frame, sizeof(ref_rx_frame));
+	 HAL_UART_Receive_DMA(&huart2, ref_rx_frame, sizeof(ref_rx_frame));
   }
   if(huart == &huart1 && board_status == GIMBAL_BOARD){
 	  uint8_t fail_indicator = 0;

@@ -29,50 +29,50 @@ void IMU_Task_Function(void){
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 1ms
 
-	/* set watch point */
-	if( gimbal_cali_done_flag == 1){//waiting the encoder push the gimbal to the center
+	/* init the task ticks */
+	xLastWakeTime = xTaskGetTickCount();
 
-		/* init imu parameters */
-		imu_task_init();
+	/* main imu task begins */
+	for(;;){
 
-		while(imu.temp_status != NORMAL){
-			imu.temp = get_BMI088_temperature();
-			imu_temp_pid_control();
-			osDelay(1);
-		}
+		/* set watch point */
+		if( gimbal_cali_done_flag == 1 && imu_init_flag != 1){//waiting the encoder push the gimbal to the center
 
-		/* set the offset when the temperature reach normal status */
-		__HAL_TIM_SET_COMPARE(&IMU_TMP_PWM_HTIM, IMU_TMP_PWM_CHANNEL, 50);//small current to keep tmp
-		bmi088_get_offset();
+			/* init imu parameters */
+			imu_task_init();
 
-		/* imu init finished */
-		imu_init_flag = 1;
-		buzzer_play_mario(200);
-
-		/* init the task ticks */
-		xLastWakeTime = xTaskGetTickCount();
-
-		/* main imu task begins */
-		for(;;){
-
-			/* IMU temperature PID control*/
-			imu_temp_pid_control();
-		    /* read the mpu data */
-		    if(imu_init_flag == 1)
-		    	bmi088_get_data(&imu.ahrs_sensor);
-
-		    /* delay utill wake time */
-			vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
+			while(imu.temp_status != NORMAL){
+				imu.temp = get_BMI088_temperature();
+				imu_temp_pid_control();
+				vTaskDelayUntil(&xLastWakeTime, xFrequency);
 			}
+
+			/* set the offset when the temperature reach normal status */
+			__HAL_TIM_SET_COMPARE(&IMU_TMP_PWM_HTIM, IMU_TMP_PWM_CHANNEL, 100);//small current to keep tmp
+			bmi088_get_offset();
+
+			/* imu init finished */
+			imu_init_flag = 1;
+			}
+
+		/* IMU temperature PID control*/
+		imu_temp_pid_control();
+		/* read the mpu data */
+		if(imu_init_flag == 1){
+			bmi088_get_data(&imu.ahrs_sensor);
 		}
+
+		/* delay utill wake time */
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+
+	}
 }
 
 void imu_task_init(void){
 	/* inint bmi088 */
 	bmi088_device_init();
 	/* init sensor pid */
-	pid_param_init(&(imu.tmp_pid), 4000, 800, 25, 500, 0.04, 0.02);
+	pid_param_init(&(imu.tmp_pid), 4000, 1300, 25, 850, 0.1, 0.02);
 	set_imu_temp_status(&imu, ABNORMAL);
 	imu.imu_mode = GA_MODE; // forbid ist8310
     if(imu.imu_mode == GA_MODE){

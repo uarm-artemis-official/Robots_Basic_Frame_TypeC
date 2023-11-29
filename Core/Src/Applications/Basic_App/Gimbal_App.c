@@ -76,7 +76,7 @@ void Gimbal_Task_Function(void const * argument)
 	gimbal_task_init(&gimbal);
 
 	/* reset calibration using ramp function */
-	gimbal_calibration_reset(&gimbal);
+//	gimbal_calibration_reset(&gimbal);
 
 	/* define after-detection delay var here */
 	int16_t gimbal_control_counter=0;
@@ -493,7 +493,7 @@ void gimbal_reset_data(Gimbal_t *gbal){
 	memset(&(gbal->yaw_ecd_fb), 0, sizeof(Motor_Feedback_Data_t));
 	memset(&(gbal->pitch_ecd_fb), 0, sizeof(Motor_Feedback_Data_t));
 
-	kalmanCreate(&(gbal->kalman_f), 10, 100);
+	kalmanCreate(&(gbal->kalman_f), 0.0005, 0.02);
 }
 /******************  MODE SELECTION FUNCTIONS BELOW ********************/
 void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr){
@@ -508,8 +508,8 @@ void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr){
 void gimbal_get_euler_angle(Gimbal_t *gbal){
 	gimbal_get_raw_mpu_data(gbal, &imu); // copy data to avoid mem leaks
 //	atti_math_calc(&gbal->ahrs_sensor, &gbal->euler_angle); //complementary filter parsed angle
-//	mahony_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));	//mahony algo
-	madgwick_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));  //madgwick algo
+	mahony_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));	//mahony algo
+//	madgwick_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));  //madgwick algo
 }
 
 /*
@@ -539,7 +539,7 @@ void gimbal_gyro_update_abs_angle(Gimbal_t *gbal){
 	 /* update the turns */
 //	 gimbal_update_turns(gbal, PI);
 	 /* apply first order filter to pitch angle */
-	 gbal->euler_angle.pitch = first_order_low_pass_filter(&(gbal->folp_f), gbal->euler_angle.pitch);
+//	 gbal->euler_angle.pitch = first_order_low_pass_filter(&(gbal->folp_f), gbal->euler_angle.pitch);
 	 gbal->pitch_cur_abs_angle = gbal->euler_angle.pitch;
 
 	 /* update angular velocity */

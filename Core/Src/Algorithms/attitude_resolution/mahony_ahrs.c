@@ -23,9 +23,9 @@
 //---------------------------------------------------------------------------------------------------
 // Definitions
 
-#define sampleFreq 1000.0f        // sample frequency in Hz
+#define sampleFreq 500.0f        // sample frequency in Hz
 #define twoKpDef (2.0f * 0.5f)   // 2 * proportional gain
-#define twoKiDef (2.0f * 0.005f) // 2 * integral gain
+#define twoKiDef (2.0f * 0.001f) // 2 * integral gain
 
 //---------------------------------------------------------------------------------------------------
 // Variable definitions
@@ -236,8 +236,8 @@ void mahony_ahrs_updateIMU(AhrsSensor_t *sensor, Attitude_t *atti)
   q1 *= recipNorm;
   q2 *= recipNorm;
   q3 *= recipNorm;
-  atti->roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1) * 57.3; // roll     -pi----pi
-  atti->pitch = asin(-2 * q1 * q3 + 2 * q0 * q2) * 57.3;                                // pitch    -pi/2----pi/2
-  atti->yaw = atan2(2 * q1 * q2 + 2 * q0 * q3, -2 * q2 * q2 - 2 * q3 * q3 + 1) * 57.3;  // yaw      -pi----pi
+  atti->roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1); // roll     -pi----pi
+  atti->pitch = asin(-2 * q1 * q3 + 2 * q0 * q2);                                // pitch    -pi/2----pi/2
+  atti->yaw = atan2(2 * q1 * q2 + 2 * q0 * q3, -2 * q2 * q2 - 2 * q3 * q3 + 1);  // yaw      -pi----pi
 
 }
