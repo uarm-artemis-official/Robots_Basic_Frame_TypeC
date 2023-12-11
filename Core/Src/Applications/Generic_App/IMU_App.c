@@ -7,8 +7,6 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-
-
 #ifndef __IMU_APP_C__
 #define __IMU_APP_C__
 
@@ -36,7 +34,7 @@ void IMU_Task_Function(void){
 	for(;;){
 
 		/* set watch point */
-		if( gimbal_cali_done_flag == 1 && imu_init_flag != 1){//waiting the encoder push the gimbal to the center
+		if( imu_init_flag != 1){//gimbal_cali_done_flag == 1 &&
 
 			/* init imu parameters */
 			imu_task_init();
@@ -72,7 +70,7 @@ void imu_task_init(void){
 	/* inint bmi088 */
 	bmi088_device_init();
 	/* init sensor pid */
-	pid_param_init(&(imu.tmp_pid), 4000, 1300, 25, 950, 0.05, 0.02);
+	pid_param_init(&(imu.tmp_pid), 4000, 1300, 25, 1000, 0.05, 0.02);
 	set_imu_temp_status(&imu, ABNORMAL);
 	imu.imu_mode = GA_MODE; // forbid ist8310
     if(imu.imu_mode == GA_MODE){

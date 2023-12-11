@@ -44,10 +44,10 @@ void WatchDog_Task_Function(void){
 	for(;;){
 
 		/* self check progress*/
-//		if(self_check_system() == CHECK_OK)
-//			wd_daemon_flag = 0;//pass
-//		else
-//			wd_daemon_flag = 1;//fail
+		if(self_check_system() == CHECK_OK)
+			wd_daemon_flag = 0;//pass
+		else
+			wd_daemon_flag = 1;//fail
 
 		/* rc check */
 		//FIXME: not implement rc check prgram
@@ -63,7 +63,8 @@ void WatchDog_Task_Function(void){
 //		}
 
 		/* or feed dog */
-		//FIXME: Actually only feed dog when self-check is okay
+		//FIXME: We should only feed dog when self-check is okay,
+		//       but currently just feed dog whatever the check pass or fail
 #ifdef USE_IWDG
 		wdg_daemon_feed_dog();
 #endif
