@@ -69,7 +69,6 @@ void Error_Handler(void);
 #define LED_Red_GPIO_Port GPIOH
 #define DRDY_IST8310_Pin GPIO_PIN_3
 #define DRDY_IST8310_GPIO_Port GPIOG
-#define DRDY_IST8310_EXTI_IRQn EXTI3_IRQn
 #define LED_Green_Pin GPIO_PIN_11
 #define LED_Green_GPIO_Port GPIOH
 #define LED_Blue_Pin GPIO_PIN_10
@@ -154,7 +153,7 @@ typedef enum {
 /* declare init function */
 HAL_StatusTypeDef firmware_and_system_init(void);
 extern char pdata[32]; //PACKLEN
-extern uint8_t rc_rx_buffer[18];
+//extern uint8_t rc_rx_buffer[18];
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -143,10 +143,10 @@ uint16_t shoot_check_counter = 0;
 uint32_t debugger_signal_counter = 0;//count the idle time
 uint32_t debugger_signal_flag = 0; //mark the debugger task
 uint8_t ref_rx_frame[256]={0}; //referee temp frame buffer
-char pdata[PACKLEN]={0};	//old mini pc vision pack temp buffer
 uint8_t rc_rx_buffer[DBUS_BUFFER_LEN]; //rc temporary buffer
 uint16_t chassis_gyro_counter = 0; // used for backup robots without slipring
 uint8_t chassis_gyro_flag = 0;	   // used for backup robots without slipring
+char pdata[PACKLEN]={0};	//old mini pc vision pack temp buffer
 
 extern Motor motor_data[MOTOR_COUNT]; //MOTOR_COUNT
 extern Referee_t referee;
@@ -247,8 +247,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 25;
-  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLM = 6;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -308,7 +308,6 @@ HAL_StatusTypeDef firmware_and_system_init(void){
  buzzer_init(&buzzer);
 
  /* init vision pack */
- pack_init(&vision_pack);
  uc_rx_pack_init(&uc_rx_pack);
 
  /* DWT init */
@@ -392,11 +391,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	 HAL_UART_Receive_DMA(&huart2, ref_rx_frame, sizeof(ref_rx_frame));
   }
   if(huart == &huart1 && board_status == GIMBAL_BOARD){
-	  uint8_t fail_indicator = 0;
+	  uint8_t fail_indicator = 1;
 	  /*read data from mini pc pack*/
 	  fail_indicator = uc_parse_recv_packet(pdata, &uc_rx_pack);
 	  /* re-activate DMA */
-	  HAL_UART_Receive_DMA(&huart1, (char*)pdata, UC_RX_PACKLEN);
+	  if(fail_indicator == 0)
+		  HAL_UART_Receive_DMA(&huart1, pdata, UC_RX_PACKLEN);
   }
 }
 #endif

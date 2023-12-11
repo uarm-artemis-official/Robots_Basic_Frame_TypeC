@@ -143,8 +143,8 @@ typedef struct{
 /* extern global variables here */
 extern RemoteControl_t rc;
 extern uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
-extern UART_HandleTypeDef huart1;
-extern DMA_HandleTypeDef hdma_usart1_rx;
+extern UART_HandleTypeDef huart3;
+extern DMA_HandleTypeDef hdma_usart3_rx;
 
 
 /* define user created variables here */
@@ -154,7 +154,7 @@ extern DMA_HandleTypeDef hdma_usart1_rx;
 /* functions declaration here */
 void RC_Task_Func();
 void rc_task_init(RemoteControl_t *rc_hdlr);
-void rc_process_rx_data(RemoteControl_t *rc_hdlr);
+void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rc_rx_buffer);
 void rc_reset(RemoteControl_t *rc_hdlr);
 
 void rc_key_init(KeyObject_t *key);

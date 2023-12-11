@@ -76,7 +76,7 @@ void Gimbal_Task_Function(void const * argument)
 	gimbal_task_init(&gimbal);
 
 	/* reset calibration using ramp function */
-//	gimbal_calibration_reset(&gimbal);
+	gimbal_calibration_reset(&gimbal);
 
 	/* define after-detection delay var here */
 	int16_t gimbal_control_counter=0;
@@ -394,7 +394,7 @@ void gimbal_task_init(Gimbal_t *gbal){
  * 			  centering and ranging the motors using ecd
  * @param[in] gimbal: main gimbal handler
  * */
-uint8_t gimbal_cali_done_flag = 1;
+uint8_t gimbal_cali_done_flag = 0;
 void gimbal_calibration_reset(Gimbal_t *gbal){
 	 /* reset the calibration flag first*/
 	 gimbal_cali_done_flag = 0;
@@ -650,8 +650,6 @@ void gimbal_set_limited_angle(Gimbal_t *gbal, float yaw_target_angle, float pitc
 	VAL_LIMIT(gbal->pitch_tar_angle,
 				   -PITCH_GYRO_DELTA,
 					PITCH_GYRO_DELTA);
-
-
 }
 /* rc data related below */
 /*
@@ -788,7 +786,7 @@ static void gimbal_rc_mode_selection(Gimbal_t* gbal, RemoteControl_t *rc_hdlr){
 		if(rc_hdlr->pc.mouse.right_click.status == PRESSED)
 			board_mode = AUTO_AIM_MODE;
 		else
-			pack_reset(&temp_pack);
+			uc_rx_pack_init(&temp_pack);
 
 		if(act_mode == GIMBAL_FOLLOW){
 			motor_mode = ENCODE_MODE;
@@ -815,7 +813,6 @@ static void gimbal_rc_mode_selection(Gimbal_t* gbal, RemoteControl_t *rc_hdlr){
 	gimbal_set_act_mode(gbal, act_mode);// act mode only works when debuging with rc
 	gimbal_set_motor_mode(gbal, motor_mode);
 }
-
 
 /******************************** For Comms Above **************************************/
 /******************************** For Auto Aiming Below ********************************/
@@ -889,9 +886,5 @@ void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode){
 		motor_data[yaw_id].tx_data = 0;
 	}
 }
-
-
-
-
 
 #endif /* __GIMBAL_APP_C__ */

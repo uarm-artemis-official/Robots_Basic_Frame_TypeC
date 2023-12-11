@@ -1,4 +1,0 @@
-auto_aim_pack.c:27:6:pack_init	16	static
-auto_aim_pack.c:35:6:pack_reset	16	static
-auto_aim_pack.c:52:7:parse_pack_indv	72	static
-auto_aim_pack.c:74:14:parse_all	24	static

@@ -72,7 +72,7 @@ void imu_task_init(void){
 	/* inint bmi088 */
 	bmi088_device_init();
 	/* init sensor pid */
-	pid_param_init(&(imu.tmp_pid), 4000, 1300, 25, 850, 0.1, 0.02);
+	pid_param_init(&(imu.tmp_pid), 4000, 1300, 25, 950, 0.05, 0.02);
 	set_imu_temp_status(&imu, ABNORMAL);
 	imu.imu_mode = GA_MODE; // forbid ist8310
     if(imu.imu_mode == GA_MODE){

@@ -134,8 +134,7 @@ void RC_Task_Func(){
 
 	for(;;){
 
-		//FIXME: may add some filters to avoid noise
-		rc_process_rx_data(&rc);
+		rc_process_rx_data(&rc, rc_rx_buffer);
 		rc_update_comm_pack(&rc, &(rc_message.message.comm_rc), &(pc_message.message.comm_pc));
 
 		/* delay until wake time */
@@ -201,7 +200,7 @@ void rc_task_init(RemoteControl_t *rc_hdlr){
   * @param[in] main rc struct
   * @retval    None
   */
-void rc_process_rx_data(RemoteControl_t *rc_hdlr){
+void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rc_rx_buffer){
 	/* no matter what mode, read switch data */
 	rc_hdlr->ctrl.s1   = ((rc_rx_buffer[5] >> 4)& 0x000C) >> 2;
 	rc_hdlr->ctrl.s2   = ((rc_rx_buffer[5] >> 4)& 0x0003);      //may use this as mode swap indicator
@@ -302,8 +301,6 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *c
 		comm_pc->pc_data[3]  = rc_hdlr->pc.mouse.right_click.status;
 		comm_pc->send_flag = 1;
 	}
-
-
 }
 
 /**
@@ -312,9 +309,10 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *c
   * @retval    None
   */
 void rc_reset(RemoteControl_t *rc_hdlr){
-	HAL_UART_DMAStop(&huart1);
-	/* try reconnect to rc */
-	HAL_UART_Receive_DMA(&huart1, rc_rx_buffer, DBUS_BUFFER_LEN);
+	/* stop DMA */
+	HAL_UART_DMAStop(&huart3);
+	/* try to reconnect to rc */
+	HAL_UART_Receive_DMA(&huart3, rc_rx_buffer, DBUS_BUFFER_LEN);
 }
 
 /* Keyboard operation process */

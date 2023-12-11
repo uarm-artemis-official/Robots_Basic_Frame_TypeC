@@ -72,12 +72,6 @@ void buzzer_alarm_times(uint8_t times, uint16_t duration, Buzzer_t *buzz){
 }
 
 
-
-
-
-
-
-
 /* below are the buzzer tune play functions, used for imu task and for fun! */
 void buzzer_play_g0(int32_t duration){
 	__HAL_TIM_SET_COUNTER(&BUZZ_HTIM,0);

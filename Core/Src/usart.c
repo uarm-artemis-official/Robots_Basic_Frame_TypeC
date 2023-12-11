@@ -22,12 +22,10 @@
 
 /* USER CODE BEGIN 0 */
 #include "Comm_App.h"
+#include "Control_App.h"
 #include "auto_aim.h"
-extern uint8_t rc_rx_buffer[18];
 extern char pdata[PACKLEN];
 extern uint8_t ref_rx_frame[256];
-
-
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -93,7 +91,7 @@ void MX_USART2_UART_Init(void)
   }
   /* USER CODE BEGIN USART2_Init 2 */
   else{
- 	  HAL_UART_Receive_DMA(&huart3, ref_rx_frame, sizeof(ref_rx_frame));
+ 	  HAL_UART_Receive_DMA(&huart2, ref_rx_frame, sizeof(ref_rx_frame));
    }
   /* USER CODE END USART2_Init 2 */
 
@@ -114,7 +112,7 @@ void MX_USART3_UART_Init(void)
   huart3.Init.BaudRate = 100000;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Parity = UART_PARITY_EVEN;
   huart3.Init.Mode = UART_MODE_TX_RX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
@@ -123,7 +121,7 @@ void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-
+//  HAL_UART_Receive_IT(&huart3, rc_rx_buffer, DBUS_BUFFER_LEN);
   /* USER CODE END USART3_Init 2 */
 
 }

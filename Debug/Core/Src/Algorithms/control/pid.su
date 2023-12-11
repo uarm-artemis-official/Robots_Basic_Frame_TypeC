@@ -1,5 +1,0 @@
-pid.c:14:6:pid_param_init	40	static
-pid.c:38:7:pid_calculate	32	static
-pid.c:66:7:pid_incremental_calculate	32	static
-pid.c:95:7:pid_single_loop_control	24	static
-pid.c:104:7:pid_dual_loop_control	40	static
