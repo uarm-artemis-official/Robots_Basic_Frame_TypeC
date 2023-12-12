@@ -250,7 +250,7 @@ void process_rx_data_i16tof(BoardComm_t *comm, float *output_buffer, float scale
 */
 void can_send_comm_data(CAN_HandleTypeDef* hcan, int16_t* send_data, uint32_t comm_id){
 	uint8_t comm_can_send_data[8];
-	uint32_t send_mail_box;
+//	uint32_t send_mail_box;
 	CAN_TxHeaderTypeDef  comm_tx_message;
 
 	comm_tx_message.IDE = CAN_ID_STD;

@@ -76,10 +76,10 @@ void Gimbal_Task_Function(void const * argument)
 	gimbal_task_init(&gimbal);
 
 	/* reset calibration using ramp function */
-	gimbal_calibration_reset(&gimbal);
+//	gimbal_calibration_reset(&gimbal);
 
 	/* define after-detection delay var here */
-	int16_t gimbal_control_counter=0;
+//	int16_t gimbal_control_counter=0;
 
 	/* set task exec period */
 	TickType_t xLastWakeTime;
@@ -508,8 +508,8 @@ void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr){
 void gimbal_get_euler_angle(Gimbal_t *gbal){
 	gimbal_get_raw_mpu_data(gbal, &imu); // copy data to avoid mem leaks
 //	atti_math_calc(&gbal->ahrs_sensor, &gbal->euler_angle); //complementary filter parsed angle
-	mahony_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));	//mahony algo
-//	madgwick_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));  //madgwick algo
+//	mahony_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));	//mahony algo
+	madgwick_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));  //madgwick algo
 }
 
 /*
@@ -685,7 +685,7 @@ static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr)
 		delta_yaw = in_out_map(rc_hdlr->ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL, CHANNEL_OFFSET_MAX_ABS_VAL,
 										-0.5*0.16667*PI, 0.5*0.16667*PI);//(-15d, 15d)
 		delta_pitch = in_out_map(rc_hdlr->ctrl.ch1, -CHANNEL_OFFSET_MAX_ABS_VAL, CHANNEL_OFFSET_MAX_ABS_VAL,
-										-0.1*0.16667*PI, 0.1*0.16667*PI);//(-3d, 3d)
+										-0.39*0.16667*PI, 0.391*0.16667*PI);//(-12d, 12d)
 	}
 	else if(rc_hdlr->control_mode == PC_MODE){
 		//TODO fine tune the precision of the mouse

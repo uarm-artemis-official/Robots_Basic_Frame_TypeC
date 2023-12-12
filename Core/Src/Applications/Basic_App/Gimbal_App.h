@@ -35,7 +35,7 @@
 //#define GIMBAL_MOTOR_DEBUG 1
 #define MODE_DEBUG 1
 
-#define PITCH_ECD_CENTER  5750//6100 manually measured data
+#define PITCH_ECD_CENTER  3500//6100 manually measured data
 #define PITCH_ECD_DELTA  1364  //60/180*4096
 #define PITCH_GYRO_DELTA (30.0f * DEGREE2RAD)
 #define YAW_ECD_CENTER 620//300

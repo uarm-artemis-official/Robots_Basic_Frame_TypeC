@@ -46,11 +46,12 @@ void IMU_Task_Function(void){
 			}
 
 			/* set the offset when the temperature reach normal status */
-			__HAL_TIM_SET_COMPARE(&IMU_TMP_PWM_HTIM, IMU_TMP_PWM_CHANNEL, 100);//small current to keep tmp
+			__HAL_TIM_SET_COMPARE(&IMU_TMP_PWM_HTIM, IMU_TMP_PWM_CHANNEL, 1000);//small current to keep tmp
 			bmi088_get_offset();
 
 			/* imu init finished */
 			imu_init_flag = 1;
+			buzzer_play_mario(300);
 			}
 
 		/* IMU temperature PID control*/
@@ -70,7 +71,7 @@ void imu_task_init(void){
 	/* inint bmi088 */
 	bmi088_device_init();
 	/* init sensor pid */
-	pid_param_init(&(imu.tmp_pid), 4000, 1300, 25, 1000, 0.05, 0.02);
+	pid_param_init(&(imu.tmp_pid), 2000, 1500, 25, 900, 0.10, 0.05);
 	set_imu_temp_status(&imu, ABNORMAL);
 	imu.imu_mode = GA_MODE; // forbid ist8310
     if(imu.imu_mode == GA_MODE){
