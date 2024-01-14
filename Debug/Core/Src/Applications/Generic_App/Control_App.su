@@ -1,0 +1,8 @@
+Control_App.c:120:6:RC_Task_Func	16	static
+Control_App.c:150:6:rc_task_init	16	static
+Control_App.c:203:6:rc_process_rx_data	16	static
+Control_App.c:278:13:rc_update_comm_pack	24	static
+Control_App.c:311:6:rc_reset	16	static
+Control_App.c:324:6:rc_key_init	16	static
+Control_App.c:334:6:rc_key_scan	16	static
+Control_App.c:346:13:rc_get_key_status	16	static

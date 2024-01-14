@@ -1,0 +1,6 @@
+motor.c:31:6:Motor_Data_Read	32	static
+motor.c:49:6:Motor_Data_Send	56	static
+motor.c:74:6:motor_init	64	static
+motor.c:91:6:set_motor_can_volt	40	static
+motor.c:136:6:set_motor_can_current	24	static
+motor.c:231:6:Motor_set_raw_value	176	static

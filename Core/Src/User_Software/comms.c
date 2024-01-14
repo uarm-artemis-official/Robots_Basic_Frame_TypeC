@@ -72,15 +72,15 @@ CommMessage_t pc_message = {
     .init = pc_message_init
 };
 
-void pc_add_message_init(CommMessageUnion_t *cmu){
+void pc_ext_message_init(CommMessageUnion_t *cmu){
 	for(uint8_t i = 0;i<3; i++)
-		cmu->comm_add_pc.pc_data[i] = RELEASED;
-	cmu->comm_add_pc.send_flag = 0;//reset flag
+		cmu->comm_ext_pc.pc_data[i] = RELEASED;
+	cmu->comm_ext_pc.send_flag = 0;//reset flag
 }
 
 CommMessage_t pc_add_message = {
-    .message_type = COMM_ADD_PC_CONTROL,
-    .init = pc_add_message_init
+    .message_type = COMM_EXT_PC_CONTROL,
+    .init = pc_ext_message_init
 };
 
 
@@ -131,7 +131,7 @@ void comm_subscribe(CommMessageSublist_t *sub, CommMessageType_t msgType, CommRo
 			pc_message.role = role;
 			pc_message.init(&(pc_message.message));
 			break;
-        case COMM_ADD_PC_CONTROL:
+        case COMM_EXT_PC_CONTROL:
         	pc_add_message.role = role;
         	pc_add_message.init(&(pc_add_message.message));
         	break;
