@@ -78,7 +78,7 @@ void pc_ext_message_init(CommMessageUnion_t *cmu){
 	cmu->comm_ext_pc.send_flag = 0;//reset flag
 }
 
-CommMessage_t pc_add_message = {
+CommMessage_t pc_ext_message = {
     .message_type = COMM_EXT_PC_CONTROL,
     .init = pc_ext_message_init
 };
@@ -132,8 +132,8 @@ void comm_subscribe(CommMessageSublist_t *sub, CommMessageType_t msgType, CommRo
 			pc_message.init(&(pc_message.message));
 			break;
         case COMM_EXT_PC_CONTROL:
-        	pc_add_message.role = role;
-        	pc_add_message.init(&(pc_add_message.message));
+        	pc_ext_message.role = role;
+        	pc_ext_message.init(&(pc_ext_message.message));
         	break;
         case COMM_REFEREE:
         	ref_message.role = role;
