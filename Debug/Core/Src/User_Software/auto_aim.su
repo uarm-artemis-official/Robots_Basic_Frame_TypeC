@@ -1,3 +1,0 @@
-auto_aim.c:23:6:uc_rx_pack_init	16	static
-auto_aim.c:36:10:calculate_checksum	24	static
-auto_aim.c:45:9:uc_parse_recv_packet	24	static

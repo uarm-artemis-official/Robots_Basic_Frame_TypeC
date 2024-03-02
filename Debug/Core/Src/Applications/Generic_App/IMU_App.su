@@ -1,5 +1,0 @@
-IMU_App.c:24:6:IMU_Task_Function	16	static
-IMU_App.c:70:6:imu_task_init	8	static
-IMU_App.c:93:6:set_imu_temp_status	16	static
-IMU_App.c:97:6:set_imu_pwm	16	static
-IMU_App.c:105:9:imu_temp_pid_control	16	static

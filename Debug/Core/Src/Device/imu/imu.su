@@ -1,7 +1,0 @@
-imu.c:47:6:bmi088_get_data	16	static
-imu.c:63:6:bmi088_get_temp	16	static
-imu.c:73:9:bmi088_device_init	8	static
-imu.c:85:5:ahrs_update	16	static
-imu.c:112:9:bmi088_set_offset	40	static
-imu.c:143:9:bmi088_get_offset	16	static
-imu.c:159:13:bmi088_cali_slove	32	static
