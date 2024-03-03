@@ -25,6 +25,7 @@ typedef enum {
 	COMM_PC_CONTROL = 1 << 2,      // 0b00100
     COMM_REFEREE = 1 << 3,         // 0b01000
     COMM_VISION = 1 << 4,          // 0b10000
+	COMM_EXT_PC_CONTROL = 1 << 5,  // 0b100000
 
     							   // add more here if needed
 } CommMessageType_t;
@@ -68,6 +69,11 @@ typedef struct{
 	uint8_t send_flag;
 }CommPCControl_t;
 
+typedef struct{
+	int16_t pc_data[3]; //switch to shoot mode, 180 degree turn around, switch barrel
+	uint8_t send_flag;
+}CommExtPCControl_t;
+
 /* referee info   -> chassis to gimbal */
 typedef struct{
 	game_status_t 	  game_status_data;
@@ -90,6 +96,8 @@ typedef union {
 	CommReferee_t comm_ref;
 	/* vision info    -> chassis to gimbal */
 	CommVision_t vision;
+	/* pc control -> chassis to gimbal */
+	CommExtPCControl_t comm_ext_pc;
 }CommMessageUnion_t;
 
 /* Abstract communication module interface */

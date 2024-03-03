@@ -72,6 +72,18 @@ CommMessage_t pc_message = {
     .init = pc_message_init
 };
 
+void pc_ext_message_init(CommMessageUnion_t *cmu){
+	for(uint8_t i = 0;i<3; i++)
+		cmu->comm_ext_pc.pc_data[i] = RELEASED;
+	cmu->comm_ext_pc.send_flag = 0;//reset flag
+}
+
+CommMessage_t pc_ext_message = {
+    .message_type = COMM_EXT_PC_CONTROL,
+    .init = pc_ext_message_init
+};
+
+
 /* init comm for referee info */
 void ref_message_init(CommMessageUnion_t* cmu){
 	/* not implement yet */
@@ -119,6 +131,10 @@ void comm_subscribe(CommMessageSublist_t *sub, CommMessageType_t msgType, CommRo
 			pc_message.role = role;
 			pc_message.init(&(pc_message.message));
 			break;
+        case COMM_EXT_PC_CONTROL:
+        	pc_ext_message.role = role;
+        	pc_ext_message.init(&(pc_ext_message.message));
+        	break;
         case COMM_REFEREE:
         	ref_message.role = role;
             ref_message.init(&(ref_message.message));
