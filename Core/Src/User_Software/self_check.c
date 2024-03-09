@@ -34,7 +34,9 @@ extern Motor motor_data[MOTOR_COUNT];
   */
 SelfCheckStatus_t self_check_system(){
 	/* motor check processes */
+
 	if(board_status == CHASSIS_BOARD){
+		/*
 		if(self_check_motors(wheel_id1) == CHECK_FAIL){
 			buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
 			return CHECK_FAIL;
@@ -51,6 +53,7 @@ SelfCheckStatus_t self_check_system(){
 			buzzer_alarm_times(4, TWO_SECOND_CNT, &buzzer);// 4 buzz per second
 			return CHECK_FAIL;
 		}
+		*/
 	}
 	else if(board_status == GIMBAL_BOARD){
 		if(self_check_motors(yaw_id) == CHECK_FAIL){

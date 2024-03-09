@@ -195,6 +195,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_I2C3_Init();
+//  MX_IWDG_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 #ifdef USE_IWDG
@@ -389,15 +390,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	 referee_read_data(&referee, ref_rx_frame);
 	 /* re-activate DMA */
 	 HAL_UART_Receive_DMA(&huart2, ref_rx_frame, sizeof(ref_rx_frame));
-  }
-  if(huart == &huart1 && board_status == GIMBAL_BOARD){
-	  uint8_t fail_indicator = 1;
-	  /*read data from mini pc pack*/
-	  fail_indicator = uc_parse_recv_packet(pdata, &uc_rx_pack);
-	  /* re-activate DMA */
-	  if(fail_indicator == 0)
-		  HAL_UART_Receive_DMA(&huart1, pdata, UC_RX_PACKLEN);
-  }
+  } else if (huart == &huart1 && board_status == GIMBAL_BOARD) {
+		UC_Response_Pack_t uc_response_pack;
+		uc_response_pack_init(&uc_response_pack);
+
+		uint32_t data_checksum = calculate_checksum(uc_input_buffer, UC_RECV_PACK_SIZE);
+		uint32_t sent_checksum = *((uint32_t*) uc_input_buffer + 3);
+		if (data_checksum == sent_checksum) {
+			uc_response_pack.response_code = 0;
+			memcpy(&uc_rx_pack, uc_input_buffer, UC_RECV_PACK_SIZE);
+		} else {
+			uc_response_pack.response_code = 1;
+		}
+		uc_response_pack.checksum = calculate_checksum(&uc_response_pack, UC_RESPONSE_PACK_SIZE);
+
+		uc_send_packet(&uc_response_pack, UC_RESPONSE_PACK_SIZE);
+		uc_receive_packet();
+	}
 }
 #endif
 /* USER CODE END 4 */
