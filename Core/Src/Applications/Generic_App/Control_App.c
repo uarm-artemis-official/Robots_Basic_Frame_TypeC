@@ -106,12 +106,13 @@ RemoteControl_t rc;
 extern Chassis_t chassis;
 extern CommMessage_t rc_message;
 extern CommMessage_t pc_message;
+extern CommMessage_t pc_ext_message;
 
 /* extern glbal vars here */
 
 
 /* define internal functions */
-static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *comm_rc, CommPCControl_t *comm_pc);
+static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *comm_rc, CommPCControl_t *comm_pc, CommExtPCControl_t *comm_ext_pc);
 /**
   * @brief     main remote control task
   * @param[in] None
@@ -135,7 +136,7 @@ void RC_Task_Func(){
 	for(;;){
 
 		rc_process_rx_data(&rc, rc_rx_buffer);
-		rc_update_comm_pack(&rc, &(rc_message.message.comm_rc), &(pc_message.message.comm_pc));
+		rc_update_comm_pack(&rc, &(rc_message.message.comm_rc), &(pc_message.message.comm_pc),&(pc_ext_message.message.comm_ext_pc));
 
 		/* delay until wake time */
 	    vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -275,7 +276,7 @@ void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rc_rx_buffer){
   * @param[in] comm rc struct
   * @retval    None
   */
-static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *comm_rc, CommPCControl_t *comm_pc){
+static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *comm_rc, CommPCControl_t *comm_pc, CommExtPCControl_t *comm_ext_pc){
 	if(rc_hdlr->control_mode == CTRLER_MODE){
 		comm_rc->rc_data[0] = rc_hdlr->ctrl.ch0;
 		comm_rc->rc_data[1] = rc_hdlr->ctrl.ch1;
@@ -300,6 +301,13 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *c
 		comm_pc->pc_data[2]  = rc_hdlr->pc.mouse.left_click.status;
 		comm_pc->pc_data[3]  = rc_hdlr->pc.mouse.right_click.status;
 		comm_pc->send_flag = 1;
+
+		comm_ext_pc->pc_data[0] = rc_hdlr->pc.key.C.status;
+		comm_ext_pc->pc_data[1] = rc_hdlr->pc.key.V.status;
+		comm_ext_pc->pc_data[2] = rc_hdlr->pc.key.B.status;
+		comm_ext_pc->send_flag = 1;
+
+
 	}
 }
 

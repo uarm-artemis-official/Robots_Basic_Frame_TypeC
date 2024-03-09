@@ -79,12 +79,14 @@ void can_comm_subscribe_process(void){
 	if(board_status == CHASSIS_BOARD){
 		comm_subscribe(&chassis_comm.sub_list, COMM_REMOTE_CONTROL, Transmitter);
 		comm_subscribe(&chassis_comm.sub_list, COMM_PC_CONTROL, Transmitter);
+		comm_subscribe(&chassis_comm.sub_list, COMM_EXT_PC_CONTROL, Transmitter);
 		comm_subscribe(&chassis_comm.sub_list, COMM_GIMBAL_ANGLE, Receiver);
 	}
 	else if(board_status == GIMBAL_BOARD){
 		comm_subscribe(&gimbal_comm.sub_list, COMM_GIMBAL_ANGLE, Transmitter);
 		comm_subscribe(&gimbal_comm.sub_list, COMM_REMOTE_CONTROL, Receiver);
 		comm_subscribe(&gimbal_comm.sub_list, COMM_PC_CONTROL, Receiver);
+		comm_subscribe(&gimbal_comm.sub_list, COMM_EXT_PC_CONTROL, Receiver);
 	}
 }
 /**

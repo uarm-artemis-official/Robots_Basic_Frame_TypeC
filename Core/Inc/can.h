@@ -35,7 +35,7 @@ typedef struct{
 	uint32_t comm_id;
 	uint8_t comm_rx_buffer[8];
 }can_comm_rx_t;
-extern can_comm_rx_t can_comm_rx[6];
+extern can_comm_rx_t can_comm_rx[7];
 /* USER CODE END Includes */
 
 extern CAN_HandleTypeDef hcan1;

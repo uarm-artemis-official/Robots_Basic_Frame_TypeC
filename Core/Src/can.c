@@ -25,13 +25,14 @@
 extern BoardStatusType board_status;
 extern BoardComm_t chassis_comm;
 extern BoardComm_t gimbal_comm;
-can_comm_rx_t can_comm_rx[6] = {
+can_comm_rx_t can_comm_rx[7] = {
     {0, {0, 0, 0, 0, 0, 0, 0, 0}}, // IDLE_COMM_ID
     {0, {0, 0, 0, 0, 0, 0, 0, 0}}, // ANGLE_COMM_ID
     {0, {0, 0, 0, 0, 0, 0, 0, 0}},
     {0, {0, 0, 0, 0, 0, 0, 0, 0}},
     {0, {0, 0, 0, 0, 0, 0, 0, 0}},
     {0, {0, 0, 0, 0, 0, 0, 0, 0}},
+	{0, {0, 0, 0, 0, 0, 0, 0, 0}},
 };
 /* USER CODE END 0 */
 
