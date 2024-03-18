@@ -1,0 +1,2 @@
+self_check.c:35:19:self_check_system	4	static
+self_check.c:82:19:self_check_motors	16	static

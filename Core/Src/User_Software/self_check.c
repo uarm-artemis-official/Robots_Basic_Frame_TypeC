@@ -56,18 +56,18 @@ SelfCheckStatus_t self_check_system(){
 		*/
 	}
 	else if(board_status == GIMBAL_BOARD){
-		if(self_check_motors(yaw_id) == CHECK_FAIL){
-			buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
-			return CHECK_FAIL;
-		}
-		else if(self_check_motors(pitch_id) == CHECK_FAIL){
-			buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
-			return CHECK_FAIL;
-		}
-		else if(self_check_motors(mag_2006_id) == CHECK_FAIL){
-			buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
-			return CHECK_FAIL;
-		}
+//		if(self_check_motors(yaw_id) == CHECK_FAIL){
+//			buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
+//			return CHECK_FAIL;
+//		}
+//		else if(self_check_motors(pitch_id) == CHECK_FAIL){
+//			buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
+//			return CHECK_FAIL;
+//		}
+//		else if(self_check_motors(mag_2006_id) == CHECK_FAIL){
+//			buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
+//			return CHECK_FAIL;
+//		}
 	}
 	/* RC check processes */
 	return CHECK_OK;

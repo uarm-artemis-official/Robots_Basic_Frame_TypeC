@@ -16,18 +16,17 @@
 #include "spi.h"
 #include "imu.h"
 #include "bmi088_driver.h"
+#include "ist8310driver.h"
 #include "pid.h"
-
 
 extern IMU_t imu;
 #define ABS_F(x) (x) < 0 ? -(x) : (x)
 
 #define BMI088_BOARD_INSTALL_SPIN_MATRIX \
-  {0.0f, 1.0f, 0.0f},                    \
-      {-1.0f, 0.0f, 0.0f},               \
-  {                                      \
-    0.0f, 0.0f, 1.0f                     \
-  }
+  {0.0f,  1.0f, 0.0f},                    \
+  {-1.0f, 0.0f, 0.0f},                 \
+  {0.0f,  0.0f, 1.0f}
+
 
 bmi088_real_data_t bmi088_real_data;
 float gyro_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
@@ -51,13 +50,24 @@ void bmi088_get_data(AhrsSensor_t *sensor)
     /* data fusion with the offset */
     bmi088_cali_slove(gyro, accel, &bmi088_real_data);
 
+    /* Access the mag */
+//    ist8310_read_mag(mag);
+
     sensor->ax = accel[0];
     sensor->ay = accel[1];
     sensor->az = accel[2];
 
     sensor->wx = gyro[0];
     sensor->wy = gyro[1];
-    sensor->wz = gyro[2];
+    sensor->wz = -gyro[2];
+
+//    sensor->mx = mag[0];
+//    sensor->my = mag[1];
+//    sensor->mz = mag[2];
+
+    sensor->mx = 0;
+    sensor->my = 0;
+    sensor->mz = 0;
 }
 
 void bmi088_get_temp(float *tmp)
@@ -87,6 +97,9 @@ int ahrs_update(AhrsSensor_t *sensor, uint8_t period_ms)
     BMI088_Read(bmi088_real_data.gyro, bmi088_real_data.accel, &temperature);
     bmi088_cali_slove(gyro, accel, &bmi088_real_data);
 
+    /* Access the mag */
+    ist8310_read_mag(mag);
+
     sensor->ax = accel[0];
     sensor->ay = accel[1];
     sensor->az = accel[2];
@@ -94,6 +107,11 @@ int ahrs_update(AhrsSensor_t *sensor, uint8_t period_ms)
     sensor->wx = gyro[0];
     sensor->wy = gyro[1];
     sensor->wz = gyro[2];
+
+    sensor->mx = mag[0];
+    sensor->my = mag[1];
+    sensor->mz = mag[2];
+
 
 //    AHRS_update(ins_quat, period_ms / 1000.0f, gyro, accel, mag);
 //    get_angle(ins_quat, ins_angle, ins_angle + 1, ins_angle + 2);
@@ -113,8 +131,9 @@ uint8_t bmi088_set_offset(void)
 {
 
     float gyro[3], accel[3];
+    int cali_times = 100;
 
-    for (int i = 0; i < 300; i++)
+    for (int i = 0; i < cali_times; i++)
     {
         BMI088_Read(gyro, accel, &temperature);
         gyro_offset[0] += gyro[0];
@@ -126,16 +145,20 @@ uint8_t bmi088_set_offset(void)
         accel_offset[2] += accel[2];
 
         /* delay a given period */
-        osDelay(3);
+        osDelay(3);//3
     }
 
-    gyro_offset[0] = gyro_offset[0] / 300;
-    gyro_offset[1] = gyro_offset[1] / 300;
-    gyro_offset[2] = gyro_offset[2] / 300;
+    gyro_offset[0] = gyro_offset[0] / cali_times;
+    gyro_offset[1] = gyro_offset[1] / cali_times;
+    gyro_offset[2] = gyro_offset[2] / cali_times;
 
-    accel_offset[0] += accel_offset[0] / 300;
-	accel_offset[1] += accel_offset[1] / 300;
-	accel_offset[2] += accel_offset[2] / 300;
+//    accel_offset[0] = accel_offset[0] / 300;
+//	accel_offset[1] = accel_offset[1] / 300;
+//	accel_offset[2] = accel_offset[2] / 300;
+
+    accel_offset[0] += accel_offset[0] / cali_times;
+	accel_offset[1] += accel_offset[1] / cali_times;
+	accel_offset[2] += accel_offset[2] / cali_times;
 
     return 0;
 }

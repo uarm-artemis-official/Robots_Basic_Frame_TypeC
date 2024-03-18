@@ -305,6 +305,7 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *c
 		comm_ext_pc->pc_data[0] = rc_hdlr->pc.key.C.status;
 		comm_ext_pc->pc_data[1] = rc_hdlr->pc.key.V.status;
 		comm_ext_pc->pc_data[2] = rc_hdlr->pc.key.B.status;
+		comm_ext_pc->pc_data[3] = 0;
 		comm_ext_pc->send_flag = 1;
 
 

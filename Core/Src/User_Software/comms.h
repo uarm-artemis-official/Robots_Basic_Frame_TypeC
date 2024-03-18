@@ -70,7 +70,7 @@ typedef struct{
 }CommPCControl_t;
 
 typedef struct{
-	int16_t pc_data[3]; //switch to shoot mode, 180 degree turn around, switch barrel
+	int16_t pc_data[4]; //switch to shoot mode, 180 degree turn around, switch barrel
 	uint8_t send_flag;
 }CommExtPCControl_t;
 

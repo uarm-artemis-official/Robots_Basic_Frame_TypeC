@@ -41,10 +41,9 @@ float pid_calculate(PID_t *pid, float cur_val, float target_val)
   pid->cur_val = cur_val;
   pid->target_val = target_val;
   pid->last_err = pid->err;
-  pid->err = target_val - cur_val;
+  pid->err =  target_val - cur_val;
   if ((pid->max_err != 0) && (fabs(pid->err) > pid->max_err))
     return 0;
-
   pid->pout = pid->kp * pid->err;
   pid->iout += pid->ki * pid->err *dt;
   pid->dout = pid->kd * (pid->err - pid->last_err) / dt;

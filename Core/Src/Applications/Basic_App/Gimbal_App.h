@@ -71,10 +71,16 @@ typedef struct{
 	float pitch_tar_angle;			//pitch angle target angle in radians
 	float pitch_cur_abs_angle;		//pitch current absolute angle updated by gyro
 	float pitch_cur_rel_angle;		//pitch current absolute angle updated by gyro
+	float pitch_prev_angle;    		//pitch previous absolute angle for updating turns
+
+	float yaw_total_turns;
+	float pitch_total_turns;
+	float final_abs_yaw;
+	float final_abs_pitch;
 
 	double gyro_offset_slope;    //offset func: -0.000000000184229  -0.001797605717065
 								 //fit a linear func to compensate yaw abs angle shift, now abandoned
-	uint32_t gyro_offset_count;
+	uint32_t gyro_offset_count;  // This method has been abandoned
 
 	Gimbal_Axis_t axis;
 
@@ -110,6 +116,7 @@ typedef struct{
 
 	GimbalMotorMode_t gimbal_motor_mode;  //gyro or encoder
 	BoardActMode_t gimbal_act_mode;		  //gimbal center, gimbal follow, etc
+	BoardActMode_t prev_gimbal_act_mode;
 	BoardMode_t gimbal_mode;			  //idle(safe) or normal
 
 }Gimbal_t;
