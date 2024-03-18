@@ -1,3 +1,0 @@
-debugger.c:33:6:motor_step_signal_generator	24	static
-debugger.c:50:6:motor_spid_step_signal_generator	32	static
-debugger.c:70:6:motor_fpid_step_signal_generator	24	static
