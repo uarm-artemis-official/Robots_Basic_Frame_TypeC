@@ -1,0 +1,6 @@
+auto_aim.c:20:6:uc_rx_pack_init	16	static
+auto_aim.c:29:6:uc_tx_pack_init	16	static
+auto_aim.c:44:6:uc_response_pack_init	16	static
+auto_aim.c:51:10:calculate_checksum	32	static
+auto_aim.c:66:6:uc_receive_packet	8	static
+auto_aim.c:71:9:uc_send_packet	24	static

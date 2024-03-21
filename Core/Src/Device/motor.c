@@ -115,6 +115,7 @@ void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t cont
 														  &(motor_data[pitch_id].motor_info.s_pid),
 														  in_out_map(gimbal_get_ecd_rel_angle(motor_data[pitch_id].motor_feedback.rx_angle, PITCH_ECD_CENTER),
 														  		     -4095,4095,-PI,PI),
+//														  gimbal.pitch_cur_abs_angle,
 														  motor_data[pitch_id].motor_feedback.rx_rpm);//pid+ff
 
 

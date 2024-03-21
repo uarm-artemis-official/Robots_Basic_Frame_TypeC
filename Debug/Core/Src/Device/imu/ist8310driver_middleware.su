@@ -1,0 +1,10 @@
+ist8310driver_middleware.c:30:6:ist8310_GPIO_init	4	static
+ist8310driver_middleware.c:40:6:ist8310_com_init	4	static
+ist8310driver_middleware.c:49:9:ist8310_IIC_read_single_reg	40	static
+ist8310driver_middleware.c:63:6:ist8310_IIC_write_single_reg	32	static
+ist8310driver_middleware.c:75:6:ist8310_IIC_read_muli_reg	32	static
+ist8310driver_middleware.c:88:6:ist8310_IIC_write_muli_reg	32	static
+ist8310driver_middleware.c:99:6:ist8310_delay_ms	16	static
+ist8310driver_middleware.c:111:6:ist8310_delay_us	40	static
+ist8310driver_middleware.c:148:6:ist8310_RST_H	8	static
+ist8310driver_middleware.c:159:13:ist8310_RST_L	8	static

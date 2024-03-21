@@ -36,38 +36,37 @@ SelfCheckStatus_t self_check_system(){
 	/* motor check processes */
 
 	if(board_status == CHASSIS_BOARD){
-		/*
-		if(self_check_motors(wheel_id1) == CHECK_FAIL){
-			buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
-			return CHECK_FAIL;
-		}
-		else if(self_check_motors(wheel_id2) == CHECK_FAIL){
-			buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
-			return CHECK_FAIL;
-		}
-		else if(self_check_motors(wheel_id3) == CHECK_FAIL){
-			buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
-			return CHECK_FAIL;
-		}
-		else if(self_check_motors(wheel_id4) == CHECK_FAIL){
-			buzzer_alarm_times(4, TWO_SECOND_CNT, &buzzer);// 4 buzz per second
-			return CHECK_FAIL;
-		}
-		*/
-	}
-	else if(board_status == GIMBAL_BOARD){
-//		if(self_check_motors(yaw_id) == CHECK_FAIL){
+
+//		if(self_check_motors(wheel_id1) == CHECK_FAIL){
 //			buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
 //			return CHECK_FAIL;
 //		}
-//		else if(self_check_motors(pitch_id) == CHECK_FAIL){
+//		else if(self_check_motors(wheel_id2) == CHECK_FAIL){
 //			buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
 //			return CHECK_FAIL;
 //		}
-//		else if(self_check_motors(mag_2006_id) == CHECK_FAIL){
+//		else if(self_check_motors(wheel_id3) == CHECK_FAIL){
 //			buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
 //			return CHECK_FAIL;
 //		}
+//		else if(self_check_motors(wheel_id4) == CHECK_FAIL){
+//			buzzer_alarm_times(4, TWO_SECOND_CNT, &buzzer);// 4 buzz per second
+//			return CHECK_FAIL;
+//		}
+	}
+	else if(board_status == GIMBAL_BOARD){
+		if(self_check_motors(yaw_id) == CHECK_FAIL){
+			buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
+			return CHECK_FAIL;
+		}
+		else if(self_check_motors(pitch_id) == CHECK_FAIL){
+			buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
+			return CHECK_FAIL;
+		}
+		else if(self_check_motors(mag_2006_id) == CHECK_FAIL){
+			buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
+			return CHECK_FAIL;
+		}
 	}
 	/* RC check processes */
 	return CHECK_OK;

@@ -87,14 +87,14 @@
  *    |  	G	  	|  Safety Key    |  IDLE MODE, shut down everything(hold) 	 |
  *    |				|				 |  (release to select the normal mode) 	 |
  *    ----------------------------------------------------------------------------
- *    |  	C		|  Auto aim 	 |  Swap to auto aiming mode    			 |
+ *    | Right Click |  Auto aim 	 |  Swap to auto aiming mode    			 |
  *    ----------------------------------------------------------------------------
  *    | Left Click	|  Shoot 	 	 |  Tap to fire a single shot, press and 	 |
  *    |				|				 |	hold to continously shoot.   			 |
  *    ----------------------------------------------------------------------------
- *    | Right Click |  Swap Barrel 	 |  Swap barrels if have double barrel	     |
+ *    |     B       |  Toggle Lid 	 |  Toggle the lid for the projectiles cargo |
  *    ----------------------------------------------------------------------------
- *    |  	B	  	|  Shoot speed   |  shoot fric and mag speed manually switch |
+ *    |  	C	  	|  Shoot speed   |  shoot fric and mag speed manually switch |
  *    ----------------------------------------------------------------------------
  *
  *    Note: Shift need to be combined with any of WASD keys.
@@ -122,7 +122,7 @@ void RC_Task_Func(){
 
 	/* set task exec period */
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(10); // 100Hz, make sure this task slower than comm app
+	const TickType_t xFrequency = pdMS_TO_TICKS(5); // 100Hz, make sure this task slower than comm app
 
 	/* init rc task */
 	rc_task_init(&rc);

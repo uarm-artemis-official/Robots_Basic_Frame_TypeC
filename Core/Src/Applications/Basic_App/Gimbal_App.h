@@ -111,7 +111,8 @@ typedef struct{
 	ewma_filter_t ewma_f_aim_yaw;
 	ewma_filter_t ewma_f_aim_pitch;
 
-	first_order_low_pass_t folp_f; //first order low pass filter for imu data
+	first_order_low_pass_t folp_f_yaw; //first order low pass filter for imu data
+	first_order_low_pass_t folp_f_pitch; //first order low pass filter for imu data;
 	kalman_filter_t kalman_f;// first order gyroscope kalman filter for imu data
 
 	GimbalMotorMode_t gimbal_motor_mode;  //gyro or encoder

@@ -1,20 +1,19 @@
 /*
-******************************************************************************
-* @file           : auto_aim_pack.h
-* @brief          : parse pack functions for parsing the received packets from
-* 					mini PC (JLU version）
-* @created time	  : Jul, 2023
-* @author         : Haoran
-*
-******************************************************************************
-* Copyright (c) 2023 UARM Artemis.
-* All rights reserved.
-*
-*
-* This program has been abandoned since we are designing the new auto aiming sys
-******************************************************************************
-*/
-
+ ******************************************************************************
+ * @file           : auto_aim_pack.h
+ * @brief          : parse pack functions for parsing the received packets from
+ * 					mini PC (JLU version）
+ * @created time	  : Jul, 2023
+ * @author         : Haoran
+ *
+ ******************************************************************************
+ * Copyright (c) 2023 UARM Artemis.
+ * All rights reserved.
+ *
+ *
+ * This program has been abandoned since we are designing the new auto aiming sys
+ ******************************************************************************
+ */
 
 #ifndef __AA_PACK_H__
 #define __AA_PACK_H__
@@ -39,9 +38,7 @@ extern CommVision_t vision_pack;
 
 void pack_init(CommVision_t *pack);
 void pack_reset(CommVision_t *pack);
-float parse_pack_indv(char* recv_pack, int pos, int lens);
-CommVision_t parse_all(CommVision_t pack, char* recv_pack);
-
-
+float parse_pack_indv(char *recv_pack, int pos, int lens);
+CommVision_t parse_all(CommVision_t pack, char *recv_pack);
 
 #endif /*INC_COMM_H_*/

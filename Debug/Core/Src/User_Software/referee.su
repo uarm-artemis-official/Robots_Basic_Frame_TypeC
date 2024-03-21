@@ -1,0 +1,3 @@
+referee.c:44:6:Referee_Task_Func	8	static
+referee.c:58:6:referee_init	16	static
+referee.c:77:6:referee_read_data	16	static

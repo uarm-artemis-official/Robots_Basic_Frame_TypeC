@@ -367,7 +367,7 @@ void chassis_brake(float *vel, float ramp_step, float stop_threshold){
 /* define rc used count vars */
 int8_t chassis_pc_mode_toggle = 1; // encoder mode
 int8_t chassis_pc_submode_toggle = -1; // default to gimbal follow mode
-
+int32_t temp_toggle_count = 0;
 /*
  * @brief     mode selection based on remote controller
  * @param[in] chassis: main chassis handler
@@ -426,14 +426,15 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 	/* Mode quick check:
 	 * -----------------------------------------------------------------------
 	 * | toggle flag | pc_mode_toggle | pc_submode_toggle | Mode			 |
+	 * |             | 		(Ctrl)    |        (F)        |      			 |
 	 * -----------------------------------------------------------------------
-	 * |  		     |  	 1  	  |  		1		  |	INDEPENDENT MODE | __
+	 * |  		     |  	 1  	  |  		-1		  |	GIMBAL_FOLLOW    | __
 	 * |			 |--------------------------------------------------------   | - Enconder mode
-	 * |	         |  	 1   	  |  	   -1         |	GIMBAL_FOLLOW    | __|
+	 * |	         |  	 1   	  |  	    1         |	INDEPENDENT MODE | __|
 	 * |	index	 |--------------------------------------------------------
-	 * |	         |      -1        |  		1         |	GIMBAL CENTER    | __
+	 * |	         |      -1        |  		-1        |	GIMBAL CENTER    | __
 	 * |			 |--------------------------------------------------------   | - Gyro mode
-	 * |	         |  	-1        |  	   -1         |	SELF_GYRO	     | __|
+	 * |	         |  	-1        |  	    1         |	SELF_GYRO	     | __|
 	 * -----------------------------------------------------------------------
 	 * */
 	/* pc end mode selection */
@@ -447,13 +448,15 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 			board_mode = PATROL_MODE;
 			/* update keys state */
 //			if(rc_hdlr->pc.key.key_buffer & KEY_BOARD_CTRL)
-			if(rc_get_key_status(&rc_hdlr->pc.key.Ctrl) == RELEASED_TO_PRESS)// check rising edge
+			if(rc_get_key_status(&rc_hdlr->pc.key.Ctrl) == RELEASED_TO_PRESS){ // check rising edge
 				chassis_pc_mode_toggle = -chassis_pc_mode_toggle;
+				temp_toggle_count++;
+			}
 			if(rc_get_key_status(&rc_hdlr->pc.key.F) == RELEASED_TO_PRESS) // check rising edge
 				chassis_pc_submode_toggle = -chassis_pc_submode_toggle;
 
 			/* mode decide */
-			if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == 1){
+			if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == -1){
 				/* chassis follow gimbal center while follow yaw axis */
 				act_mode = GIMBAL_CENTER;
 				/* update gimbal axis */
@@ -463,7 +466,7 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 #endif
 			}
 
-			else if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == -1){
+			else if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == 1){
 				/* spinning chassis while follow yaw axis */
 				act_mode = SELF_GYRO;
 				/* update gimbal axis */
