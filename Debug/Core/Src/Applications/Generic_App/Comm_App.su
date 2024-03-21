@@ -1,9 +1,0 @@
-Comm_App.c:56:6:Comm_Task_Func	16	static
-Comm_App.c:78:6:can_comm_subscribe_process	8	static
-Comm_App.c:97:6:can_comm_reset_config	24	static
-Comm_App.c:125:6:can_comm_process	24	static
-Comm_App.c:247:6:process_tx_data_ftoi16	32	static
-Comm_App.c:258:6:process_rx_data_i16tof	32	static
-Comm_App.c:274:6:can_send_comm_data	56	static
-Comm_App.c:308:6:can_recv_comm_data	40	static
-Comm_App.c:327:6:usart_comm_process	8	static
