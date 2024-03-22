@@ -132,6 +132,7 @@ extern CommMessage_t rc_message;
 extern CommMessage_t pc_message;
 extern CommMessage_t ref_message;
 extern CommMessage_t vision_message;
+extern CommMessage_t pc_ext_message;
 
 
 /* declare functions here*/

@@ -39,7 +39,7 @@ void Shoot_Task_Func(void const * argument)
 
   /* set task exec period */
   TickType_t xLastWakeTime;
-  const TickType_t xFrequency = pdMS_TO_TICKS(10); // task exec period 10ms
+  const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 10ms
 
   /* init the task ticks */
   xLastWakeTime = xTaskGetTickCount();
@@ -60,83 +60,65 @@ void Shoot_Task_Func(void const * argument)
 	  /* check the magazine status */
 	  shoot_detect_mag_status(&shoot);
 
-	  /********** sentry only begins **********/
-//	  if(comm_pack.vision.fire_cmd == 1)
-//	  {
-	  /********** sentry only ends ***********/
-	  	 /* determine if open lid */
-	  	 if(shoot.lid_status == OPEN){//if sentry, delete this function
-	  		set_servo_value(SERVO_PWM_OPEN_LID);
-	  	 }
-	  	 else if(shoot.lid_status == CLOSE){
-	  	 	set_servo_value(SERVO_PWM_CLOSE_LID);
-	  	 }
+	 /* determine if open lid */
+	 if(shoot.lid_status == OPEN){//if sentry, delete this function
+		set_servo_value(SERVO_PWM_OPEN_LID);
+	 }
+	 else if(shoot.lid_status == CLOSE){
+		set_servo_value(SERVO_PWM_CLOSE_LID);
+	 }
 
-	  	 /* formal shoot task functions begins */
-	  	 if(shoot.shoot_act_mode == SHOOT_CEASE){
-	  		shoot.mag_turns_counter = 0;//clear magazine turns
-	  		shoot_stop(&shoot);
+	 /* formal shoot task functions begins */
+	 if(shoot.shoot_act_mode == SHOOT_CEASE){
+		shoot.mag_turns_counter = 0;//clear magazine turns
+		shoot_stop(&shoot);
 //	  		buzzer_stop();
-	  	 }
-	  	 else if(shoot.shoot_act_mode == SHOOT_RESERVE){
-			  /* reserve the magazine motor for a while */
-			  //FIXME: didn't consider if the reserve spin also stuck
-			  shoot_reserve_flag = 1;
-			  while(shoot_reserve_counter<20){//20*100ms = 2s
-				  set_mag_motor_angle(&shoot, shoot.mag_cur_angle - 0.3*PI);
-#ifndef USE_CAN_FRIC
-				  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
-#else
-				  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
-#endif
-				  shoot_execute(&shoot);
-				  osDelay(1);//release mcu
-			  }
-			  /* reset timer13 flag and counter */
-			  shoot_reserve_flag = 0;
-			  shoot_reserve_counter = 0;
-		  }
-	  	  else if(shoot.shoot_act_mode == SHOOT_ONCE){
-	  		 /* need referee system to determine shooting spd */
-	  		  set_mag_motor_angle(&shoot, 0.3*PI);
-#ifndef USE_CAN_FRIC
-	  		  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
-#else
-	  		  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
-#endif
-		  }
-		  else if(shoot.shoot_act_mode == SHOOT_CONT){
-			  if(rc.pc.mouse.right_click.status == PRESSED){
-				  /* auto aimming engage */
-			  }
-			  /* FIXME need referee system to determine shooting spd */
-			  set_mag_motor_angle(&shoot, shoot.mag_cur_angle + SHOOT_CONT_MAG_SPEED);//keep spinning
+	 }
+	 else if(shoot.shoot_act_mode == SHOOT_RESERVE){
+		  /* reserve the magazine motor for a while */
+		  //FIXME: didn't consider if the reserve spin also stuck
+		  shoot_reserve_flag = 1;
+		  while(shoot_reserve_counter<20){//20*100ms = 2s
+			  set_mag_motor_angle(&shoot, shoot.mag_cur_angle - 0.3*PI);
 #ifndef USE_CAN_FRIC
 			  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
 #else
-	  		  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
+			  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
 #endif
+			  shoot_execute(&shoot);
+			  vTaskDelayUntil(&xLastWakeTime, xFrequency);
 		  }
-      /********** sentry only begins **********/
-//	  shoot_counter=(int16_t)(0.25*TGT_CONST); //Shoot for at least 1 second before stopping
-//	  }
-//	  if(shoot_counter>0){
-//		  /* need referee system to determine shooting spd */
-//		  set_mag_motor_speed(&shoot, SHOOT_CONT_MAG_SPEED);
-//		  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
-//		  shoot_counter--;
-//	  }
-//	  else{
-//		  /* shooting delay, considering if keep shoot*/
-//		  shoot_stop(&shoot);
-//	  }
-	  /********** sentry only ends ***********/
-
+		  /* reset timer13 flag and counter */
+		  shoot_reserve_flag = 0;
+		  shoot_reserve_counter = 0;
+	  }
+	  else if(shoot.shoot_act_mode == SHOOT_ONCE){
+		 /* need referee system to determine shooting spd */
+		  set_mag_motor_angle(&shoot, 0.3*PI);
+#ifndef USE_CAN_FRIC
+		  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
+#else
+		  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
+#endif
+	  }
+	  else if(shoot.shoot_act_mode == SHOOT_CONT){
+		  if(rc.pc.mouse.right_click.status == PRESSED){
+			  /* auto aimming engage */
+			  /* Well I guess we don't need this any more since we should control the shooting
+			   * at any time during competition due to shooting heat */
+		  }
+		  /* FIXME need referee system to determine shooting spd */
+		  set_mag_motor_angle(&shoot, shoot.mag_cur_angle + SHOOT_CONT_MAG_SPEED);//keep spinning
+#ifndef USE_CAN_FRIC
+		  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
+#else
+		  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
+#endif
+	  }
 	  shoot_execute(&shoot);
 
 	  /* delay until wake time */
 	  vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
   }
 }
 
@@ -183,6 +165,7 @@ void shoot_task_init(Shoot_t *sht){
 
 	/* set shoot mode */
 	set_shoot_mode(sht, SHOOT_CEASE);
+	set_lid_status(sht, STOP);
 
 	/* set comm packs init target number */
 	vision_message.message.vision.target_num = 0;
@@ -355,7 +338,6 @@ void shoot_fric_pwm_engagement(Shoot_t *sht, uint16_t target_pwm){
 		/* engage left wheel first, use ramp function to graduately enhance the pwm value */
 		sht->fric_left_cur_spd = ramp_calculate(&shoot.fric_left_ramp) * target_pwm + target_pwm;
 		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sht->fric_left_cur_spd);
-
 	}
 }
 
@@ -549,8 +531,14 @@ static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
   * @retval    None
   */
 static void shoot_lid_status_selection(Shoot_t *sht, RemoteControl_t *rc){
-	/* since we don't have enough button on controller, just set stop */
-	set_lid_status(sht, STOP);
+	if(rc->pc.key.C.status == RELEASED_TO_PRESS){
+		if(sht->lid_status != OPEN){
+			set_lid_status(sht, OPEN);
+		}
+		else if(sht->lid_status == OPEN){
+			set_lid_status(sht, CLOSE);
+		}
+	}
 }
 /**
   * @brief     check if we need to reserve the mag motor
