@@ -28,7 +28,7 @@
 #define PC_COMM_ID      0x303
 #define KEY_COMM_ID     0x304
 #define REF_COMM_ID   	0x305
-#define ADD_KEY_ID 		0x306
+#define PC_EXT_KEY_ID 		0x306
 #define TOTAL_COMM_ID   7
 
 #define ANGLE_IDX    (ANGLE_COMM_ID-IDLE_COMM_ID)
@@ -36,7 +36,7 @@
 #define PC_IDX    	 (PC_COMM_ID-IDLE_COMM_ID)
 #define REF_IDX      (REF_COMM_ID-IDLE_COMM_ID)
 #define KEY_IDX   	 (KEY_COMM_ID-IDLE_COMM_ID)
-#define ADD_KEY_IDX  (ADD_KEY_ID-IDLE_COMM_ID)
+#define PC_EXT_KEY_IDX  (PC_EXT_KEY_ID-IDLE_COMM_ID)
 
 
 #define ANGLE_COMM_SCALE_FACTOR (32767.0f / PI - 500.0f) //32767 is the maximum size of int16_t														 // exp: since we need to transmit the float angle(-pi, pi), we need to transfer it														 // to int16_t, and rescale it in the receiver side.

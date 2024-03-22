@@ -121,7 +121,7 @@ void can_comm_reset_config(BoardComm_t *comm){
 * @param None
 * @retval None
 */
-/* Task exec time: 5ms */
+/* Task exec time: 3ms */
 void can_comm_process(BoardComm_t *comm){
 
 	TickType_t xLastWakeTime;
@@ -214,21 +214,21 @@ void can_comm_process(BoardComm_t *comm){
 		}
 
 		if(isSubscribed(&comm->sub_list, COMM_EXT_PC_CONTROL) == SUB_SUCCESS){
-					switch(pc_message.role){
+					switch(pc_ext_message.role){
 						case Transmitter:
-							if(pc_message.message.comm_ext_pc.send_flag == 1){
-								memcpy(comm->can_comm.tx_data, &(pc_message.message.comm_ext_pc.pc_data), sizeof(pc_message.message.comm_ext_pc.pc_data));
-								comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, PC_COMM_ID);
-								pc_message.message.comm_ext_pc.send_flag = 0;//reset flag to avoid message flooding
+							if(pc_ext_message.message.comm_ext_pc.send_flag == 1){
+								memcpy(comm->can_comm.tx_data, &(pc_ext_message.message.comm_ext_pc.pc_data), sizeof(pc_ext_message.message.comm_ext_pc.pc_data));
+								comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, PC_EXT_KEY_ID);
+								pc_ext_message.message.comm_ext_pc.send_flag = 0;//reset flag to avoid message flooding
 							}
 							break;
 						case Receiver:
-							if(can_comm_rx[ADD_KEY_IDX].comm_id == ADD_KEY_ID){
-								rc.pc.key.C.status = comm->can_comm.rx_data[ADD_KEY_IDX][0];
-								rc.pc.key.V.status = comm->can_comm.rx_data[ADD_KEY_IDX][1];
-								rc.pc.key.B.status  = comm->can_comm.rx_data[ADD_KEY_IDX][2];
-//								rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[ADD_KEY_IDX][3];
-								can_comm_rx[ADD_KEY_IDX].comm_id = 0;//reset id to avoid message flooding
+							if(can_comm_rx[PC_EXT_KEY_IDX].comm_id == PC_EXT_KEY_ID){
+								rc.pc.key.C.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][0];
+								rc.pc.key.V.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][1];
+								rc.pc.key.B.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][2];
+//								rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][3];
+								can_comm_rx[PC_EXT_KEY_IDX].comm_id = 0;//reset id to avoid message flooding
 							}
 							break;
 					 }
