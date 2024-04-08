@@ -71,7 +71,7 @@ typedef enum{
 	RELEASED = 0,	    // key released
 	RELEASED_TO_PRESS,  // key just pressed, rising edge
 	PRESSED_TO_RELEASE, // key just released, falling edge
-	PRESSED			    // key pressed
+	PRESSED,			    // key pressed
 }KeyStatus_t;
 
 typedef struct{

@@ -18,6 +18,8 @@
 #include "buzzer.h"
 #include "Control_App.h"
 
+
+
 /* define general declarations for gimbal task here */
 #define USE_CAN_FRIC 1//if use 3508 instead of pwm-based fric wheel motor
 
@@ -26,9 +28,9 @@
 #define MAX_PWM_ON_TIME 2000
 #define MIN_PWM_ON_TIME 1000
 
-#define SERVO_PWM_STOP_LID  50
-#define SERVO_PWM_CLOSE_LID 245 //clockwise 120 degree
-#define SERVO_PWM_OPEN_LID  80	//counter-clockwise 120 degree
+//#define SERVO_PWM_STOP_LID  50
+#define SERVO_PWM_CLOSE_LID 500 //counter-clock wise 0 degrees
+#define SERVO_PWM_OPEN_LID  1834 // clock wise 180 degrees approx.
 								//for 90 degree, turn open lid value sto 110
 /* 2305 can value*/
 #define LEVEL_ONE_PWM 300
@@ -52,8 +54,7 @@
   * @brief  shoot task main struct
   */
 typedef enum{
-	STOP = 0,
-	OPEN,
+	OPEN = 0,
 	CLOSE
 }ShootLidStatus_t;
 
@@ -131,6 +132,7 @@ void shoot_mag_dual_loop_control(Shoot_t *sht);
 void shoot_detect_mag_status(Shoot_t *sht);
 void shoot_stop(Shoot_t *sht);
 void shoot_execute(Shoot_t *sht);
+void shoot_control_lid(ShootLidStatus_t desired_status);
 int16_t shoot_mag_update_turns(Shoot_t *sht, int16_t raw_ecd, int16_t prev_ecd);
 
 

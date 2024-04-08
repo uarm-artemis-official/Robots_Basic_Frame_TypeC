@@ -24,6 +24,7 @@
 #include "string.h"
 #include "Chassis_App.h"
 #include "comms.h"
+#include "Shoot_App.h"
 
 /*********************************************************************************
  *  				  <   GENERAL CTRL OPERATION TABLE  >
@@ -108,7 +109,10 @@ extern CommMessage_t rc_message;
 extern CommMessage_t pc_message;
 extern CommMessage_t pc_ext_message;
 
+/*Static fucntion */
+
 /* extern glbal vars here */
+#define LONG_PRESS_COUNT_THRESHOLD 100
 
 
 /* define internal functions */
@@ -268,6 +272,17 @@ void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rc_rx_buffer){
 		rc_key_scan(&rc_hdlr->pc.mouse.left_click, rc_hdlr->pc.mouse.click_l, 0x0001);
 		rc_key_scan(&rc_hdlr->pc.mouse.right_click, rc_hdlr->pc.mouse.click_r, 0x0001);
 
+		rc_key_scan(&rc_hdlr->pc.key.B, rc_hdlr->pc.key.key_buffer, KEY_BOARD_B);
+		rc_get_key_status(&rc_hdlr->pc.key.B);
+
+		if (rc_hdlr->pc.key.B.status == PRESSED){
+
+			ShootLidStatus_t new_status = (shoot.lid_status == OPEN) ? CLOSE : OPEN;
+			shoot_control_lid(new_status);
+			rc_hdlr->pc.key.B.status = RELEASED;
+
+		}
+
 	}
 }
 /**
@@ -344,6 +359,8 @@ void rc_key_scan(KeyObject_t *key_obj, uint16_t key_buffer, uint16_t compare_key
 	if(key_buffer & compare_key)
 		key_obj->status_count++;
 	else
+		if(key_obj->status_count >= LONG_PRESS_COUNT_THRESHOLD)
+			key_obj->status = PRESSED;
 		key_obj->status_count = 0;
 	rc_get_key_status(key_obj);
 }

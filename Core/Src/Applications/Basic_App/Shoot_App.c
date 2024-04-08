@@ -61,12 +61,7 @@ void Shoot_Task_Func(void const * argument)
 	  shoot_detect_mag_status(&shoot);
 
 	 /* determine if open lid */
-	 if(shoot.lid_status == OPEN){//if sentry, delete this function
-		set_servo_value(SERVO_PWM_OPEN_LID);
-	 }
-	 else if(shoot.lid_status == CLOSE){
-		set_servo_value(SERVO_PWM_CLOSE_LID);
-	 }
+
 
 	 /* formal shoot task functions begins */
 	 if(shoot.shoot_act_mode == SHOOT_CEASE){
@@ -127,6 +122,17 @@ void Shoot_Task_Func(void const * argument)
   * @param[in] shoot main struct
   * @retval    None
   */
+
+void shoot_control_lid(ShootLidStatus_t desired_status){
+	 if(desired_status == OPEN){//if sentry, delete this function
+		set_servo_value(SERVO_PWM_OPEN_LID);
+	 }
+	 else if(desired_status == CLOSE){
+		set_servo_value(SERVO_PWM_CLOSE_LID);
+	 }
+}
+
+
 void shoot_task_init(Shoot_t *sht){
 	/* init pid of magazine motor */
 	// Note this is only for 2006, the pid params need to fine tune with the actual payload
@@ -165,7 +171,7 @@ void shoot_task_init(Shoot_t *sht){
 
 	/* set shoot mode */
 	set_shoot_mode(sht, SHOOT_CEASE);
-	set_lid_status(sht, STOP);
+	//set_lid_status(sht, CLOSE);
 
 	/* set comm packs init target number */
 	vision_message.message.vision.target_num = 0;
@@ -232,10 +238,10 @@ void shoot_params_init(Shoot_t *sht){
 
 void shoot_servo_init(void){
 	/* Start PWM */
-	HAL_TIM_PWM_Start(&htim8,TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
 
 	/* adjust to zero degree */
-	__HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, SERVO_PWM_STOP_LID);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, SERVO_PWM_CLOSE_LID);
 }
 
 /**
@@ -278,7 +284,7 @@ void set_fric_motor_current(Shoot_t *sht, int16_t spd){
 }
 
 void set_servo_value(uint16_t pwm_value){
-	__HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, pwm_value);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm_value);
 }
 /**
   * @brief     shoot cease fire
@@ -531,7 +537,7 @@ static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
   * @retval    None
   */
 static void shoot_lid_status_selection(Shoot_t *sht, RemoteControl_t *rc){
-	if(rc->pc.key.C.status == RELEASED_TO_PRESS){
+	if(rc->pc.key.B.status == RELEASED_TO_PRESS){
 		if(sht->lid_status != OPEN){
 			set_lid_status(sht, OPEN);
 		}
