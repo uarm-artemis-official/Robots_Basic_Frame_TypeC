@@ -73,7 +73,7 @@ CommMessage_t pc_message = {
 };
 
 void pc_ext_message_init(CommMessageUnion_t *cmu){
-	for(uint8_t i = 0;i<3; i++)
+	for(uint8_t i = 0;i<4; i++)
 		cmu->comm_ext_pc.pc_data[i] = RELEASED;
 	cmu->comm_ext_pc.send_flag = 0;//reset flag
 }

@@ -47,7 +47,6 @@
 #define SHOOT_CONT_MAG_SPEED 0.7*PI //rpm/sec
 #define SHOOT_MAG_GEAR_RATIO 19
 
-
 /* define user structure here */
 /**
   * @brief  shoot task main struct
@@ -82,6 +81,7 @@ typedef struct{
 	uint8_t fric_engage_flag;
 	uint32_t fric_counter;
 
+	uint8_t lid_counter;
 
 	Motor_Feedback_Data_t mag_fb;
 	Motor_Feedback_Data_t left_fric_fb;

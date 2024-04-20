@@ -25,7 +25,7 @@ void IMU_Task_Function(void){
 
 	/* set task exec period */
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 1ms
+	const TickType_t xFrequency = pdMS_TO_TICKS(5); // task exec period 1ms
 
 	/* init the task ticks */
 	xLastWakeTime = xTaskGetTickCount();
@@ -70,8 +70,9 @@ void IMU_Task_Function(void){
 void imu_task_init(void){
 	/* inint bmi088 */
 	bmi088_device_init();
+	ist8310_init();
 	/* init sensor pid */
-	pid_param_init(&(imu.tmp_pid), 2000, 1500, 25, 900, 0.10, 0.05);
+	pid_param_init(&(imu.tmp_pid), 2000, 1500, 25, 800, 0.15, 0.05);
 	set_imu_temp_status(&imu, ABNORMAL);
 	imu.imu_mode = GA_MODE; // forbid ist8310
     if(imu.imu_mode == GA_MODE){

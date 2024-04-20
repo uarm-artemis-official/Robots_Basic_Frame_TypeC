@@ -49,6 +49,24 @@ SelfCheckStatus_t self_check_system(){
 		motor_ids[0] = yaw_id;
 		motor_ids[1] = pitch_id;
 		motor_ids[2] = mag_2006_id;
+
+    if(self_check_motors(wheel_id1) == CHECK_FAIL){
+      buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
+      return CHECK_FAIL;
+    }
+    else if(self_check_motors(wheel_id2) == CHECK_FAIL){
+      buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
+      return CHECK_FAIL;
+    }
+    else if(self_check_motors(wheel_id3) == CHECK_FAIL){
+      buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
+      return CHECK_FAIL;
+    }
+    else if(self_check_motors(wheel_id4) == CHECK_FAIL){
+      buzzer_alarm_times(4, TWO_SECOND_CNT, &buzzer);// 4 buzz per second
+      return CHECK_FAIL;
+    }
+
 	}
 
 	// Check motors in motor_ids.
