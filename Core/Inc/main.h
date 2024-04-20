@@ -138,7 +138,7 @@ typedef enum {
 	PATROL_MODE = 0,
 	DETECTION_MODE,
 	AUTO_AIM_MODE,
-	AUTO_POILT_MODE,
+	AUTO_PILOT_MODE,
 	IDLE_MODE,
 	DEBUG_MODE
 }BoardMode_t; //only for sentry

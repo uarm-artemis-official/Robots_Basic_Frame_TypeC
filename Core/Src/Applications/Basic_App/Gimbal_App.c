@@ -30,16 +30,16 @@
 extern uint8_t imu_init_flag;
 extern float can_tx_scale_buffer[TOTAL_COMM_ID][4];
 extern RemoteControl_t rc;
-extern UC_Recv_Pack_t uc_rx_pack;
+extern UC_Auto_Aim_Pack_t uc_rx_pack;
 //extern CommVision_t vision_pack;
 
 /* define temp vision pack */
 //CommVision_t temp_pack;
-UC_Recv_Pack_t temp_pack;
+UC_Auto_Aim_Pack_t temp_pack;
 
 /* declare internal function */
 static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr);
-static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr, UC_Recv_Pack_t *pack);
+static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr, UC_Auto_Aim_Pack_t *pack);
 
 #ifdef GIMBAL_MOTOR_DEBUG
 	/* select main tune mode */
@@ -139,7 +139,7 @@ void Gimbal_Task_Function(void const * argument)
 			dynamic_offset_center_flag = 1;
 		 }
 
-		 memcpy(&temp_pack, &uc_rx_pack, sizeof(UC_Recv_Pack_t));
+		 memcpy(&temp_pack, &uc_rx_pack, sizeof(UC_Auto_Aim_Pack_t));
 		 /* if operator wants to activate auto-aim AND the camera has detected the object */
 		 if(gimbal.gimbal_mode == AUTO_AIM_MODE && temp_pack.target_num > -1){
 			 /* copy parsed auto aim pack */
@@ -729,7 +729,9 @@ static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr)
  * @param[in] chassis: main chassis handler
  * @param[in] rc: main remote controller handler
  * */
+
 static void gimbal_rc_mode_selection(Gimbal_t* gbal, RemoteControl_t *rc_hdlr){
+#ifndef MANUAL_SET_GIMBAL_MODES
 	BoardMode_t    board_mode = IDLE_MODE;
 	BoardActMode_t act_mode   = INDPET_MODE;
 	GimbalMotorMode_t motor_mode = ENCODE_MODE;
@@ -745,32 +747,20 @@ static void gimbal_rc_mode_selection(Gimbal_t* gbal, RemoteControl_t *rc_hdlr){
 				/* chassis follow gimbal center while follow yaw axis */
 				act_mode = GIMBAL_CENTER;
 				motor_mode = GYRO_MODE;
-#ifdef MODE_DEBUG
-				/* LD indicator, For debug purposes only */
-#endif
 				if(rc_hdlr->ctrl.s1 == SW_UP && rc_hdlr->ctrl.s2 == SW_DOWN){
 					/* spinning chassis while follow yaw axis */
 					act_mode = SELF_GYRO;
 					motor_mode = GYRO_MODE;//ENCODE_MODE
-#ifdef MODE_DEBUG
-					/* LD indicator, For debug purposes only */
-#endif
 				}
 			}
 			else if(rc_hdlr->ctrl.s1 == SW_DOWN){
 				/* chassis only follow yaw axis */
 				act_mode = GIMBAL_FOLLOW;
 				motor_mode = ENCODE_MODE;
-#ifdef MODE_DEBUG
-				/* LD indicator, For debug purposes only */
-#endif
 				if(rc_hdlr->ctrl.s1 == SW_DOWN && rc_hdlr->ctrl.s2 == SW_DOWN){
 					/* independent mode */
 					act_mode = INDPET_MODE;
 					motor_mode = ENCODE_MODE;
-#ifdef MODE_DEBUG
-					/* LD indicator, For debug purposes only */
-#endif
 				}
 			}
 		}
@@ -790,23 +780,20 @@ static void gimbal_rc_mode_selection(Gimbal_t* gbal, RemoteControl_t *rc_hdlr){
 
 		if(act_mode == GIMBAL_FOLLOW){
 			motor_mode = ENCODE_MODE;
-#ifdef MODE_DEBUG
-			/* LD indicator, For debug purposes only */
-#endif
 		}
 		else if(act_mode == GIMBAL_CENTER){
 			motor_mode = GYRO_MODE;
-#ifdef MODE_DEBUG
-			/* LD indicator, For debug purposes only */
-#endif
 		}
 		else if(act_mode == SELF_GYRO){
 			motor_mode = GYRO_MODE;
-#ifdef MODE_DEBUG
-			/* LD indicator, For debug purposes only */
-#endif
 		}
 	}
+#else
+	BoardMode_t    board_mode = AUTO_AIM_MODE;
+	BoardActMode_t act_mode   = GIMBAL_FOLLOW;
+	GimbalMotorMode_t motor_mode = ENCODE_MODE;
+	rc_hdlr->control_mode = PC_MODE;
+#endif
 
 	/* set modes */
 	gimbal_set_mode(gbal, board_mode);
@@ -816,7 +803,7 @@ static void gimbal_rc_mode_selection(Gimbal_t* gbal, RemoteControl_t *rc_hdlr){
 
 /******************************** For Comms Above **************************************/
 /******************************** For Auto Aiming Below ********************************/
-static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr, UC_Recv_Pack_t *pack){
+static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr, UC_Auto_Aim_Pack_t *pack){
 	float cur_yaw_target = 0.0;
 	float cur_pitch_target = 0.0;
 	float delta_yaw= 0.0;
@@ -824,12 +811,13 @@ static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_
 
 	if(rc_hdlr->control_mode == PC_MODE){
 		/* filter applied here, TODO may add kalman filter here, depends on data input */
-		pack->delta_yaw = ewma_filter(&gbal->ewma_f_aim_yaw, pack->delta_yaw);
+		float filtered_delta_yaw = ewma_filter(&gbal->ewma_f_aim_yaw, pack->delta_yaw);
 //		pack->yaw_data = sliding_window_mean_filter(&gbal->swm_f_aim_yaw, pack->yaw_data);
-		delta_yaw = in_out_map(pack->delta_yaw, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
-		pack->delta_pitch = ewma_filter(&gbal->ewma_f_aim_pitch, pack->delta_pitch);
+		delta_yaw = in_out_map(filtered_delta_yaw, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
+
+		float filtered_delta_pitch = ewma_filter(&gbal->ewma_f_aim_pitch, pack->delta_pitch);
 //		pack->pitch_data = sliding_window_mean_filter(&gbal->swm_f_aim_pitch, pack->yaw_data);
-		delta_pitch = in_out_map(pack->delta_pitch, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
+		delta_pitch = in_out_map(filtered_delta_pitch, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
 	}
 	/* get the latest angle position of pitch and yaw motor */
 	gimbal_get_ecd_fb_data(&gimbal,

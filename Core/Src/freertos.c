@@ -33,6 +33,7 @@
 #include "Comm_App.h"
 #include "IMU_App.h"
 #include "WatchDog_App.h"
+#include "PC_UART_App.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,7 +53,7 @@ extern BoardStatusType board_status;
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+QueueHandle_t UC_Pack_Queue;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 
@@ -96,6 +97,7 @@ void MX_FREERTOS_Init(void) {
   osThreadId IMUTaskHandle;
   osThreadId RCTaskHandle;
   osThreadId WDGTaskHandle;
+  osThreadId PCUARTTaskHandle;
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -111,7 +113,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
+  UC_Pack_Queue = xQueueCreate(10, UC_PACK_BUFFER_SIZE);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -147,6 +149,9 @@ void MX_FREERTOS_Init(void) {
   //
     	  osThreadDef(IMUTask, IMU_Task_Function, osPriorityHigh, 0, 256);
     	  IMUTaskHandle = osThreadCreate(osThread(IMUTask), NULL);
+
+    	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
+    	  PCUARTTaskHandle = osThreadCreate(osThread(PCUARTTask), NULL);
       }
   /* USER CODE END RTOS_THREADS */
 

@@ -24,6 +24,7 @@
 
 /* define general declarations for gimbal task here */
 #define SOME_YOUR_VALUE (0.0f)
+#define SILENT_SELF_CHECK
 
 /* define user structure here */
 typedef enum{
@@ -34,16 +35,10 @@ typedef enum{
 /* extern global variables here */
 extern Buzzer_t buzzer;
 
-/* define user created variables here */
-
+/* global variable definitions */
 
 /* functions declaration here */
 SelfCheckStatus_t self_check_system();
 SelfCheckStatus_t self_check_motors(uint8_t motor_id);
-
-
-
-
-
 
 #endif /*__DIRECTORY_ANY_HEADER_H__*/
