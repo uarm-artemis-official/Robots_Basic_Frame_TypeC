@@ -34,6 +34,7 @@
 #include "IMU_App.h"
 #include "WatchDog_App.h"
 #include "PC_UART_App.h"
+#include "Referee_App.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -98,6 +99,7 @@ void MX_FREERTOS_Init(void) {
   osThreadId RCTaskHandle;
   osThreadId WDGTaskHandle;
   osThreadId PCUARTTaskHandle;
+  osThreadId RefTaskHandle;
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -138,6 +140,9 @@ void MX_FREERTOS_Init(void) {
 
     	  osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
     	  RCTaskHandle = osThreadCreate(osThread(RCTask), NULL);
+
+    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
+    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
 
       }
     else if(board_status == GIMBAL_BOARD){

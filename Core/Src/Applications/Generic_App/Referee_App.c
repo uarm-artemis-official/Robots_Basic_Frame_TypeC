@@ -16,8 +16,9 @@
 
 #include "main.h"
 #include "string.h"
+#include "Chassis_App.h"
 #include <crc.h>
-#include <referee.h>
+#include <Referee_App.h>
 /*
  *  @Referee System Note
  *		JUL, 2023: Use UART3 DMA IT to read the data from referee system intead of freertos task
@@ -36,16 +37,26 @@
  * */
 
 int16_t referee_parsed_flag = 0;
+Referee_t referee;
 /**
   * @brief     main ref sys task function
   * @param[in] None
   * @retval    None
   */
-void Referee_Task_Func(void){
-	//init
+void Referee_Task_Func(void const * argument){
 	referee_init(&referee);
-	for(;;){
 
+	/* set task exec period */
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = pdMS_TO_TICKS(10); // task exec period 10ms
+
+	/* init the task ticks */
+	xLastWakeTime = xTaskGetTickCount();
+	for(;;){
+		referee_read_data(&referee, ref_rx_frame);
+
+		/* delay until wake time */
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
 }
 
@@ -66,6 +77,9 @@ void referee_init(Referee_t *ref){
 	memset(&(ref->shoot_data), 		  0, sizeof(shoot_data_t));
 	memset(&(ref->ui_intrect_data),   0, sizeof(robot_interaction_data_t));
 	memset(&(ref->custom_robot_data), 0, sizeof(custom_robot_data_t));
+
+	ref->robot_status_data.robot_level = 1;
+	ref->ref_cmd_id = IDLE_ID;
 }
 
 /**
@@ -86,10 +100,15 @@ void referee_read_data(Referee_t *ref, uint8_t *rx_frame){
 	memcpy(&ref->header, rx_frame, HEADER_LEN);
 
 	/* frame header CRC8 verification */
+	// FIXME: We don't know if we still need crc8 verification. if not , probably just update the pointer
 	if(ref->header.sof == SOF_ID && Verify_CRC8_Check_Sum(&(ref->header), HEADER_LEN) == 1){
 		/* successfully verified */
 		ref->ref_cmd_id = *(uint16_t *)(rx_frame + HEADER_LEN); //point to the addr of the cmd id
 	}
+	else{
+		ref->ref_cmd_id = IDLE_ID;
+	}
+
 	//uint8_t ref_data_index = HEADER_LEN + CMD_LEN;// an index value pointed to current data addr
 	memcpy(ref->ref_data, rx_frame + HEADER_LEN + CMD_LEN, sizeof(ref->ref_data));//pointer to the beginning of the data addr
 

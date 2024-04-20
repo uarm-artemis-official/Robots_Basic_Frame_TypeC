@@ -16,7 +16,7 @@
 
 #include <Gimbal_App.h>
 #include <Control_App.h>
-#include <referee.h>
+#include <Referee_App.h>
 
 
 /* define general declarations for gimbal task here */

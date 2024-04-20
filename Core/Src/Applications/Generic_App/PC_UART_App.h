@@ -1,16 +1,20 @@
-/*
- * UC_Comm_App.h
- *
- *  Created on: Mar. 18, 2024
- *      Author: James Fu
- */
+/*******************************************************************************
+* @file           : PC_UART_App.h
+* @brief          : PC Communication with mcu usig UART interface
+* @created time	  : Mar, 2024
+* @author         : James Fu
+******************************************************************************
+* Copyright (c) 2023 UARM Artemis.
+* All rights reserved.
+*******************************************************************************/
 
-#ifndef SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_
-#define SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_
+#ifndef __PC_UART_APP_H__
+#define __PC_UART_APP_H__
 
 #include "auto_aim.h"
 #include "imu.h"
 #include "cmsis_os.h"
+#include "Gimbal_App.h"
 
 
 extern QueueHandle_t UC_Pack_Queue;

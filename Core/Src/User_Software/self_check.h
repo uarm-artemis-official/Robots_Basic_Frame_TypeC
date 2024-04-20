@@ -24,7 +24,7 @@
 
 /* define general declarations for gimbal task here */
 #define SOME_YOUR_VALUE (0.0f)
-#define SILENT_SELF_CHECK
+//#define SILENT_SELF_CHECK
 
 /* define user structure here */
 typedef enum{

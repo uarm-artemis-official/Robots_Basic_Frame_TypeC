@@ -1,17 +1,25 @@
-/*
- * UC_Comm_App.c
- *
- *  Created on: Mar. 18, 2024
- *      Author: James Fu
- */
+/*******************************************************************************
+* @file           : PC_UART_App.c
+* @brief          : PC Communication with mcu usig UART interface
+* @created time	  : Mar, 2024
+* @author         : James Fu
+******************************************************************************
+* Copyright (c) 2023 UARM Artemis.
+* All rights reserved.
+*******************************************************************************/
+
+#ifndef __PC_UART_APP_C__
+#define __PC_UART_APP_C__
 
 
 #include <PC_UART_App.h>
 
+extern Gimbal_t gimbal;
+
 
 void PC_UART_Func() {
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(5); // task exec period 1ms
+	const TickType_t xFrequency = pdMS_TO_TICKS(5); // task exec period 5ms
 
 	uint8_t new_pack_buffer[UC_PACK_BUFFER_SIZE];
 	uc_auto_aim_pack_init(&uc_rx_pack);
@@ -40,10 +48,12 @@ void PC_UART_Func() {
 		// IMU Transmission
 		// TODO: Send chassis x and y acceleration, robot color, and wheel RPMs.
 		// This requires enabling IMU task for chassis and modifying Comm task.
-		uc_tx_pack.pitch = imu.ahrs_sensor.pitch;
-		uc_tx_pack.yaw = imu.ahrs_sensor.yaw;
+		uc_tx_pack.pitch = gimbal.pitch_cur_abs_angle;
+		uc_tx_pack.yaw = gimbal.yaw_cur_abs_angle;
 		uc_send_pack(&uc_tx_pack, UC_IMU_DATA_PACK_SIZE);
 
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
 }
+
+#endif

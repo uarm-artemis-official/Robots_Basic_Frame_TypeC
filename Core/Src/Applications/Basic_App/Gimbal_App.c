@@ -801,7 +801,6 @@ static void gimbal_rc_mode_selection(Gimbal_t* gbal, RemoteControl_t *rc_hdlr){
 		if(rc_hdlr->pc.mouse.right_click.status == PRESSED)
 			board_mode = AUTO_AIM_MODE;
 		else{
-			uc_rx_pack_init(&temp_pack);
 			board_mode = gbal->gimbal_mode;
 		}
 

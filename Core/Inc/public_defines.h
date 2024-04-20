@@ -49,7 +49,7 @@
 #define max_err_wheel 5000
 
 /* gimbal 6020 dual loop control */
-#define kp_angle_yaw 600//550
+#define kp_angle_yaw 700//550
 #define ki_angle_yaw 0.1//0.1
 #define kd_angle_yaw 0
 #define max_out_angle_yaw 5000 // not tuned yet
@@ -64,14 +64,14 @@
 #define max_err_spd_yaw 5000
 #define kf_spd_yaw 0
 
-#define kp_angle_pitch 650
+#define kp_angle_pitch 900
 #define ki_angle_pitch 0
 #define kd_angle_pitch 0
 #define max_out_angle_pitch 5000 // not tuned yet
 #define max_I_out_angle_pitch 0
 #define max_err_angle_pitch 100//2.0f*PI
 
-#define kp_spd_pitch 270
+#define kp_spd_pitch 180
 #define ki_spd_pitch 0.05
 #define kd_spd_pitch 10
 #define max_out_spd_pitch 15000 // not tuned yet

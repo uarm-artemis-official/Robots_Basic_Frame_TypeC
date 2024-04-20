@@ -1,0 +1,10 @@
+auto_aim.c:20:6:uc_auto_aim_pack_init	16	static
+auto_aim.c:31:6:uc_imu_data_pack_init	16	static
+auto_aim.c:48:6:uc_board_response_pack_init	16	static
+auto_aim.c:57:6:uc_pc_command_pack_init	16	static
+auto_aim.c:78:10:calculate_checksum	32	static
+auto_aim.c:104:10:uc_get_pack_size	16	static
+auto_aim.c:114:9:uc_get_header	16	static
+auto_aim.c:119:6:uc_receive_pack	16	static
+auto_aim.c:139:9:uc_send_pack	24	static
+auto_aim.c:165:6:uc_on_RxCplt	24	static

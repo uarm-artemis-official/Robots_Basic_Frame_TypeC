@@ -13,7 +13,7 @@
 #ifndef __COMMS_H__
 #define __COMMS_H__
 
-#include <referee.h>
+#include <Referee_App.h>
 
 #define MAX_COMMS_MODULE 5
 
