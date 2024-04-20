@@ -151,7 +151,7 @@ char pdata[PACKLEN]={0};	//old mini pc vision pack temp buffer
 extern Motor motor_data[MOTOR_COUNT]; //MOTOR_COUNT
 extern Referee_t referee;
 extern CommVision_t vision_pack;
-extern UC_Recv_Pack_t uc_rx_pack;
+extern UC_Auto_Aim_Pack_t uc_rx_pack;
 extern Buzzer_t buzzer;
 /* USER CODE END 0 */
 
@@ -309,7 +309,7 @@ HAL_StatusTypeDef firmware_and_system_init(void){
  buzzer_init(&buzzer);
 
  /* init vision pack */
- uc_rx_pack_init(&uc_rx_pack);
+ uc_auto_aim_pack_init(&uc_rx_pack);
 
  /* DWT init */
  dwt_init();
@@ -391,21 +391,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	 /* re-activate DMA */
 	 HAL_UART_Receive_DMA(&huart2, ref_rx_frame, sizeof(ref_rx_frame));
   } else if (huart == &huart1 && board_status == GIMBAL_BOARD) {
-		UC_Response_Pack_t uc_response_pack;
-		uc_response_pack_init(&uc_response_pack);
-
-		uint32_t data_checksum = calculate_checksum(uc_input_buffer, UC_RECV_PACK_SIZE);
-		uint32_t sent_checksum = *((uint32_t*) uc_input_buffer + 3);
-		if (data_checksum == sent_checksum) {
-			uc_response_pack.response_code = 0;
-			memcpy(&uc_rx_pack, uc_input_buffer, UC_RECV_PACK_SIZE);
-		} else {
-			uc_response_pack.response_code = 1;
-		}
-		uc_response_pack.checksum = calculate_checksum(&uc_response_pack, UC_RESPONSE_PACK_SIZE);
-
-		uc_send_packet(&uc_response_pack, UC_RESPONSE_PACK_SIZE);
-		uc_receive_packet();
+		uc_on_RxCplt();
 	}
 }
 #endif

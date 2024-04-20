@@ -33,42 +33,51 @@ extern Motor motor_data[MOTOR_COUNT];
   * @retval    SelfCheckStatus_t
   */
 SelfCheckStatus_t self_check_system(){
-	/* motor check processes */
+	// Checks motors in motor_ids are giving feedback.
+	uint8_t num_of_motors;
+	uint8_t motor_ids[8];
 
+	// Set motor_ids of motors controlled by each board.
 	if(board_status == CHASSIS_BOARD){
+		num_of_motors = 4;
+		motor_ids[0] = wheel_id1;
+		motor_ids[1] = wheel_id2;
+		motor_ids[2] = wheel_id3;
+		motor_ids[3] = wheel_id4;
+	} else if(board_status == GIMBAL_BOARD){
+		num_of_motors = 3;
+		motor_ids[0] = yaw_id;
+		motor_ids[1] = pitch_id;
+		motor_ids[2] = mag_2006_id;
 
-//		if(self_check_motors(wheel_id1) == CHECK_FAIL){
-//			buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
-//			return CHECK_FAIL;
-//		}
-//		else if(self_check_motors(wheel_id2) == CHECK_FAIL){
-//			buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
-//			return CHECK_FAIL;
-//		}
-//		else if(self_check_motors(wheel_id3) == CHECK_FAIL){
-//			buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
-//			return CHECK_FAIL;
-//		}
-//		else if(self_check_motors(wheel_id4) == CHECK_FAIL){
-//			buzzer_alarm_times(4, TWO_SECOND_CNT, &buzzer);// 4 buzz per second
-//			return CHECK_FAIL;
-//		}
+    if(self_check_motors(wheel_id1) == CHECK_FAIL){
+      buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
+      return CHECK_FAIL;
+    }
+    else if(self_check_motors(wheel_id2) == CHECK_FAIL){
+      buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
+      return CHECK_FAIL;
+    }
+    else if(self_check_motors(wheel_id3) == CHECK_FAIL){
+      buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
+      return CHECK_FAIL;
+    }
+    else if(self_check_motors(wheel_id4) == CHECK_FAIL){
+      buzzer_alarm_times(4, TWO_SECOND_CNT, &buzzer);// 4 buzz per second
+      return CHECK_FAIL;
+    }
+
 	}
-	else if(board_status == GIMBAL_BOARD){
-		if(self_check_motors(yaw_id) == CHECK_FAIL){
-			buzzer_alarm_times(1, TWO_SECOND_CNT, &buzzer);// 1 buzz per second
-			return CHECK_FAIL;
-		}
-		else if(self_check_motors(pitch_id) == CHECK_FAIL){
-			buzzer_alarm_times(2, TWO_SECOND_CNT, &buzzer);// 2 buzz per second
-			return CHECK_FAIL;
-		}
-		else if(self_check_motors(mag_2006_id) == CHECK_FAIL){
-			buzzer_alarm_times(3, TWO_SECOND_CNT, &buzzer);// 3 buzz per second
+
+	// Check motors in motor_ids.
+	for (int i = 0; i < num_of_motors; i++) {
+		if (self_check_motors(motor_ids[i]) == CHECK_FAIL) {
+#ifndef SILENT_SELF_CHECK
+			buzzer_alarm_times(i + 1, TWO_SECOND_CNT, &buzzer);
+#endif
 			return CHECK_FAIL;
 		}
 	}
-	/* RC check processes */
 	return CHECK_OK;
 }
 

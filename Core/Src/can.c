@@ -283,6 +283,9 @@ void can_filter_disable(CAN_HandleTypeDef* hcan){
 	HAL_CAN_ConfigFilter(hcan, &CAN_FilterConfigStructure);
 }
 
+/**
+ *
+ */
 
 /* This function activates whenever the RxFifo receives a message
  * The StdId is obtained from the can message, then it is written into the buffer array (it is an array of arrays)
