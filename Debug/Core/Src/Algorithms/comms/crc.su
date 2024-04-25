@@ -1,6 +1,0 @@
-crc.c:39:15:Get_CRC8_Check_Sum	32	static
-crc.c:55:14:Verify_CRC8_Check_Sum	24	static
-crc.c:68:6:Append_CRC8_Check_Sum	24	static
-crc.c:118:10:Get_CRC16_Check_Sum	32	static
-crc.c:138:10:Verify_CRC16_Check_Sum	24	static
-crc.c:154:6:Append_CRC16_Check_Sum	24	static
