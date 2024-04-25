@@ -125,21 +125,76 @@
 #define fric_max_pwm_speed 2000
 
 /******* referee system limit defines *******/
-/* chassis power */
-#define chassis_l1_power 60
-#define chassis_l2_power 80
-#define chassis_l3_power 100
+/* chassis power - power focused */
+#define chassis_l1_pf_power 70
+#define chassis_l2_pf_power 75
+#define chassis_l3_pf_power 80
+#define chassis_l4_pf_power 85
+#define chassis_l5_pf_power 90
+#define chassis_l6_pf_power 95
+#define chassis_l7_pf_power 100
+#define chassis_l8_pf_power 105
+#define chassis_l9_pf_power 110
+#define chassis_l10_pf_power 120
 
-#define chassis_l1_x_speed 300 //max 660
-#define chassis_l2_x_speed 600 //max 660
-#define chassis_l3_x_speed 660 //max 660
+/* chassis power - HP focused */
+#define chassis_l1_hpf_power 55
+#define chassis_l2_hpf_power 60
+#define chassis_l3_hpf_power 65
+#define chassis_l4_hpf_power 70
+#define chassis_l5_hpf_power 75
+#define chassis_l6_hpf_power 80
+#define chassis_l7_hpf_power 85
+#define chassis_l8_hpf_power 90
+#define chassis_l9_hpf_power 100
+#define chassis_l10_hpf_power 120
 
-#define chassis_l1_y_speed 600 //max 660
-#define chassis_l2_y_speed 600 //max 660
-#define chassis_l3_y_speed 660 //max 660
+/* chassis max speed - power focused */
+#define chassis_l1_pf_padding_speed 300 //max 660
+#define chassis_l2_pf_padding_speed 350 //max 660
+#define chassis_l3_pf_padding_speed 400 //max 660
+#define chassis_l4_pf_padding_speed 450 //max 660
+#define chassis_l5_pf_padding_speed 500 //max 660
+#define chassis_l6_pf_padding_speed 550 //max 660
+#define chassis_l7_pf_padding_speed 600 //max 660
+#define chassis_l8_pf_padding_speed 650 //max 660
+#define chassis_l9_pf_padding_speed 660 //max 660
+#define chassis_l10_pf_padding_speed 660 //max 660
 
-#define chassis_l1_w_speed 350 //max 660
-#define chassis_l2_w_speed 500 //max 660
-#define chassis_l3_w_speed 660 //max 660
+/* chassis max speed - HP focused */
+#define chassis_l1_hpf_padding_speed 300 //max 660
+#define chassis_l2_hpf_padding_speed 600 //max 660
+#define chassis_l3_hpf_padding_speed 660 //max 660
+#define chassis_l4_hpf_padding_speed 300 //max 660
+#define chassis_l5_hpf_padding_speed 600 //max 660
+#define chassis_l6_hpf_padding_speed 660 //max 660
+#define chassis_l7_hpf_padding_speed 300 //max 660
+#define chassis_l8_hpf_padding_speed 600 //max 660
+#define chassis_l9_hpf_padding_speed 660 //max 660
+#define chassis_l10_pf_padding_speed 660 //max 660
+
+/* chassis max spin speed - power focused */
+#define chassis_l1_pf_spin_speed 300 //max 660
+#define chassis_l2_pf_spin_speed 600 //max 660
+#define chassis_l3_pf_spin_speed 660 //max 660
+#define chassis_l4_pf_spin_speed 300 //max 660
+#define chassis_l5_pf_spin_speed 600 //max 660
+#define chassis_l6_pf_spin_speed 660 //max 660
+#define chassis_l7_pf_spin_speed 300 //max 660
+#define chassis_l8_pf_spin_speed 600 //max 660
+#define chassis_l9_pf_spin_speed 660 //max 660
+#define chassis_l10_pf_spin_speed 660 //max 660
+
+/* chassis max spin speed - HP focused */
+#define chassis_l1_hpf_spin_speed 300 //max 660
+#define chassis_l2_hpf_spin_speed 600 //max 660
+#define chassis_l3_hpf_spin_speed 660 //max 660
+#define chassis_l4_hpf_spin_speed 300 //max 660
+#define chassis_l5_hpf_spin_speed 600 //max 660
+#define chassis_l6_hpf_spin_speed 660 //max 660
+#define chassis_l7_hpf_spin_speed 300 //max 660
+#define chassis_l8_hpf_spin_speed 600 //max 660
+#define chassis_l9_hpf_spin_speed 660 //max 660
+#define chassis_l10_hpf_spin_speed 660 //max 660
 
 #endif /*__PUBLIC_DEFINES_H__*/

@@ -1,11 +1,8 @@
 /*******************************************************************************
 * @file           : Gimbal_App.h
 * @brief          : gimbal task managing 2 gimbal motors
-* @created time	  : Dec, 2020
-* @creator        : AzureRin
-*
 * @restructed     : Jul, 2023
-* @maintainer     : Haoran
+* @maintainer     : Haoran, AzureRin
 ******************************************************************************
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.

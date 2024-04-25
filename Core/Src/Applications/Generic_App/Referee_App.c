@@ -38,6 +38,7 @@
 
 int16_t referee_parsed_flag = 0;
 Referee_t referee;
+
 /**
   * @brief     main ref sys task function
   * @param[in] None
@@ -101,7 +102,8 @@ void referee_read_data(Referee_t *ref, uint8_t *rx_frame){
 
 	/* frame header CRC8 verification */
 	// FIXME: We don't know if we still need crc8 verification. if not , probably just update the pointer
-	if(ref->header.sof == SOF_ID && Verify_CRC8_Check_Sum(&(ref->header), HEADER_LEN) == 1){
+//	if(ref->header.sof == SOF_ID && Verify_CRC8_Check_Sum(&(ref->header), HEADER_LEN) == 1){
+	if(ref->header.sof == SOF_ID){
 		/* successfully verified */
 		ref->ref_cmd_id = *(uint16_t *)(rx_frame + HEADER_LEN); //point to the addr of the cmd id
 	}

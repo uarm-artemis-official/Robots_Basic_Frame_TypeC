@@ -4,7 +4,6 @@
 * @brief          : communication real time task between boards
 * @created time	  : Jul, 2023
 * @author         : Haoran
-*
 ******************************************************************************
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.

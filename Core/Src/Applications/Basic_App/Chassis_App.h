@@ -1,11 +1,8 @@
 /*******************************************************************************
 * @file           : Chassis_App.h
 * @brief          : chassis task managing 4 chassis motors
-* @created time	  : Dec, 2020
-* @creator        : AzureRin
-*
 * @restructed     : Jul, 2023
-* @maintainer     : Haoran
+* @maintainer     : Haoran, AzureRin
 ******************************************************************************
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
@@ -32,11 +29,8 @@
 #define CHASSIS_POWER_THRESHOLD   45  //random value, test soon
 #define POWER_TO_CURRENT          (1.0f) //random value, test soon
 
-/* manual gear defines, not used */
-#define NO_GEAR  0
-#define GEAR_LOW 500
-#define GEAR_MID 1000
-#define GEAR_HIGH 2000
+
+
 
 /* define user structure here */
 /*
@@ -47,6 +41,13 @@ typedef enum{
 	AUTO_GEAR = 0, //referee system up, auto-adjust chassis spd limit
 	MANUAL_GEAR	   //referee system down, manual-adjust chassis spd limit
 }ChassisGearMode_t;
+
+typedef enum{
+	 NO_GEAR = 0,
+	 GEAR_LOW = 500,
+	 GEAR_MID = 1000,
+	 GEAR_HIGH =2000
+}ChassisGearValue_t;
 
 typedef struct{
 	uint16_t current;
@@ -65,11 +66,14 @@ typedef struct{
 	float gimbal_yaw_rel_angle;
 	float gimbal_yaw_abs_angle;
 
+	uint8_t pc_target_value;
+
 	PID_t f_pid;//for Chassis twist(in Gimbal_Center mode)
 	int16_t mec_spd[4];
 	Gimbal_Axis_t gimbal_axis;
 
 	uint16_t chassis_gear;
+	uint8_t prev_robot_level;
 	ChassisPowerStat_t ref_power_stat;
 	ChassisPowerStat_t local_power_stat;
 
@@ -83,6 +87,7 @@ typedef struct{
 
 /* extern global variables here */
 extern Referee_t referee;
+extern Referee_t temp_referee;
 extern Motor motor_data[MOTOR_COUNT];
 Chassis_t chassis;
 
@@ -105,6 +110,7 @@ void chassis_execute(Chassis_t *chassis_hdlr);
 void get_chassis_ref_power_stat(Chassis_t* chassis_hdlr, Referee_t *ref);
 void chassis_power_limit_referee(Chassis_t* chassis_hdlr);
 void chassis_power_limit_local(Chassis_t* chassis_hdlr, uint16_t local_power_limit);
+void select_chassis_speed(Chassis_t* chassis_hdlr, uint8_t level);
 
 /*back up*/
 int32_t motor_move_period_ground(double patrol_vw, int32_t chassis_control_counter, Chassis_t* chassis);
