@@ -431,7 +431,7 @@ void gimbal_calibration_reset(Gimbal_t *gbal){
 							 gimbal.gimbal_motor_mode);
 		 counter++;
 		 /* when the err of cali angle smaller */
-		 if(fabs(cur_yaw_radian)< (2.0f * DEGREE2RAD)){ //|| counter >= 50000 /*timeout*/ //&& fabs(cur_pitch_radian)< (2.0f * DEGREE2RAD)
+		 if(fabs(cur_pitch_radian)< (2.0f * DEGREE2RAD)){ //|| counter >= 50000 /*timeout*/ //&& fabs(cur_pitch_radian)< (2.0f * DEGREE2RAD)
 			 /* cali done */
 			 motor_data[pitch_id].tx_data = 0;
 			 motor_data[yaw_id].tx_data = 0;
@@ -729,11 +729,11 @@ static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr)
 	 * also update the target into right scale of angle */
 	if(gbal->gimbal_motor_mode == GYRO_MODE){
 		cur_yaw_target = gbal->yaw_cur_abs_angle - delta_yaw;
-		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch;
+		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch * PITCH_GEAR_RATIO;
 	}
 	else{
 		cur_yaw_target = gbal->yaw_cur_rel_angle - delta_yaw;
-		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch;
+		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch * PITCH_GEAR_RATIO;
 	}
 	/* avoid small noise to spin the yaw */
 	if(fabs(delta_yaw)> 1.0f*DEGREE2RAD){

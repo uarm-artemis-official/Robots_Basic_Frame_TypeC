@@ -33,9 +33,10 @@
 #define MODE_DEBUG 1
 //#define MANUAL_SET_GIMBAL_MODES
 
-#define PITCH_ECD_CENTER  3500//6100 manually measured data
+#define PITCH_ECD_CENTER  3700//6100 manually measured data
 #define PITCH_ECD_DELTA  1364  //60/180*4096
-#define PITCH_GYRO_DELTA (30.0f * DEGREE2RAD)
+#define PITCH_GYRO_DELTA (80.0f * DEGREE2RAD)
+#define PITCH_GEAR_RATIO 4 // The ratio of the gear box of the pitch motor
 #define YAW_ECD_CENTER 620//300
 
 #define YAW_GEAR_RATIO 1.0f		//if install a gear, calc the gear ratio here

@@ -33,15 +33,15 @@
 #define LEVEL_THREE_PWM 500
 
 #define FRIC_PWM_DELAY 10
-#define FRIC_CAN_RAMP_DELAY 20
+#define FRIC_CAN_RAMP_DELAY 30
 
 /* 3508 can value*/
-#define LEVEL_ONE_CAN_SPD 3000
+#define LEVEL_ONE_CAN_SPD 5000
 #define LEVEL_TWO_CAN_SPD 500
 #define LEVEL_THREE_CAN_SPD 500
 
 #define SHOOT_ONCE_MAG_ANGLE (20.0f * DEGREE2RAD)
-#define SHOOT_CONT_MAG_SPEED 0.7*PI //rpm/sec
+#define SHOOT_CONT_MAG_SPEED 1.0*PI //rpm/sec
 #define SHOOT_MAG_GEAR_RATIO 19
 
 /* define user structure here */

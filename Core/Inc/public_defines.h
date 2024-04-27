@@ -49,14 +49,14 @@
 #define max_err_wheel 5000
 
 /* gimbal 6020 dual loop control */
-#define kp_angle_yaw 700//550
+#define kp_angle_yaw 900//700
 #define ki_angle_yaw 0.1//0.1
 #define kd_angle_yaw 0
-#define max_out_angle_yaw 5000 // not tuned yet
+#define max_out_angle_yaw 8000 // not tuned yet
 #define max_I_out_angle_yaw 0
 #define max_err_angle_yaw 500//2.0f*PI
 
-#define kp_spd_yaw 385//385
+#define kp_spd_yaw 285//385
 #define ki_spd_yaw 0.1//0.1
 #define kd_spd_yaw 0.5//0.5
 #define max_out_spd_yaw 15000 // not tuned yet
@@ -64,16 +64,16 @@
 #define max_err_spd_yaw 5000
 #define kf_spd_yaw 0
 
-#define kp_angle_pitch 900
-#define ki_angle_pitch 0
+#define kp_angle_pitch 900//900
+#define ki_angle_pitch 0.1
 #define kd_angle_pitch 0
-#define max_out_angle_pitch 5000 // not tuned yet
+#define max_out_angle_pitch 8000 // not tuned yet
 #define max_I_out_angle_pitch 0
 #define max_err_angle_pitch 100//2.0f*PI
 
-#define kp_spd_pitch 180
-#define ki_spd_pitch 0.05
-#define kd_spd_pitch 10
+#define kp_spd_pitch 80
+#define ki_spd_pitch 0.01
+#define kd_spd_pitch 1
 #define max_out_spd_pitch 15000 // not tuned yet
 #define max_I_out_spd_pitch 3000
 #define max_err_spd_pitch 5000
@@ -81,14 +81,14 @@
 
 /* shoot 3508/2006  mag dual loop/3508 fric single loop control */
 //2006 mag settings
-#define kp_angle_mag_2006 1000
+#define kp_angle_mag_2006 900
 #define ki_angle_mag_2006 0
 #define kd_angle_mag_2006 0
-#define max_out_angle_mag_2006 5000 // not tuned yet
+#define max_out_angle_mag_2006 10000 // not tuned yet
 #define max_I_out_angle_mag_2006 0
 #define max_err_angle_mag_2006 PI*19 // mag gear ratio=19
 
-#define kp_spd_mag_2006 3
+#define kp_spd_mag_2006 15
 #define ki_spd_mag_2006 0.01
 #define kd_spd_mag_2006 0
 #define max_out_spd_mag_2006 9999 // not tuned yet
@@ -113,10 +113,10 @@
 #define kf_spd_mag_3508 100
 
 //fric 3508 motor settings, single loop, not tuned yet
-#define kp_spd_fric 10
-#define ki_spd_fric 0.5
-#define kd_spd_fric 0.5
-#define max_out_spd_fric 10000// not tuned yet
+#define kp_spd_fric 15
+#define ki_spd_fric 0.3
+#define kd_spd_fric 0.1
+#define max_out_spd_fric 15000// not tuned yet
 #define max_I_out_spd_fric 500
 #define max_err_spd_fric 5000
 
