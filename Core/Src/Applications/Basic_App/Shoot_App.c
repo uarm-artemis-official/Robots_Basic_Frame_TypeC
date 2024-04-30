@@ -492,12 +492,10 @@ static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
 	ShootActMode_t mode;
 	if(rc->control_mode == CTRLER_MODE){
 		/* always judge cease fire first */
-		if(rc->ctrl.s2 == SW_MID || rc->ctrl.s1 == SW_MID || rc->ctrl.s2 == SW_DOWN)
+		if (rc->ctrl.s2 == SW_UP && rc->ctrl.s1 != SW_MID) {
+			mode = SHOOT_CONT;
+		} else {
 			mode = SHOOT_CEASE;
-		else{
-			if(rc->ctrl.s2 == SW_UP){
-				mode = SHOOT_CONT;//SHOOT_CONT;
-			}
 		}
 		set_shoot_mode(sht, mode);
 	}
