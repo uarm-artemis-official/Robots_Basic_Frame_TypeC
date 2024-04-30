@@ -115,7 +115,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-  UC_Pack_Queue = xQueueCreate(10, UC_PACK_BUFFER_SIZE);
+  UC_Pack_Queue = xQueueCreate(10, UC_PACK_SIZE);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -151,7 +151,7 @@ void MX_FREERTOS_Init(void) {
 
     	  osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
     	  ShootTaskHandle = osThreadCreate(osThread(ShootTask), NULL);
-  //
+
     	  osThreadDef(IMUTask, IMU_Task_Function, osPriorityHigh, 0, 256);
     	  IMUTaskHandle = osThreadCreate(osThread(IMUTask), NULL);
 

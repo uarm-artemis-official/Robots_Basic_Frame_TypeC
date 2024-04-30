@@ -17,34 +17,38 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "cmsis_os.h"
 
-// PACKET STRUCTS AND DEFINITIONS
-// All packet sizes are in bytes.
-#define UC_AUTO_AIM_PACK_HEADER 0x99
-#define UC_AUTO_AIM_PACK_SIZE 20
-typedef struct{
-	uint8_t header;
-	uint8_t salt;
-	uint16_t header_checksum;
+// Auto-aim externals
+extern UART_HandleTypeDef huart1;
+#define UC_HUART huart1
 
+
+// PACK DEFINITIONS
+// All the following definitions are measured in bytes.
+#define UC_PACK_SIZE 64
+#define UC_PACK_HEADER_SIZE 4
+#define UC_PACK_DATA_SIZE 56
+#define UC_PACK_TRAILER_SIZE 4
+
+
+// PACK HEADERS
+#define UC_AUTO_AIM_HEADER 0x01
+#define UC_BOARD_DATA_HEADER 0x02
+#define UC_FLOW_CONTROL_HEADER 0x04
+
+
+// PACK STRUCTS
+#define UC_AUTO_AIM_DATA_SIZE 12
+typedef struct {
 	uint8_t target_num;
 	float delta_yaw;
 	float delta_pitch;
-
-	uint32_t checksum;
 } UC_Auto_Aim_Pack_t; //receive packet from upper computer
 
 
-#define UC_IMU_DATA_PACK_HEADER 0x5D
-#define UC_IMU_DATA_PACK_SIZE 44
-typedef struct{
-	uint8_t header;
-	uint8_t salt;
-	uint16_t header_checksum;
-
+#define UC_BOARD_DATA_DATA_SIZE 36
+typedef struct {
 	uint8_t robot_color; // 0: red, 1: blue
-	uint8_t task_mode; // no use
 
 	// imu data
 	float pitch;
@@ -53,67 +57,45 @@ typedef struct{
 	float accel_y;
 
 	float wheel_rpm[4]; // from chassis wheels
-
-	uint32_t checksum;
-} UC_IMU_Data_Pack_t;
+} UC_Board_Data_Pack_t;
 
 
-#define UC_BOARD_RESPONSE_PACK_HEADER 0x11
-#define UC_BOARD_RESPONSE_PACK_SIZE 12
+#define UC_FLOW_CONTROL_DATA_SIZE 12
 typedef struct {
-	uint8_t header;
-	uint8_t salt;
-	uint16_t header_checksum;
-	/* Response code meanings
-	 *  0 - packet received with no errors.
-	 *  1 - packet received with errors.
-	 */
-	uint8_t response_code;
-
-	uint32_t checksum;
-} UC_Board_Response_Pack_t;
+	uint8_t control_code;
+	uint32_t sequence_number;
+	uint32_t acknowledge;
+} UC_Flow_Control_Pack_t;
 
 
-#define UC_PC_COMMAND_PACK_HEADER 0x22
-#define UC_PC_COMMAND_PACK_SIZE 60
-typedef struct {
-	uint8_t header;
-	uint8_t salt;
-	uint16_t header_checksum;
-
-	uint8_t command_code;
-	uint32_t data[12];
-
-	uint32_t checksum;
-} UC_PC_Command_Pack_t;
-
-
-// EXTERNS
-extern UART_HandleTypeDef huart1;
-extern QueueHandle_t UC_Pack_Queue;
-
-
-// GLOBALS
-#define UC_PACK_BUFFER_SIZE 64 // Maximum pack size (in bytes).
-#define UC_HEADER_SIZE 4       // Header size for all packs (in bytes).
-uint8_t uc_pack_buffer[UC_PACK_BUFFER_SIZE];
-uint8_t uc_valid_header;
+// OTHER STRUCTS
+typedef union pack_checksum {
+	uint32_t as_integer;
+	uint8_t as_bytes[UC_PACK_TRAILER_SIZE];
+} UC_Checksum_t;
 
 
 // INIT FUNCTIONS
-void uc_auto_aim_pack_init(UC_Auto_Aim_Pack_t *uc_pack);
-void uc_imu_data_pack_init(UC_IMU_Data_Pack_t *uc_tx_pack);
-void uc_board_response_pack_init(UC_Board_Response_Pack_t *uc_response_pack);
-void uc_pc_command_pack_init(UC_PC_Command_Pack_t *uc_pc_command_pack);
+void uc_auto_aim_pack_init(UC_Auto_Aim_Pack_t *pack);
+void uc_board_data_pack_init(UC_Board_Data_Pack_t *pack);
+void uc_flow_control_pack_init(UC_Flow_Control_Pack_t *pack);
 
+UC_Checksum_t calculate_checksum(void *data, size_t size);
+
+/*
+ * Checks if the header in uc_pack_input_buffer is recognized header.
+ * All recognized headers are defined under PACK HEADERS macros above.
+ *
+ * RETURNS:
+ *  1 - if the header is a recognized header.
+ *  0 - otherwise.
+ */
+uint8_t is_valid_header();
 
 // UC COMMUNICATION FUNCTIONS
-void uc_receive_pack();
-uint8_t uc_send_pack(void* packet, uint16_t packet_size);
-
-uint32_t calculate_checksum(void *data, size_t size);
-uint16_t uc_get_pack_size(uint8_t *pack_ptr);
-uint8_t uc_get_header(uint8_t *pack_ptr);
-void uc_on_RxCplt();
+void uc_receive(uint8_t *input_buffer, uint16_t size);
+uint8_t uc_send_board_data(UC_Board_Data_Pack_t *pack);
+uint8_t uc_send(void* pack);
+void uc_stop_receive();
 
 #endif /*__AUTO_AIM_H__*/
