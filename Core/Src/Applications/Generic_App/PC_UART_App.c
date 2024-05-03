@@ -11,6 +11,8 @@
 
 #include <PC_UART_App.h>
 
+uint8_t aa_pack_recv_flag = 0;;
+
 
 void start_receive() {
 	uc_receive(uc_pack_input_buffer, 1);
@@ -92,6 +94,7 @@ void PC_UART_Func() {
 			switch (new_pack_buffer[0]) {
 			case UC_AUTO_AIM_HEADER:
 				memcpy(&uc_auto_aim_pack, new_pack_buffer + UC_PACK_HEADER_SIZE, UC_AUTO_AIM_DATA_SIZE);
+				aa_pack_recv_flag = 1;
 				break;
 			case UC_FLOW_CONTROL_HEADER:
 				memcpy(&uc_flow_control_pack, new_pack_buffer, UC_FLOW_CONTROL_DATA_SIZE);
