@@ -27,7 +27,7 @@
 extern uint8_t imu_init_flag;
 extern float can_tx_scale_buffer[TOTAL_COMM_ID][4];
 extern RemoteControl_t rc;
-extern UC_Auto_Aim_Pack_t uc_rx_pack;
+extern UC_Auto_Aim_Pack_t uc_auto_aim_pack;
 //extern CommVision_t vision_pack;
 
 /* define temp vision pack */
@@ -136,7 +136,7 @@ void Gimbal_Task_Function(void const * argument)
 			dynamic_offset_center_flag = 1;
 		 }
 
-		 memcpy(&temp_pack, &uc_rx_pack, sizeof(UC_Auto_Aim_Pack_t));
+		 memcpy(&temp_pack, &uc_auto_aim_pack, sizeof(UC_Auto_Aim_Pack_t));
 		 /* if operator wants to activate auto-aim AND the camera has detected the object */
 		 if(gimbal.gimbal_mode == AUTO_AIM_MODE && temp_pack.target_num > -1){
 //			 if( gimbal.prev_gimbal_act_mode != gimbal.gimbal_act_mode){

@@ -103,6 +103,7 @@
 #include "auto_aim_pack.h"
 #include "self_check.h"
 #include "auto_aim.h"
+#include "PC_UART_App.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -194,6 +195,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   MX_I2C3_Init();
+//  MX_IWDG_Init();
   MX_TIM5_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
@@ -308,7 +310,7 @@ HAL_StatusTypeDef firmware_and_system_init(void){
  buzzer_init(&buzzer);
 
  /* init vision pack */
- uc_auto_aim_pack_init(&uc_rx_pack);
+ uc_auto_aim_pack_init(&uc_auto_aim_pack);
 
  /* DWT init */
  dwt_init();
@@ -388,7 +390,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	 /* re-activate DMA */
 	 HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame));
   }
-  else if (huart == &huart1 && board_status == GIMBAL_BOARD) {
+  else if (huart == &UC_HUART && board_status == GIMBAL_BOARD) {
 		uc_on_RxCplt();
   }
 }

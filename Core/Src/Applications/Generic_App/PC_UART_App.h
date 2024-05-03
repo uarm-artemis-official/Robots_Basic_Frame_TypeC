@@ -1,32 +1,30 @@
-/*******************************************************************************
-* @file           : PC_UART_App.h
-* @brief          : PC Communication with mcu usig UART interface
-* @created time	  : Mar, 2024
-* @author         : James Fu
-******************************************************************************
-* Copyright (c) 2023 UARM Artemis.
-* All rights reserved.
-*******************************************************************************/
+/*
+ * UC_Comm_App.h
+ *
+ *  Created on: Mar. 18, 2024
+ *      Author: James Fu
+ */
 
-#ifndef __PC_UART_APP_H__
-#define __PC_UART_APP_H__
+#ifndef SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_
+#define SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_
 
-#include "auto_aim.h"
+
 #include "imu.h"
+#include "auto_aim.h"
 #include "cmsis_os.h"
-#include "Gimbal_App.h"
 
 
 extern QueueHandle_t UC_Pack_Queue;
-extern UART_HandleTypeDef huart1;
 extern IMU_t imu;
 
 // GLOBALS
-UC_Auto_Aim_Pack_t uc_rx_pack;
-UC_IMU_Data_Pack_t uc_tx_pack;
-UC_PC_Command_Pack_t uc_pc_command_pack;
+UC_Auto_Aim_Pack_t uc_auto_aim_pack;
+UC_Board_Data_Pack_t uc_board_data_pack;
+UC_Flow_Control_Pack_t uc_flow_control_pack;
+uint8_t uc_pack_input_buffer[UC_PACK_SIZE];
 
 
+void uc_on_RxCplt();
 void PC_UART_Func();
 
 #endif /* SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_ */

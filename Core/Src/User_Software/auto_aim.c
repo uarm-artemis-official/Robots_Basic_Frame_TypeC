@@ -18,20 +18,13 @@
 
 
 void uc_auto_aim_pack_init(UC_Auto_Aim_Pack_t *uc_rx_pack){
-	uc_rx_pack->header          = UC_AUTO_AIM_PACK_HEADER;
-	uc_rx_pack->salt            = -1;
-	uc_rx_pack->header_checksum = -1;
 	uc_rx_pack->target_num      = 0;
 	uc_rx_pack->delta_yaw       = 0.0f;
 	uc_rx_pack->delta_pitch     = 0.0f;
-	uc_rx_pack->checksum        = -1;
 }
 
 
-void uc_imu_data_pack_init(UC_IMU_Data_Pack_t *uc_tx_pack){
-	uc_tx_pack->header          = UC_IMU_DATA_PACK_HEADER;
-	uc_tx_pack->salt            = -1;
-	uc_tx_pack->header_checksum = -1;
+void uc_board_data_pack_init(UC_Board_Data_Pack_t *uc_tx_pack){
 	uc_tx_pack->robot_color     = 0;
 	uc_tx_pack->yaw             = 0.0f;
 	uc_tx_pack->pitch           = 0.0f;
@@ -41,82 +34,43 @@ void uc_imu_data_pack_init(UC_IMU_Data_Pack_t *uc_tx_pack){
 	uc_tx_pack->wheel_rpm[1]    = 0.0f;
 	uc_tx_pack->wheel_rpm[2]    = 0.0f;
 	uc_tx_pack->wheel_rpm[3]    = 0.0f;
-	uc_tx_pack->checksum        = -1;
 }
 
 
-void uc_board_response_pack_init(UC_Board_Response_Pack_t *uc_response_pack) {
-	uc_response_pack->header          = UC_BOARD_RESPONSE_PACK_HEADER;
-	uc_response_pack->salt            = -1;
-	uc_response_pack->header_checksum = -1;
-	uc_response_pack->response_code   = -1;
-	uc_response_pack->checksum        = -1;
+void uc_flow_control_pack_init(UC_Flow_Control_Pack_t *pack) {
+	pack->control_code = 0;
+	pack->sequence_number = 0;
+	pack->acknowledge = 0;
 }
 
 
-void uc_pc_command_pack_init(UC_PC_Command_Pack_t *uc_pc_command_pack) {
-	uc_pc_command_pack->header          = UC_PC_COMMAND_PACK_HEADER;
-	uc_pc_command_pack->salt            = -1;
-	uc_pc_command_pack->header_checksum = -1;
-	uc_pc_command_pack->command_code    = -1;
-	uc_pc_command_pack->data[0]         = 0;
-	uc_pc_command_pack->data[1]         = 0;
-	uc_pc_command_pack->data[2]         = 0;
-	uc_pc_command_pack->data[3]         = 0;
-	uc_pc_command_pack->data[4]         = 0;
-	uc_pc_command_pack->data[5]         = 0;
-	uc_pc_command_pack->data[6]         = 0;
-	uc_pc_command_pack->data[7]         = 0;
-	uc_pc_command_pack->data[8]         = 0;
-	uc_pc_command_pack->data[9]         = 0;
-	uc_pc_command_pack->data[10]        = 0;
-	uc_pc_command_pack->data[11]        = 0;
-	uc_pc_command_pack->checksum        = -1;
-}
-
-
-uint32_t calculate_checksum(void *buffer_ptr, size_t buffer_size) {
+UC_Checksum_t calculate_checksum(void *buffer_ptr, size_t buffer_size) {
 	/*
-	 * Calculates checksum of a continuous section of memory. This
-	 * is often used for error detection in pack communication with
-	 * the mini-PC.
+	 * This function assumes the last 4 bytes represent the pack checksum sent from UC,
+	 * therefore, they are ignored during checksum calculation (unless the checksum will
+	 * always be different).
 	 *
-	 * (BEWARE) This function assumes that pack_size is a multiple
-	 * of 4.
+	 * ALGORITHM:
+	 *  - Separates bytes of uc_pack_input_buffer into 32 bit integers.
+	 *  - Add integers together.
+	 *  - Mod sum by 1000000007 (arbitrary prime number).
 	 *
-	 * PARAMETERS:
-	 * 	-
 	 */
 	const uint32_t MOD = 1000000007;
 	uint32_t* data = (uint32_t*) buffer_ptr;
-	uint32_t checksum = 0;
+	uint32_t running_checksum = 0;
 
-	// Calculate checksum only for data portion of a packet.
-	// Assumes that the packet checksum is uint32_t and is the last
-	// field of the packet struct.
 	for (size_t i = 0; i < buffer_size / 4 - 1; i++){
-		checksum = (checksum + (data[i] % MOD)) % MOD;
+		running_checksum = (running_checksum + (data[i] % MOD)) % MOD;
 	}
-	return checksum;
+
+	UC_Checksum_t checksum_union;
+	checksum_union.as_integer = running_checksum;
+	return checksum_union;
 }
 
 
-uint16_t uc_get_pack_size(uint8_t *pack_ptr) {
-	switch (uc_get_header(pack_ptr)) {
-	case UC_AUTO_AIM_PACK_HEADER: return UC_AUTO_AIM_PACK_SIZE;
-	case UC_BOARD_RESPONSE_PACK_HEADER: return UC_BOARD_RESPONSE_PACK_SIZE;
-	case UC_IMU_DATA_PACK_HEADER: return UC_IMU_DATA_PACK_SIZE;
-	default:                      return 0;
-	}
-}
-
-
-uint8_t uc_get_header(uint8_t *pack_ptr) {
-	return uc_pack_buffer[0];
-}
-
-
-void uc_receive_pack() {
+void uc_receive(uint8_t *input_buffer, uint16_t size) {
 	/*
 	 * Receives packs from mini-PC through UART with DMA.
 	 *
@@ -126,17 +80,24 @@ void uc_receive_pack() {
 	 *
 	 * Check uc_on_RxCplt() for error detection.
 	 */
-	if (uc_valid_header == 1) { // New header received.
-		// Retrieve pack into buffer.
-		HAL_UART_Receive_DMA(&huart1, uc_pack_buffer + UC_HEADER_SIZE, uc_get_pack_size(uc_pack_buffer) - UC_HEADER_SIZE);
-	} else {
-		HAL_UART_Receive_DMA(&huart1, uc_pack_buffer, UC_HEADER_SIZE);
-		uc_valid_header = 0;
-	}
+	HAL_UART_Receive_DMA(&UC_HUART, input_buffer, size);
 }
 
 
-uint8_t uc_send_pack(void* pack, uint16_t pack_size) {
+uint8_t uc_send_board_data(UC_Board_Data_Pack_t *board_data_pack) {
+	uint8_t pack_bytes[UC_PACK_SIZE];
+	pack_bytes[0] = UC_BOARD_DATA_HEADER;
+	memcpy(pack_bytes + UC_PACK_HEADER_SIZE, board_data_pack, UC_BOARD_DATA_DATA_SIZE);
+
+	UC_Checksum_t checksum = calculate_checksum(pack_bytes, UC_PACK_SIZE);
+
+	memcpy(pack_bytes + UC_PACK_SIZE - UC_PACK_TRAILER_SIZE, checksum.as_bytes, UC_PACK_TRAILER_SIZE);
+
+	uint8_t response = uc_send(pack_bytes);
+}
+
+
+uint8_t uc_send(void* pack) {
 	/*
 	 * Send any pack to mini-PC through UART2 (huart1).
 	 * Data is always sent in LSB order.
@@ -153,7 +114,7 @@ uint8_t uc_send_pack(void* pack, uint16_t pack_size) {
 	 * 	  1 -> Otherwise.
 	 */
 	// Data is sent in LSB order with top fields bottom fields in UC_Send_Pack_t.
-	HAL_StatusTypeDef status = HAL_UART_Transmit(&huart1, pack, pack_size, 100);
+	HAL_StatusTypeDef status = HAL_UART_Transmit(&UC_HUART, pack, UC_PACK_SIZE, 100);
 	if (status == HAL_OK) {
 		return 0;
 	} else {
@@ -162,32 +123,22 @@ uint8_t uc_send_pack(void* pack, uint16_t pack_size) {
 }
 
 
-void uc_on_RxCplt() {
-	/*
-	 * This is executed after pack is completely received.
-	 * The following happens:
-	 *  1. Compare the received checksum and checksum of uc_input_buffer.
-	 *     If checksums match then copy data in uc_input_buffer to uc_rx_pack.
-	 *  2. Send a UC_Response_Pack_t back to mini-PC.
-	 *  3. Start reception of another pack.
-	 */
-	
-	if (uc_valid_header == 1) {
-		// Check if new pack is valid.
-		uint32_t pack_checksum = calculate_checksum(uc_pack_buffer, uc_get_pack_size(uc_pack_buffer));
-		uint32_t sent_checksum = *((uint32_t*) uc_pack_buffer + (uc_get_pack_size(uc_pack_buffer) / 4) - 1);
-		if (pack_checksum == sent_checksum) {
-			xQueueSendFromISR(UC_Pack_Queue, uc_pack_buffer, NULL);
-		}
-		uc_valid_header = 0;
-	} else {
-		// Check if new header is valid.
-		uint16_t header_checksum = uc_pack_buffer[2] + 256 * uc_pack_buffer[3];
-		if (uc_pack_buffer[0] + uc_pack_buffer[1] == header_checksum) {
-			uc_valid_header = 1;
-		}
+void uc_stop_receive() {
+	HAL_UART_AbortReceive(&UC_HUART);
+}
+
+
+uint8_t is_valid_header(uint8_t *input_buffer) {
+	// All valid packs will have the header as the first byte in the input buffer.
+	// Check under PACK HEADER in auto_aim.h to see macros defining recognized headers.
+	switch(input_buffer[0]) {
+	case 0x01:
+	case 0x02:
+	case 0x04:
+		return 1;
+	default:
+		return 0;
 	}
-	uc_receive_pack();
 }
 
 
