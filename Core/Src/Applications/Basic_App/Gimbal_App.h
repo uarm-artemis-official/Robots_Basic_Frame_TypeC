@@ -33,21 +33,20 @@
 #define MODE_DEBUG 1
 //#define MANUAL_SET_GIMBAL_MODES
 
-#define PITCH_ECD_CENTER  7000//6100 manually measured data
+#define PITCH_ECD_CENTER  3700//6100 manually measured data
 #define PITCH_ECD_DELTA  1364  //60/180*4096
-#define PITCH_GYRO_DELTA (35.0f * DEGREE2RAD)
-#define PITCH_GEAR_RATIO 1.0f // The ratio of the gear box of the pitch motor
-#define YAW_ECD_CENTER 3300//300
+#define PITCH_GYRO_DELTA (80.0f * DEGREE2RAD)
+#define PITCH_GEAR_RATIO 4 // The ratio of the gear box of the pitch motor
+#define YAW_ECD_CENTER 620//300
 
-#define YAW_GEAR_RATIO 2.0f		//if install a gear, calc the gear ratio here
-#define YAW_POSITIVE_DIR -1    //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would
+#define YAW_GEAR_RATIO 1.0f		//if install a gear, calc the gear ratio here
+#define YAW_POSITIVE_DIR 1    //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would
 								//posiibly is turned to negative value, we need to calibrate the correct direction
 								//of this changed output for speed controller
 
 #define GIMBAL_INIT_TIME_MS 1000  	// init delay duration in mili-second
 #define TGT_CONST 100000			// after-detection delay
 
-#define YAW_TURN_THRESHOLD (1.75f*PI)
 
 /* define user structure here */
 typedef struct{
@@ -56,46 +55,37 @@ typedef struct{
 	float wz;
 }Gimbal_Axis_t; //for remote controller set gimbal dir
 
-typedef enum{
-	CLOCKWISE = 0,
-	COUNTER_CLOCKWISE
-}Gimbal_dir_t;
-
-typedef enum{
-	UNLOCK = 0,
-	LOCK
-}GimbalLock_t;
-
 typedef struct{
+	/* gimbal speed related */
+	float yaw_ang_rate;				//angular velocity in degree/s, not used
+	float pitch_ang_rate;
+	float yaw_speed_rate;			//rpm in m/s, not used
+	float pitch_speed_rate;			//rpm in m/s, not used
+
 	/* gimbal position related */
 	float yaw_tar_angle;			//yaw angle target angle in radians
 	float yaw_cur_abs_angle;		//yaw current absolute angle updated by gyro
-	float yaw_cur_rel_angle;
-	float yaw_prev_abs_angle;		//yaw previous absolute angle for updating turns
-	float yaw_prev_rel_angle;		//yaw current relative angle updated by encoder
-
-	float act_yaw_tar_rel_angle;    //actual target yaw angle of the turret, used when gear ratio > 1
-	float act_yaw_cur_rel_angle;    //actual yaw angle of the turret, used when gear ratio > 1
-
+	float yaw_cur_rel_angle;		//yaw current relative angle updated by encoder
+	float yaw_prev_angle;			//yaw previous absolute angle for updating turns, not used
 	float pitch_tar_angle;			//pitch angle target angle in radians
 	float pitch_cur_abs_angle;		//pitch current absolute angle updated by gyro
 	float pitch_cur_rel_angle;		//pitch current absolute angle updated by gyro
 	float pitch_prev_angle;    		//pitch previous absolute angle for updating turns
-	float total_yaw_rel_angle;
-	float total_pitch_rel_angle;
 
 	float yaw_total_turns;
 	float pitch_total_turns;
-	float total_abs_yaw;
-	float total_abs_pitch;
+	float final_abs_yaw;
+	float final_abs_pitch;
 
-	GimbalLock_t gimbal_lock_flag; // Lock the gimbal
-
-	/*For gear use only */
-	Gimbal_dir_t dir; // used if have gear ratio for yaw only (>1)
-	uint8_t yaw_cur_turn; // emm not the actual turns, relatively abstract
+	double gyro_offset_slope;    //offset func: -0.000000000184229  -0.001797605717065
+								 //fit a linear func to compensate yaw abs angle shift, now abandoned
+	uint32_t gyro_offset_count;  // This method has been abandoned
 
 	Gimbal_Axis_t axis;
+
+	/* only spd control */
+	int16_t yaw_tar_spd;
+	int16_t pitch_tar_spd;
 
 	int16_t yaw_turns_count;		//turns counter, not used
 	int16_t yaw_ecd_center;			//center position of the yaw motor by encoder
@@ -169,9 +159,7 @@ void gimbal_set_angle(Gimbal_t *gbal, float target_angle);
 void gimbal_set_limited_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
 void gimbal_set_spd(Gimbal_t *gbal, int16_t yaw_target_spd);
 void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode);
-void gimbal_update_turns(Gimbal_t* gbal, int16_t raw_ecd, int16_t prev_ecd);
-void gimbal_yaw_actual_map_rel_tar_angle(Gimbal_t *gbal);
-void gimbal_yaw_cur_rel_mapping_cur_actual_angle(Gimbal_t *gbal);
+
 
 
 

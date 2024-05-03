@@ -40,9 +40,8 @@
 #define LEVEL_TWO_CAN_SPD 500
 #define LEVEL_THREE_CAN_SPD 500
 
-#define SHOOT_ONCE_MAG_ANGLE (60.0f * DEGREE2RAD)
-#define SHOOT_REVERSE_MAG_SPEED 0.2*PI
-#define SHOOT_CONT_MAG_SPEED 0.3*PI //rpm/sec
+#define SHOOT_ONCE_MAG_ANGLE (20.0f * DEGREE2RAD)
+#define SHOOT_CONT_MAG_SPEED 1.0*PI //rpm/sec
 #define SHOOT_MAG_GEAR_RATIO 19
 
 /* define user structure here */
@@ -88,7 +87,6 @@ typedef struct{
 	ramp_t fric_right_ramp;
 	ShootLidStatus_t lid_status;
 	ShootActMode_t shoot_act_mode;
-	ShootActMode_t shoot_pre_act_mode;
 }Shoot_t;
 Shoot_t shoot;
 

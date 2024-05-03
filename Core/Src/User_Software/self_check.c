@@ -49,7 +49,7 @@ SelfCheckStatus_t self_check_system(){
 		num_of_motors = 3;
 		motor_ids[0] = yaw_id;
 		motor_ids[1] = pitch_id;
-		motor_ids[2] = mag_3508_id;
+		motor_ids[2] = mag_2006_id;
 	}
 
 	// Check motors in motor_ids.
