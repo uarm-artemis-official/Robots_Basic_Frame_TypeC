@@ -43,13 +43,7 @@ void Shoot_Task_Func(void const * argument)
 
   for(;;)
   {
-
-	  //FIXME: rc debug needed
-//	  if(gimbal.gimbal_mode == DEBUG_MODE)
 	  shoot_mode_rc_selection(&shoot, &rc);
-
-	  /* select lid status */
-	  shoot_lid_status_selection(&shoot, &rc);
 
 	  /* get feedback of the magazine motor */
 	  shoot_mag_get_rel_angle(&shoot);
@@ -57,31 +51,18 @@ void Shoot_Task_Func(void const * argument)
 	  /* check the magazine status */
 	  shoot_detect_mag_status(&shoot);
 
-	 /* determine if open lid */
-	 if(shoot.lid_status == OPEN){//if sentry, delete this function
-		set_servo_value(SERVO_PWM_OPEN_LID);
-	 }
-	 else if(shoot.lid_status == CLOSE){
-		set_servo_value(SERVO_PWM_CLOSE_LID);
-	 }
-
 	 /* formal shoot task functions begins */
 	 if(shoot.shoot_act_mode == SHOOT_CEASE){
 		shoot.mag_turns_counter = 0;//clear magazine turns
 		shoot_stop(&shoot);
-//	  		buzzer_stop();
 	 }
 	 else if(shoot.shoot_act_mode == SHOOT_RESERVE){
 		  /* reserve the magazine motor for a while */
 		  //FIXME: didn't consider if the reserve spin also stuck
 		  shoot_reserve_flag = 1;
 		  while(shoot_reserve_counter<20){//20*100ms = 2s
-			  set_mag_motor_angle(&shoot, shoot.mag_cur_angle - 0.3*PI);
-#ifndef USE_CAN_FRIC
-			  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
-#else
+			  set_mag_motor_angle(&shoot, shoot.mag_cur_angle - SHOOT_REVERSE_MAG_SPEED);
 			  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
-#endif
 			  shoot_execute(&shoot);
 			  vTaskDelayUntil(&xLastWakeTime, xFrequency);
 		  }
@@ -91,26 +72,18 @@ void Shoot_Task_Func(void const * argument)
 	  }
 	  else if(shoot.shoot_act_mode == SHOOT_ONCE){
 		 /* need referee system to determine shooting spd */
-		  set_mag_motor_angle(&shoot, 0.3*PI);
-#ifndef USE_CAN_FRIC
-		  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
-#else
-		  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
-#endif
+		  while(shoot.mag_tar_angle - shoot.mag_cur_angle < 0.01){//20*100ms = 2s
+				  set_mag_motor_angle(&shoot, SHOOT_ONCE_MAG_ANGLE);
+				  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
+				  shoot_execute(&shoot);
+				  vTaskDelayUntil(&xLastWakeTime, xFrequency);
+			  }
+		  set_shoot_mode(&shoot, SHOOT_CEASE);
 	  }
 	  else if(shoot.shoot_act_mode == SHOOT_CONT){
-		  if(rc.pc.mouse.right_click.status == PRESSED){
-			  /* auto aimming engage */
-			  /* Well I guess we don't need this any more since we should control the shooting
-			   * at any time during competition due to shooting heat */
-		  }
 		  /* FIXME need referee system to determine shooting spd */
 		  set_mag_motor_angle(&shoot, shoot.mag_cur_angle + SHOOT_CONT_MAG_SPEED);//keep spinning
-#ifndef USE_CAN_FRIC
-		  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
-#else
 		  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
-#endif
 	  }
 	  shoot_execute(&shoot);
 
@@ -126,31 +99,16 @@ void Shoot_Task_Func(void const * argument)
   */
 void shoot_task_init(Shoot_t *sht){
 	/* init pid of magazine motor */
-	// Note this is only for 2006, the pid params need to fine tune with the actual payload
-	motor_init(mag_2006_id, max_out_angle_mag_2006,  max_I_out_angle_mag_2006, max_err_angle_mag_2006, //angular loop
-								kp_angle_mag_2006, ki_angle_mag_2006, kd_angle_mag_2006,
-							max_out_spd_mag_2006, max_I_out_spd_mag_2006, max_err_spd_mag_2006, //spd loop
-								kp_spd_mag_2006, ki_spd_mag_2006, kd_spd_mag_2006,
-							kf_spd_mag_2006);//spd ff gain
-	// This is for hero's mag, delete above param init when deploy this on Hero and tune pid params.
-//	motor_init(mag_3508_id, max_out_angle_mag_3508,  max_I_out_angle_mag_3508, max_err_angle_mag_3508, //angular loop
-//								kp_angle_mag_3508, ki_angle_mag_3508, kd_angle_mag_3508,
-//							max_out_spd_mag_3508, max_I_out_spd_mag_3508, max_err_spd_mag_3508, //spd loop
-//								kp_spd_mag_3508, ki_spd_mag_3508, kd_spd_mag_3508,
-//							kf_spd_mag_3508);//spd ff gain
+	motor_init(mag_3508_id, max_out_angle_mag_3508,  max_I_out_angle_mag_3508, max_err_angle_mag_3508, //angular loop
+								kp_angle_mag_3508, ki_angle_mag_3508, kd_angle_mag_3508,
+							max_out_spd_mag_3508, max_I_out_spd_mag_3508, max_err_spd_mag_3508, //spd loop
+								kp_spd_mag_3508, ki_spd_mag_3508, kd_spd_mag_3508,
+							kf_spd_mag_3508);//spd ff gain
 
 	/* init friction motors */
 	shoot_firc_init(&shoot);
-#ifndef USE_CAN_FRIC
-	ramp_init(&shoot.fric_left_ramp, (LEVEL_ONE_PWM-MIN_PWM_ON_TIME));
-	ramp_init(&shoot.fric_right_ramp, (LEVEL_ONE_PWM-MIN_PWM_ON_TIME));
-#else
 	ramp_init(&shoot.fric_left_ramp, FRIC_CAN_RAMP_DELAY);
 	ramp_init(&shoot.fric_right_ramp, FRIC_CAN_RAMP_DELAY);
-#endif
-
-	/* init servo motor */
-	shoot_servo_init();
 
 	/* init parameters */
 	shoot_params_init(sht);
@@ -162,10 +120,7 @@ void shoot_task_init(Shoot_t *sht){
 
 	/* set shoot mode */
 	set_shoot_mode(sht, SHOOT_CEASE);
-	set_lid_status(sht, STOP);
-
-	/* set comm packs init target number */
-	vision_message.message.vision.target_num = 0;
+	sht->shoot_pre_act_mode = SHOOT_CEASE;
 }
 
 /**
@@ -174,29 +129,6 @@ void shoot_task_init(Shoot_t *sht){
   * @retval    None
   */
 void shoot_firc_init(Shoot_t *sht){
-#ifndef USE_CAN_FRIC
-//	Corresponds to pin H and pin F on the PWM board - need to change manually if we change the pins
-//	HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_1);
-//	osDelay(100);
-//	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_1);
-//	//osDelay(2000);
-//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, MAX_PWM_ON_TIME);
-//	osDelay(100);
-//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, MAX_PWM_ON_TIME);
-//	osDelay(2000);
-//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
-//	osDelay(100);
-//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
-//	osDelay(1750);
-
-	/* or snail motor */
-	osDelay(3000);
-	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_4);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, MIN_PWM_ON_TIME);
-	osDelay(3000);
-#else
 	/* the pid params need to fine tune with the actual payload */
 	motor_init(fric_left_id, max_out_spd_fric,  max_I_out_spd_fric, max_err_spd_fric, kp_spd_fric, ki_spd_fric, kd_spd_fric,
 							 0, 0, 0, 0, 0, 0,//no second loop
@@ -205,7 +137,6 @@ void shoot_firc_init(Shoot_t *sht){
 							 0, 0, 0, 0, 0, 0,//no second loop
 							 0);//spd ff gain
 	set_fric_motor_current(sht, 0);
-#endif
 }
 
 void shoot_params_init(Shoot_t *sht){
@@ -213,11 +144,7 @@ void shoot_params_init(Shoot_t *sht){
 	sht->mag_tar_angle = 0;
 	sht->mag_pre_ecd_angle = 0;
 	sht->mag_tar_spd   = 0;
-#ifndef USE_CAN_FRIC
-	sht->fric_tar_spd = MIN_PWM_ON_TIME;
-#else
 	sht->fric_can_tar_spd = 0;
-#endif
 	sht->mag_turns_counter = 0;
 	sht->mag_center_offset = 0;
 	sht->prev_angle_reset = 1;
@@ -290,20 +217,6 @@ void shoot_stop(Shoot_t *sht){
 
 	/* stop friction wheel*/
 	/* really depends on the type of fric motors used */
-#ifndef USE_CAN_FRIC
-	sht->fric_tar_spd = 1100;
-//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
-//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sht->fric_tar_spd);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, sht->fric_tar_spd);
-	/* reset each value */
-
-	sht->fric_left_ramp.count = 0;
-	sht->fric_right_ramp.count = 0;
-	sht->fric_engage_flag = 0;
-	sht->fric_left_cur_spd = 0;
-	sht->fric_right_cur_spd = 0;
-#else
 	set_fric_motor_current(sht, 0);
 	sht->fric_engage_flag = 0;
 	sht->fric_left_ramp.count = 0;
@@ -311,31 +224,6 @@ void shoot_stop(Shoot_t *sht){
 	sht->fric_left_cur_spd = 0;
 	sht->fric_right_cur_spd = 0;
 	sht->fric_counter = 0;
-#endif
-}
-
-/**
-  * @brief     friction engage functions, for pwm-based motor
-  * @param[in] shoot main struct
-  * @retval    None
-  */
-void shoot_fric_pwm_engagement(Shoot_t *sht, uint16_t target_pwm){
-	/* snail speed controller need to be engaged one by one */
-	if(sht->fric_engage_flag == 0){
-		if(sht->fric_left_cur_spd >= target_pwm){
-			/* engage right fric wheel */
-			sht->fric_right_cur_spd = ramp_calculate(&shoot.fric_right_ramp) * target_pwm + target_pwm;
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, sht->fric_right_cur_spd);
-			if(sht->fric_right_cur_spd >= target_pwm){
-				sht->fric_engage_flag = 1;
-				osDelay(500);
-			}
-			return;
-		}
-		/* engage left wheel first, use ramp function to graduately enhance the pwm value */
-		sht->fric_left_cur_spd = ramp_calculate(&shoot.fric_left_ramp) * target_pwm + target_pwm;
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sht->fric_left_cur_spd);
-	}
 }
 
 /**
@@ -379,16 +267,6 @@ void shoot_fric_can_engagement(Shoot_t *sht, uint16_t target_can){
   */
 void shoot_execute(Shoot_t *sht){
 	/* then activate fric wheels motor */
-#ifndef USE_CAN_FRIC
-//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, sht->fric_tar_spd);
-//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, sht->fric_tar_spd);
-	if(sht->shoot_act_mode == SHOOT_CEASE || sht->shoot_act_mode == SHOOT_RESERVE){
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sht->fric_tar_spd);
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, sht->fric_tar_spd);
-	}
-    else
-    	shoot_fric_pwm_engagement(sht, sht->fric_tar_spd);
-#else
 	/* try single loop first, not considering single shoot using angle loop */
 	if(sht->shoot_act_mode == SHOOT_CEASE || sht->shoot_act_mode == SHOOT_RESERVE){
 		set_motor_can_current(sht->fric_can_tar_spd, // left  fric
@@ -399,11 +277,9 @@ void shoot_execute(Shoot_t *sht){
 	}else{
 		shoot_fric_can_engagement(sht, sht->fric_can_tar_spd);//
 		if(sht->fric_engage_flag == 0 && sht->fric_counter >=FRIC_CAN_RAMP_DELAY){
-//			osDelay(500);
 			sht->fric_engage_flag = 1;
 		}
 	}
-#endif
 	/* activate magazine later */
 	if(sht->shoot_act_mode == SHOOT_CEASE || sht->shoot_act_mode == SHOOT_RESERVE)
 		shoot_mag_dual_loop_control(&shoot);
@@ -429,7 +305,7 @@ void shoot_fric_get_feedback(Shoot_t *sht){
   * @retval    None
   */
 void shoot_mag_get_feedback(Shoot_t *sht){
-	memcpy(&(sht->mag_fb), &motor_data[mag_2006_id].motor_feedback, sizeof(Motor_Feedback_Data_t));
+	memcpy(&(sht->mag_fb), &motor_data[mag_3508_id].motor_feedback, sizeof(Motor_Feedback_Data_t));
 }
 
 void shoot_mag_get_rel_angle(Shoot_t *sht){
@@ -468,18 +344,12 @@ int16_t shoot_mag_update_turns(Shoot_t *sht, int16_t raw_ecd, int16_t prev_ecd)
  * @param[in] prev_ecd: the center offset of ecd mode
  * */
 void shoot_mag_dual_loop_control(Shoot_t *sht){
-	/* This is only for 2006 motor, used for infantry and sentry */
-	motor_data[mag_2006_id].tx_data = pid_dual_loop_control(sht->mag_tar_angle,
-												 &(motor_data[mag_2006_id].motor_info.f_pid),
-												 &(motor_data[mag_2006_id].motor_info.s_pid),
-												 sht->mag_cur_angle,
-												 sht->mag_fb.rx_rpm);//pid without ff
 	/* this is for 3508, used for hero */
-//	motor_data[mag_3508_id].tx_data = pid_dual_loop_control(sht->mag_tar_angle,
-//												 &(motor_data[mag_3508_id].motor_info.f_pid),
-//												 &(motor_data[mag_3508_id].motor_info.s_pid),
-//												 sht->mag_cur_angle,
-//												 sht->mag_fb.rx_rpm);
+	motor_data[mag_3508_id].tx_data = pid_dual_loop_control(sht->mag_tar_angle,
+												 &(motor_data[mag_3508_id].motor_info.f_pid),
+												 &(motor_data[mag_3508_id].motor_info.s_pid),
+												 sht->mag_cur_angle,
+												 sht->mag_fb.rx_rpm);
 }
 
 /**
@@ -490,6 +360,7 @@ void shoot_mag_dual_loop_control(Shoot_t *sht){
   */
 static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
 	ShootActMode_t mode;
+	sht->shoot_pre_act_mode = sht->shoot_act_mode;
 	if(rc->control_mode == CTRLER_MODE){
 		/* always judge cease fire first */
 		if(rc->ctrl.s2 == SW_MID || rc->ctrl.s1 == SW_MID || rc->ctrl.s2 == SW_DOWN)
@@ -509,34 +380,19 @@ static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
 		}
 		else{
 			if(rc->pc.mouse.left_click.status == PRESSED){
-				mode = SHOOT_CONT;//SHOOT_CONT;
-				rc->pc.mouse.left_click.pre_status = PRESSED;
+				if(rc->pc.key.C.status == PRESSED){
+					mode = SHOOT_CONT;
+				}
+				else if(sht->shoot_pre_act_mode == SHOOT_CEASE){
+					mode = SHOOT_ONCE;
+				}
 			}
-			else if(rc->pc.mouse.left_click.status == RELEASED_TO_PRESS){//check rising edge
-				mode = SHOOT_ONCE;//SHOOT_CONT;
-			}
-
 		}
 		set_shoot_mode(sht, mode);
 	}
 }
 
-/**
-  * @brief     determine if we need to open/close lid
-  * @param[in] shoot main struct
-  * @param[in] rc main struct
-  * @retval    None
-  */
-static void shoot_lid_status_selection(Shoot_t *sht, RemoteControl_t *rc){
-	if(rc->pc.key.C.status == RELEASED_TO_PRESS){
-		if(sht->lid_status != OPEN){
-			set_lid_status(sht, OPEN);
-		}
-		else if(sht->lid_status == OPEN){
-			set_lid_status(sht, CLOSE);
-		}
-	}
-}
+
 /**
   * @brief     check if we need to reserve the mag motor
   * @param[in] shoot main struct
@@ -557,7 +413,7 @@ void shoot_detect_mag_status(Shoot_t *sht){
 
 		/* if the flag has been set and count more than 1s */
 		//FIXME: Need to test the actual check duration
-		if(shoot_check_flag != 1 || (shoot_check_flag == 1 && shoot_check_counter < 10) )
+		if(shoot_check_flag != 1 || (shoot_check_flag == 1 && shoot_check_counter < 20) )
 			return;// motor process normally or check time less than 2s
 		else{//shoot_check_counter >= 20
 			/* set auto reserve process */

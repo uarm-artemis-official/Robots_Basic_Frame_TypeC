@@ -300,6 +300,7 @@ HAL_StatusTypeDef firmware_and_system_init(void){
  /* init fb struct of motors */
  for(int i=0;i<MOTOR_COUNT;i++){
 	 memset(&(motor_data[i].motor_feedback), 0, sizeof(Motor_Feedback_Data_t));
+	 motor_data[i].tx_data = 0;
  }
  /* referee system init*/
  referee_init(&referee);
@@ -332,6 +333,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			++debugger_signal_counter;
 		if(shoot_reserve_flag == 1)
 			++shoot_reserve_counter;
+		if(shoot_check_flag == 1)
+			++shoot_check_counter;
 		if(chassis_gyro_flag ==1)
 			++chassis_gyro_counter;
 	}

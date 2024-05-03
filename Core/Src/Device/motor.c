@@ -20,7 +20,6 @@
 #include <string.h>
 #include "public_defines.h"
 
-
 extern Gimbal_t gimbal;
 
 /**
