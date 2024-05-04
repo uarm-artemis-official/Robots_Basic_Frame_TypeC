@@ -392,7 +392,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	 HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame));
   }
   else if (huart == &UC_HUART && board_status == GIMBAL_BOARD) {
-//		uc_on_RxCplt();
+		uc_on_RxCplt();
   }
 }
 #endif

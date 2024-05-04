@@ -155,8 +155,8 @@ void MX_FREERTOS_Init(void) {
     	  osThreadDef(IMUTask, IMU_Task_Function, osPriorityHigh, 0, 256);
     	  IMUTaskHandle = osThreadCreate(osThread(IMUTask), NULL);
 
-//    	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
-//    	  PCUARTTaskHandle = osThreadCreate(osThread(PCUARTTask), NULL);
+    	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
+    	  PCUARTTaskHandle = osThreadCreate(osThread(PCUARTTask), NULL);
       }
   /* USER CODE END RTOS_THREADS */
 

@@ -16,7 +16,6 @@
 
 extern QueueHandle_t UC_Pack_Queue;
 extern IMU_t imu;
-extern uint8_t aa_pack_recv_flag;
 
 // GLOBALS
 UC_Auto_Aim_Pack_t uc_auto_aim_pack;

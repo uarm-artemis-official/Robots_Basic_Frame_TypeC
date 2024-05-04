@@ -23,13 +23,11 @@
 #include "auto_aim.h"
 #include "dwt.h"
 #include "task.h"
-#include <PC_UART_App.h>
 
 extern uint8_t imu_init_flag;
 extern float can_tx_scale_buffer[TOTAL_COMM_ID][4];
 extern RemoteControl_t rc;
 extern UC_Auto_Aim_Pack_t uc_auto_aim_pack;
-extern uint8_t aa_pack_recv_flag;
 //extern CommVision_t vision_pack;
 
 /* define temp vision pack */
@@ -138,16 +136,7 @@ void Gimbal_Task_Function(void const * argument)
 			dynamic_offset_center_flag = 1;
 		 }
 
-		 if(aa_pack_recv_flag == 1){
-			 memcpy(&temp_pack, &uc_auto_aim_pack, sizeof(UC_Auto_Aim_Pack_t));
-			 aa_pack_recv_flag = 0;
-		 }
-		 else{
-//			 memcpy(&temp_pack, 0, sizeof(UC_Auto_Aim_Pack_t));
-			 temp_pack.delta_pitch = 0;
-			 temp_pack.delta_yaw = 0;
-		 }
-//		 memcpy(&temp_pack, &uc_auto_aim_pack, sizeof(UC_Auto_Aim_Pack_t));
+		 memcpy(&temp_pack, &uc_auto_aim_pack, sizeof(UC_Auto_Aim_Pack_t));
 		 /* if operator wants to activate auto-aim AND the camera has detected the object */
 		 if(gimbal.gimbal_mode == AUTO_AIM_MODE && temp_pack.target_num > -1){
 //			 if( gimbal.prev_gimbal_act_mode != gimbal.gimbal_act_mode){
