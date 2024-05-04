@@ -23,8 +23,9 @@
 #define MAX_PWM_ON_TIME 2000
 #define MIN_PWM_ON_TIME 1000
 
-#define SERVO_PWM_CLOSE_LID 180 //clockwise 120 degree
-#define SERVO_PWM_OPEN_LID  360	//counter-clockwise 120 degree
+#define SERVO_PWM_STOP_LID  50
+#define SERVO_PWM_CLOSE_LID 245 //clockwise 120 degree
+#define SERVO_PWM_OPEN_LID  80	//counter-clockwise 120 degree
 								//for 90 degree, turn open lid value sto 110
 /* 2305 can value*/
 #define LEVEL_ONE_PWM 300
@@ -48,6 +49,7 @@
   * @brief  shoot task main struct
   */
 typedef enum{
+	STOP = 0,
 	OPEN,
 	CLOSE
 }ShootLidStatus_t;

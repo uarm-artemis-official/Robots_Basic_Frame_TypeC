@@ -11,6 +11,7 @@
 #ifndef __SHOOT_APP_C__
 #define __SHOOT_APP_C__
 
+
 #include "Shoot_App.h"
 #include "tim.h"
 #include "public_defines.h"
@@ -42,6 +43,7 @@ void Shoot_Task_Func(void const * argument)
 
   for(;;)
   {
+
 	  //FIXME: rc debug needed
 //	  if(gimbal.gimbal_mode == DEBUG_MODE)
 	  shoot_mode_rc_selection(&shoot, &rc);
@@ -160,7 +162,7 @@ void shoot_task_init(Shoot_t *sht){
 
 	/* set shoot mode */
 	set_shoot_mode(sht, SHOOT_CEASE);
-	set_lid_status(sht, CLOSE);
+	set_lid_status(sht, STOP);
 
 	/* set comm packs init target number */
 	vision_message.message.vision.target_num = 0;
@@ -227,10 +229,10 @@ void shoot_params_init(Shoot_t *sht){
 
 void shoot_servo_init(void){
 	/* Start PWM */
-	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim8,TIM_CHANNEL_2);
 
 	/* adjust to zero degree */
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, SERVO_PWM_CLOSE_LID);
+	__HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, SERVO_PWM_STOP_LID);
 }
 
 /**
@@ -501,10 +503,15 @@ static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
 		/* always judge cease fire first */
 		if(rc->pc.mouse.left_click.status == RELEASED){
 			mode = SHOOT_CEASE;
+			rc->pc.mouse.left_click.pre_status = RELEASED;
 		}
 		else{
 			if(rc->pc.mouse.left_click.status == PRESSED){
 				mode = SHOOT_CONT;//SHOOT_CONT;
+				rc->pc.mouse.left_click.pre_status = PRESSED;
+			}
+			else if(rc->pc.mouse.left_click.status == RELEASED_TO_PRESS){//check rising edge
+				mode = SHOOT_ONCE;//SHOOT_CONT;
 			}
 
 		}
@@ -519,10 +526,14 @@ static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
   * @retval    None
   */
 static void shoot_lid_status_selection(Shoot_t *sht, RemoteControl_t *rc){
-	if(rc->pc.key.C.status == PRESSED)
-		set_lid_status(sht, OPEN);
-	else
-		set_lid_status(sht, CLOSE);
+	if(rc->pc.key.C.status == RELEASED_TO_PRESS){
+		if(sht->lid_status != OPEN){
+			set_lid_status(sht, OPEN);
+		}
+		else if(sht->lid_status == OPEN){
+			set_lid_status(sht, CLOSE);
+		}
+	}
 }
 /**
   * @brief     check if we need to reserve the mag motor
