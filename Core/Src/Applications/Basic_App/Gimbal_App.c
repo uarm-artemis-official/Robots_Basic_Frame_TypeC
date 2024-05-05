@@ -23,11 +23,13 @@
 #include "auto_aim.h"
 #include "dwt.h"
 #include "task.h"
+#include <PC_UART_App.h>
 
 extern uint8_t imu_init_flag;
 extern float can_tx_scale_buffer[TOTAL_COMM_ID][4];
 extern RemoteControl_t rc;
 extern UC_Auto_Aim_Pack_t uc_auto_aim_pack;
+extern uint8_t aa_pack_recv_flag;
 //extern CommVision_t vision_pack;
 
 /* define temp vision pack */
@@ -136,7 +138,16 @@ void Gimbal_Task_Function(void const * argument)
 			dynamic_offset_center_flag = 1;
 		 }
 
-		 memcpy(&temp_pack, &uc_auto_aim_pack, sizeof(UC_Auto_Aim_Pack_t));
+		 if(aa_pack_recv_flag == 1){
+			 memcpy(&temp_pack, &uc_auto_aim_pack, sizeof(UC_Auto_Aim_Pack_t));
+			 aa_pack_recv_flag = 0;
+		 }
+		 else{
+//			 memcpy(&temp_pack, 0, sizeof(UC_Auto_Aim_Pack_t));
+			 temp_pack.delta_pitch = 0.0f;
+			 temp_pack.delta_yaw = 0.0f;
+			 temp_pack.target_num = -1;
+		 }
 		 /* if operator wants to activate auto-aim AND the camera has detected the object */
 		 if(gimbal.gimbal_mode == AUTO_AIM_MODE && temp_pack.target_num > -1){
 //			 if( gimbal.prev_gimbal_act_mode != gimbal.gimbal_act_mode){
@@ -839,11 +850,11 @@ static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_
 		/* filter applied here, TODO may add kalman filter here, depends on data input */
 		float filtered_delta_yaw = ewma_filter(&gbal->ewma_f_aim_yaw, pack->delta_yaw);
 //		pack->yaw_data = sliding_window_mean_filter(&gbal->swm_f_aim_yaw, pack->yaw_data);
-		delta_yaw = in_out_map(filtered_delta_yaw, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
+		delta_yaw = in_out_map(pack->delta_yaw, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
 
 		float filtered_delta_pitch = ewma_filter(&gbal->ewma_f_aim_pitch, pack->delta_pitch);
 //		pack->pitch_data = sliding_window_mean_filter(&gbal->swm_f_aim_pitch, pack->yaw_data);
-		delta_pitch = in_out_map(filtered_delta_pitch, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
+		delta_pitch = in_out_map(pack->delta_pitch, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
 	}
 	/* get the latest angle position of pitch and yaw motor */
 	gimbal_get_ecd_fb_data(&gimbal,
@@ -854,11 +865,11 @@ static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_
 	 * also update the target into right scale of angle */
 	if(gbal->gimbal_motor_mode == GYRO_MODE){
 		cur_yaw_target = gbal->yaw_cur_abs_angle - delta_yaw; // only yaw use abs values
-		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch;
+		cur_pitch_target = gbal->pitch_cur_rel_angle - delta_pitch * 4;
 	}
 	else{
 		cur_yaw_target = gbal->yaw_cur_rel_angle - delta_yaw;
-		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch;
+		cur_pitch_target = gbal->pitch_cur_rel_angle - delta_pitch * 4;
 	}
 	/* avoid small noise to spin the yaw */
 	if(fabs(delta_yaw)>= 1.0f*DEGREE2RAD)

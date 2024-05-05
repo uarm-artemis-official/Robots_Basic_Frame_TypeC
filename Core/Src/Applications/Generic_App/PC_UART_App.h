@@ -22,6 +22,7 @@ UC_Auto_Aim_Pack_t uc_auto_aim_pack;
 UC_Board_Data_Pack_t uc_board_data_pack;
 UC_Flow_Control_Pack_t uc_flow_control_pack;
 uint8_t uc_pack_input_buffer[UC_PACK_SIZE];
+extern uint8_t aa_pack_recv_flag;
 
 
 void uc_on_RxCplt();
