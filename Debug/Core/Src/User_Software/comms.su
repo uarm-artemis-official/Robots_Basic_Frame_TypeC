@@ -1,0 +1,9 @@
+comms.c:36:6:gimbal_angle_message_init	24	static
+comms.c:48:6:rc_message_init	24	static
+comms.c:62:6:pc_message_init	24	static
+comms.c:75:6:pc_ext_message_init	24	static
+comms.c:88:6:ref_message_init	16	static
+comms.c:99:6:vision_message_init	16	static
+comms.c:115:6:comm_subscribe	16	static
+comms.c:149:23:isSubscribed	16	static
+comms.c:161:6:comm_unsubscribe	16	static

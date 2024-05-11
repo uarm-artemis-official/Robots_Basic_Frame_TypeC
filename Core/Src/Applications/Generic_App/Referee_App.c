@@ -16,9 +16,12 @@
 
 #include "main.h"
 #include "string.h"
+#include "usart.h"
 #include "Chassis_App.h"
 #include <crc.h>
 #include <Referee_App.h>
+
+extern UART_HandleTypeDef huart1;
 /*
  *  @Referee System Note
  *		JUL, 2023: Use UART3 DMA IT to read the data from referee system intead of freertos task
@@ -77,6 +80,12 @@ void referee_init(Referee_t *ref){
 	memset(&(ref->power_heat_data),   0, sizeof(power_heat_data_t));
 	memset(&(ref->shoot_data), 		  0, sizeof(shoot_data_t));
 	memset(&(ref->ui_intrect_data),   0, sizeof(robot_interaction_data_t));
+	memset(&(ref->custom_robot_data), 0, sizeof(custom_robot_data_t));
+
+	memset(&(ref->ui_figure_data), 0, sizeof(interaction_figure_t));
+	memset(&(ref->ui_del_fig_data), 0, sizeof(interaction_layer_delete_t));
+	memset(&(ref->ui_figure_struct_data), 0, sizeof(interaction_figure_4_t));
+	memset(&(ref->ui_custom_data), 0, sizeof(ext_client_custom_character_t));
 	memset(&(ref->custom_robot_data), 0, sizeof(custom_robot_data_t));
 
 	ref->robot_status_data.robot_level = 1;
@@ -139,7 +148,98 @@ void referee_read_data(Referee_t *ref, uint8_t *rx_frame){
 }
 
 
+/* Drawing the UI */
+uint8_t pack_seq=0;
+void referee_pack_ui_data(uint8_t sof,uint16_t cmd_id, uint8_t *p_data, uint16_t len){
+	uint8_t  tx_buff[MAX_REF_TX_DATA_LEN]; // Data pool
+	uint16_t frame_length = HEADER_LEN + CMD_LEN + len + CRC_LEN;   // length of data frame
 
+	memset(tx_buff,0, frame_length);  // Refresh the data pool
+
+	/* Packing the handler */
+	tx_buff[0] = SOF_ID; // First byte of the data pool
+	memcpy(&tx_buff[1],(uint8_t*)&len, sizeof(len));// Actual data len in the data pool
+	tx_buff[3] = pack_seq;// Pack sequence
+	Append_CRC8_Check_Sum(tx_buff, HEADER_LEN);  // CRC8 Calibration required by referee system
+
+	/* Pack cmd id */
+	memcpy(&tx_buff[HEADER_LEN],(uint8_t*)&cmd_id, CMD_LEN);
+
+	/* Pack final data */
+	memcpy(&tx_buff[HEADER_LEN+CMD_LEN], p_data, len);
+	Append_CRC16_Check_Sum(tx_buff,frame_length);  // CRC16 Calibration
+
+	if (pack_seq == 0xff)
+		pack_seq=0;
+	else
+		pack_seq++;
+
+	/* Transmit the data */
+	HAL_UART_Transmit_DMA(&huart1, tx_buff, frame_length);
+}
+
+void referee_set_ui_data(Referee_t *ref){
+	    ref->ui_intrect_data.data_cmd_id=0x0104;// Draw 7 blocks
+	    //FIXME: check the color and robot first here
+	    if(ref->robot_status_data.robot_id == 3 || ref->robot_status_data.robot_id == 4 || \
+	       ref->robot_status_data.robot_id == 103 || ref->robot_status_data.robot_id == 104){ // Infantry
+			ref->ui_intrect_data.sender_ID=ref->robot_status_data.robot_id;
+			switch(ref->robot_status_data.robot_id){
+				case 3: ref->ui_intrect_data.receiver_ID=0x0103;break;// Red team #3 infantry client
+				case 4: ref->ui_intrect_data.receiver_ID=0x0104;break;// Red team #4 infantry client
+				case 103: ref->ui_intrect_data.receiver_ID=0x0167;break;// Blue team #3 infantry client
+				case 104: ref->ui_intrect_data.receiver_ID=0x0168;break;// Blue team #4 infantry client
+			}
+			// The top three bytes represent the graphic name, used for graphic indexing,
+			// which can be defined by yourself
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].graphic_name[0] = 97;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].graphic_name[1] = 97;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].graphic_name[2] = 0;// Graphic name
+
+			//Graphic operations [0], 0: null operation; 1: add; 2: modify; 3: delete; 4: rename;
+			//5: delete; 6: rename; 7: rename; 8: rename; 9: rename; 10: rename; 11: rename; 12: rename; 13: rename.
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].operate_tpye=1;
+			ref->ui_intrect_data.graphic_custom_struct[0].graphic_tpye=0;//graphic type, 0 is straight line, check user manual for others
+			ref->ui_intrect_data.graphic_custom.graphic_data_struct[0].layer=1;//number of layers
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].color=1;//color
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].start_angle=0;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].end_angle=0;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].width=1;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].start_x=SCREEN_LENGTH/2;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].start_y=SCREEN_WIDTH/2;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].end_x=SCREEN_LENGTH/2;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].end_y=SCREEN_WIDTH/2-300;
+			ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].radius=0;
+
+	    }
+	    else if(ref->robot_status_data.robot_id == 1 || ref->robot_status_data.robot_id == 101){ // Hero
+	 			ref->ui_intrect_data.sender_ID=ref->robot_status_data.robot_id;
+	 			switch(ref->robot_status_data.robot_id){
+	 				case 1: ref->ui_intrect_data.receiver_ID=0x0101;break;// Red team #3 Hero client
+	 				case 101: ref->ui_intrect_data.receiver_ID=0x0165;break;// Blue team #3 Hero client
+	 			}
+	 			// The top three bytes represent the graphic name, used for graphic indexing,
+				// which can be defined by yourself
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].graphic_name[0] = 97;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].graphic_name[1] = 97;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].graphic_name[2] = 0;// Graphic name
+
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].operate_tpye=1;
+				ref->ui_intrect_data.graphic_custom_struct[0].graphic_tpye=0;//graphic type, 0 is straight line, check user manual for others
+				ref->ui_intrect_data.graphic_custom.graphic_data_struct[0].layer=1;//number of layers
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].color=1;//color
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].start_angle=0;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].end_angle=0;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].width=1;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].start_x=SCREEN_LENGTH/2;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].start_y=SCREEN_WIDTH/2;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].end_x=SCREEN_LENGTH/2;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].end_y=SCREEN_WIDTH/2-300;
+				ref->ui_intrect_data.graphic_custom.grapic_data_struct[0].radius=0;
+	 	    }
+
+
+}
 
 
 #endif /*__DIRECTORY_ANY_CODE_C__*/

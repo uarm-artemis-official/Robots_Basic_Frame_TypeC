@@ -22,12 +22,13 @@
 
 /* define general declarations for gimbal task here */
 #define SOF_ID    	 0xA5  //fixed sof value
-#define HEADER_LEN   sizeof(frame_header_t)
+#define HEADER_LEN   sizeof(frame_header_t) // 5
 #define CMD_LEN      2    //cmd_id bytes
 #define CRC_LEN      2    //crc16 bytes
 #define MAX_REF_RX_DATA_LEN 41 //0x020B=40 + 1 as NUll buffer(maybe?)
 #define MAX_REF_TX_DATA_LEN 128
-
+#define SCREEN_LENGTH 1920
+#define SCREEN_WIDTH 1080
 /* define user structure here */
 /* copy those from DJI referee manual */
 typedef struct __attribute__((__packed__))//0x0001
@@ -91,6 +92,7 @@ uint8_t launching_frequency;
 float initial_speed;
 }shoot_data_t;
 
+/* For drawing the UI on the client */
 typedef struct __attribute__((__packed__))//0x0301
 {
 	uint16_t data_cmd_id;
@@ -98,6 +100,41 @@ typedef struct __attribute__((__packed__))//0x0301
 	uint16_t receiver_id;
 	uint8_t user_data[113];//max length 113
 }robot_interaction_data_t;
+
+// Sub commands for UI interactions
+typedef struct __attribute__((__packed__))//0x0101
+{
+	uint8_t figure_name[3];
+	uint32_t operate_tpye:3;
+	uint32_t figure_tpye:3;
+	uint32_t layer:4;
+	uint32_t color:4;
+	uint32_t details_a:9;
+	uint32_t details_b:9;
+	uint32_t width:10;
+	uint32_t start_x:11;
+	uint32_t start_y:11;
+	uint32_t details_c:10;
+	uint32_t details_d:11;
+	uint32_t details_e:11;
+}interaction_figure_t;
+
+typedef struct __attribute__((__packed__))//0x0100
+{
+	uint8_t delete_type;
+	uint8_t layer;
+}interaction_layer_delete_t;
+
+typedef struct __attribute__((__packed__))//0x0104
+{
+	interaction_figure_t interaction_figure[7];
+}interaction_figure_4_t;
+
+typedef struct __attribute__((__packed__))//0x0110
+{
+//	graphic_data_struct_t grapic_data_struct;
+	uint8_t data[30];
+} ext_client_custom_character_t;
 
 /* Sub struct for cmd id 0x0301 */
 // to be implement
@@ -116,7 +153,13 @@ typedef enum{
 	POWER_HEAT_ID 		= 0x0202,
 	SHOOT_ID	  		= 0x0207,
 	INTERA_UI_ID  		= 0x0301,
-	INTERRA_USER_DATA 	= 0x0302
+	INTERA_USER_DATA_ID	= 0x0302,
+
+	// Sub cmd id
+	SUB_UI_LAYER_DEL_ID 	= 0x0100,
+	SUB_UI_INTERA_FIGURE_ID = 0x0101,
+	SUB_UI_FIG_STRUCT_ID	= 0x0104,
+	SUB_UI_EXT_CUSTOM_ID 	= 0x0110
 }referee_id_t;
 
 /* main referee system struct */
@@ -127,6 +170,8 @@ typedef struct __attribute__((__packed__))
   uint8_t  seq;
   uint8_t  crc8;
 }frame_header_t;
+
+
 
 typedef struct __attribute__((__packed__))
 {
@@ -142,6 +187,11 @@ typedef struct __attribute__((__packed__))
 
 	// tx data
 	robot_interaction_data_t ui_intrect_data;
+	interaction_figure_t ui_figure_data;
+	interaction_layer_delete_t ui_del_fig_data;
+
+	interaction_figure_4_t ui_figure_struct_data;
+	ext_client_custom_character_t ui_custom_data;
 	custom_robot_data_t custom_robot_data;
 	uint16_t ref_cmd_id;
 
@@ -159,9 +209,11 @@ extern uint8_t ref_rx_frame[256];
 
 
 /* functions declaration here */
+void Referee_Task_Func(void const * argument);
 void referee_init(Referee_t *ref);
 void referee_read_data(Referee_t *ref, uint8_t *rx_frame);
-void Referee_Task_Func(void const * argument);
+void referee_pack_ui_data(uint8_t sof,uint16_t cmd_id, uint8_t *p_data, uint16_t len);
+void referee_set_ui_data(Referee_t *ref);
 
 
 
