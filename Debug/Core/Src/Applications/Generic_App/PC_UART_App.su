@@ -1,4 +1,0 @@
-PC_UART_App.c:17:6:start_receive	8	static
-PC_UART_App.c:22:6:process_flow_control	4	static
-PC_UART_App.c:27:6:uc_on_RxCplt	24	static
-PC_UART_App.c:69:6:PC_UART_Func	88	static

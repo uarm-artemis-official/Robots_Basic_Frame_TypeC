@@ -1,2 +1,0 @@
-mahony_ahrs.c:44:6:mahony_ahrs_update	136	static
-mahony_ahrs.c:162:6:mahony_ahrs_updateIMU	64	static
