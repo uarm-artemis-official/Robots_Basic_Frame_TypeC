@@ -502,8 +502,8 @@ void gimbal_reset_data(Gimbal_t *gbal){
 
 	init_ewma_filter(&gbal->ewma_f_x, 0.50f);//0.65 for older client
 	init_ewma_filter(&gbal->ewma_f_y, 0.50f);//0.6 for older client
-	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.95f);//0.65 for older client
-	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.95f);//0.6 for older client
+	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.98f);//0.65 for older client
+	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.98f);//0.6 for older client
 
 	init_swm_filter(&gbal->swm_f_x, 50);// window size 50
 	init_swm_filter(&gbal->swm_f_y, 50);
@@ -850,11 +850,11 @@ static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_
 		/* filter applied here, TODO may add kalman filter here, depends on data input */
 		float filtered_delta_yaw = ewma_filter(&gbal->ewma_f_aim_yaw, pack->delta_yaw);
 //		pack->yaw_data = sliding_window_mean_filter(&gbal->swm_f_aim_yaw, pack->yaw_data);
-		delta_yaw = in_out_map(pack->delta_yaw, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
+		delta_yaw = in_out_map(filtered_delta_yaw, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
 
 		float filtered_delta_pitch = ewma_filter(&gbal->ewma_f_aim_pitch, pack->delta_pitch);
 //		pack->pitch_data = sliding_window_mean_filter(&gbal->swm_f_aim_pitch, pack->yaw_data);
-		delta_pitch = in_out_map(pack->delta_pitch, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
+		delta_pitch = in_out_map(filtered_delta_pitch, -180.0, 180.0, -PI,PI);// 1000 -> 2*pi, old value +-30*PI
 	}
 	/* get the latest angle position of pitch and yaw motor */
 	gimbal_get_ecd_fb_data(&gimbal,
@@ -865,14 +865,14 @@ static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_
 	 * also update the target into right scale of angle */
 	if(gbal->gimbal_motor_mode == GYRO_MODE){
 		cur_yaw_target = gbal->yaw_cur_abs_angle - delta_yaw; // only yaw use abs values
-		cur_pitch_target = gbal->pitch_cur_rel_angle - delta_pitch * 4;
+		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch * 4;
 	}
 	else{
 		cur_yaw_target = gbal->yaw_cur_rel_angle - delta_yaw;
-		cur_pitch_target = gbal->pitch_cur_rel_angle - delta_pitch * 4;
+		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch * 4;
 	}
 	/* avoid small noise to spin the yaw */
-	if(fabs(delta_yaw)>= 1.0f*DEGREE2RAD)
+	if(fabs(delta_yaw)>= 1.5f*DEGREE2RAD)
 		gbal->yaw_tar_angle = cur_yaw_target;
 	if(fabs(delta_pitch)>= 1.0f*DEGREE2RAD)
 		gbal->pitch_tar_angle = cur_pitch_target;

@@ -115,7 +115,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-  UC_Pack_Queue = xQueueCreate(10, UC_PACK_SIZE);
+  UC_Pack_Queue = xQueueCreate(1, UC_PACK_SIZE);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */

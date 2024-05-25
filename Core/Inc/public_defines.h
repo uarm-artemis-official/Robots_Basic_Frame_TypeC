@@ -49,7 +49,7 @@
 #define max_err_wheel 5000
 
 /* gimbal 6020 dual loop control */
-#define kp_angle_yaw 300//700
+#define kp_angle_yaw 400//700
 #define ki_angle_yaw 0.1//0.1
 #define kd_angle_yaw 10
 #define max_out_angle_yaw 8000 // not tuned yet
