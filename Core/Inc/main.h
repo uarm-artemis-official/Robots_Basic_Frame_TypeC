@@ -153,6 +153,7 @@ typedef enum {
 /* declare init function */
 HAL_StatusTypeDef firmware_and_system_init(void);
 extern char pdata[32]; //PACKLEN
+extern int16_t referee_parsed_flag;
 //extern uint8_t rc_rx_buffer[18];
 /* USER CODE END Private defines */
 

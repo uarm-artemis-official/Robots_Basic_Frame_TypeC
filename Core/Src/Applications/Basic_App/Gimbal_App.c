@@ -150,10 +150,6 @@ void Gimbal_Task_Function(void const * argument)
 		 }
 		 /* if operator wants to activate auto-aim AND the camera has detected the object */
 		 if(gimbal.gimbal_mode == AUTO_AIM_MODE && temp_pack.target_num > -1){
-//			 if( gimbal.prev_gimbal_act_mode != gimbal.gimbal_act_mode){
-//					 gimbal.yaw_tar_angle = gimbal.yaw_cur_abs_angle;
-//					 gimbal.pitch_tar_angle = gimbal.pitch_cur_rel_angle;
-//			 }
 			 /* activate auto aiming */
 			 gimbal_update_autoaim_rel_angle(&gimbal, &rc, &temp_pack);
 			 /* set limited target angle */
@@ -163,48 +159,23 @@ void Gimbal_Task_Function(void const * argument)
 
 		 /* artificial targeting */
 		 else if(gimbal.gimbal_act_mode == GIMBAL_FOLLOW || gimbal.gimbal_act_mode == INDPET_MODE){
-//			 if( gimbal.prev_gimbal_act_mode != gimbal.gimbal_act_mode){
-//					 gimbal.yaw_tar_angle = gimbal.yaw_cur_rel_angle;
-//					 gimbal.pitch_tar_angle = gimbal.pitch_cur_rel_angle;
-//			 }
 			 /* update gimbal rel angle */
 			gimbal_update_rc_rel_angle(&gimbal, &rc);
 			/* set limited target angle */
 			gimbal_set_limited_angle(&gimbal, gimbal.yaw_tar_angle, gimbal.pitch_tar_angle);
-//			printf("%f,%f\r\n", gimbal.pitch_tar_angle, gimbal.pitch_cur_rel_angle);
-//			gimbal.prev_gimbal_act_mode = gimbal.gimbal_act_mode;
 
 		 }
 
-		 else if(gimbal.gimbal_act_mode == GIMBAL_CENTER){
-//			 if( gimbal.prev_gimbal_act_mode != SELF_GYRO || gimbal.prev_gimbal_act_mode != GIMBAL_CENTER){
-//				 gimbal.yaw_tar_angle = gimbal.yaw_cur_abs_angle;
-//				 gimbal.pitch_tar_angle = gimbal.pitch_cur_rel_angle;
-//			 }
+		 else if(gimbal.gimbal_act_mode == GIMBAL_CENTER || gimbal.gimbal_motor_mode == GYRO_MODE){
 			/* update gimbal rel angle */
 			gimbal_update_rc_rel_angle(&gimbal, &rc);
 			/* set limited target angle */
 			gimbal_set_limited_angle(&gimbal, gimbal.yaw_tar_angle, gimbal.pitch_tar_angle);
-
-//			gimbal.prev_gimbal_act_mode = GIMBAL_CENTER;
 		 }
 
-		 else if(gimbal.gimbal_act_mode == SELF_GYRO){
-//			 if( gimbal.prev_gimbal_act_mode != SELF_GYRO || gimbal.prev_gimbal_act_mode != GIMBAL_CENTER){
-//				 gimbal.yaw_tar_angle = gimbal.yaw_cur_abs_angle;
-//				 gimbal.pitch_tar_angle = gimbal.pitch_cur_rel_angle;
-//			 }
-			 if(gimbal.gimbal_motor_mode == GYRO_MODE){
-				/* update gimbal rel ecd angle for pitch */
-				gimbal_update_rc_rel_angle(&gimbal, &rc);
-				/* set limited target angle */
-				gimbal_set_limited_angle(&gimbal, gimbal.yaw_tar_angle, gimbal.pitch_tar_angle);
-
-
-			}
-//			 gimbal.prev_gimbal_act_mode = SELF_GYRO;
-		}
 	}//None IDLE MODE else
+	 /* Update current mode */
+	 gimbal.prev_gimbal_motor_mode = gimbal.gimbal_motor_mode;
 
 	 /* set motor voltage through cascade pid controller */
 	 gimbal_cmd_exec(&gimbal, DUAL_LOOP_PID_CONTROL);
@@ -514,6 +485,7 @@ void gimbal_reset_data(Gimbal_t *gbal){
 	memset(&(gbal->pitch_ecd_fb), 0, sizeof(Motor_Feedback_Data_t));
 
 	kalmanCreate(&(gbal->kalman_f), 0.001, 0.01);//0.0005 0.02
+	gbal->prev_gimbal_motor_mode = ENCODE_MODE;
 }
 /******************  MODE SELECTION FUNCTIONS BELOW ********************/
 void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr){
@@ -705,6 +677,19 @@ static void gimbal_update_comm_info(Gimbal_t *gbal, CommMessageUnion_t *cmu){
 	cmu->comm_ga.send_flag = 1;
 }
 
+void gimbal_safe_mode_switch(Gimbal_t *gbal){
+ if(gbal->prev_gimbal_motor_mode != gbal->gimbal_motor_mode) {
+	 if(gbal->gimbal_motor_mode == GYRO_MODE){
+		 gbal->yaw_tar_angle = gbal->yaw_cur_abs_angle;
+		 gbal->pitch_tar_angle = gbal->pitch_cur_rel_angle;
+	 }
+	 else if(gbal->gimbal_motor_mode == ENCODE_MODE){
+		 gbal->yaw_tar_angle = gbal->yaw_cur_rel_angle;
+		 gbal->pitch_tar_angle = gbal->pitch_cur_rel_angle;
+	 }
+   }
+}
+
 static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr){
 	float cur_yaw_target = 0.0;
 	float cur_pitch_target = 0.0;
@@ -752,6 +737,10 @@ static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr)
 	}
 	if(fabs(delta_pitch)> 1.0f*DEGREE2RAD)
 		gbal->pitch_tar_angle = cur_pitch_target;
+
+	if(rc_hdlr->control_mode == PC_MODE)
+		gimbal_safe_mode_switch(gbal);// Safely switch mode
+
 	/* independent mode don't allow set yaw angle */
 	if(gbal->gimbal_act_mode == INDPET_MODE)
 		gbal->yaw_tar_angle = 0;

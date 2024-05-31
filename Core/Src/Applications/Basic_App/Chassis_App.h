@@ -28,6 +28,7 @@
 #define CHASSIS_POWER_DANGER      20 //random value, test soon
 #define CHASSIS_POWER_THRESHOLD   45  //random value, test soon
 #define POWER_TO_CURRENT          (1.0f) //random value, test soon
+#define CHASSIS_PC_RAMP_VALUE 	 (0.5f) //ramp value for increment of the motors
 
 
 

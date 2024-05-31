@@ -33,7 +33,7 @@
 #define MODE_DEBUG 1
 //#define MANUAL_SET_GIMBAL_MODES
 
-#define PITCH_ECD_CENTER  3700//6100 manually measured data
+#define PITCH_ECD_CENTER  3300//6100 manually measured data
 #define PITCH_ECD_DELTA  1364  //60/180*4096
 #define PITCH_GYRO_DELTA (80.0f * DEGREE2RAD)
 #define PITCH_GEAR_RATIO 4 // The ratio of the gear box of the pitch motor
@@ -115,6 +115,7 @@ typedef struct{
 	kalman_filter_t kalman_f;// first order gyroscope kalman filter for imu data
 
 	GimbalMotorMode_t gimbal_motor_mode;  //gyro or encoder
+	GimbalMotorMode_t prev_gimbal_motor_mode;  //gyro or encoder
 	BoardActMode_t gimbal_act_mode;		  //gimbal center, gimbal follow, etc
 	BoardActMode_t prev_gimbal_act_mode;
 	BoardMode_t gimbal_mode;			  //idle(safe) or normal
@@ -159,7 +160,7 @@ void gimbal_set_angle(Gimbal_t *gbal, float target_angle);
 void gimbal_set_limited_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
 void gimbal_set_spd(Gimbal_t *gbal, int16_t yaw_target_spd);
 void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode);
-
+void gimbal_safe_mode_switch(Gimbal_t *gbal);
 
 
 

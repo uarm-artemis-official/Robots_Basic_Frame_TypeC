@@ -139,6 +139,9 @@ uint8_t shoot_reserve_flag = 0;
 uint8_t shoot_reserve_counter = 0;
 uint8_t shoot_check_flag = 0;
 uint16_t shoot_check_counter = 0;
+int16_t referee_parsed_flag = 0;
+uint8_t referee_timeout_counter = 0;
+uint8_t referee_timeout_check_flag = 0;
 
 /* new defined variables*/
 uint32_t debugger_signal_counter = 0;//count the idle time
@@ -388,7 +391,7 @@ void XferCpltCallback(DMA_HandleTypeDef *hdma){
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   if(huart == &huart1 && board_status == CHASSIS_BOARD){
 	 /* re-activate DMA */
-	 HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame));
+	  referee_parsed_flag = 1;
   }
   else if (huart == &UC_HUART && board_status == GIMBAL_BOARD) {
 		uc_on_RxCplt();

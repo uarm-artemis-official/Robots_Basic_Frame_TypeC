@@ -98,8 +98,8 @@
 					</folderInfo>
 					<fileInfo id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.2115725322.405325223" name="auto_aim_pack.h" rcbsApplicability="disable" resourcePath="Core/Src/User_Software/auto_aim_pack.h" toolsToInvoke=""/>
 					<sourceEntries>
-						<entry excluding="Src/User_Software/auto_aim_pack.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry excluding="Src/User_Software/auto_aim_pack.h|Src/User_Software/auto_aim_pack.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>

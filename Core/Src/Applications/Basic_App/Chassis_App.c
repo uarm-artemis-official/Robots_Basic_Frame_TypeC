@@ -11,7 +11,7 @@
 #define __CHASSIS_APP_C__
 
 #define WITH_SLIPRING
-//#define CHASSIS_POWER_LIMIT
+#define CHASSIS_POWER_LIMIT
 
 #include "Chassis_App.h"
 #include "Comm_App.h"
@@ -76,7 +76,7 @@ void chasiss_task_init(Chassis_t* chassis_hdlr){
 		  							 0, 0, 0, 0, 0, 0,//no second loop
 		  							 0);//spd ff gain
 	  }
-	  pid_param_init(&(chassis_hdlr->f_pid), 8000, 500, 5000, 550, 0.01, 10); // chassis twist pid init
+	  pid_param_init(&(chassis_hdlr->f_pid), 8000, 500, 5000, 600, 0.1, 100); // chassis twist pid init
 	  /* set initial chassis mode to idle mode or debug mode */
 	  chassis_set_mode(chassis_hdlr, IDLE_MODE);
 	  chassis_set_act_mode(chassis_hdlr, INDPET_MODE);// act mode only works when debuging with rc
@@ -184,13 +184,13 @@ void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hd
 		}
 
 		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status != PRESSED){// check holding
-			chassis_hdlr->gimbal_axis.vx += 0.1f; // apply ramp-like mode to engage chassis
+			chassis_hdlr->gimbal_axis.vx += CHASSIS_PC_RAMP_VALUE; // apply ramp-like mode to engage chassis
 			if(chassis_hdlr->gimbal_axis.vx >= chassis_hdlr->max_vx)
 				chassis_hdlr->gimbal_axis.vx = chassis_hdlr->max_vx;
 		}
 
 		if(rc_hdlr->pc.key.S.status == PRESSED && rc_hdlr->pc.key.W.status != PRESSED){// check holding
-			chassis_hdlr->gimbal_axis.vx -= 0.1f; // apply ramp-like mode to engage chassis
+			chassis_hdlr->gimbal_axis.vx -= CHASSIS_PC_RAMP_VALUE; // apply ramp-like mode to engage chassis
 			if(chassis_hdlr->gimbal_axis.vx < -chassis_hdlr->max_vx)
 				chassis_hdlr->gimbal_axis.vx = -chassis_hdlr->max_vx;
 		}
@@ -205,13 +205,13 @@ void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hd
 		}
 
 		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status != PRESSED){// check holding
-			chassis_hdlr->gimbal_axis.vy -= 0.1f;// apply ramp-like mode to engage chassis
+			chassis_hdlr->gimbal_axis.vy -= CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
 			if(chassis_hdlr->gimbal_axis.vy < -chassis_hdlr->max_vy)
 				chassis_hdlr->gimbal_axis.vy = -chassis_hdlr->max_vy;
 		}
 
 		if(rc_hdlr->pc.key.D.status == PRESSED && rc_hdlr->pc.key.A.status != PRESSED){// check holding
-			chassis_hdlr->gimbal_axis.vy += 0.1f;// apply ramp-like mode to engage chassis
+			chassis_hdlr->gimbal_axis.vy += CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
 			if(chassis_hdlr->gimbal_axis.vy > chassis_hdlr->max_vy)
 				chassis_hdlr->gimbal_axis.vy = chassis_hdlr->max_vy;
 		}
@@ -227,13 +227,13 @@ void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hd
 			}
 
 			if(rc_hdlr->pc.key.Q.status == PRESSED && rc_hdlr->pc.key.E.status != PRESSED){// check holding
-				chassis_hdlr->gimbal_axis.wz -= 0.1f;// apply ramp-like mode to engage chassis
+				chassis_hdlr->gimbal_axis.wz -= CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
 				if(chassis_hdlr->gimbal_axis.wz < -chassis_hdlr->max_wz)
 					chassis_hdlr->gimbal_axis.wz = -chassis_hdlr->max_wz;
 			}
 
 			if(rc_hdlr->pc.key.E.status == PRESSED && rc_hdlr->pc.key.Q.status != PRESSED){// check holding
-				chassis_hdlr->gimbal_axis.wz += 0.1f;// apply ramp-like mode to engage chassis
+				chassis_hdlr->gimbal_axis.wz += CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
 				if(chassis_hdlr->gimbal_axis.wz > chassis_hdlr->max_vy)
 					chassis_hdlr->gimbal_axis.wz = chassis_hdlr->max_vy;
 			}
@@ -247,9 +247,61 @@ void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hd
  */
 void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hdlr){
 	/*chassis coordinates only for debugging purpose, thus no pc control processing*/
-	chassis_hdlr->vx = rc.ctrl.ch3; // apply vx data here
-	chassis_hdlr->vy = rc.ctrl.ch2; // apply vy data here
-	chassis_hdlr->wz = rc.ctrl.ch0;
+	if(rc_hdlr->control_mode == CTRLER_MODE){
+		chassis_hdlr->vx = rc.ctrl.ch3; // apply vx data here
+		chassis_hdlr->vy = rc.ctrl.ch2; // apply vy data here
+		chassis_hdlr->wz = rc.ctrl.ch0;
+	}
+	else if(rc_hdlr->control_mode == PC_MODE){
+		/* x axis process */
+		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status == PRESSED)
+			/* why did you do this bro ? */
+			chassis_hdlr->vx = 0;
+		/* both not pressed, brake slowly*/
+		else if(rc_hdlr->pc.key.W.status != PRESSED && rc_hdlr->pc.key.S.status != PRESSED){
+			chassis_brake(&chassis_hdlr->vx, 1.0f, 2.0f);
+		}
+
+		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status != PRESSED){// check holding
+			chassis_hdlr->vx += CHASSIS_PC_RAMP_VALUE ; // apply ramp-like mode to engage chassis
+			if(chassis_hdlr->vx >= chassis_hdlr->max_vx)
+				chassis_hdlr->vx = chassis_hdlr->max_vx;
+		}
+
+		if(rc_hdlr->pc.key.S.status == PRESSED && rc_hdlr->pc.key.W.status != PRESSED){// check holding
+			chassis_hdlr->vx -= CHASSIS_PC_RAMP_VALUE ; // apply ramp-like mode to engage chassis
+			if(chassis_hdlr->vx < -chassis_hdlr->max_vx)
+				chassis_hdlr->vx = -chassis_hdlr->max_vx;
+		}
+
+		/* y axis process */
+		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status == PRESSED)
+			/* why did you do this bro ? */
+			chassis_hdlr->vy = 0;
+		/* both not pressed, brake slowly*/
+		else if(rc_hdlr->pc.key.A.status != PRESSED && rc_hdlr->pc.key.D.status != PRESSED){
+			chassis_brake(&chassis_hdlr->vy, 1.0f, 2.0f);
+		}
+
+		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status != PRESSED){// check holding
+			chassis_hdlr->vy -= CHASSIS_PC_RAMP_VALUE ;// apply ramp-like mode to engage chassis
+			if(chassis_hdlr->vy < -chassis_hdlr->max_vy)
+				chassis_hdlr->vy = -chassis_hdlr->max_vy;
+		}
+
+		if(rc_hdlr->pc.key.D.status == PRESSED && rc_hdlr->pc.key.A.status != PRESSED){// check holding
+			chassis_hdlr->vy += CHASSIS_PC_RAMP_VALUE ;// apply ramp-like mode to engage chassis
+			if(chassis_hdlr->vy > chassis_hdlr->max_vy)
+				chassis_hdlr->vy = chassis_hdlr->max_vy;
+		}
+
+		chassis_hdlr->wz = 2.0*rc_hdlr->pc.mouse.x;
+		if(chassis_hdlr->wz < -chassis_hdlr->max_wz)
+			chassis_hdlr->wz = -chassis_hdlr->max_wz;
+//		if(chassis_hdlr->wz > -chassis_hdlr->max_wz)
+//			chassis_hdlr->wz = chassis_hdlr->max_wz;
+
+	}
 }
 
 /*
@@ -331,9 +383,13 @@ void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
 #endif
 	VAL_LIMIT(chassis_hdlr->vx, -chassis_hdlr->max_vx, chassis_hdlr->max_vx);
 	VAL_LIMIT(chassis_hdlr->vy, -chassis_hdlr->max_vy, chassis_hdlr->max_vy);
-	VAL_LIMIT(chassis_hdlr->wz, -chassis_hdlr->max_wz, chassis_hdlr->max_wz);
+	if(chassis_hdlr->chassis_act_mode != GIMBAL_CENTER)
+		// Gimbal center doesn't need to limit wz
+		VAL_LIMIT(chassis_hdlr->wz, -chassis_hdlr->max_wz, chassis_hdlr->max_wz);
+	else
+		VAL_LIMIT(chassis_hdlr->wz, -1.5*chassis_hdlr->max_wz, 1.5*chassis_hdlr->max_wz);
 
-	if(fabs(chassis_hdlr->wz) < 30.0f)
+	if(fabs(chassis_hdlr->wz) < 50.0f)
 		/* PID dead zone risk management */
 		chassis_hdlr->wz = 0;
 
@@ -511,36 +567,36 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 void select_chassis_speed(Chassis_t* chassis_hdlr, uint8_t level){
 	chassis_hdlr->prev_robot_level =  level;
 	switch(level){
-		case 1: chassis_hdlr->max_vx = chassis_l1_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l1_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l1_pf_spin_speed;break;
-		case 2: chassis_hdlr->max_vx = chassis_l2_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l2_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l2_pf_spin_speed;break;
-		case 3: chassis_hdlr->max_vx = chassis_l3_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l3_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l3_pf_spin_speed;break;
-		case 4: chassis_hdlr->max_vx = chassis_l4_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l4_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l4_pf_spin_speed;break;
-		case 5: chassis_hdlr->max_vx = chassis_l5_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l5_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l5_pf_spin_speed;break;
-		case 6: chassis_hdlr->max_vx = chassis_l6_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l6_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l6_pf_spin_speed;break;
-		case 7: chassis_hdlr->max_vx = chassis_l7_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l7_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l7_pf_spin_speed;break;
-		case 8: chassis_hdlr->max_vx = chassis_l8_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l8_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l8_pf_spin_speed;break;
-		case 9: chassis_hdlr->max_vx = chassis_l9_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l9_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l9_pf_spin_speed;break;
-		case 10: chassis_hdlr->max_vx = chassis_l10_pf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l10_pf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l10_pf_spin_speed;break;
+		case 1: chassis_hdlr->max_vx = chassis_l1_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l1_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l1_hpf_spin_speed;break;
+		case 2: chassis_hdlr->max_vx = chassis_l2_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l2_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l2_hpf_spin_speed;break;
+		case 3: chassis_hdlr->max_vx = chassis_l3_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l3_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l3_hpf_spin_speed;break;
+		case 4: chassis_hdlr->max_vx = chassis_l4_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l4_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l4_hpf_spin_speed;break;
+		case 5: chassis_hdlr->max_vx = chassis_l5_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l5_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l5_hpf_spin_speed;break;
+		case 6: chassis_hdlr->max_vx = chassis_l6_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l6_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l6_hpf_spin_speed;break;
+		case 7: chassis_hdlr->max_vx = chassis_l7_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l7_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l7_hpf_spin_speed;break;
+		case 8: chassis_hdlr->max_vx = chassis_l8_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l8_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l8_hpf_spin_speed;break;
+		case 9: chassis_hdlr->max_vx = chassis_l9_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l9_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l9_hpf_spin_speed;break;
+		case 10: chassis_hdlr->max_vx = chassis_l10_hpf_padding_speed;
+				chassis_hdlr->max_vy = chassis_l10_hpf_padding_speed;
+				chassis_hdlr->max_wz = chassis_l10_hpf_spin_speed;break;
 	}
 }
 

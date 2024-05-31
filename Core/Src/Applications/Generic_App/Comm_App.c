@@ -224,7 +224,7 @@ void can_comm_process(BoardComm_t *comm){
 						case Receiver:
 							if(can_comm_rx[PC_EXT_KEY_IDX].comm_id == PC_EXT_KEY_ID){
 								rc.pc.key.C.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][0];
-								rc.pc.key.V.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][1];
+								rc.pc.key.R.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][1];
 								rc.pc.key.B.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][2];
 //								rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][3];
 								can_comm_rx[PC_EXT_KEY_IDX].comm_id = 0;//reset id to avoid message flooding

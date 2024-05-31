@@ -30,7 +30,7 @@
 #define LEVEL_ONE_PWM 300
 
 #define FRIC_PWM_DELAY 10
-#define FRIC_CAN_RAMP_DELAY 30
+#define FRIC_CAN_RAMP_DELAY 40
 
 /* 3508 can value*/
 #define LEVEL_ONE_CAN_SPD 5000
@@ -38,6 +38,7 @@
 #define SHOOT_ONCE_MAG_ANGLE (20.0f * DEGREE2RAD)
 #define SHOOT_CONT_MAG_SPEED 1.0*PI //rpm/sec
 #define SHOOT_MAG_GEAR_RATIO 19
+#define SHOOT_REVERSE_MAG_SPEED 0.2*PI
 
 /* define user structure here */
 /**

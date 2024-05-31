@@ -1,12 +1,15 @@
-/*
- * UC_Comm_App.h
- *
- *  Created on: Mar. 18, 2024
- *      Author: James Fu
- */
+/*******************************************************************************
+* @file           : PC_UART_App.h
+* @brief          : Upper computer communication task
+* @restructed     : Mar, 2024
+* @maintainer     : James Fu
+******************************************************************************
+* Copyright (c) 2023 UARM Artemis.
+* All rights reserved.
+*******************************************************************************/
 
-#ifndef SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_
-#define SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_
+#ifndef __PC_UART_APP_H__
+#define __PC_UART_APP_H__
 
 
 #include "imu.h"
