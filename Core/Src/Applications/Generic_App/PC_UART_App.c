@@ -17,7 +17,7 @@ uint8_t aa_pack_recv_flag = 0;
 
 
 void start_receive() {
-	uc_receive(uc_pack_input_buffer, 1);
+	uc_receive(uc_pack_input_buffer, UC_PACK_SIZE);//UC_PACK_SIZE
 }
 
 
@@ -43,7 +43,7 @@ void uc_on_RxCplt() {
 			uc_pack_input_buffer[UC_PACK_SIZE - 3] |
 			uc_pack_input_buffer[UC_PACK_SIZE - 4];
 
-	if (checksum_bits != 0) {
+	if (checksum_bits != 0) { //
 		// Error-detection with checksum.
 		UC_Checksum_t pack_checksum = calculate_checksum(uc_pack_input_buffer, UC_PACK_SIZE);
 		uint32_t sent_checksum = *((uint32_t*) uc_pack_input_buffer + (UC_PACK_SIZE / 4) - 1);
@@ -79,26 +79,27 @@ void PC_UART_Func() {
 	uc_board_data_pack_init(&uc_board_data_pack);
 	uc_flow_control_pack_init(&uc_flow_control_pack);
 
+	xLastWakeTime = xTaskGetTickCount();
+
 	start_receive();
 	while (1) {
-		xLastWakeTime = xTaskGetTickCount();
 
 		// Reset DMA receive every 0.5 seconds after receiving last pack.
-		if (idle_count >= 100) {
-			uc_stop_receive();
-			start_receive();
-			idle_count = 0;
-		}
+//		if (idle_count >= 100) {
+//			uc_stop_receive();
+//			start_receive();
+//			idle_count = 0;
+//		}
 
 		while (uxQueueMessagesWaiting(UC_Pack_Queue) > 0) {
 			xQueueReceive(UC_Pack_Queue, new_pack_buffer, 0);
 			idle_count = 0;
 			switch (new_pack_buffer[0]) {
-			case UC_AUTO_AIM_HEADER:
+			case UC_AUTO_AIM_HEADER:{
 				memcpy(&uc_auto_aim_pack, new_pack_buffer + UC_PACK_HEADER_SIZE, UC_AUTO_AIM_DATA_SIZE);
 				aa_pack_recv_flag = 1;
-				break;
-			case UC_FLOW_CONTROL_HEADER:
+				break;}
+			case UC_FLOW_CONTROL_HEADER:{
 				memcpy(&uc_flow_control_pack, new_pack_buffer, UC_FLOW_CONTROL_DATA_SIZE);
 				process_flow_control();
 				break;
@@ -107,7 +108,7 @@ void PC_UART_Func() {
 			}
 		}
 
-		idle_count++;
+//		idle_count++;
 
 		// IMU Transmission
 		// TODO: Send chassis x and y acceleration, robot color, and wheel RPMs.
@@ -126,6 +127,7 @@ void PC_UART_Func() {
 		uc_send_board_data(&uc_board_data_pack);
 
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+	}
 	}
 }
 

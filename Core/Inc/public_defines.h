@@ -113,12 +113,12 @@
 #define kf_spd_mag_3508 100
 
 //fric 3508 motor settings, single loop, not tuned yet
-#define kp_spd_fric 15
+#define kp_spd_fric 20
 #define ki_spd_fric 0.3
 #define kd_spd_fric 0.1
 #define max_out_spd_fric 15000// not tuned yet
 #define max_I_out_spd_fric 500
-#define max_err_spd_fric 5000
+#define max_err_spd_fric 10000
 
 //fric 2305 PWM settings, open loop
 #define fric_min_pwm_speed 1000

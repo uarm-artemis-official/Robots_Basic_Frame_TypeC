@@ -33,7 +33,7 @@
 #define FRIC_CAN_RAMP_DELAY 40
 
 /* 3508 can value*/
-#define LEVEL_ONE_CAN_SPD 5000
+#define LEVEL_ONE_CAN_SPD 7500 // 28: 7500, 27:7350
 
 #define SHOOT_ONCE_MAG_ANGLE (20.0f * DEGREE2RAD)
 #define SHOOT_CONT_MAG_SPEED 1.0*PI //rpm/sec
@@ -51,6 +51,7 @@ typedef enum{
 
 typedef enum{
 	SHOOT_ONCE = 0,
+	SHOOT_TRIPLE,
 	SHOOT_CONT,
 	SHOOT_RESERVE,
 	SHOOT_CEASE

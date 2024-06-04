@@ -74,32 +74,29 @@ void Shoot_Task_Func(void const * argument)
 	 else if(shoot.shoot_act_mode == SHOOT_RESERVE){
 		  /* reserve the magazine motor for a while */
 		  //FIXME: didn't consider if the reserve spin also stuck
-// 		  shoot_reserve_flag = 1;
-// 		  while(shoot_reserve_counter<20){//20*100ms = 2s
-// 			  set_mag_motor_angle(&shoot, shoot.mag_cur_angle - 0.3*PI);
-// #ifndef USE_CAN_FRIC
-// 			  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
-// #else
-// 			  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
-// #endif
-// 			  shoot_execute(&shoot);
-// 			  vTaskDelayUntil(&xLastWakeTime, xFrequency);
-// 		  }
-		  /* reset timer13 flag and counter */
+
+		  /* Reset timer13 flag and counter */
 		  shoot_reserve_flag = 0;
 		  shoot_reserve_counter = 0;
+
+		  /* Set backward magazine and friction motor */
 		  set_mag_motor_angle(&shoot, shoot.mag_cur_angle - SHOOT_REVERSE_MAG_SPEED);
 		  set_fric_motor_current(&shoot, -LEVEL_ONE_CAN_SPD * 0.5);
 
 	  }
 	  else if(shoot.shoot_act_mode == SHOOT_ONCE){
 		 /* need referee system to determine shooting spd */
-		  set_mag_motor_angle(&shoot, 0.3*PI);
+		  set_mag_motor_angle(&shoot, 0.33*PI);
 #ifndef USE_CAN_FRIC
 		  set_fric_motor_speed(&shoot, LEVEL_ONE_PWM);
 #else
 		  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
 #endif
+	  }
+	  else if(shoot.shoot_act_mode == SHOOT_TRIPLE){
+		  /* need referee system to determine shooting spd */
+	 	  set_mag_motor_angle(&shoot, PI);
+	 	  set_fric_motor_current(&shoot, LEVEL_ONE_CAN_SPD);
 	  }
 	  else if(shoot.shoot_act_mode == SHOOT_CONT){
 		  if(rc.pc.mouse.right_click.status == PRESSED){
@@ -178,20 +175,6 @@ void shoot_task_init(Shoot_t *sht){
   */
 void shoot_firc_init(Shoot_t *sht){
 #ifndef USE_CAN_FRIC
-//	Corresponds to pin H and pin F on the PWM board - need to change manually if we change the pins
-//	HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_1);
-//	osDelay(100);
-//	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_1);
-//	//osDelay(2000);
-//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, MAX_PWM_ON_TIME);
-//	osDelay(100);
-//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, MAX_PWM_ON_TIME);
-//	osDelay(2000);
-//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
-//	osDelay(100);
-//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
-//	osDelay(1750);
-
 	/* or snail motor */
 	osDelay(3000);
 	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_1);
@@ -295,8 +278,6 @@ void shoot_stop(Shoot_t *sht){
 	/* really depends on the type of fric motors used */
 #ifndef USE_CAN_FRIC
 	sht->fric_tar_spd = 1100;
-//	__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
-//	__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, MIN_PWM_ON_TIME);
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sht->fric_tar_spd);
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, sht->fric_tar_spd);
 	/* reset each value */
@@ -540,7 +521,7 @@ static void shoot_lid_status_selection(Shoot_t *sht, RemoteControl_t *rc){
 void shoot_detect_mag_status(Shoot_t *sht){
 	if(sht->shoot_act_mode != SHOOT_CEASE){
 		/* check if the magazine motor stuck */
-		if(abs(sht->mag_fb.rx_rpm)<=10)
+		if(abs(sht->mag_fb.rx_rpm)<=10 && sht->mag_fb.rx_temp > 0)
 			/* engage check process */
 			shoot_check_flag = 1;
 		else{

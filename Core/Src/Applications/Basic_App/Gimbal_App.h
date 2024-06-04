@@ -33,20 +33,18 @@
 #define MODE_DEBUG 1
 //#define MANUAL_SET_GIMBAL_MODES
 
-#define PITCH_ECD_CENTER  3300//6100 manually measured data
+#define PITCH_ECD_CENTER 4000 //manually measured data: number increase, head down
 #define PITCH_ECD_DELTA  1364  //60/180*4096
-#define PITCH_GYRO_DELTA (80.0f * DEGREE2RAD)
-#define PITCH_GEAR_RATIO 4 // The ratio of the gear box of the pitch motor
-#define YAW_ECD_CENTER 620//300
+#define PITCH_GEAR_RATIO 4    // The ratio of the gear box of the pitch motor
+#define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO) 
 
-#define YAW_GEAR_RATIO 1.0f		//if install a gear, calc the gear ratio here
-#define YAW_POSITIVE_DIR 1    //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would
-								//posiibly is turned to negative value, we need to calibrate the correct direction
-								//of this changed output for speed controller
-
-#define GIMBAL_INIT_TIME_MS 1000  	// init delay duration in mili-second
-#define TGT_CONST 100000			// after-detection delay
-
+#define YAW_ECD_CENTER 620
+#define YAW_GEAR_RATIO 1.0f		 //if install a gear, calc the gear ratio here
+#define YAW_POSITIVE_DIR -1      //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would
+								 //posiibly is turned to negative value, we need to calibrate the correct direction
+								 //of this changed output for speed controller
+#define GIMBAL_INIT_TIME_MS 1000 // init delay duration in mili-second
+#define GIMBAL_JUMP_THRESHOLD 5.6f
 
 /* define user structure here */
 typedef struct{
@@ -72,10 +70,13 @@ typedef struct{
 	float pitch_cur_rel_angle;		//pitch current absolute angle updated by gyro
 	float pitch_prev_angle;    		//pitch previous absolute angle for updating turns
 
+	/* Solving the turns on gyroscope */
 	float yaw_total_turns;
 	float pitch_total_turns;
 	float final_abs_yaw;
 	float final_abs_pitch;
+
+	float yaw_aa_prev_delta; //
 
 	double gyro_offset_slope;    //offset func: -0.000000000184229  -0.001797605717065
 								 //fit a linear func to compensate yaw abs angle shift, now abandoned
@@ -87,7 +88,11 @@ typedef struct{
 	int16_t yaw_tar_spd;
 	int16_t pitch_tar_spd;
 
-	int16_t yaw_turns_count;		//turns counter, not used
+	/* Solving the turns on encoder */
+	int32_t yaw_turns_count;		//turns counter
+	float yaw_prev_rel_angle;
+	float yaw_total_rel_angle;
+
 	int16_t yaw_ecd_center;			//center position of the yaw motor by encoder
 	int16_t pitch_ecd_center;		//center position of the pitch motor by encoder
 
@@ -145,11 +150,12 @@ void gimbal_calibration_reset(Gimbal_t *gbal);
 void gimbal_set_mode(Gimbal_t *gbal, BoardMode_t mode);
 void gimbal_set_act_mode(Gimbal_t *gbal, BoardActMode_t mode);
 void gimbal_set_motor_mode(Gimbal_t *gbal, GimbalMotorMode_t mode);
+void gimbal_safe_mode_switch(Gimbal_t *gbal);
 // gyro base functions
 void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr);
 void gimbal_get_euler_angle(Gimbal_t *gbal);
 void gimbal_gyro_update_abs_angle(Gimbal_t *gbal);
-//ecd base fucntions
+// ecd base fucntions
 void gimbal_get_ecd_fb_data(Gimbal_t *gbal, Motor_Feedback_Data_t *yaw_motor_fb, Motor_Feedback_Data_t *pitch_motor_fb);
 int16_t gimbal_get_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 void gimbal_update_ecd_euler_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
@@ -160,28 +166,7 @@ void gimbal_set_angle(Gimbal_t *gbal, float target_angle);
 void gimbal_set_limited_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
 void gimbal_set_spd(Gimbal_t *gbal, int16_t yaw_target_spd);
 void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode);
-void gimbal_safe_mode_switch(Gimbal_t *gbal);
+void gimbal_update_rel_turns(Gimbal_t* gbal, int jump_threshold);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* *** Old declaration *** */
-double angle_preprocess(Motor* motor, int16_t recieved_angle, double red_ratio, int motor_indicator);
-int16_t check_angle_greater_than_max(int32_t input_angle, int16_t max_angle, int16_t min_angle);
-int16_t check_angle_smaller_than_min(int32_t input_angle, int16_t max_angle, int16_t min_angle);
-int16_t check_angle_out_of_range(int32_t input_angle, int16_t max_angle, int16_t min_angle);
-int32_t abs_yaw;
-int32_t abs_pitch;
 
 #endif /* __SRC_APPLICATIONS_GIMBAL_APP_H_ */

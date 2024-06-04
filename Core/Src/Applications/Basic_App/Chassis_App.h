@@ -17,7 +17,6 @@
 
 
 /* define general declarations for gimbal task here */
-#define TGT_CONST 100000
 #define CHASSIS_WHEEL_X_LENGTH  0.50f//m
 #define CHASSIS_WHEEL_Y_LENGTH  0.30f//m
 #define CHASSIS_MOTOR_DEC_RATIO 19.0f; //motor deduction ratio 19:1
@@ -29,9 +28,6 @@
 #define CHASSIS_POWER_THRESHOLD   45  //random value, test soon
 #define POWER_TO_CURRENT          (1.0f) //random value, test soon
 #define CHASSIS_PC_RAMP_VALUE 	 (0.5f) //ramp value for increment of the motors
-
-
-
 
 /* define user structure here */
 /*

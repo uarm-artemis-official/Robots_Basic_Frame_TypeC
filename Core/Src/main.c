@@ -142,6 +142,7 @@ uint16_t shoot_check_counter = 0;
 int16_t referee_parsed_flag = 0;
 uint8_t referee_timeout_counter = 0;
 uint8_t referee_timeout_check_flag = 0;
+uint32_t prev_uart_timestamp = 0;
 
 /* new defined variables*/
 uint32_t debugger_signal_counter = 0;//count the idle time
@@ -394,8 +395,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	  referee_parsed_flag = 1;
   }
   else if (huart == &UC_HUART && board_status == GIMBAL_BOARD) {
-		uc_on_RxCplt();
+//		uc_on_RxCplt();
+	  uint32_t DWTcnt = dwt_getCnt_us();// systemclock_core 168MHz ->usec
+	  int32_t delta_t = DWTcnt - prev_uart_timestamp;
+	  prev_uart_timestamp = DWTcnt;
+	  xQueueSendFromISR(UC_Pack_Queue, uc_pack_input_buffer, NULL);
+	  HAL_UART_Receive_DMA(&UC_HUART, uc_pack_input_buffer, UC_PACK_SIZE);
+
   }
+
 }
 #endif
 /* USER CODE END 4 */
