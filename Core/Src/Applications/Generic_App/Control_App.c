@@ -23,6 +23,7 @@
 #include "main.h"
 #include "string.h"
 #include "Chassis_App.h"
+#include "Shoot_App.h"
 #include "comms.h"
 
 /*********************************************************************************
@@ -302,6 +303,11 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *c
 		comm_pc->pc_data[3]  = rc_hdlr->pc.mouse.right_click.status;
 		comm_pc->send_flag = 1;
 
+		/* Determine transit information */
+//		if(rc_hdlr->pc.key.R.status == RELEASED_TO_PRESS)
+//			comm_ext_pc->pc_data[1] = 1;
+//		else
+//			comm_ext_pc->pc_data[1] = 0;
 		comm_ext_pc->pc_data[0] = rc_hdlr->pc.key.C.status;
 		comm_ext_pc->pc_data[1] = rc_hdlr->pc.key.R.status;
 		comm_ext_pc->pc_data[2] = rc_hdlr->pc.key.B.status;
@@ -386,5 +392,11 @@ KeyStatus_t rc_get_key_status(KeyObject_t *key){
 	return key->status;
 }
 
+void rc_get_comm_info(RemoteControl_t *rc_hdlr){
+//	comm_ext_pc->pc_data[0] = rc_hdlr->pc.key.C.status;
+//	comm_ext_pc->pc_data[1] = rc_hdlr->pc.key.R.status;
+//	comm_ext_pc->pc_data[2] = rc_hdlr->pc.key.B.status;
+
+}
 
 #endif /*__RC_APP_C__*/

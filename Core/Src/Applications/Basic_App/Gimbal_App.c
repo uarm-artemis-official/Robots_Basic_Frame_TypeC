@@ -68,6 +68,9 @@ void Gimbal_Task_Function(void const * argument)
 {
 
     /* USER CODE BEGIN Gimbal_Task_Function */
+	float temp_idle_yaw = 0.0;
+	float temp_idle_pitch = 0.0;
+
 	/* gimbal task LD indicator */
 	HAL_GPIO_WritePin(LED_Blue_GPIO_Port, LED_Blue_Pin, GPIO_PIN_SET);
 
@@ -105,10 +108,11 @@ void Gimbal_Task_Function(void const * argument)
 	  if(gimbal.gimbal_mode == IDLE_MODE){
 		  /* use ramp function to approximate zeros */
 		  gimbal_get_ecd_fb_data(&gimbal,
-		  						   &(motor_data[yaw_id].motor_feedback),
-		  						   &(motor_data[pitch_id].motor_feedback));
-		  float temp_idle_yaw = gimbal.yaw_cur_rel_angle + (0-gimbal.yaw_cur_rel_angle)*ramp_calculate(&gimbal.yaw_ramp);
-		  float temp_idle_pitch = gimbal.pitch_cur_rel_angle + (0-gimbal.pitch_cur_rel_angle)*ramp_calculate(&gimbal.pitch_ramp);
+								 &(motor_data[yaw_id].motor_feedback),
+								 &(motor_data[pitch_id].motor_feedback));
+		  gimbal_update_rel_turns(&gimbal, GIMBAL_JUMP_THRESHOLD);
+		  temp_idle_yaw = gimbal.yaw_total_rel_angle + (0 - gimbal.yaw_total_rel_angle)*ramp_calculate(&(gimbal.yaw_ramp));
+		  temp_idle_pitch = gimbal.pitch_cur_rel_angle + (0 - gimbal.pitch_cur_rel_angle)*ramp_calculate(&(gimbal.pitch_ramp));
 		  /* reset everything */
 		  gimbal_set_limited_angle(&gimbal, temp_idle_yaw, temp_idle_pitch);
 		  /* turn off dynamic center offset */
@@ -118,6 +122,8 @@ void Gimbal_Task_Function(void const * argument)
 		  /* reset ramp counter for next use */
 		  gimbal.pitch_ramp.count = 0;
 		  gimbal.yaw_ramp.count = 0;
+		  temp_idle_yaw = 0;
+		  temp_idle_pitch = 0;
 
 		 if(dynamic_offset_center_flag == 0){
 			for(int j=0;j<2;j++){
@@ -391,7 +397,6 @@ uint8_t gimbal_cali_done_flag = 0;
 void gimbal_calibration_reset(Gimbal_t *gbal){
 	 /* reset the calibration flag first*/
 	 gimbal_cali_done_flag = 0;
-	 uint16_t counter = 0;
 
 	 /* init ramp functions*/
 	 ramp_init(&(gbal->yaw_ramp), 1500);//1.5s init
@@ -402,31 +407,25 @@ void gimbal_calibration_reset(Gimbal_t *gbal){
 	 // so we can reset at any time
 	 float temp_pitch_ramp_output = 0.0f;
 	 float temp_yaw_ramp_output   = 0.0f;
-	 float cur_pitch_radian       = 0.0f;
-	 float cur_yaw_radian         = 0.0f;
 
 	 for(;;){
 		 //get feedback first
 		 gimbal_get_ecd_fb_data(gbal,
 								&(motor_data[yaw_id].motor_feedback),
 								&(motor_data[pitch_id].motor_feedback));
-		 cur_pitch_radian = in_out_map(gbal->pitch_ecd_fb.rx_angle, -4095, 4096, -PI, PI);
-		 cur_yaw_radian   = in_out_map(gbal->yaw_ecd_fb.rx_angle, -4095, 4096, -PI, PI);
-		 //apply ramp algo's form: ramp_out = cur + (tar - cur)*ramp_calc
-		 //all the angles here are relative angle
-		 temp_pitch_ramp_output = cur_pitch_radian + (0 - cur_pitch_radian)*ramp_calculate(&(gbal->pitch_ramp));
-		 temp_yaw_ramp_output   = cur_yaw_radian + (0 - cur_yaw_radian)*ramp_calculate(&(gbal->yaw_ramp));
+		 gimbal_update_rel_turns(gbal, GIMBAL_JUMP_THRESHOLD);
+		 temp_yaw_ramp_output = gbal->yaw_total_rel_angle + (0 - gbal->yaw_total_rel_angle)*ramp_calculate(&(gbal->yaw_ramp));
+		 temp_pitch_ramp_output   = gbal->pitch_cur_rel_angle + (0 - gbal->pitch_cur_rel_angle)*ramp_calculate(&(gbal->pitch_ramp));
 		 set_motor_can_volt( temp_yaw_ramp_output,
 				 	 	 	 temp_pitch_ramp_output,
 							 0, 0,
 							 DUAL_LOOP_PID_CONTROL,
 							 gimbal.gimbal_motor_mode);
-		 counter++;
 		 /* when the err of cali angle smaller */
-		 if(fabs(cur_pitch_radian)< (2.0f * DEGREE2RAD)){ //|| counter >= 50000 /*timeout*/ //&& fabs(cur_pitch_radian)< (2.0f * DEGREE2RAD)
+		 if(fabs(gbal->yaw_total_rel_angle)< (2.0f * DEGREE2RAD)){ //|| counter >= 50000 /*timeout*/ //&& fabs(cur_pitch_radian)< (2.0f * DEGREE2RAD)
 			 /* cali done */
-			 motor_data[pitch_id].tx_data = 0;
-			 motor_data[yaw_id].tx_data = 0;
+//			 motor_data[pitch_id].tx_data = 0;
+//			 motor_data[yaw_id].tx_data = 0;
 			 gbal->pitch_ramp.count = 0;
 			 gbal->yaw_ramp.count = 0;
 			 gimbal_cali_done_flag = 1;
@@ -483,8 +482,8 @@ void gimbal_reset_data(Gimbal_t *gbal){
 	init_folp_filter(&gbal->folp_f_pitch, 0.99f);
 
 
-	init_ewma_filter(&gbal->ewma_f_x, 0.50f);//0.65 for older client
-	init_ewma_filter(&gbal->ewma_f_y, 0.50f);//0.6 for older client
+	init_ewma_filter(&gbal->ewma_f_x, 0.5f);//0.65 for older client
+	init_ewma_filter(&gbal->ewma_f_y, 0.5f);//0.6 for older client
 	init_ewma_filter(&gbal->ewma_f_aim_yaw, 1);//0.65 for older client
 	init_ewma_filter(&gbal->ewma_f_aim_pitch, 1);//0.6 for older client
 

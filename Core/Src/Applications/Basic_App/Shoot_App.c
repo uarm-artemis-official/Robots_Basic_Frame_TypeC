@@ -43,9 +43,6 @@ void Shoot_Task_Func(void const * argument)
 
   for(;;)
   {
-
-	  //FIXME: rc debug needed
-//	  if(gimbal.gimbal_mode == DEBUG_MODE)
 	  shoot_mode_rc_selection(&shoot, &rc);
 
 	  /* select lid status */
@@ -55,7 +52,7 @@ void Shoot_Task_Func(void const * argument)
 	  shoot_mag_get_rel_angle(&shoot);
 
 	  /* check the magazine status */
-	  shoot_detect_mag_status(&shoot);
+//	  shoot_detect_mag_status(&shoot);
 
 	 /* determine if open lid */
 	 if(shoot.lid_status == OPEN){//if sentry, delete this function
@@ -80,7 +77,7 @@ void Shoot_Task_Func(void const * argument)
 		  shoot_reserve_counter = 0;
 
 		  /* Set backward magazine and friction motor */
-		  set_mag_motor_angle(&shoot, shoot.mag_cur_angle - SHOOT_REVERSE_MAG_SPEED);
+		  set_mag_motor_angle(&shoot, -0.6*PI); //
 		  set_fric_motor_current(&shoot, -LEVEL_ONE_CAN_SPD * 0.5);
 
 	  }
@@ -211,6 +208,7 @@ void shoot_params_init(Shoot_t *sht){
 	sht->fric_left_cur_spd = 0;
 	sht->fric_right_cur_spd = 0;
 	sht->fric_counter = 0;
+	sht->lid_counter = 0;
 }
 
 void shoot_servo_init(void){
@@ -488,13 +486,9 @@ static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
 				rc->pc.mouse.left_click.pre_status = PRESSED;
 				if(rc->pc.key.B.status == PRESSED){
 					mode = SHOOT_RESERVE;
+					rc->pc.key.B.status = PRESSED;
 				}
 			}
-//			else if(rc->pc.mouse.left_click.status == RELEASED_TO_PRESS){//check rising edge
-//				mode = SHOOT_ONCE;
-//				if(rc->pc.key.B.status == PRESSED){
-//					mode = SHOOT_RESERVE;
-//			}
 		}
 		set_shoot_mode(sht, mode);
 	}
@@ -507,10 +501,18 @@ static void shoot_mode_rc_selection(Shoot_t *sht, RemoteControl_t *rc){
   * @retval    None
   */
 static void shoot_lid_status_selection(Shoot_t *sht, RemoteControl_t *rc){
-	if(rc->pc.key.R.status == PRESSED)
-		set_lid_status(sht, OPEN);
+	if(rc->pc.key.R.status == RELEASED_TO_PRESS && rc->pc.key.R.pre_status != RELEASED_TO_PRESS){
+		sht->lid_counter++;
+		rc->pc.key.R.pre_status = RELEASED_TO_PRESS;
+	}
 	else
+		rc->pc.key.R.pre_status = rc->pc.key.R.status;
+	if(sht->lid_counter == 1)
+		set_lid_status(sht, OPEN);
+	else if(sht->lid_counter == 2){
 		set_lid_status(sht, CLOSE);
+		sht->lid_counter = 0;
+	}
 }
 /**
   * @brief     check if we need to reserve the mag motor

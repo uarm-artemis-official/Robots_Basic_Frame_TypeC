@@ -338,6 +338,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			++debugger_signal_counter;
 		if(shoot_reserve_flag == 1)
 			++shoot_reserve_counter;
+//		if(shoot_check_flag == 1)
+//			++shoot_check_counter;
 		if(chassis_gyro_flag ==1)
 			++chassis_gyro_counter;
 	}

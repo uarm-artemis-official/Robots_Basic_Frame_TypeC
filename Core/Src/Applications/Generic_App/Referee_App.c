@@ -76,8 +76,13 @@ void Referee_Task_Func(void const * argument){
 		}
 
 		memcpy(temp_ref_pack, ref_rx_frame, sizeof(ref_rx_frame));
-		if(referee_parsed_flag)
+		if(referee_parsed_flag){
+			if(referee.robot_status_data.robot_id <= 11 && referee.robot_status_data.robot_id > 0)
+				referee.robot_color = RED;
+			else if(referee.robot_status_data.robot_id > 11)
+				referee.robot_color = BLUE;
 			referee_read_data(&referee, temp_ref_pack);
+		}
 		memset(temp_ref_pack, 0, sizeof(temp_ref_pack));// Wipe the temp buffer
 
 		/* delay until wake time */
@@ -236,6 +241,7 @@ void referee_send_ui_data(uint16_t cmd_id, uint8_t *p_data, uint16_t len){
 }
 
 void referee_set_ui_data(Referee_t *ref, referee_ui_t ui_type){
+
    if(ref->robot_status_data.robot_id == 3 || ref->robot_status_data.robot_id == 4 ||
 		ref->robot_status_data.robot_id == 103 || ref->robot_status_data.robot_id == 104){ // Infantry
 		ref->ui_intrect_data.sender_id=ref->robot_status_data.robot_id;
@@ -244,6 +250,13 @@ void referee_set_ui_data(Referee_t *ref, referee_ui_t ui_type){
 			case 4:   ref->ui_intrect_data.receiver_id=0x0104;break;// Red team #4 infantry client
 			case 103: ref->ui_intrect_data.receiver_id=0x0167;break;// Blue team #3 infantry client
 			case 104: ref->ui_intrect_data.receiver_id=0x0168;break;// Blue team #4 infantry client
+		}
+
+		switch(ui_type){
+			case UI_ROBOT_ACT_MODE: referee_general_draw_act_mode(ref);break;
+			/* Hero Draw marks */
+			case UI_INFANTRY_MARK: referee_infantry_draw_marks(ref);break;
+			default: break;
 		}
 	}
 	else if(ref->robot_status_data.robot_id == 1 || ref->robot_status_data.robot_id == 101){ // Hero

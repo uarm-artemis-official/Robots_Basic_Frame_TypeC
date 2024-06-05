@@ -46,7 +46,7 @@ void WatchDog_Task_Function(void){
 	/* init the task ticks */
 	xLastWakeTime = xTaskGetTickCount();
 
-	referee.cur_sending_id = UI_HERO_MARK;
+	referee.cur_sending_id = UI_INFANTRY_MARK;
 
 	/* main imu task begins */
 	for(;;){
@@ -69,13 +69,18 @@ void WatchDog_Task_Function(void){
 				referee_send_ui_data(INTERA_UI_ID, (uint8_t *)&referee.ui_intrect_data, UI_HERO_MARK_LEN);
 				break;
 			}
+			case UI_INFANTRY_MARK: {
+				referee_set_ui_data(&referee, UI_INFANTRY_MARK);
+				referee_send_ui_data(INTERA_UI_ID, (uint8_t *)&referee.ui_intrect_data, UI_INFANTRY_MARK_LEN);
+				break;
+						}
 			default:break;
 		}
 
-		if(referee.cur_sending_id == UI_HERO_MARK)
+		if(referee.cur_sending_id == UI_INFANTRY_MARK)
 			referee.cur_sending_id = UI_ROBOT_ACT_MODE;
 		else
-			referee.cur_sending_id = UI_HERO_MARK;
+			referee.cur_sending_id = UI_INFANTRY_MARK;
 
 
 #ifdef USE_IWDG

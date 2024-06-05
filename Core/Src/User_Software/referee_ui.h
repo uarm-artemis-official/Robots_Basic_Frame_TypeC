@@ -17,6 +17,7 @@
 #define UI_HEADER_LEN 6
 #define UI_SEVEN_DRAWS_LEN 105 // 7 * sizeof(interaction_figure_t)=15
 #define UI_HERO_MARK_LEN UI_HEADER_LEN + UI_SEVEN_DRAWS_LEN
+#define UI_INFANTRY_MARK_LEN UI_HEADER_LEN + UI_SEVEN_DRAWS_LEN
 #define UI_STRING_DRAWS_LEN 45 // 15 + 30
 #define UI_ACT_MODE_LEN UI_HEADER_LEN+UI_STRING_DRAWS_LEN
 
@@ -37,6 +38,11 @@ typedef enum{
 	INFO_ID = 1,
 	NUMBER_ID = 2
 }referee_name_type_t;
+
+typedef enum{
+	RED = 1,
+	BLUE = 2
+}robot_color_t;
 
 /* used id define */
 typedef enum{
@@ -223,12 +229,15 @@ typedef struct __attribute__((__packed__))
 	uint8_t cur_sending_count;
 	referee_ui_t cur_sending_id;
 
+	robot_color_t robot_color;
+
 }Referee_t;
 extern Referee_t referee;
 
 
 void referee_hero_draw_marks(Referee_t *ref);
 void referee_general_draw_act_mode(Referee_t *ref);
+void referee_infantry_draw_marks(Referee_t *ref);
 
 
 
