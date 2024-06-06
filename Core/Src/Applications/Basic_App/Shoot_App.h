@@ -23,8 +23,8 @@
 #define MAX_PWM_ON_TIME 2000
 #define MIN_PWM_ON_TIME 1000
 
-#define SERVO_PWM_CLOSE_LID 170 //clockwise 120 degree
-#define SERVO_PWM_OPEN_LID  350	//counter-clockwise 120 degree
+#define SERVO_PWM_CLOSE_LID 366 //clockwise 120 degree
+#define SERVO_PWM_OPEN_LID  170	//counter-clockwise 120 degree
 								//for 90 degree, turn open lid value sto 110
 /* 2305 can value*/
 #define LEVEL_ONE_PWM 300

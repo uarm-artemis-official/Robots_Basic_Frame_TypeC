@@ -16,7 +16,7 @@
 #include "tim.h"
 #include "public_defines.h"
 #include "string.h"
-#include "stdio.h"
+
 
 //#define SHOOT_HEAT_LIMIT 1
 

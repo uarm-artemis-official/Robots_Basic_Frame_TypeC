@@ -20,6 +20,11 @@
 #include "public_defines.h"
 #include <math.h>
 
+#define REF_CHASSIS_DEBUG 1
+
+uint16_t temp_max_vx = 100;
+uint16_t temp_max_vy = 100;
+uint16_t temp_max_wz = 100;
 
 extern uint16_t chassis_gyro_counter;
 extern uint8_t chassis_gyro_flag;
@@ -381,6 +386,7 @@ void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
 	}
 	select_chassis_speed(chassis_hdlr, cur_robot_level);
 #endif
+#ifndef REF_CHASSIS_DEBUG
 	VAL_LIMIT(chassis_hdlr->vx, -chassis_hdlr->max_vx, chassis_hdlr->max_vx);
 	VAL_LIMIT(chassis_hdlr->vy, -chassis_hdlr->max_vy, chassis_hdlr->max_vy);
 	if(chassis_hdlr->chassis_act_mode != GIMBAL_CENTER)
@@ -388,6 +394,11 @@ void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
 		VAL_LIMIT(chassis_hdlr->wz, -chassis_hdlr->max_wz, chassis_hdlr->max_wz);
 	else
 		VAL_LIMIT(chassis_hdlr->wz, -1.5*chassis_hdlr->max_wz, 1.5*chassis_hdlr->max_wz);
+#else
+	VAL_LIMIT(chassis_hdlr->vx, -temp_max_vx, temp_max_vx);
+	VAL_LIMIT(chassis_hdlr->vy, -temp_max_vy, temp_max_vy);
+	VAL_LIMIT(chassis_hdlr->wz, -temp_max_wz, temp_max_wz);
+#endif
 
 	if(fabs(chassis_hdlr->wz) < 50.0f)
 		/* PID dead zone risk management */

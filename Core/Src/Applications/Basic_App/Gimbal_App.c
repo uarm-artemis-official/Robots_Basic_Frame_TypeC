@@ -482,10 +482,10 @@ void gimbal_reset_data(Gimbal_t *gbal){
 	init_folp_filter(&gbal->folp_f_pitch, 0.99f);
 
 
-	init_ewma_filter(&gbal->ewma_f_x, 0.5f);//0.65 for older client
-	init_ewma_filter(&gbal->ewma_f_y, 0.5f);//0.6 for older client
-	init_ewma_filter(&gbal->ewma_f_aim_yaw, 1);//0.65 for older client
-	init_ewma_filter(&gbal->ewma_f_aim_pitch, 1);//0.6 for older client
+	init_ewma_filter(&gbal->ewma_f_x, 0.8f);//0.65 for older client
+	init_ewma_filter(&gbal->ewma_f_y, 0.8f);//0.6 for older client
+	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.75f);//0.65 for older client
+	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.75f);//0.6 for older client
 
 	init_swm_filter(&gbal->swm_f_x, 50);// window size 50
 	init_swm_filter(&gbal->swm_f_y, 50);

@@ -49,32 +49,32 @@
 #define max_err_wheel 5000
 
 /* gimbal 6020 dual loop control */
-#define kp_angle_yaw 600//700
+#define kp_angle_yaw 180//700
 #define ki_angle_yaw 0.1//0.1
 #define kd_angle_yaw 10
 #define max_out_angle_yaw 8000 // not tuned yet
 #define max_I_out_angle_yaw 0
 #define max_err_angle_yaw 500//2.0f*PI
 
-#define kp_spd_yaw 360//385
+#define kp_spd_yaw 320//385
 #define ki_spd_yaw 0.1//0.1
-#define kd_spd_yaw 50//0.5
+#define kd_spd_yaw 30//0.5
 #define max_out_spd_yaw 30000 // not tuned yet
 #define max_I_out_spd_yaw 3000
 #define max_err_spd_yaw 5000
-#define kf_spd_yaw 0
+#define kf_spd_yaw 0.02
 
-#define kp_angle_pitch 900//900
-#define ki_angle_pitch 0.1
-#define kd_angle_pitch 0
+#define kp_angle_pitch 251//900
+#define ki_angle_pitch 0
+#define kd_angle_pitch 10
 #define max_out_angle_pitch 8000 // not tuned yet
 #define max_I_out_angle_pitch 0
 #define max_err_angle_pitch 100//2.0f*PI
 
-#define kp_spd_pitch 80
-#define ki_spd_pitch 0.01
-#define kd_spd_pitch 1
-#define max_out_spd_pitch 15000 // not tuned yet
+#define kp_spd_pitch 76
+#define ki_spd_pitch 0.1
+#define kd_spd_pitch 10
+#define max_out_spd_pitch 30000 // not tuned yet
 #define max_I_out_spd_pitch 3000
 #define max_err_spd_pitch 5000
 #define kf_spd_pitch 0
