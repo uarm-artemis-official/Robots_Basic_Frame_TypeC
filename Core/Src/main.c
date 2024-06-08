@@ -402,6 +402,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	  int32_t delta_t = DWTcnt - prev_uart_timestamp;
 	  prev_uart_timestamp = DWTcnt;
 	  xQueueSendFromISR(UC_Pack_Queue, uc_pack_input_buffer, NULL);
+	  memset(uc_pack_input_buffer, 0, UC_PACK_SIZE);
 	  HAL_UART_Receive_DMA(&UC_HUART, uc_pack_input_buffer, UC_PACK_SIZE);
 
   }

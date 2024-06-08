@@ -165,7 +165,7 @@ void Gimbal_Task_Function(void const * argument)
 			 temp_pack.target_num = -1;
 		 }
 		 /* if operator wants to activate auto-aim AND the camera has detected the object */
-		 if(gimbal.gimbal_mode == AUTO_AIM_MODE && temp_pack.target_num > 0){
+		 if(gimbal.gimbal_mode == AUTO_AIM_MODE && temp_pack.target_num > -1){
 			 /* activate auto aiming */
 			 gimbal_update_autoaim_rel_angle(&gimbal, &rc, &temp_pack);
 			 /* set limited target angle */
@@ -484,8 +484,8 @@ void gimbal_reset_data(Gimbal_t *gbal){
 
 	init_ewma_filter(&gbal->ewma_f_x, 0.8f);//0.65 for older client
 	init_ewma_filter(&gbal->ewma_f_y, 0.8f);//0.6 for older client
-	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.75f);//0.65 for older client
-	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.75f);//0.6 for older client
+	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.95f);//0.65 for older client
+	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.95f);//0.6 for older client
 
 	init_swm_filter(&gbal->swm_f_x, 50);// window size 50
 	init_swm_filter(&gbal->swm_f_y, 50);
@@ -893,9 +893,9 @@ static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_
 		cur_pitch_target = gbal->pitch_cur_rel_angle + delta_pitch * PITCH_GEAR_RATIO;
 	}
 	/* avoid small noise to spin the yaw */
-	if(fabs(delta_yaw)>= 5.5f*DEGREE2RAD)
+	if(fabs(delta_yaw)>= 1.0f*DEGREE2RAD)
 		gbal->yaw_tar_angle = cur_yaw_target;
-	if(fabs(delta_pitch)>= 3.5f*DEGREE2RAD)
+	if(fabs(delta_pitch)>= 1.0f*DEGREE2RAD)
 		gbal->pitch_tar_angle = cur_pitch_target;
 	/* independent mode don't allow set yaw angle */
 //	if(gbal->gimbal_act_mode == INDPET_MODE)
