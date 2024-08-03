@@ -76,13 +76,20 @@ void Referee_Task_Func(void const * argument){
 		}
 
 		memcpy(temp_ref_pack, ref_rx_frame, sizeof(ref_rx_frame));
+
+
 		if(referee_parsed_flag){
-			if(referee.robot_status_data.robot_id <= 11 && referee.robot_status_data.robot_id > 0)
-				referee.robot_color = RED;
-			else if(referee.robot_status_data.robot_id > 11)
-				referee.robot_color = BLUE;
+			/* Determime the robot color if first comm */
+			if(referee.robot_color == UNKOWN){
+				if(referee.robot_status_data.robot_id <= 11 && referee.robot_status_data.robot_id > 0)
+					referee.robot_color = RED;
+				else if(referee.robot_status_data.robot_id > 11)
+					referee.robot_color = BLUE;
+			}
 			referee_read_data(&referee, temp_ref_pack);
 		}
+
+		/* Reset referee rx buffer */
 		memset(temp_ref_pack, 0, sizeof(temp_ref_pack));// Wipe the temp buffer
 
 		/* delay until wake time */
@@ -113,6 +120,7 @@ void referee_init(Referee_t *ref){
 	ref->cur_sending_count = 0;
 	ref->ref_cmd_id = IDLE_ID;
 	ref->ui_intrect_data.data_cmd_id = IDLE_ID;
+	ref->robot_color = UNKOWN;
 }
 
 /**

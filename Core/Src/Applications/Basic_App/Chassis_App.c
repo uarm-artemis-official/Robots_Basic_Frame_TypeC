@@ -20,11 +20,14 @@
 #include "public_defines.h"
 #include <math.h>
 
-#define REF_CHASSIS_DEBUG 1
+//#define REF_CHASSIS_DEBUG 1
 
 uint16_t temp_max_vx = 100;
 uint16_t temp_max_vy = 100;
 uint16_t temp_max_wz = 100;
+
+KeyStatus_t downgrade_pre_mode = RELEASED;
+KeyStatus_t upgrade_pre_mode = RELEASED;
 
 extern uint16_t chassis_gyro_counter;
 extern uint8_t chassis_gyro_flag;
@@ -53,7 +56,7 @@ void Chassis_Task_Func(void const * argument)
 
   /* set task exec period */
   TickType_t xLastWakeTime;
-  const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 1ms
+  const TickType_t xFrequency = pdMS_TO_TICKS(CHASSIS_TASK_EXEC_TIME); // task exec period 1ms
 
   /* init the task ticks */
   xLastWakeTime = xTaskGetTickCount();
@@ -63,6 +66,7 @@ void Chassis_Task_Func(void const * argument)
 	  /* main chassis task function */
 //	  memcpy(&temp_referee, &referee, sizeof(Referee_t));
 	  chassis_rc_mode_selection(&chassis, &rc);
+	  chassis_manual_gear_set(&chassis, &rc);
 	  chassis_exec_act_mode(&chassis);
 
 	  /* delay until wake time */
@@ -111,6 +115,7 @@ void chassis_reset_data(Chassis_t *chassis_hdlr){
 	memset(&(chassis_hdlr->ref_power_stat), 0, sizeof(ChassisPowerStat_t));
 
 	chassis_hdlr->prev_robot_level = 1; // Initalized to level 1
+	chassis_hdlr->cur_robot_level = 1;
 	select_chassis_speed(chassis_hdlr, chassis_hdlr->prev_robot_level);
 
 	/* reset mecanum wheel speed */
@@ -336,7 +341,7 @@ void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
 		/* The front of chassis always chases gimbal yaw's ecd center (aka Twist mode) */
 		chassis_hdlr->vx = chassis_hdlr->gimbal_axis.vx;
 		chassis_hdlr->vy = chassis_hdlr->gimbal_axis.vy;
-		chassis_hdlr->wz = -pid_single_loop_control(0, &(chassis_hdlr->f_pid), chassis_hdlr->gimbal_yaw_rel_angle);
+		chassis_hdlr->wz = -pid_single_loop_control(0, &(chassis_hdlr->f_pid), chassis_hdlr->gimbal_yaw_rel_angle, CHASSIS_TASK_EXEC_TIME*0.001);
 	}
 	else if(chassis_hdlr->chassis_act_mode == GIMBAL_FOLLOW){ // encoder mode
 		/* The chassis always move along gimbal's coord/axis , but not chasing yaw's center */
@@ -376,15 +381,15 @@ void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
 
 	/* set limit axis speed */
 #ifdef CHASSIS_POWER_LIMIT
-	uint8_t cur_robot_level = referee.robot_status_data.robot_level;
-	/* Chassis Power Management Starts Here */
-	if(cur_robot_level > 10 || cur_robot_level < 1){
-		cur_robot_level = chassis_hdlr->prev_robot_level;// Set prev level for secure
-	}
-	else if(cur_robot_level - cur_robot_level >= 3){ // This may indicate failure comm with ref
-		cur_robot_level = chassis_hdlr->prev_robot_level;
-	}
-	select_chassis_speed(chassis_hdlr, cur_robot_level);
+//	uint8_t cur_robot_level = referee.robot_status_data.robot_level;
+//	/* Chassis Power Management Starts Here */
+//	if(cur_robot_level > 10 || cur_robot_level < 1){
+//		cur_robot_level = chassis_hdlr->prev_robot_level;// Set prev level for secure
+//	}
+//	else if(cur_robot_level - cur_robot_level >= 5){ // This may indicate failure comm with ref
+//		cur_robot_level = chassis_hdlr->prev_robot_level;
+//	}
+//	select_chassis_speed(chassis_hdlr, cur_robot_level);
 #endif
 #ifndef REF_CHASSIS_DEBUG
 	VAL_LIMIT(chassis_hdlr->vx, -chassis_hdlr->max_vx, chassis_hdlr->max_vx);
@@ -399,7 +404,6 @@ void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
 	VAL_LIMIT(chassis_hdlr->vy, -temp_max_vy, temp_max_vy);
 	VAL_LIMIT(chassis_hdlr->wz, -temp_max_wz, temp_max_wz);
 #endif
-
 	if(fabs(chassis_hdlr->wz) < 50.0f)
 		/* PID dead zone risk management */
 		chassis_hdlr->wz = 0;
@@ -548,7 +552,6 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 			/* LD indicator, For debug purposes only */
 #endif
 			}
-
 			else if(chassis_pc_mode_toggle == 1 && chassis_pc_submode_toggle == -1){
 				/* chassis only follow yaw axis */
 				act_mode = GIMBAL_FOLLOW;
@@ -573,6 +576,66 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 	/* set modes */
 	chassis_set_mode(chassis_hdlr, board_mode);
 	chassis_set_act_mode(chassis_hdlr, act_mode);// act mode only works when debuging with rc
+}
+
+void chassis_manual_gear_set(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr){
+	/* Manually set the levels of robot */
+	KeyStatus_t temp_upgrade_status = rc_get_key_status(&rc_hdlr->pc.key.V);
+	KeyStatus_t temp_downgrade_status = rc_get_key_status(&rc_hdlr->pc.key.Shift);
+	if( temp_upgrade_status == RELEASED_TO_PRESS && upgrade_pre_mode == RELEASED){
+		chassis_hdlr->cur_robot_level++;
+		upgrade_pre_mode = RELEASED_TO_PRESS;
+	}
+	else{
+		upgrade_pre_mode = temp_upgrade_status;
+	}
+	if(temp_downgrade_status == RELEASED_TO_PRESS && downgrade_pre_mode == RELEASED){
+		chassis_hdlr->cur_robot_level--;
+		downgrade_pre_mode = RELEASED_TO_PRESS;
+	}
+	else{
+		downgrade_pre_mode = temp_downgrade_status;
+	}
+
+	/* Safety check */
+	if(chassis_hdlr->cur_robot_level >= 10)
+		chassis_hdlr->cur_robot_level = 10;
+	if(chassis_hdlr->cur_robot_level <= 1)
+		chassis_hdlr->cur_robot_level = 1;
+
+	/* Set level */
+	switch(chassis_hdlr->cur_robot_level){
+			case 1: chassis_hdlr->max_vx = chassis_l1_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l1_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l1_hpf_spin_speed;break;
+			case 2: chassis_hdlr->max_vx = chassis_l2_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l2_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l2_hpf_spin_speed;break;
+			case 3: chassis_hdlr->max_vx = chassis_l3_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l3_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l3_hpf_spin_speed;break;
+			case 4: chassis_hdlr->max_vx = chassis_l4_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l4_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l4_hpf_spin_speed;break;
+			case 5: chassis_hdlr->max_vx = chassis_l5_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l5_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l5_hpf_spin_speed;break;
+			case 6: chassis_hdlr->max_vx = chassis_l6_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l6_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l6_hpf_spin_speed;break;
+			case 7: chassis_hdlr->max_vx = chassis_l7_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l7_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l7_hpf_spin_speed;break;
+			case 8: chassis_hdlr->max_vx = chassis_l8_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l8_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l8_hpf_spin_speed;break;
+			case 9: chassis_hdlr->max_vx = chassis_l9_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l9_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l9_hpf_spin_speed;break;
+			case 10: chassis_hdlr->max_vx = chassis_l10_hpf_padding_speed;
+					chassis_hdlr->max_vy = chassis_l10_hpf_padding_speed;
+					chassis_hdlr->max_wz = chassis_l10_hpf_spin_speed;break;
+	}
 }
 
 void select_chassis_speed(Chassis_t* chassis_hdlr, uint8_t level){
@@ -606,8 +669,8 @@ void select_chassis_speed(Chassis_t* chassis_hdlr, uint8_t level){
 				chassis_hdlr->max_vy = chassis_l9_hpf_padding_speed;
 				chassis_hdlr->max_wz = chassis_l9_hpf_spin_speed;break;
 		case 10: chassis_hdlr->max_vx = chassis_l10_hpf_padding_speed;
-				chassis_hdlr->max_vy = chassis_l10_hpf_padding_speed;
-				chassis_hdlr->max_wz = chassis_l10_hpf_spin_speed;break;
+				 chassis_hdlr->max_vy = chassis_l10_hpf_padding_speed;
+				 chassis_hdlr->max_wz = chassis_l10_hpf_spin_speed;break;
 	}
 }
 

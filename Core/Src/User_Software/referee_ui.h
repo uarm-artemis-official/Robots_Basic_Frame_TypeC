@@ -40,6 +40,7 @@ typedef enum{
 }referee_name_type_t;
 
 typedef enum{
+	UNKOWN = 0,
 	RED = 1,
 	BLUE = 2
 }robot_color_t;

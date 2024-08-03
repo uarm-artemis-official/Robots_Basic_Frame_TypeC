@@ -2,7 +2,7 @@
 * @file           : IMU_App.c
 * @brief          : imu temp control and mpu get data
 * @created time	  : Jul, 2023
-* @author         : Haoran
+* @author         : James
 ******************************************************************************
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
@@ -13,6 +13,7 @@
 #include "IMU_App.h"
 #include "buzzer.h"
 #include "imu.h"
+#include "public_defines.h"
 
 uint8_t imu_init_flag = 0;
 
@@ -72,7 +73,7 @@ void imu_task_init(void){
 	bmi088_device_init();
 	ist8310_init();
 	/* init sensor pid */
-	pid_param_init(&(imu.tmp_pid), 2000, 1500, 25, 800, 0.15, 0.05);
+	pid_param_init(&(imu.tmp_pid), 4000, 1500, 25, 2000, 0.8, 1000);
 	set_imu_temp_status(&imu, ABNORMAL);
 	imu.imu_mode = GA_MODE; // forbid ist8310
     if(imu.imu_mode == GA_MODE){
@@ -106,14 +107,14 @@ void set_imu_pwm(IMU_t *pimu, uint16_t pwm){
 int32_t imu_temp_pid_control(void)
 {
   float temp=imu.temp;
-  pid_single_loop_control(DEFAULT_IMU_TEMP, &(imu.tmp_pid), temp); // pid control
-
-  if(temp <= (DEFAULT_IMU_TEMP+0.1f) && temp >= (DEFAULT_IMU_TEMP-0.1f)){
+  pid_single_loop_control(DEFAULT_IMU_TEMP, &(imu.tmp_pid), temp, IMU_TASK_EXEC_TIME*0.001); // pid control
+  float temp_threshold = 0.875f;
+  if(temp <= (DEFAULT_IMU_TEMP+temp_threshold) && temp >= (DEFAULT_IMU_TEMP-temp_threshold)){
 	  HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_RESET);
 	  set_imu_pwm(&imu, imu.tmp_pid.total_out);
 	  set_imu_temp_status(&imu, NORMAL);
   }
-  else if(temp > DEFAULT_IMU_TEMP + 0.1f){
+  else if(temp > DEFAULT_IMU_TEMP + temp_threshold){
 	  HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
 	  set_imu_pwm(&imu, imu.tmp_pid.total_out);
 	  set_imu_temp_status(&imu, ABNORMAL);

@@ -15,7 +15,7 @@
 
 
 /* define general declarations for gimbal task here */
-#define DEFAULT_IMU_TEMP 45 		// degrees centigrade
+#define DEFAULT_IMU_TEMP 40 		// degrees centigrade
 #define IMU_TMP_PWM_HTIM    htim10
 #define IMU_TMP_PWM_CHANNEL  TIM_CHANNEL_1
 

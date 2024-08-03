@@ -95,25 +95,29 @@ void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t cont
 														  &(motor_data[yaw_id].motor_info.f_pid),
 														  &(motor_data[yaw_id].motor_info.s_pid),
 														  gimbal.yaw_total_rel_angle,
-														  motor_data[yaw_id].motor_feedback.rx_rpm);
+														  motor_data[yaw_id].motor_feedback.rx_rpm,
+														  GIMBAL_TASK_EXEC_TIME*0.001);
 			motor_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff
 														  &(motor_data[pitch_id].motor_info.f_pid),
 														  &(motor_data[pitch_id].motor_info.s_pid),
                                     					  gimbal.pitch_cur_rel_angle,
-														  motor_data[pitch_id].motor_feedback.rx_rpm);
+														  motor_data[pitch_id].motor_feedback.rx_rpm,
+														  GIMBAL_TASK_EXEC_TIME*0.001);
 		}
 	else if(control_indicator == DUAL_LOOP_PID_CONTROL && mode == GYRO_MODE){
 			motor_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
 														  &(motor_data[yaw_id].motor_info.f_pid),
 														  &(motor_data[yaw_id].motor_info.s_pid),
 														  gimbal.final_abs_yaw,
-														  motor_data[yaw_id].motor_feedback.rx_rpm);//pid+ff
+														  motor_data[yaw_id].motor_feedback.rx_rpm,
+														  GIMBAL_TASK_EXEC_TIME*0.001);//pid+ff
 			motor_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff, pitch always use rel angle from encoder
 														  &(motor_data[pitch_id].motor_info.f_pid),
 														  &(motor_data[pitch_id].motor_info.s_pid),
 														  gimbal.pitch_cur_rel_angle,
 //														  gimbal.pitch_cur_abs_angle,
-														  motor_data[pitch_id].motor_feedback.rx_rpm);//pid+ff
+														  motor_data[pitch_id].motor_feedback.rx_rpm,
+														  GIMBAL_TASK_EXEC_TIME*0.001);//pid+ff
 
 
 	}
@@ -121,11 +125,8 @@ void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t cont
 			// only for spd control, dual loop control in the shoot app
 			motor_data[mag_2006_id].tx_data = pid_single_loop_control(v3,
 															&(motor_data[mag_2006_id].motor_info.s_pid),
-														      motor_data[mag_2006_id].motor_feedback.rx_rpm);
-			/* not applied */
-//			motor_data[7].tx_data = pid_single_loop_control(v4,
-//															motor_data[7].motor_info.f_pid,
-//															motor_data[7].motor_feedback.rx_rpm);
+														      motor_data[mag_2006_id].motor_feedback.rx_rpm,
+															  SHOOT_TASK_EXEC_TIME*0.001);
 		}
 }
 
@@ -138,24 +139,30 @@ void set_motor_can_current(int32_t v1, int32_t v2, int32_t v3, int32_t v4, int32
 	else if(control_indicator == SINGLE_LOOP_SHOOT_CONTROL){
 		motor_data[fric_left_id].tx_data = pid_single_loop_control(v1,
 																&(motor_data[fric_left_id].motor_info.f_pid),
-															    motor_data[fric_left_id].motor_feedback.rx_current);
+															    motor_data[fric_left_id].motor_feedback.rx_current,
+																SHOOT_TASK_EXEC_TIME*0.001);
 		motor_data[fric_right_id].tx_data = pid_single_loop_control(v2,
 																&(motor_data[fric_right_id].motor_info.f_pid),
-																motor_data[fric_right_id].motor_feedback.rx_current);
+																motor_data[fric_right_id].motor_feedback.rx_current,
+																SHOOT_TASK_EXEC_TIME*0.001);
 	}
 	else{
 		motor_data[wheel_id1].tx_data = pid_single_loop_control(v1,
 														&(motor_data[wheel_id1].motor_info.f_pid),
-													    motor_data[wheel_id1].motor_feedback.rx_rpm);
+													    motor_data[wheel_id1].motor_feedback.rx_rpm,
+														CHASSIS_TASK_EXEC_TIME*0.001);
 		motor_data[wheel_id2].tx_data = pid_single_loop_control(v2,
 														&(motor_data[wheel_id2].motor_info.f_pid),
-													    motor_data[wheel_id2].motor_feedback.rx_rpm);
+													    motor_data[wheel_id2].motor_feedback.rx_rpm,
+														CHASSIS_TASK_EXEC_TIME*0.001);
 		motor_data[wheel_id3].tx_data = pid_single_loop_control(v3,
 														&(motor_data[wheel_id3].motor_info.f_pid),
-													    motor_data[wheel_id3].motor_feedback.rx_rpm);
+													    motor_data[wheel_id3].motor_feedback.rx_rpm,
+														CHASSIS_TASK_EXEC_TIME*0.001);
 		motor_data[wheel_id4].tx_data = pid_single_loop_control(v4,
 														&(motor_data[wheel_id4].motor_info.f_pid),
-													    motor_data[wheel_id4].motor_feedback.rx_rpm);
+													    motor_data[wheel_id4].motor_feedback.rx_rpm,
+														CHASSIS_TASK_EXEC_TIME*0.001);
 	}
 }
 

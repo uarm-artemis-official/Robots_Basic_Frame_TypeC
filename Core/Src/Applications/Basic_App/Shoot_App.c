@@ -36,7 +36,7 @@ void Shoot_Task_Func(void const * argument)
 
   /* set task exec period */
   TickType_t xLastWakeTime;
-  const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 10ms
+  const TickType_t xFrequency = pdMS_TO_TICKS(SHOOT_TASK_EXEC_TIME); //
 
   /* init the task ticks */
   xLastWakeTime = xTaskGetTickCount();
@@ -454,7 +454,8 @@ void shoot_mag_dual_loop_control(Shoot_t *sht){
 												 &(motor_data[mag_2006_id].motor_info.f_pid),
 												 &(motor_data[mag_2006_id].motor_info.s_pid),
 												 sht->mag_cur_angle,
-												 sht->mag_fb.rx_rpm);//pid without ff
+												 sht->mag_fb.rx_rpm,
+												 SHOOT_TASK_EXEC_TIME*0.001);//pid without ff
 }
 
 /**

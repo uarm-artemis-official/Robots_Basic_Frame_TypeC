@@ -20,8 +20,6 @@
 #include "string.h"
 
 #define USART_COMM 0
-
-
 extern Comm_t comm_pack;
 extern Chassis_t chassis;
 extern Gimbal_t gimbal; // TODO if we have multiple gimbals, we need to change this

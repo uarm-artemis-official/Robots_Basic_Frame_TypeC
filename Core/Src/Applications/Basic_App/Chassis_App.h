@@ -71,6 +71,7 @@ typedef struct{
 
 	uint16_t chassis_gear;
 	uint8_t prev_robot_level;
+	uint8_t cur_robot_level;
 	ChassisPowerStat_t ref_power_stat;
 	ChassisPowerStat_t local_power_stat;
 
@@ -108,6 +109,7 @@ void get_chassis_ref_power_stat(Chassis_t* chassis_hdlr, Referee_t *ref);
 void chassis_power_limit_referee(Chassis_t* chassis_hdlr);
 void chassis_power_limit_local(Chassis_t* chassis_hdlr, uint16_t local_power_limit);
 void select_chassis_speed(Chassis_t* chassis_hdlr, uint8_t level);
+void chassis_manual_gear_set(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr);
 
 /*back up*/
 int32_t motor_move_period_ground(double patrol_vw, int32_t chassis_control_counter, Chassis_t* chassis);

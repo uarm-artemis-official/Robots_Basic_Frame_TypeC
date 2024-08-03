@@ -35,9 +35,9 @@ void pid_param_init(PID_t *pid, int32_t max_out, float max_i_out, float max_err,
   * @param[in] set: target value
   * @retval    pid calculate output
   */
-float pid_calculate(PID_t *pid, float cur_val, float target_val)
+float pid_calculate(PID_t *pid, float cur_val, float target_val, float dt)
 {
-  float dt = 1.0f; //sampling time
+  dt = 1.0f; //sampling time
   pid->cur_val = cur_val;
   pid->target_val = target_val;
   pid->last_err = pid->err;
@@ -91,8 +91,8 @@ float pid_incremental_calculate(PID_t *pid, float cur_val, float target_val)
   * @brief  Single-loop pid controller
   * @retval None
   */
-float pid_single_loop_control(float target_val, PID_t *pid, float cur_val){
-	return pid_calculate(pid, cur_val, target_val);
+float pid_single_loop_control(float target_val, PID_t *pid, float cur_val, float dt){
+	return pid_calculate(pid, cur_val, target_val, dt);
 }
 
 /**
@@ -100,9 +100,9 @@ float pid_single_loop_control(float target_val, PID_t *pid, float cur_val){
   * @Note 	Dual control provide more force and greater torque
   * @retval None
   */
-float pid_dual_loop_control(float f_tar_val, PID_t *f_pid, PID_t *s_pid, float f_cur_val, float s_cur_val){
+float pid_dual_loop_control(float f_tar_val, PID_t *f_pid, PID_t *s_pid, float f_cur_val, float s_cur_val, float dt){
 	float f_out=0;
-	f_out = pid_calculate(f_pid, f_cur_val, f_tar_val);
-	return pid_calculate(s_pid, s_cur_val, f_out);
+	f_out = pid_calculate(f_pid, f_cur_val, f_tar_val, dt);
+	return pid_calculate(s_pid, s_cur_val, f_out, dt);
 }
 

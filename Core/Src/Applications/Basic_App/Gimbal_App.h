@@ -33,12 +33,12 @@
 #define MODE_DEBUG 1
 //#define MANUAL_SET_GIMBAL_MODES
 
-#define PITCH_ECD_CENTER 4000 //manually measured data: number increase, head down
+#define PITCH_ECD_CENTER 4970 //manually measured data: number increase, head down
 #define PITCH_ECD_DELTA  1364  //60/180*4096
 #define PITCH_GEAR_RATIO 4    // The ratio of the gear box of the pitch motor
 #define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO) 
 
-#define YAW_ECD_CENTER 620
+#define YAW_ECD_CENTER 4800 //620
 #define YAW_GEAR_RATIO 1.0f		 //if install a gear, calc the gear ratio here
 #define YAW_POSITIVE_DIR -1      //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would
 								 //posiibly is turned to negative value, we need to calibrate the correct direction

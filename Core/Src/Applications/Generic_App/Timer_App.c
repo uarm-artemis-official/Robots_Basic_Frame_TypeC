@@ -39,21 +39,21 @@ void Timer_Task_Func(void const * argument){
 		/* CAN data  */
 		if(board_status == CHASSIS_BOARD){
 			Motor_Data_Send(&hcan1, MOTOR_3508_STDID,
-							motor_data[0].tx_data,
-							motor_data[1].tx_data,
-							motor_data[2].tx_data,
-							motor_data[3].tx_data);
+							motor_data[wheel_id1].tx_data,
+							motor_data[wheel_id2].tx_data,
+							motor_data[wheel_id3].tx_data,
+							motor_data[wheel_id4].tx_data);
 		}
 		else if(board_status == GIMBAL_BOARD){
 			Motor_Data_Send(&hcan1, MOTOR_6020_STDID,
-							motor_data[4].tx_data,
-							motor_data[5].tx_data,
-							motor_data[6].tx_data,
+							motor_data[yaw_id].tx_data,
+							motor_data[pitch_id].tx_data,
+							motor_data[mag_2006_id].tx_data,
 							0);
 #ifdef USE_CAN_FRIC
 			Motor_Data_Send(&hcan1, MOTOR_3508_STDID,
-							motor_data[0].tx_data,
-							motor_data[1].tx_data,
+							motor_data[fric_left_id].tx_data,
+							motor_data[fric_right_id].tx_data,
 							0,
 							0);
 #endif

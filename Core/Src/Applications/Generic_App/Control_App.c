@@ -76,26 +76,24 @@
  *    ----------------------------------------------------------------------------
  *    |  	R	  	|  Reload  	     |  Open lids/Close lids. All mode   		 |
  *    ----------------------------------------------------------------------------
- *    |  	V	  	|  Gear  	     |  Chassis gear manually switch.All mode    |
+ *    |  	/	  	|  Gear  	     |  Chassis gear manually switch.All mode    |
  *    ----------------------------------------------------------------------------
  *    |  	Ctrl	|  Mode Switch   |  Gyro or Encoder mode  				     |
  *    ----------------------------------------------------------------------------
  *    |  	F		|  Sub Mode Swap |  Gyro mode: Gimbal Center or Self-Gyro    |
  *    |  	 		|  			  	 |  Encoder mode: Gimbal Follow or Ground	 |
  *    ----------------------------------------------------------------------------
- *    |  	Shift	|  Accelerate    |  Supercapacitor turned on(long press)/off |
+ *    |  	/	    |  Accelerate    |  Supercapacitor turned on(long press)/off |
  *    ----------------------------------------------------------------------------
  *    |  	G	  	|  Safety Key    |  IDLE MODE, shut down everything(hold) 	 |
  *    |				|				 |  (release to select the normal mode) 	 |
  *    ----------------------------------------------------------------------------
- *    | Right Click |  Auto aim 	 |  Swap to auto aiming mode    			 |
+ *    | Right Click |  Auto aim 	 |  Swap to auto aiming mode (pressed)       |
  *    ----------------------------------------------------------------------------
  *    | Left Click	|  Shoot 	 	 |  Tap to fire a single shot, press and 	 |
  *    |				|				 |	hold to continously shoot.   			 |
  *    ----------------------------------------------------------------------------
- *    |     B       |  Toggle Lid 	 |  Toggle the lid for the projectiles cargo |
- *    ----------------------------------------------------------------------------
- *    |  	C	  	|  Shoot speed   |  shoot fric and mag speed manually switch |
+ *    |  	B	  	| Mag Reverse    |  Magazine motor reverse to avoid jam		 |
  *    ----------------------------------------------------------------------------
  *
  *    Note: Shift need to be combined with any of WASD keys.
@@ -304,10 +302,6 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *c
 		comm_pc->send_flag = 1;
 
 		/* Determine transit information */
-//		if(rc_hdlr->pc.key.R.status == RELEASED_TO_PRESS)
-//			comm_ext_pc->pc_data[1] = 1;
-//		else
-//			comm_ext_pc->pc_data[1] = 0;
 		comm_ext_pc->pc_data[0] = rc_hdlr->pc.key.C.status;
 		comm_ext_pc->pc_data[1] = rc_hdlr->pc.key.R.status;
 		comm_ext_pc->pc_data[2] = rc_hdlr->pc.key.B.status;

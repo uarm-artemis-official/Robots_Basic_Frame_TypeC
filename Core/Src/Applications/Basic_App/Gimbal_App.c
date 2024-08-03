@@ -85,7 +85,7 @@ void Gimbal_Task_Function(void const * argument)
 
 	/* set task exec period */
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 1ms
+	const TickType_t xFrequency = pdMS_TO_TICKS(GIMBAL_TASK_EXEC_TIME); // task exec period 1ms
 
 	/* init the task ticks */
 	xLastWakeTime = xTaskGetTickCount();
@@ -145,9 +145,9 @@ void Gimbal_Task_Function(void const * argument)
 		 }
 
 		 /* Safely reset count after some greater value */
-		 if(gimbal.yaw_turns_count >= 20)
+		 if(gimbal.yaw_turns_count >= 60000)
 			 gimbal.yaw_turns_count = 0;
-		 if(gimbal.yaw_total_turns >= 20)
+		 if(gimbal.yaw_total_turns >= 60000)
 			 gimbal.yaw_total_turns = 0;
 
 		 if(aa_pack_recv_flag == 1){
@@ -922,10 +922,12 @@ void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode){
 	else if(mode == SINGLE_LOOP_PID_CONTROL){ // only spd control
 		motor_data[pitch_id].tx_data = pid_single_loop_control(gbal->pitch_tar_spd,
 														&(motor_data[pitch_id].motor_info.s_pid),
-														motor_data[pitch_id].motor_feedback.rx_rpm);
+														motor_data[pitch_id].motor_feedback.rx_rpm,
+														GIMBAL_TASK_EXEC_TIME*0.001);
 		motor_data[yaw_id].tx_data = pid_single_loop_control(gbal->yaw_tar_spd,
 														&(motor_data[yaw_id].motor_info.s_pid),
-														motor_data[yaw_id].motor_feedback.rx_rpm);
+														motor_data[yaw_id].motor_feedback.rx_rpm,
+														GIMBAL_TASK_EXEC_TIME*0.001);
 	}
 	else{
 		motor_data[pitch_id].tx_data = 0;

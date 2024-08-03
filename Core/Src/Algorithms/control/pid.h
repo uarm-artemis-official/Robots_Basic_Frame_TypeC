@@ -41,10 +41,10 @@ typedef struct {
 
 //declare pid functions
 void pid_param_init(PID_t *pid, int32_t max_out, float max_i_out, float max_err, float kp, float ki, float kd);
-float pid_calculate(PID_t *pid, float get, float set);
+float pid_calculate(PID_t *pid, float get, float set, float dt);
 float pid_incremental_calculate(PID_t *pid, float cur_val, float target_val);
-float pid_single_loop_control(float target_val, PID_t *pid, float cur_val);
-float pid_dual_loop_control(float f_tar_val, PID_t *f_pid, PID_t *s_pid, float f_cur_val, float s_cur_val);
+float pid_single_loop_control(float target_val, PID_t *pid, float cur_val, float dt);
+float pid_dual_loop_control(float f_tar_val, PID_t *f_pid, PID_t *s_pid, float f_cur_val, float s_cur_val, float dt);
 
 
 

@@ -53,7 +53,8 @@ void motor_spid_step_signal_generator(float idle_time_100ms, float target, float
 		/* for second loop control  parameters */
 		motor_data[motor_id].tx_data = pid_single_loop_control(target,
 															   s_pid,
-															   cur);
+															   cur,
+															   GIMBAL_TASK_EXEC_TIME*0.001);
 	}
 	else{
 		motor_data[motor_id].tx_data = 0;
