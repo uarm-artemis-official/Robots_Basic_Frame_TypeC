@@ -88,9 +88,24 @@ void motor_init(uint8_t motor_id, int32_t max_out_f, float max_i_out_f, float ma
   * @param[in] velocity/angle set to different can devices
   * @retval    None
   */
-void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode){
+void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag){
 
 	if(control_indicator == DUAL_LOOP_PID_CONTROL && mode == ENCODE_MODE){
+		if(idle_flag == 1){//Set idle mode
+			motor_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
+														  &(motor_data[yaw_id].motor_info.f_pid),
+														  &(motor_data[yaw_id].motor_info.s_pid),
+														  gimbal.yaw_cur_rel_angle,
+														  motor_data[yaw_id].motor_feedback.rx_rpm,
+														  GIMBAL_TASK_EXEC_TIME*0.001);
+			motor_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff
+														  &(motor_data[pitch_id].motor_info.f_pid),
+														  &(motor_data[pitch_id].motor_info.s_pid),
+														  gimbal.pitch_cur_rel_angle,
+														  motor_data[pitch_id].motor_feedback.rx_rpm,
+														  GIMBAL_TASK_EXEC_TIME*0.001);
+		}
+		else{
 			motor_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
 														  &(motor_data[yaw_id].motor_info.f_pid),
 														  &(motor_data[yaw_id].motor_info.s_pid),
@@ -100,9 +115,11 @@ void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t cont
 			motor_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff
 														  &(motor_data[pitch_id].motor_info.f_pid),
 														  &(motor_data[pitch_id].motor_info.s_pid),
-                                    					  gimbal.pitch_cur_rel_angle,
+														  gimbal.pitch_cur_rel_angle,
 														  motor_data[pitch_id].motor_feedback.rx_rpm,
 														  GIMBAL_TASK_EXEC_TIME*0.001);
+
+			}
 		}
 	else if(control_indicator == DUAL_LOOP_PID_CONTROL && mode == GYRO_MODE){
 			motor_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff

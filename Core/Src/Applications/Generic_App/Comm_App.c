@@ -122,7 +122,7 @@ void can_comm_reset_config(BoardComm_t *comm){
 void can_comm_process(BoardComm_t *comm){
 
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(3); // 200hz make sure this task quicker than rc app
+	const TickType_t xFrequency = pdMS_TO_TICKS(1.5); // 200hz make sure this task quicker than rc app
 
 	/* reset the comm struct configure */
 	can_comm_reset_config(comm);

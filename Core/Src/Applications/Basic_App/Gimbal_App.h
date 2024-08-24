@@ -165,7 +165,7 @@ void gimbal_update_truns(Gimbal_t *gbal, float halfc);
 void gimbal_set_angle(Gimbal_t *gbal, float target_angle);
 void gimbal_set_limited_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
 void gimbal_set_spd(Gimbal_t *gbal, int16_t yaw_target_spd);
-void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode);
+void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode, uint8_t idle_flags);
 void gimbal_update_rel_turns(Gimbal_t* gbal, int jump_threshold);
 
 
