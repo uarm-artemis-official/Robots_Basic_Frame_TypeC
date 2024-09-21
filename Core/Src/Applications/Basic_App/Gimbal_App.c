@@ -495,8 +495,8 @@ void gimbal_reset_data(Gimbal_t *gbal){
 	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.95f);//0.65 for older client
 	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.95f);//0.6 for older client
 
-	init_swm_filter(&gbal->swm_f_x, 50);// window size 50
-	init_swm_filter(&gbal->swm_f_y, 50);
+	init_swm_filter(&gbal->swm_f_x, 25);// window size 50
+	init_swm_filter(&gbal->swm_f_y, 25);
 
 	memset(&(gbal->ahrs_sensor), 0, sizeof(AhrsSensor_t));
 	memset(&(gbal->euler_angle), 0, sizeof(Attitude_t));
@@ -627,11 +627,11 @@ void gimbal_update_ecd_rel_angle(Gimbal_t *gbal){
 void gimbal_safe_mode_switch(Gimbal_t *gbal){
  if(gbal->prev_gimbal_motor_mode != gbal->gimbal_motor_mode) {
 	 if(gbal->gimbal_motor_mode == GYRO_MODE){
-		 gbal->yaw_tar_angle = gbal->yaw_cur_abs_angle; // Set the target as current angle
+		 gbal->yaw_tar_angle = gbal->final_abs_yaw; // Set the target as current angle
 		 gbal->pitch_tar_angle = gbal->pitch_cur_rel_angle; //  to avoid spin
 	 }
 	 else if(gbal->gimbal_motor_mode == ENCODE_MODE){
-		 gbal->yaw_tar_angle = gbal->yaw_cur_rel_angle;
+		 gbal->yaw_tar_angle = gbal->yaw_total_rel_angle;
 		 gbal->pitch_tar_angle = gbal->pitch_cur_rel_angle;
 	 }
    }
@@ -738,14 +738,14 @@ static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr)
 	else if(rc_hdlr->control_mode == PC_MODE){
 		//TODO fine tune the precision of the mouse
 		/* expotional filter applied here */
-		rc_hdlr->pc.mouse.x = ewma_filter(&gbal->ewma_f_x, rc_hdlr->pc.mouse.x);
-//		rc_hdlr->pc.mouse.x = sliding_window_mean_filter(&gbal->swm_f_x, rc_hdlr->pc.mouse.x);
+//		rc_hdlr->pc.mouse.x = ewma_filter(&gbal->ewma_f_x, rc_hdlr->pc.mouse.x);
+		rc_hdlr->pc.mouse.x = sliding_window_mean_filter(&gbal->swm_f_x, rc_hdlr->pc.mouse.x);
 		delta_yaw = in_out_map(rc_hdlr->pc.mouse.x, -MOUSE_MAX_SPEED_VALUE, MOUSE_MAX_SPEED_VALUE,
-												-30*PI, 30*PI);// 1000 -> 2*pi, old value +-30*PI
-		rc_hdlr->pc.mouse.y = ewma_filter(&gbal->ewma_f_y, rc_hdlr->pc.mouse.y);
-//		rc_hdlr->pc.mouse.y = sliding_window_mean_filter(&gbal->swm_f_y, rc_hdlr->pc.mouse.y);
+												-60*PI, 60*PI);// 1000 -> 2*pi, old value +-30*PI
+//		rc_hdlr->pc.mouse.y = ewma_filter(&gbal->ewma_f_y, rc_hdlr->pc.mouse.y);
+		rc_hdlr->pc.mouse.y = sliding_window_mean_filter(&gbal->swm_f_y, rc_hdlr->pc.mouse.y);
 		delta_pitch = in_out_map(rc_hdlr->pc.mouse.y, -MOUSE_MAX_SPEED_VALUE, MOUSE_MAX_SPEED_VALUE,
-												-30*PI, 30*PI);// 1000 -> 2*pi, old value +-30*PI
+												-60*PI, 60*PI);// 1000 -> 2*pi, old value +-30*PI
 	}
 	/* get the latest angle position of pitch and yaw motor */
 	gimbal_get_ecd_fb_data(&gimbal,
@@ -774,12 +774,12 @@ static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr)
 	if(fabs(delta_pitch)> 1.0f*DEGREE2RAD)
 		gbal->pitch_tar_angle = cur_pitch_target;
 
-	if(rc_hdlr->control_mode == PC_MODE)
-		gimbal_safe_mode_switch(gbal);// Safely switch mode
+//	if(rc_hdlr->control_mode == PC_MODE)
+	gimbal_safe_mode_switch(gbal);// Safely switch mode
 
 	/* independent mode don't allow set yaw angle */
 	if(gbal->gimbal_act_mode == INDPET_MODE)
-		gbal->yaw_tar_angle = 0;
+		gbal->yaw_tar_angle = gbal->yaw_total_rel_angle - gbal->yaw_cur_rel_angle;
 }
 
 /*
