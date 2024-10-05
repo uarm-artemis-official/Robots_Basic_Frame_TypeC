@@ -29,7 +29,7 @@
 #define CHANNEL_CENTER  1024
 #define CHANNEL_OFFSET_MAX_ABS_VAL 660
 
-#define MOUSE_MAX_SPEED_VALUE 30000
+#define MOUSE_MAX_SPEED_VALUE 15000
 //#define MOUSE_MIN_SPEED_VALUE 10000
 
 /* switch status defines */

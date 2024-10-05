@@ -495,8 +495,8 @@ void gimbal_reset_data(Gimbal_t *gbal){
 	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.95f);//0.65 for older client
 	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.95f);//0.6 for older client
 
-	init_swm_filter(&gbal->swm_f_x, 25);// window size 50
-	init_swm_filter(&gbal->swm_f_y, 25);
+	init_swm_filter(&gbal->swm_f_x, 20);// window size 50
+	init_swm_filter(&gbal->swm_f_y, 20);
 
 	memset(&(gbal->ahrs_sensor), 0, sizeof(AhrsSensor_t));
 	memset(&(gbal->euler_angle), 0, sizeof(Attitude_t));
@@ -741,13 +741,15 @@ static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr)
 //		rc_hdlr->pc.mouse.x = ewma_filter(&gbal->ewma_f_x, rc_hdlr->pc.mouse.x);
 		rc_hdlr->pc.mouse.x = sliding_window_mean_filter(&gbal->swm_f_x, rc_hdlr->pc.mouse.x);
 		delta_yaw = in_out_map(rc_hdlr->pc.mouse.x, -MOUSE_MAX_SPEED_VALUE, MOUSE_MAX_SPEED_VALUE,
-												-60*PI, 60*PI);// 1000 -> 2*pi, old value +-30*PI
+												-2.5*PI, 2.5*PI);// 1000 -> 2*pi, old value +-30*PI 60 pi
 //		rc_hdlr->pc.mouse.y = ewma_filter(&gbal->ewma_f_y, rc_hdlr->pc.mouse.y);
 		rc_hdlr->pc.mouse.y = sliding_window_mean_filter(&gbal->swm_f_y, rc_hdlr->pc.mouse.y);
 		delta_pitch = in_out_map(rc_hdlr->pc.mouse.y, -MOUSE_MAX_SPEED_VALUE, MOUSE_MAX_SPEED_VALUE,
-												-60*PI, 60*PI);// 1000 -> 2*pi, old value +-30*PI
+												-4*PI, 4*PI);// 1000 -> 2*pi, old value +-30*PI
 	}
 	/* get the latest angle position of pitch and yaw motor */
+//	delta_yaw = 0;
+//	delta_pitch = 0;
 	gimbal_get_ecd_fb_data(&gimbal,
 						   &(motor_data[yaw_id].motor_feedback),
 						   &(motor_data[pitch_id].motor_feedback));
