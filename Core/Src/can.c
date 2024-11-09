@@ -19,9 +19,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
+#include "message_center.h"
 
 /* USER CODE BEGIN 0 */
-#include "Comm_App.h"
 extern BoardStatusType board_status;
 extern BoardComm_t chassis_comm;
 extern BoardComm_t gimbal_comm;
@@ -34,6 +34,10 @@ can_comm_rx_t can_comm_rx[7] = {
     {0, {0, 0, 0, 0, 0, 0, 0, 0}},
 	{0, {0, 0, 0, 0, 0, 0, 0, 0}},
 };
+//FIXME: don't why it cannot detect MOTOR_COUNT and TOTAL_COMM_ID
+static uint8_t can_rx_buffer[8][8]; // Motor count + maximum once sending bytes
+static Motor_Feedback_t motor_feedback[MOTOR_COUNT];
+static Publisher_t motor_feedback_pub;
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -44,7 +48,7 @@ void MX_CAN1_Init(void)
 {
 
   /* USER CODE BEGIN CAN1_Init 0 */
-
+	motor_feedback_pub = register_pub("MOTOR_FEEDBACK", 64);
   /* USER CODE END CAN1_Init 0 */
 
   /* USER CODE BEGIN CAN1_Init 1 */
@@ -296,8 +300,10 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 	CAN_RxHeaderTypeDef rx_header;
 	rx_header.StdId = (CAN_RI0R_STID & hcan->Instance->sFIFOMailBox[CAN_RX_FIFO0].RIR) >> CAN_TI0R_STID_Pos;
 	if(hcan == &hcan1){
-		uint8_t idx=rx_header.StdId-CAN_RX_ID_START;
+		uint8_t idx = rx_header.StdId-CAN_RX_ID_START;
 		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, can_rx_buffer[idx]);
+		parse_motor_feedback(can_rx_buffer, motor_feedback, MOTOR_COUNT);
+		pub_message(motor_feedback_pub, motor_feedback);
 	}
 	if(hcan == &hcan2){
 		if(board_status==CHASSIS_BOARD){

@@ -10,24 +10,10 @@
 #ifndef __GIMBAL_APP_C__
 #define __GIMBAL_APP_C__
 
-#include <Control_App.h>
-#include <Gimbal_App.h>
-#include <string.h>
-#include "stdio.h"
-#include "Comm_App.h"
-#include "debugger.h"
-#include "kalman_filters.h"
-#include "maths.h"
-#include "public_defines.h"
-#include "angle_process.h"
-#include "auto_aim.h"
-#include "dwt.h"
-#include "task.h"
-#include <PC_UART_App.h>
+#include "Gimbal_App.h"
 
 extern uint8_t imu_init_flag;
 extern float can_tx_scale_buffer[TOTAL_COMM_ID][4];
-extern RemoteControl_t rc;
 extern UC_Auto_Aim_Pack_t uc_auto_aim_pack;
 extern uint8_t aa_pack_recv_flag;
 //extern CommVision_t vision_pack;
@@ -35,6 +21,17 @@ extern uint8_t aa_pack_recv_flag;
 /* define temp vision pack */
 //CommVision_t temp_pack;
 UC_Auto_Aim_Pack_t temp_pack;
+
+static Publisher_t *motor_set_pub;
+static Subscriber_t *motor_feedback_sub, *controller_sub;
+static int32_t motor_tx_buffer[8];
+
+static int16_t motor_feedback_buffer[32];
+
+static BoardMode_t board_mode;
+static BoardActMode_t act_mode;
+static GimbalMotorMode_t motor_mode;
+
 
 /* declare internal function */
 static void gimbal_update_rc_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_hdlr);
@@ -109,9 +106,7 @@ void Gimbal_Task_Function(void const * argument)
 	  if(gimbal.gimbal_mode == IDLE_MODE){
 		  /* use ramp function to approximate zeros */
 		  gimbal_idle_flag = 1;
-		  gimbal_get_ecd_fb_data(&gimbal,
-								 &(motor_data[yaw_id].motor_feedback),
-								 &(motor_data[pitch_id].motor_feedback));
+		  gimbal_get_ecd_fb_data(&gimbal);
 //		  gimbal_update_rel_turns(&gimbal, GIMBAL_JUMP_THRESHOLD);
 		  temp_idle_yaw = gimbal.yaw_cur_rel_angle + (0 - gimbal.yaw_cur_rel_angle)*ramp_calculate(&(gimbal.yaw_ramp));
 		  temp_idle_pitch = gimbal.pitch_cur_rel_angle + (0 - gimbal.pitch_cur_rel_angle)*ramp_calculate(&(gimbal.pitch_ramp));
@@ -202,6 +197,7 @@ void Gimbal_Task_Function(void const * argument)
 
 	 /* set motor voltage through cascade pid controller */
 	 gimbal_cmd_exec(&gimbal, DUAL_LOOP_PID_CONTROL, gimbal_idle_flag);
+	 pub_message(motor_set_pub, motor_tx_buffer);
 
 	 /* update rel angle and send to chassis */
 	 gimbal_update_comm_info(&gimbal, &gimbal_angle_message.message);
@@ -393,6 +389,10 @@ void gimbal_task_init(Gimbal_t *gbal){
 
 	/* set comm packs init target number */
 	gimbal_angle_message.message.vision.target_num = 0;
+
+	motor_set_pub = register_pub("MOTOR_SET", 32);
+	motor_feedback_sub = register_sub("MOTOR_FEEDBACK", 64);
+	memset(motor_tx_buffer, 999999, 32);
 }
 
 /*
@@ -416,19 +416,22 @@ void gimbal_calibration_reset(Gimbal_t *gbal){
 	 float temp_yaw_ramp_output   = 0.0f;
 
 	 for(;;){
-		 //get feedback first
-		 gimbal_get_ecd_fb_data(gbal,
-								&(motor_data[yaw_id].motor_feedback),
-								&(motor_data[pitch_id].motor_feedback));
-		 gimbal_update_rel_turns(gbal, GIMBAL_JUMP_THRESHOLD);
-		 temp_yaw_ramp_output = gbal->yaw_total_rel_angle + (0 - gbal->yaw_total_rel_angle)*ramp_calculate(&(gbal->yaw_ramp));
-		 temp_pitch_ramp_output   = gbal->pitch_cur_rel_angle + (0 - gbal->pitch_cur_rel_angle)*ramp_calculate(&(gbal->pitch_ramp));
-		 set_motor_can_volt( temp_yaw_ramp_output,
-				 	 	 	 temp_pitch_ramp_output,
-							 0, 0,
-							 DUAL_LOOP_PID_CONTROL,
-							 gimbal.gimbal_motor_mode,
-							 0);
+		//get feedback first
+		gimbal_get_ecd_fb_data(gbal,
+			&(motor_data[yaw_id].motor_feedback),
+			&(motor_data[pitch_id].motor_feedback));
+		gimbal_update_rel_turns(gbal, GIMBAL_JUMP_THRESHOLD);
+		temp_yaw_ramp_output = gbal->yaw_total_rel_angle + (0 - gbal->yaw_total_rel_angle)*ramp_calculate(&(gbal->yaw_ramp));
+		temp_pitch_ramp_output   = gbal->pitch_cur_rel_angle + (0 - gbal->pitch_cur_rel_angle)*ramp_calculate(&(gbal->pitch_ramp));
+
+		set_motor_can_volt(motor_tx_buffer,
+			temp_yaw_ramp_output,
+			temp_pitch_ramp_output,
+			0, 0,
+			DUAL_LOOP_PID_CONTROL,
+			gimbal.gimbal_motor_mode,
+			0);
+		pub_message(motor_set_pub, motor_tx_buffer);
 		 /* when the err of cali angle smaller */
 		 if(fabs(gbal->yaw_total_rel_angle)< (2.0f * DEGREE2RAD)){ //|| counter >= 50000 /*timeout*/ //&& fabs(cur_pitch_radian)< (2.0f * DEGREE2RAD)
 			 /* cali done */
@@ -500,8 +503,8 @@ void gimbal_reset_data(Gimbal_t *gbal){
 
 	memset(&(gbal->ahrs_sensor), 0, sizeof(AhrsSensor_t));
 	memset(&(gbal->euler_angle), 0, sizeof(Attitude_t));
-	memset(&(gbal->yaw_ecd_fb), 0, sizeof(Motor_Feedback_Data_t));
-	memset(&(gbal->pitch_ecd_fb), 0, sizeof(Motor_Feedback_Data_t));
+	memset(&(gbal->yaw_ecd_fb), 0, sizeof(Motor_Feedback_t));
+	memset(&(gbal->pitch_ecd_fb), 0, sizeof(Motor_Feedback_t));
 
 	kalmanCreate(&(gbal->kalman_f), 0.001, 0.01);//0.0005 0.02
 	gbal->prev_gimbal_motor_mode = ENCODE_MODE;
@@ -528,7 +531,7 @@ void gimbal_get_euler_angle(Gimbal_t *gbal){
  * 			  and euler's absolute angle through attitude-breakdown algorithms.
  * @param[in] gbal: main gimbal handler
  * */
-void gimbal_gyro_update_abs_angle(Gimbal_t *gbal){
+void gimbal_gyro_update_abs_angle(Gimbal_t *gbal) {
 	 /* get timestamp */
 	 uint32_t DWTcnt = dwt_getCnt_us();// systemclock_core 168MHz ->usec
 	 uint32_t delta_t = DWTcnt - gbal->euler_angle.timestamp;
@@ -567,14 +570,16 @@ void gimbal_gyro_update_abs_angle(Gimbal_t *gbal){
  * @brief     update the relevant encoder angle
  * @param[in] gbal: main gimbal handler
  * */
-void gimbal_get_ecd_fb_data(Gimbal_t *gbal, Motor_Feedback_Data_t *yaw_motor_fb, Motor_Feedback_Data_t *pitch_motor_fb){
+void gimbal_get_ecd_fb_data(Gimbal_t *gbal) {
 	gbal->yaw_prev_rel_angle = gbal->yaw_cur_rel_angle;
-	memcpy(&(gbal->yaw_ecd_fb), yaw_motor_fb, sizeof(Motor_Feedback_Data_t));
+	get_message(motor_feedback_sub, motor_feedback_buffer);
+	memcpy(&(gbal->yaw_motor_fb), motor_feedback_buffer + yaw_id * 8, sizeof(Motor_Feedback_t));
 	gbal->yaw_ecd_fb.rx_angle = gimbal_get_ecd_rel_angle(gbal->yaw_ecd_fb.rx_angle, gbal->yaw_ecd_center);
-	memcpy(&(gbal->pitch_ecd_fb), pitch_motor_fb, sizeof(Motor_Feedback_Data_t));
+	memcpy(&(gbal->pitch_motor_fb), motor_feedback_buffer + pitch_id * 8, sizeof(Motor_Feedback_t));
 	gbal->pitch_ecd_fb.rx_angle = gimbal_get_ecd_rel_angle(gbal->pitch_ecd_fb.rx_angle, gbal->pitch_ecd_center);
 	gimbal_update_ecd_rel_angle(gbal);
 }
+
 /*
  * @brief     Get relative angle of gimbal motors.
  * @param[in] raw_ecd: abs yaw ecd angle from feedback
@@ -919,28 +924,28 @@ static void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, RemoteControl_t *rc_
  * retval 	  None
  */
 void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode, uint8_t idle_flag){
-	if(mode == DUAL_LOOP_PID_CONTROL)
-	 /* set motor voltage through cascade pid controller */
-		  set_motor_can_volt(gimbal.yaw_tar_angle,
-							 gimbal.pitch_tar_angle,
-							 0, //
-							 0, //set 0 to magazine motor,dual loop control will not affect magazine
-							 mode,
-							 gimbal.gimbal_motor_mode,
-							 idle_flag);
-	else if(mode == SINGLE_LOOP_PID_CONTROL){ // only spd control
-		motor_data[pitch_id].tx_data = pid_single_loop_control(gbal->pitch_tar_spd,
+	if(mode == DUAL_LOOP_PID_CONTROL) {
+		/* set motor voltage through cascade pid controller */
+		set_motor_can_volt(motor_tx_buffer,
+			gimbal.yaw_tar_angle,
+			gimbal.pitch_tar_angle,
+			0, //
+			0, //set 0 to magazine motor,dual loop control will not affect magazine
+			mode,
+			gimbal.gimbal_motor_mode,
+			idle_flag);
+	} else if(mode == SINGLE_LOOP_PID_CONTROL) { // only spd control
+		motor_tx_buffer[pitch_id] = pid_single_loop_control(gbal->pitch_tar_spd,
 														&(motor_data[pitch_id].motor_info.s_pid),
 														motor_data[pitch_id].motor_feedback.rx_rpm,
 														GIMBAL_TASK_EXEC_TIME*0.001);
-		motor_data[yaw_id].tx_data = pid_single_loop_control(gbal->yaw_tar_spd,
+		motor_tx_buffer[yaw_id] = pid_single_loop_control(gbal->yaw_tar_spd,
 														&(motor_data[yaw_id].motor_info.s_pid),
 														motor_data[yaw_id].motor_feedback.rx_rpm,
 														GIMBAL_TASK_EXEC_TIME*0.001);
-	}
-	else{
-		motor_data[pitch_id].tx_data = 0;
-		motor_data[yaw_id].tx_data = 0;
+	} else {
+		motor_tx_buffer[pitch_id] = 0;
+		motor_tx_buffer[yaw_id] = 0;
 	}
 }
 

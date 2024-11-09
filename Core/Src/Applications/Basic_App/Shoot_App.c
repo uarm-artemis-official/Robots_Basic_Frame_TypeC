@@ -153,9 +153,9 @@ void shoot_task_init(Shoot_t *sht){
 	shoot_params_init(sht);
 
 	/* reset feedback value */
-	memset(&(sht->mag_fb), 0, sizeof(Motor_Feedback_Data_t));
-	memset(&(sht->left_fric_fb), 0, sizeof(Motor_Feedback_Data_t));
-	memset(&(sht->right_fric_fb), 0, sizeof(Motor_Feedback_Data_t));
+	memset(&(sht->mag_fb), 0, sizeof(Motor_Feedback_t));
+	memset(&(sht->left_fric_fb), 0, sizeof(Motor_Feedback_t));
+	memset(&(sht->right_fric_fb), 0, sizeof(Motor_Feedback_t));
 
 	/* set shoot mode */
 	set_shoot_mode(sht, SHOOT_CEASE);
@@ -398,8 +398,8 @@ void shoot_execute(Shoot_t *sht){
   * @retval    None
   */
 void shoot_fric_get_feedback(Shoot_t *sht){
-	memcpy(&(sht->left_fric_fb), &motor_data[fric_left_id].motor_feedback, sizeof(Motor_Feedback_Data_t));
-	memcpy(&(sht->right_fric_fb), &motor_data[fric_right_id].motor_feedback, sizeof(Motor_Feedback_Data_t));
+	memcpy(&(sht->left_fric_fb), &motor_data[fric_left_id].motor_feedback, sizeof(Motor_Feedback_t));
+	memcpy(&(sht->right_fric_fb), &motor_data[fric_right_id].motor_feedback, sizeof(Motor_Feedback_t));
 
 }
 
@@ -410,7 +410,7 @@ void shoot_fric_get_feedback(Shoot_t *sht){
   * @retval    None
   */
 void shoot_mag_get_feedback(Shoot_t *sht){
-	memcpy(&(sht->mag_fb), &motor_data[mag_2006_id].motor_feedback, sizeof(Motor_Feedback_Data_t));
+	memcpy(&(sht->mag_fb), &motor_data[mag_2006_id].motor_feedback, sizeof(Motor_Feedback_t));
 }
 
 void shoot_mag_get_rel_angle(Shoot_t *sht){

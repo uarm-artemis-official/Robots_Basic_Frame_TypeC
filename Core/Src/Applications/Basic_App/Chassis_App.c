@@ -14,11 +14,6 @@
 #define CHASSIS_POWER_LIMIT
 
 #include "Chassis_App.h"
-#include "Comm_App.h"
-#include "maths.h"
-#include "arm_math.h"
-#include "public_defines.h"
-#include <math.h>
 
 //#define REF_CHASSIS_DEBUG 1
 
@@ -36,6 +31,8 @@ extern BoardComm_t chassis_comm;
 extern RemoteControl_t rc;
 
 Referee_t temp_referee; // A buffer to memcpy the referee data
+
+static Chassis_t chassis;
 
 /* define internal functions */
 static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr);
@@ -466,15 +463,9 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 			if(rc_hdlr->ctrl.s1 == SW_UP){
 				/* chassis follow gimbal center while follow yaw axis */
 				act_mode = GIMBAL_CENTER;
-	#ifdef MODE_DEBUG
-				/* LD indicator, For debug purposes only */
-	#endif
 				if(rc_hdlr->ctrl.s1 == SW_UP && rc_hdlr->ctrl.s2 == SW_DOWN){
 					/* spinning chassis while follow yaw axis */
 					act_mode = SELF_GYRO;
-	#ifdef MODE_DEBUG
-					/* LD indicator, For debug purposes only */
-	#endif
 				}
 				/* update gimbal axis */
 				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
@@ -482,17 +473,11 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 			else if(rc_hdlr->ctrl.s1 == SW_DOWN){
 				/* chassis only follow yaw axis */
 				act_mode = GIMBAL_FOLLOW;
-#ifdef MODE_DEBUG
-			/* LD indicator, For debug purposes only */
-#endif
 				/* update gimbal axis */
 				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
 					if(rc_hdlr->ctrl.s1 == SW_DOWN && rc_hdlr->ctrl.s2 == SW_DOWN){
 						/* independent mode */
 						act_mode = INDPET_MODE;
-#ifdef MODE_DEBUG
-					/* LD indicator, For debug purposes only */
-#endif
 						/* update ground axis */
 						chassis_update_chassis_coord(chassis_hdlr, rc_hdlr);
 				}
@@ -538,9 +523,6 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 				act_mode = GIMBAL_CENTER;
 				/* update gimbal axis */
 				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
-#ifdef MODE_DEBUG
-		/* LD indicator, For debug purposes only */
-#endif
 			}
 
 			else if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == 1){
@@ -548,27 +530,18 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 				act_mode = SELF_GYRO;
 				/* update gimbal axis */
 				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
-#ifdef MODE_DEBUG
-			/* LD indicator, For debug purposes only */
-#endif
 			}
 			else if(chassis_pc_mode_toggle == 1 && chassis_pc_submode_toggle == -1){
 				/* chassis only follow yaw axis */
 				act_mode = GIMBAL_FOLLOW;
 				/* update gimbal axis */
 				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
-#ifdef MODE_DEBUG
-			/* LD indicator, For debug purposes only */
-#endif
 			}
 			else if(chassis_pc_mode_toggle == 1 && chassis_pc_submode_toggle == 1){
 				/* independent mode */
 				act_mode = INDPET_MODE;
 				/* update ground axis */
 				chassis_update_chassis_coord(chassis_hdlr, rc_hdlr);
-#ifdef MODE_DEBUG
-			/* LD indicator, For debug purposes only */
-#endif
 			}
 		}// else patrol mode
 	}//pc mode

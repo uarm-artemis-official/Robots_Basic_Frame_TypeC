@@ -78,7 +78,7 @@ typedef struct{
 
 BoardComm_t chassis_comm;
 BoardComm_t gimbal_comm;
-CanMessage_t canQueue[QUEUE_SIZE];
+CanMessage_t canQueue[MAX_QUEUE_SIZE];
 QueueManage_t canqm;
 
 /* User Defined Varibales*/

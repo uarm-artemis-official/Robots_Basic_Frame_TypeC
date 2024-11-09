@@ -22,6 +22,53 @@
 #endif
 
 #define MAX_CAN_MOTOR_NUM 8
+#define MOTOR_COUNT 8
+
+typedef enum {
+    GIMBAL_BOARD = 1,
+    CHASSIS_BOARD = 2
+} BoardStatusType;
+
+
+typedef enum {
+	PATROL_MODE = 1,
+	DETECTION_MODE,
+	AUTO_AIM_MODE,
+	AUTO_PILOT_MODE,
+	IDLE_MODE,
+	DEBUG_MODE,
+	PC_MODE
+}BoardMode_t; //only for sentry
+
+
+typedef enum {
+    GIMBAL_CENTER = 1, // relative angle control using encoder, chassis front always facing yaw center
+    GIMBAL_FOLLOW,	   // relative angle control using encoder, chassis always moving along gimbal coordinate but not align center.
+	SELF_GYRO, 		   // relative angle control using encoder, chassis keep spinning while gimbal can move freely
+	INDPET_MODE,	   // chassis ground coordinate, or dummy version of self-gyro mode
+}BoardActMode_t;	   // should be determined by remore controller
+
+
+typedef enum{
+	SHOOT_ONCE = 1,
+	SHOOT_TRIPLE,
+	SHOOT_CONT,
+	SHOOT_RESERVE,
+	SHOOT_CEASE
+}ShootActMode_t;
+
+
+typedef enum {
+    GYRO_MODE = 1,
+    ENCODE_MODE
+} GimbalMotorMode_t;
+
+typedef struct{
+	float vx;
+	float vy;
+	float wz;
+} Gimbal_Axis_t; //for remote controller set gimbal dir
+
 
 /* Task exec time in secs */
 #define CHASSIS_TASK_EXEC_TIME 1

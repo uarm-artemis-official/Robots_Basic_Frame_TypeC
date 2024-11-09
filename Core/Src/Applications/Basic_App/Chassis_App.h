@@ -11,9 +11,12 @@
 #ifndef __CHASSIS_APP_H__
 #define __CHASSIS_APP_H__
 
-#include <Gimbal_App.h>
-#include <Control_App.h>
-#include <Referee_App.h>
+#include "message_center.h"
+#include "math.h"
+#include "maths.h"
+#include "arm_math.h"
+#include "public_defines.h"
+#include "pid.h"
 
 
 /* define general declarations for gimbal task here */
@@ -86,8 +89,7 @@ typedef struct{
 /* extern global variables here */
 extern Referee_t referee;
 extern Referee_t temp_referee;
-extern Motor motor_data[MOTOR_COUNT];
-Chassis_t chassis;
+
 
 /* define user creaeted variables here */
 

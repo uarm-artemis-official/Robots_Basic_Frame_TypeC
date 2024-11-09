@@ -15,11 +15,7 @@
 #ifndef __MATHS_C__
 #define __MATHS_C__
 
-#include "main.h"
 #include "maths.h"
-#include "math.h"
-#include "arm_math.h"
-#include <float.h>
 
 
 /*********** For genral use of the maths **********/

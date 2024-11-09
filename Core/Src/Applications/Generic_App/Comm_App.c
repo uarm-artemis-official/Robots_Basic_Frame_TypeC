@@ -119,10 +119,15 @@ void can_comm_reset_config(BoardComm_t *comm){
 * @retval None
 */
 /* Task exec time: 3ms */
+static Publisher_t *gimbal_angle_pub, *rc_pub, *mode_pub, *pc_pub;
+
 void can_comm_process(BoardComm_t *comm){
 
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(1.5); // 200hz make sure this task quicker than rc app
+
+	gimbal_angle_pub = register_pub("GIMBAL_ANGLE", 8);
+	rc_pub = register_pub("RC",);
 
 	/* reset the comm struct configure */
 	can_comm_reset_config(comm);

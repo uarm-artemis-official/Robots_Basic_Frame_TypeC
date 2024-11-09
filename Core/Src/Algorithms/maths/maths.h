@@ -14,14 +14,25 @@
 #ifndef __MATHS_H__
 #define __MATHS_H__
 
-#include "main.h"
 #include "math.h"
 #include "arm_math.h"
+#include "float.h"
 
 #define DEGREE2RAD 0.0174533f
 #define RAD2DEGEE  57.3f
 
 #define MAX_WINDOW_SIZE 300
+
+// Taken from: https://stackoverflow.com/questions/3437404/min-and-max-in-c
+#define max(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
+
+#define min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
 
 /* define maths' struct */
 typedef struct{

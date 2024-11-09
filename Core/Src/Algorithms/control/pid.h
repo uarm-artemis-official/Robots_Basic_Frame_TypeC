@@ -9,7 +9,7 @@
 #ifndef INC_PID_H_
 #define INC_PID_H_
 
-#include "main.h"
+#include "maths.h"
 
 
 #define SINGLE_LOOP_PID_CONTROL 0

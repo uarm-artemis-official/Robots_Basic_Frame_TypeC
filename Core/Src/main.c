@@ -104,6 +104,7 @@
 #include "self_check.h"
 #include "auto_aim.h"
 #include "PC_UART_App.h"
+#include "message_center.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -158,6 +159,7 @@ extern Referee_t referee;
 extern CommVision_t vision_pack;
 extern UC_Auto_Aim_Pack_t uc_rx_pack;
 extern Buzzer_t buzzer;
+
 /* USER CODE END 0 */
 
 /**
@@ -176,7 +178,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  publish_board_status();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -277,6 +279,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
 HAL_StatusTypeDef firmware_and_system_init(void){
  /* CAN1 & CAN2 Init */
  if( HAL_CAN_Start(&hcan1) != HAL_OK){
@@ -298,14 +301,12 @@ HAL_StatusTypeDef firmware_and_system_init(void){
    	 return HAL_ERROR;
  }
  /* Read Board Status */
- if(HAL_GPIO_ReadPin(Board_Status_GPIO_Port, Board_Status_Pin) == GPIO_PIN_RESET)
-	  board_status = CHASSIS_BOARD;
- else
-	  board_status = GIMBAL_BOARD;
+
+
 
  /* init fb struct of motors */
  for(int i=0;i<MOTOR_COUNT;i++){
-	 memset(&(motor_data[i].motor_feedback), 0, sizeof(Motor_Feedback_Data_t));
+	 memset(&(motor_data[i].motor_feedback), 0, sizeof(Motor_Feedback_t));
  }
  /* referee system init*/
  referee_init(&referee);

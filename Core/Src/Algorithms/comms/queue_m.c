@@ -30,7 +30,7 @@ void queueM_init(QueueManage_t *qm){
   * @retval    None
   */
 void enqueueCanMessage(CAN_TxHeaderTypeDef* header, CanMessage_t *canQueue, QueueManage_t *qm, uint8_t *data){
-    if ((qm->tail + 1) % QUEUE_SIZE == qm->head)
+    if ((qm->tail + 1) % MAX_QUEUE_SIZE == qm->head)
     {
         /* Queue is full, cannot enqueue message */
         return;
@@ -39,7 +39,7 @@ void enqueueCanMessage(CAN_TxHeaderTypeDef* header, CanMessage_t *canQueue, Queu
     canQueue[qm->tail].header = *header;
     memcpy(canQueue[qm->tail].data, data, 8);
     /* tail ++ */
-    qm->tail = (qm->tail + 1) % QUEUE_SIZE;
+    qm->tail = (qm->tail + 1) % MAX_QUEUE_SIZE;
 }
 
 /**
@@ -58,7 +58,7 @@ void sendNextCanMessage(CAN_HandleTypeDef* hcan, CanMessage_t *canQueue, QueueMa
     if (status == HAL_OK)
     {
         /* Message has been added to the mailbox successfully, remove it from the queue */
-    	qm->head = (qm->head + 1) % QUEUE_SIZE;
+    	qm->head = (qm->head + 1) % MAX_QUEUE_SIZE;
     }
 }
 

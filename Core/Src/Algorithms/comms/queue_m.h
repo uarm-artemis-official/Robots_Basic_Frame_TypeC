@@ -13,7 +13,7 @@
 
 #include "can.h"
 /* define general declarations for gimbal task here */
-#define QUEUE_SIZE 1000 //CAN comm queue size
+#define MAX_QUEUE_SIZE 1000 //CAN comm queue size
 
 /* define user structure here */
 /**

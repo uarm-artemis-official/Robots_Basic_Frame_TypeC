@@ -17,6 +17,14 @@
 #include "ramp.h"
 #include "maths.h"
 #include "kalman_filters.h"
+#include "message_center.h"
+#include <string.h>
+#include "debugger.h"
+#include "public_defines.h"
+#include "angle_process.h"
+#include "auto_aim.h"
+#include "dwt.h"
+#include "task.h"
 
 /*
  * @attention:
@@ -47,11 +55,6 @@
 #define GIMBAL_JUMP_THRESHOLD 5.6f
 
 /* define user structure here */
-typedef struct{
-	float vx;
-	float vy;
-	float wz;
-}Gimbal_Axis_t; //for remote controller set gimbal dir
 
 typedef struct{
 	/* gimbal speed related */
@@ -96,8 +99,8 @@ typedef struct{
 	int16_t yaw_ecd_center;			//center position of the yaw motor by encoder
 	int16_t pitch_ecd_center;		//center position of the pitch motor by encoder
 
-	Motor_Feedback_Data_t yaw_ecd_fb;	//yaw feedback data pool
-	Motor_Feedback_Data_t pitch_ecd_fb; //pitch feedback data pool
+	Motor_Feedback_t yaw_ecd_fb;	//yaw feedback data pool
+	Motor_Feedback_t pitch_ecd_fb; //pitch feedback data pool
 
 	/* algorithm related */
 	ramp_t yaw_ramp;		  // yaw ramp for calibration process
@@ -132,7 +135,6 @@ Gimbal_t gimbal;
 /* extern global variables here */
 extern CAN_HandleTypeDef hcan1;
 extern Comm_t comm_pack;
-extern Motor motor_data[MOTOR_COUNT];
 extern uint8_t gimbal_cali_done_flag;
 extern IMU_t imu;
 extern PID_t tune_pid_f;
@@ -156,7 +158,7 @@ void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr);
 void gimbal_get_euler_angle(Gimbal_t *gbal);
 void gimbal_gyro_update_abs_angle(Gimbal_t *gbal);
 // ecd base fucntions
-void gimbal_get_ecd_fb_data(Gimbal_t *gbal, Motor_Feedback_Data_t *yaw_motor_fb, Motor_Feedback_Data_t *pitch_motor_fb);
+void gimbal_get_ecd_fb_data(Gimbal_t *gbal);
 int16_t gimbal_get_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 void gimbal_update_ecd_euler_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
 void gimbal_update_ecd_rel_angle(Gimbal_t *gbal);

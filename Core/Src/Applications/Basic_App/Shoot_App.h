@@ -49,13 +49,6 @@ typedef enum{
 	CLOSE
 }ShootLidStatus_t;
 
-typedef enum{
-	SHOOT_ONCE = 0,
-	SHOOT_TRIPLE,
-	SHOOT_CONT,
-	SHOOT_RESERVE,
-	SHOOT_CEASE
-}ShootActMode_t;
 
 typedef struct{
 	float mag_tar_spd;
@@ -76,9 +69,9 @@ typedef struct{
 
 	uint8_t lid_counter;
 
-	Motor_Feedback_Data_t mag_fb;
-	Motor_Feedback_Data_t left_fric_fb;
-	Motor_Feedback_Data_t right_fric_fb;
+	Motor_Feedback_t mag_fb;
+	Motor_Feedback_t left_fric_fb;
+	Motor_Feedback_t right_fric_fb;
 	ramp_t fric_left_ramp;
 	ramp_t fric_right_ramp;
 	ShootLidStatus_t lid_status;

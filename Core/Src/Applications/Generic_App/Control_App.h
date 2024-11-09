@@ -18,8 +18,12 @@
 #ifndef __RC_APP_H__
 #define __RC_APP_H__
 
-#include "main.h"
 #include "maths.h"
+#include "public_defines.h"
+#include "message_center.h"
+#include "stdint.h"
+#include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
 
 
 /* define general declarations for gimbal task here */
@@ -63,7 +67,7 @@
   */
 /* remote controller mode */
 typedef enum{
-	CTRLER_MODE = 0,
+	CTRLER_MODE = 1,
 	PC_MODE
 }CtrlMode_t;
 
@@ -142,7 +146,6 @@ typedef struct{
 }RemoteControl_t;
 
 /* extern global variables here */
-extern RemoteControl_t rc;
 extern uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
 extern UART_HandleTypeDef huart3;
 extern DMA_HandleTypeDef hdma_usart3_rx;

@@ -28,14 +28,12 @@ extern Gimbal_t gimbal;
   * @param[in] can1/can2 type header
   * @retval    None
   */
-void Motor_Data_Read(CAN_HandleTypeDef* hcan) {
-	uint8_t motorStatus[MOTOR_COUNT];
-	for (int i=0; i<MOTOR_COUNT; i++){
-		memcpy(motorStatus, can_rx_buffer[i], 8);
-		motor_data[i].motor_feedback.rx_angle	=(int16_t)(motorStatus[0] << 8 | motorStatus[1]);
-		motor_data[i].motor_feedback.rx_rpm		=(int16_t)(motorStatus[2] << 8 | motorStatus[3]);
-		motor_data[i].motor_feedback.rx_current =(int16_t)(motorStatus[4] << 8 | motorStatus[5]);
-		motor_data[i].motor_feedback.rx_temp	=(int16_t)(motorStatus[6]);
+void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback, uint8_t size) {
+	for (int i = 0; i < size; i++){
+		motor_feedback[i].rx_angle	 =(int16_t)(can_data[0] << 8 | can_data[1]);
+		motor_feedback[i].rx_rpm	 =(int16_t)(can_data[2] << 8 | can_data[3]);
+		motor_feedback[i].rx_current =(int16_t)(can_data[4] << 8 | can_data[5]);
+		motor_feedback[i].rx_temp	 =(int16_t)(can_data[6]);
 	}
 }
 
@@ -46,7 +44,7 @@ void Motor_Data_Read(CAN_HandleTypeDef* hcan) {
   * @param[in] data set to different can devices
   * @retval    None
   */
-void Motor_Data_Send(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4){
+void set_motor_voltage(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4){
 	CAN_TxHeaderTypeDef  tx_header;
 	uint8_t				 tx_data[8];
 
@@ -88,63 +86,59 @@ void motor_init(uint8_t motor_id, int32_t max_out_f, float max_i_out_f, float ma
   * @param[in] velocity/angle set to different can devices
   * @retval    None
   */
-void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag){
-
-	if(control_indicator == DUAL_LOOP_PID_CONTROL && mode == ENCODE_MODE){
+void set_motor_can_volt(int32_t *motor_tx_buffer, float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag){
+	if(control_indicator == DUAL_LOOP_PID_CONTROL && mode == ENCODE_MODE) {
 		if(idle_flag == 1){//Set idle mode
-			motor_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
+			motor_tx_data[yaw_id] = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
 														  &(motor_data[yaw_id].motor_info.f_pid),
 														  &(motor_data[yaw_id].motor_info.s_pid),
 														  gimbal.yaw_cur_rel_angle,
 														  motor_data[yaw_id].motor_feedback.rx_rpm,
 														  GIMBAL_TASK_EXEC_TIME*0.001);
-			motor_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff
+			motor_tx_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff
 														  &(motor_data[pitch_id].motor_info.f_pid),
 														  &(motor_data[pitch_id].motor_info.s_pid),
 														  gimbal.pitch_cur_rel_angle,
 														  motor_data[pitch_id].motor_feedback.rx_rpm,
 														  GIMBAL_TASK_EXEC_TIME*0.001);
-		}
-		else{
-			motor_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
+		} else {
+			motor_tx_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
 														  &(motor_data[yaw_id].motor_info.f_pid),
 														  &(motor_data[yaw_id].motor_info.s_pid),
 														  gimbal.yaw_total_rel_angle,
 														  motor_data[yaw_id].motor_feedback.rx_rpm,
 														  GIMBAL_TASK_EXEC_TIME*0.001);
-			motor_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff
+			motor_tx_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff
 														  &(motor_data[pitch_id].motor_info.f_pid),
 														  &(motor_data[pitch_id].motor_info.s_pid),
 														  gimbal.pitch_cur_rel_angle,
 														  motor_data[pitch_id].motor_feedback.rx_rpm,
 														  GIMBAL_TASK_EXEC_TIME*0.001);
 
-			}
 		}
-	else if(control_indicator == DUAL_LOOP_PID_CONTROL && mode == GYRO_MODE){
-			motor_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
-														  &(motor_data[yaw_id].motor_info.f_pid),
-														  &(motor_data[yaw_id].motor_info.s_pid),
-														  gimbal.final_abs_yaw,
-														  motor_data[yaw_id].motor_feedback.rx_rpm,
-														  GIMBAL_TASK_EXEC_TIME*0.001);//pid+ff
-			motor_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff, pitch always use rel angle from encoder
-														  &(motor_data[pitch_id].motor_info.f_pid),
-														  &(motor_data[pitch_id].motor_info.s_pid),
+	} else if(control_indicator == DUAL_LOOP_PID_CONTROL && mode == GYRO_MODE) {
+		motor_tx_data[yaw_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[yaw_id].motor_info.ff, a1),//pid+ff
+													  &(motor_data[yaw_id].motor_info.f_pid),
+													  &(motor_data[yaw_id].motor_info.s_pid),
+													  gimbal.final_abs_yaw,
+													  motor_data[yaw_id].motor_feedback.rx_rpm,
+													  GIMBAL_TASK_EXEC_TIME*0.001);//pid+ff
+		motor_tx_data[pitch_id].tx_data = pid_dual_loop_control(feedforward(&motor_data[pitch_id].motor_info.ff, a2),//pid+ff, pitch always use rel angle from encoder
+													  &(motor_data[pitch_id].motor_info.f_pid),
+													  &(motor_data[pitch_id].motor_info.s_pid),
 														  gimbal.pitch_cur_rel_angle,
 //														  gimbal.pitch_cur_abs_angle,
 														  motor_data[pitch_id].motor_feedback.rx_rpm,
 														  GIMBAL_TASK_EXEC_TIME*0.001);//pid+ff
 
 
-	}
-	else if(control_indicator == SINGLE_LOOP_PID_CONTROL){
+	} else if(control_indicator == SINGLE_LOOP_PID_CONTROL) {
 			// only for spd control, dual loop control in the shoot app
-			motor_data[mag_2006_id].tx_data = pid_single_loop_control(v3,
+			motor_tx_data[mag_2006_id].tx_data = pid_single_loop_control(v3,
 															&(motor_data[mag_2006_id].motor_info.s_pid),
 														      motor_data[mag_2006_id].motor_feedback.rx_rpm,
 															  SHOOT_TASK_EXEC_TIME*0.001);
-		}
+	}
 }
 
 
@@ -244,19 +238,5 @@ void set_motor_debug_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_
 		}
 }
 #endif
-
-/* ****** Old Version motor code for possible use ****** */
-
-//Sets a raw value to a motor - look at datasheets to see what values the motor supports
-//Quick reference: P2006 - 10000, M3508 - 16000, GM6020 - 30000
-//Author: Adan
-void Motor_set_raw_value(Motor* motor, double value){
-	Motor temp_motor_buffer;
-	get_Motor_buffer(motor, &temp_motor_buffer);
-	temp_motor_buffer.tx_data=(int32_t)value;
-	set_Motor_buffer(&temp_motor_buffer,motor);
-}
-
-
 
 #endif /* __MOTOR_C__ */

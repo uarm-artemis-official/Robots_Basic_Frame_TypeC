@@ -18,13 +18,9 @@
 #include "can.h"
 #include "pid.h"
 #include "feedforward.h"
-
-/* define ecd to angles */
-#define ECD2RAD    ((2.0*PI)/ 8192.0f)
-#define ECD2DEGREE ( 360f  / 8192.0f)
+#include "public_defines.h"
 
 //Define needs to go ahead of include here for whatever reason....
-#define MOTOR_COUNT 8
 
 #define CAN_RX_ID_START 0x201
 #define MOTOR_3508_STDID 0x200
@@ -53,11 +49,6 @@
 /**
   * @brief basic gimbal struct
   */
-typedef enum {
-    GYRO_MODE = 0,
-    ENCODE_MODE
-} GimbalMotorMode_t;
-
 typedef struct {
 	uint32_t stdid;
 	PID_t f_pid; //first pid handler for single-loop control
@@ -66,16 +57,19 @@ typedef struct {
 }Motor_Info;
 
 // CAN rx feedback structure
+#pragma pack(1)
 typedef struct {
 	int16_t rx_angle;
 	int16_t rx_rpm;
 	int16_t rx_current;
 	int16_t rx_temp;
-} Motor_Feedback_Data_t;
+} Motor_Feedback_t;
+#pragma pack(0)
+
 
 typedef struct {
 	Motor_Info motor_info;
-	Motor_Feedback_Data_t motor_feedback;
+	Motor_Feedback_t motor_feedback;
 	//Data need to sent to Motor
 	int32_t tx_data;
 }Motor;
@@ -92,12 +86,12 @@ typedef struct {
  * */
 Motor motor_data[MOTOR_COUNT];
 
-void Motor_Data_Read(CAN_HandleTypeDef* hcan);
-void Motor_Data_Send(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4);
+void parse_motor_feedback(CAN_HandleTypeDef* hcan);
+void set_motor_voltage(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4);
 void motor_init(uint8_t motor_id, int32_t max_out_f, float max_i_out_f, float max_err_f, float kp_f, float ki_f, float kd_f,
 								  int32_t max_out_s, float max_i_out_s, float max_err_s, float kp_s, float ki_s, float kd_s,
 								  float kf);
-void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag);
+void set_motor_can_volt(int32_t *motor_tx_buffer, float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag);
 void set_motor_can_current(int32_t v1, int32_t v2, int32_t v3, int32_t v4, int32_t control_indicator);
 void get_Motor_buffer(Motor* origin, Motor* destination);
 void set_Motor_buffer(Motor* origin, Motor* destination);

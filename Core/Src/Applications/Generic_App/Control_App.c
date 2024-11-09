@@ -19,12 +19,7 @@
 #ifndef __RC_APP_C__
 #define __RC_APP_C__
 
-#include <Control_App.h>
-#include "main.h"
-#include "string.h"
-#include "Chassis_App.h"
-#include "Shoot_App.h"
-#include "comms.h"
+#include "Control_App.h"
 
 /*********************************************************************************
  *  				  <   GENERAL CTRL OPERATION TABLE  >
@@ -101,17 +96,18 @@
  *********************************************************************************/
 
 /* define rc global handler */
-RemoteControl_t rc;
-extern Chassis_t chassis;
+static RemoteControl_t rc;
+static Publisher_t *comm_rc_pub, rc_modes_pub;
+static ewma_filter_t ewma_gimbal_yaw, ewma_gimbal_pitch;
+
 extern CommMessage_t rc_message;
 extern CommMessage_t pc_message;
 extern CommMessage_t pc_ext_message;
 
-/* extern glbal vars here */
-
 
 /* define internal functions */
 static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *comm_rc, CommPCControl_t *comm_pc, CommExtPCControl_t *comm_ext_pc);
+static void rc_publish_gimbal(RemoteControl_t *rc_hdlr);
 /**
   * @brief     main remote control task
   * @param[in] None
@@ -123,6 +119,8 @@ void RC_Task_Func(){
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(2); // 5 100Hz, make sure this task slower than comm app
 
+	comm_rc_pub = register_pub("COMM_SEND_RC", );
+	rc_modes_pub = register_pub("RC_MODES", );
 	/* init rc task */
 	rc_task_init(&rc);
 
@@ -136,7 +134,7 @@ void RC_Task_Func(){
 
 		rc_process_rx_data(&rc, rc_rx_buffer);
 		rc_update_comm_pack(&rc, &(rc_message.message.comm_rc), &(pc_message.message.comm_pc),&(pc_ext_message.message.comm_ext_pc));
-
+		rc_publish_gimbal(&rc);
 		/* delay until wake time */
 	    vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
@@ -194,6 +192,13 @@ void rc_task_init(RemoteControl_t *rc_hdlr){
 
 	/* apply deflaut mode */
 	rc_hdlr->control_mode = CTRLER_MODE;
+
+	init_ewma_filter(&ewma_gimbal_yaw, 0.8f);//0.65 for older client
+	init_ewma_filter(&ewma_gimbal_pitch, 0.8f);//0.6 for older client
+
+//	chassis_rc_pub = register_pub("RC_CHASSIS", );
+	rc_gimbal_pub = register_pub("RC_GIMBAL", 8);
+	rc_modes_pub = register_pub("RC_MODES", 2);
 }
 /**
   * @brief     rc process recv data from dbus
@@ -285,8 +290,7 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *c
 
 		/* not send pc data */
 		comm_pc->send_flag = 0;
-	}
-	else if(rc_hdlr->control_mode == PC_MODE){
+	} else if(rc_hdlr->control_mode == PC_MODE){
 		/* still need to update switch info */
 		comm_rc->rc_data[0] = chassis.chassis_mode;//board mode
 		comm_rc->rc_data[1] = chassis.chassis_act_mode;//act_mode
@@ -310,6 +314,84 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *c
 
 
 	}
+}
+
+
+static void rc_publish_gimbal(RemoteControl_t *rc_hdlr) {
+	float delta_yaw, delta_pitch;
+	if (rc_hdlr->control_mode == CTRLER_MODE) {
+		//TODO fine tune the precision of the controller
+		delta_yaw = in_out_map(rc_hdlr->ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL, CHANNEL_OFFSET_MAX_ABS_VAL,
+		-0.5*0.16667*PI, 0.5*0.16667*PI);//(-15d, 15d)
+		delta_pitch = in_out_map(rc_hdlr->ctrl.ch1, -CHANNEL_OFFSET_MAX_ABS_VAL, CHANNEL_OFFSET_MAX_ABS_VAL,
+		-0.39*0.16667*PI, 0.391*0.16667*PI);//(-12d, 12d)
+	} else if (rc_hdlr->control_mode == PC_MODE) {
+		//TODO fine tune the precision of the mouse
+		/* expotional filter applied here */
+		rc_hdlr->pc.mouse.x = ewma_filter(&ewma_gimbal_yaw, rc_hdlr->pc.mouse.x);
+		//		rc_hdlr->pc.mouse.x = sliding_window_mean_filter(&gbal->swm_f_x, rc_hdlr->pc.mouse.x);
+		delta_yaw = in_out_map(rc_hdlr->pc.mouse.x, -MOUSE_MAX_SPEED_VALUE, MOUSE_MAX_SPEED_VALUE,
+				-30*PI, 30*PI);// 1000 -> 2*pi, old value +-30*PI
+		rc_hdlr->pc.mouse.y = ewma_filter(&ewma_gimbal_pitch, rc_hdlr->pc.mouse.y);
+		//		rc_hdlr->pc.mouse.y = sliding_window_mean_filter(&gbal->swm_f_y, rc_hdlr->pc.mouse.y);
+		delta_pitch = in_out_map(rc_hdlr->pc.mouse.y, -MOUSE_MAX_SPEED_VALUE, MOUSE_MAX_SPEED_VALUE,
+				-30*PI, 30*PI);// 1000 -> 2*pi, old value +-30*PI
+	}
+
+	float rc_gimbal_data[] = { delta_yaw, delta_pitch };
+	pub_message(rc_gimbal_pub, rc_gimbal_data);
+}
+
+
+static void rc_publish_modes(RemoteControl_t *rc_hdlr) {
+	BoardMode_t    board_mode = IDLE_MODE;
+	BoardActMode_t act_mode   = INDPET_MODE;
+	ShootActMode_t shoot_mode = SHOOT_CEASE;
+
+	if (rc_hdlr->ctrl.s1 == SW_DOWN && rc_hdlr->ctrl.s2 == SW_DOWN) {
+		board_mode = PATROL_MODE;
+		act_mode   = INDPET_MODE;
+		shoot_mode = SHOOT_CEASE;
+	} else if (rc_hdlr->ctrl.s1 == SW_DOWN && rc_hdlr->ctrl.s2 == SW_MID) {
+		board_mode = PATROL_MODE;
+		act_mode   = GIMBAL_FOLLOW;
+		shoot_mode = SHOOT_CEASE;
+	} else if (rc_hdlr->ctrl.s1 == SW_DOWN && rc_hdlr->ctrl.s2 == SW_UP) {
+		board_mode = PATROL_MODE;
+		act_mode   = GIMBAL_FOLLOW;
+		shoot_mode = SHOOT_CONT;
+	} else if (rc_hdlr->ctrl.s1 == SW_MID && rc_hdlr->ctrl.s2 == SW_DOWN) {
+		board_mode = PC_MODE;
+		act_mode   = INDPET_MODE;
+		shoot_mode = SHOOT_CEASE;
+	} else if (rc_hdlr->ctrl.s1 == SW_MID && rc_hdlr->ctrl.s2 == SW_MID) {
+		board_mode = IDLE_MODE;
+		act_mode   = INDPET_MODE;
+		shoot_mode = SHOOT_CEASE;
+	} else if (rc_hdlr->ctrl.s1 == SW_MID && rc_hdlr->ctrl.s2 == SW_UP) {
+		board_mode = IDLE_MODE;
+		act_mode   = INDPET_MODE;
+		shoot_mode = SHOOT_CONT;
+	} else if (rc_hdlr->ctrl.s1 == SW_UP && rc_hdlr->ctrl.s2 == SW_DOWN) {
+		board_mode = PATROL_MODE;
+		act_mode   = SELF_GYRO;
+		shoot_mode = SHOOT_CEASE;
+	} else if (rc_hdlr->ctrl.s1 == SW_UP && rc_hdlr->ctrl.s2 == SW_MID) {
+		board_mode = PATROL_MODE;
+		act_mode   = GIMBAL_CENTER;
+		shoot_mode = SHOOT_CEASE;
+	} else if (rc_hdlr->ctrl.s1 == SW_UP && rc_hdlr->ctrl.s2 == SW_UP) {
+		board_mode = PATROL_MODE;
+		act_mode   = GIMBAL_CENTER;
+		shoot_mode = SHOOT_CONT;
+	} else {
+		board_mode = IDLE_MODE;
+		act_mode   = INDPET_MODE;
+		shoot_mode = SHOOT_CEASE;
+	}
+
+	uint8_t modes[3] = { board_mode, act_mode, shoot_mode };
+	pub_message(rc_modes_pub, modes);
 }
 
 /**
