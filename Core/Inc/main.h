@@ -29,9 +29,10 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -92,6 +93,8 @@ void Error_Handler(void);
 #define HIGH_VOLT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 typedef _Bool bool_t;
+#define MAX_REF_BUFFER_SZIE 256
+#define MAX_REF_TX_DATA_LEN 128
 #define VAL_LIMIT(val, min, max) \
   do                             \
   {                              \
@@ -154,6 +157,7 @@ typedef enum {
 HAL_StatusTypeDef firmware_and_system_init(void);
 extern char pdata[32]; //PACKLEN
 extern int16_t referee_parsed_flag;
+extern QueueHandle_t Ref_Pack_Queue;
 //extern uint8_t rc_rx_buffer[18];
 /* USER CODE END Private defines */
 

@@ -67,6 +67,8 @@ typedef struct{
 
 	PID_t f_pid;//for Chassis twist(in Gimbal_Center mode)
 	int16_t mec_spd[4];
+	int16_t swerve_spd[4];// 0 Forward Left, 1 Forward Right, 2 Backward Right, 3 Backward Left (clockwise)
+	float swerve_angle[4];// 0 Forward Left, 1 Forward Right, 2 Backward Right, 3 Backward Left (clockwise)
 	Gimbal_Axis_t gimbal_axis;
 
 	uint16_t chassis_gear;

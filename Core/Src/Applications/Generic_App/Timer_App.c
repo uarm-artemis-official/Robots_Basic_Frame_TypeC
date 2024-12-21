@@ -14,6 +14,10 @@
 #include "Timer_App.h"
 #include "Shoot_App.h"
 #include "public_defines.h"
+
+int32_t test_value = 0 * 100;
+
+
 /**
 * @brief  Timer app used to update the CAN data
 * 		  Also reserve for other real time tasks
@@ -29,10 +33,20 @@ void Timer_Task_Func(void const * argument){
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 1ms
 
+	/* Simple way to init the lk motor */
+	for (uint8_t i = 0; i < LK_MOTOR_COUNT; i++) {
+	        LK_motor_init(i);
+	    }
+
 	/* init the task ticks */
 	xLastWakeTime = xTaskGetTickCount();
 
+//	LK_motor_stop(&hcan1, KL_MOTOR_TX_STDID+1);
+
 	for (;;){
+
+		lk_motor[0].tx_data = test_value;
+		LK_motor_send(&hcan1, lk_motor[0].send_id, lk_motor[0].motor_cmd, lk_motor[0].tx_data);
 
 		//FIXME: may put this read fucntion to can pending callback function
 		Motor_Data_Read(&hcan1);

@@ -95,6 +95,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Control_App.h"
+#include "Referee_App.h"
 #include "Comm_App.h"
 #include "motor.h"
 #include "stdio.h"
@@ -147,7 +148,7 @@ uint32_t prev_uart_timestamp = 0;
 /* new defined variables*/
 uint32_t debugger_signal_counter = 0;//count the idle time
 uint32_t debugger_signal_flag = 0; //mark the debugger task
-uint8_t ref_rx_frame[256]={0}; //referee temp frame buffer
+uint8_t ref_rx_frame[MAX_REF_BUFFER_SZIE]={0}; //referee temp frame buffer
 uint8_t rc_rx_buffer[DBUS_BUFFER_LEN]; //rc temporary buffer
 uint16_t chassis_gyro_counter = 0; // used for backup robots without slipring
 uint8_t chassis_gyro_flag = 0;	   // used for backup robots without slipring
@@ -158,6 +159,7 @@ extern Referee_t referee;
 extern CommVision_t vision_pack;
 extern UC_Auto_Aim_Pack_t uc_rx_pack;
 extern Buzzer_t buzzer;
+
 /* USER CODE END 0 */
 
 /**
@@ -171,9 +173,8 @@ int main(void)
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+   HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -394,12 +395,15 @@ void XferCpltCallback(DMA_HandleTypeDef *hdma){
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
   if(huart == &huart1 && board_status == CHASSIS_BOARD){
 	 /* re-activate DMA */
-	  referee_parsed_flag = 1;
+//	  referee_parsed_flag = 1;
+	 /* Resume UASRT DMA Recx */
+	  xQueueSendFromISR(Ref_Pack_Queue, ref_rx_frame, NULL);
+	  HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame));
   }
   else if (huart == &UC_HUART && board_status == GIMBAL_BOARD) {
 //		uc_on_RxCplt();
 	  uint32_t DWTcnt = dwt_getCnt_us();// systemclock_core 168MHz ->usec
-	  int32_t delta_t = DWTcnt - prev_uart_timestamp;
+//	  int32_t delta_t = DWTcnt - prev_uart_timestamp;
 	  prev_uart_timestamp = DWTcnt;
 	  xQueueSendFromISR(UC_Pack_Queue, uc_pack_input_buffer, NULL);
 	  memset(uc_pack_input_buffer, 0, UC_PACK_SIZE);

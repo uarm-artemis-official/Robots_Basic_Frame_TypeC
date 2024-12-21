@@ -30,7 +30,7 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 //FIXME: don't why it cannot detect MOTOR_COUNT and TOTAL_COMM_ID
-uint8_t can_rx_buffer[8][8]; // Motor count + maximum once sending bytes
+uint8_t can_rx_buffer[16][8]; // Motor count + maximum once sending bytes
 typedef struct{
 	uint32_t comm_id;
 	uint8_t comm_rx_buffer[8];

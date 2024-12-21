@@ -54,13 +54,36 @@ void Referee_Task_Func(void const * argument){
 
 	uint8_t temp_ref_pack[MAX_REF_BUFFER_SZIE] = {0};
 
+	/* Engage UART 1 */
+	referee_dma_reset();
+
 	/* set task exec period */
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 10ms
 
 	/* init the task ticks */
 	xLastWakeTime = xTaskGetTickCount();
+
 	for(;;){
+		while (uxQueueMessagesWaiting(Ref_Pack_Queue) > 0) {
+			referee_timeout_check_flag = 0; // Disable the counter check
+			xQueueReceive(Ref_Pack_Queue, temp_ref_pack, 0);
+
+			/* Determime the robot color if first comm */
+			if(referee.robot_color == UNKOWN){
+				if(referee.robot_status_data.robot_id <= 11 && referee.robot_status_data.robot_id > 0)
+					referee.robot_color = RED;
+				else if(referee.robot_status_data.robot_id > 11)
+					referee.robot_color = BLUE;
+			}
+			referee_read_data(&referee, temp_ref_pack);
+
+			/* Reset referee rx buffer */
+			memset(temp_ref_pack, 0, sizeof(temp_ref_pack));// Wipe the temp buffer
+
+			/* Delay until wake time */
+			vTaskDelayUntil(&xLastWakeTime, xFrequency);
+		}
 
 		/* Check if there is congestion in DMA channel */
 		if(referee_parsed_flag == 0){
@@ -75,22 +98,22 @@ void Referee_Task_Func(void const * argument){
 			}
 		}
 
-		memcpy(temp_ref_pack, ref_rx_frame, sizeof(ref_rx_frame));
+//		memcpy(temp_ref_pack, ref_rx_frame, sizeof(ref_rx_frame));
 
 
-		if(referee_parsed_flag){
-			/* Determime the robot color if first comm */
-			if(referee.robot_color == UNKOWN){
-				if(referee.robot_status_data.robot_id <= 11 && referee.robot_status_data.robot_id > 0)
-					referee.robot_color = RED;
-				else if(referee.robot_status_data.robot_id > 11)
-					referee.robot_color = BLUE;
-			}
-			referee_read_data(&referee, temp_ref_pack);
-		}
-
-		/* Reset referee rx buffer */
-		memset(temp_ref_pack, 0, sizeof(temp_ref_pack));// Wipe the temp buffer
+//		if(referee_parsed_flag){
+//			/* Determime the robot color if first comm */
+//			if(referee.robot_color == UNKOWN){
+//				if(referee.robot_status_data.robot_id <= 11 && referee.robot_status_data.robot_id > 0)
+//					referee.robot_color = RED;
+//				else if(referee.robot_status_data.robot_id > 11)
+//					referee.robot_color = BLUE;
+//			}
+//			referee_read_data(&referee, temp_ref_pack);
+//		}
+//
+//		/* Reset referee rx buffer */
+//		memset(temp_ref_pack, 0, sizeof(temp_ref_pack));// Wipe the temp buffer
 
 		/* delay until wake time */
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);

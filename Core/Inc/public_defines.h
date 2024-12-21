@@ -20,7 +20,6 @@
   #define ECD2RAD    ((2.0*PI)/ 8192.0f)
   #define ECD2DEGREE ( 360f  / 8192.0f)
 #endif
-
 #define MAX_CAN_MOTOR_NUM 8
 
 /* Task exec time in secs */

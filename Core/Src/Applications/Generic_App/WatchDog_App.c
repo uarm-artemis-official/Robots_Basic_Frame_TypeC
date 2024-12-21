@@ -77,10 +77,10 @@ void WatchDog_Task_Function(void){
 			default:break;
 		}
 
-		if(referee.cur_sending_id == UI_INFANTRY_MARK)
-			referee.cur_sending_id = UI_ROBOT_ACT_MODE;
-		else
-			referee.cur_sending_id = UI_INFANTRY_MARK;
+//		if(referee.cur_sending_id == UI_INFANTRY_MARK)
+//			referee.cur_sending_id = UI_ROBOT_ACT_MODE;
+//		else
+//			referee.cur_sending_id = UI_INFANTRY_MARK;
 
 
 #ifdef USE_IWDG

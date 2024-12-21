@@ -25,13 +25,13 @@
 #define HEADER_LEN   sizeof(frame_header_t) // 5
 #define CMD_LEN      2    //cmd_id bytes
 #define CRC_LEN      2    //crc16 bytes
-#define MAX_REF_BUFFER_SZIE 256
-#define MAX_REF_TX_DATA_LEN 128
+
 
 /* extern global variables here */
 
 
 /* define user created variables here */
+extern QueueHandle_t Ref_Pack_Queue;
 extern uint8_t ref_rx_frame[MAX_REF_BUFFER_SZIE];
 extern uint8_t ref_tx_frame[MAX_REF_TX_DATA_LEN];
 
