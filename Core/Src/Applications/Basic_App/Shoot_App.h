@@ -11,9 +11,10 @@
 #ifndef __SHOOT_APP_H__
 #define __SHOOT_APP_H__
 
-#include <Gimbal_App.h>
 #include "buzzer.h"
-#include "Control_App.h"
+#include "motor.h"
+#include "ramp.h"
+#include "message_center.h"
 
 /* define general declarations for gimbal task here */
 #define USE_CAN_FRIC 1//if use 3508 instead of pwm-based fric wheel motor
@@ -77,19 +78,11 @@ typedef struct{
 	ShootLidStatus_t lid_status;
 	ShootActMode_t shoot_act_mode;
 }Shoot_t;
-Shoot_t shoot;
 
-/* extern global variables here */
-extern Comm_t comm_pack;
-extern uint8_t shoot_reserve_flag;
-extern uint8_t shoot_reserve_counter;
-extern uint8_t shoot_check_flag;
-extern uint16_t shoot_check_counter;
-
+extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim8;
-extern RemoteControl_t rc;
 
 /* define user created variables here */
 
@@ -110,13 +103,15 @@ void set_mag_motor_angle(Shoot_t *sht, float tar_angle);
 void set_fric_motor_speed(Shoot_t *sht, int16_t spd);
 void set_fric_motor_current(Shoot_t *sht, int16_t spd);
 void set_servo_value(uint16_t pwm_value);
-void shoot_mag_get_feedback(Shoot_t *sht);
-void shoot_fric_get_feedback(Shoot_t *sht);
+void shoot_get_motor_feedback(Shoot_t *shoot);
+//void shoot_mag_get_feedback(Shoot_t *sht);
+//void shoot_fric_get_feedback(Shoot_t *sht);
 void shoot_mag_get_rel_angle(Shoot_t *sht);
 void shoot_mag_dual_loop_control(Shoot_t *sht);
 void shoot_detect_mag_status(Shoot_t *sht);
 void shoot_stop(Shoot_t *sht);
 void shoot_execute(Shoot_t *sht);
+void shoot_get_rc_info(Shoot_t *shoot);
 int16_t shoot_mag_update_turns(Shoot_t *sht, int16_t raw_ecd, int16_t prev_ecd);
 
 

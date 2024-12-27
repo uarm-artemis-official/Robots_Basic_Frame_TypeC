@@ -97,17 +97,12 @@
 
 /* define rc global handler */
 static RemoteControl_t rc;
-static Publisher_t *comm_rc_pub, rc_modes_pub;
 static ewma_filter_t ewma_gimbal_yaw, ewma_gimbal_pitch;
 
-extern CommMessage_t rc_message;
-extern CommMessage_t pc_message;
-extern CommMessage_t pc_ext_message;
-
-
 /* define internal functions */
-static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *comm_rc, CommPCControl_t *comm_pc, CommExtPCControl_t *comm_ext_pc);
-static void rc_publish_gimbal(RemoteControl_t *rc_hdlr);
+static void rc_update_comm_pack(RemoteControl_t *rc_hdlr);
+static void rc_publish_gimbal_deltas(RemoteControl_t *rc_hdlr);
+static void rc_publish_info(RemoteControl_t *rc_hdlr);
 /**
   * @brief     main remote control task
   * @param[in] None
@@ -119,8 +114,6 @@ void RC_Task_Func(){
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(2); // 5 100Hz, make sure this task slower than comm app
 
-	comm_rc_pub = register_pub("COMM_SEND_RC", );
-	rc_modes_pub = register_pub("RC_MODES", );
 	/* init rc task */
 	rc_task_init(&rc);
 
@@ -133,8 +126,7 @@ void RC_Task_Func(){
 	for(;;){
 
 		rc_process_rx_data(&rc, rc_rx_buffer);
-		rc_update_comm_pack(&rc, &(rc_message.message.comm_rc), &(pc_message.message.comm_pc),&(pc_ext_message.message.comm_ext_pc));
-		rc_publish_gimbal(&rc);
+		rc_publish_info(&rc);
 		/* delay until wake time */
 	    vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
@@ -195,11 +187,8 @@ void rc_task_init(RemoteControl_t *rc_hdlr){
 
 	init_ewma_filter(&ewma_gimbal_yaw, 0.8f);//0.65 for older client
 	init_ewma_filter(&ewma_gimbal_pitch, 0.8f);//0.6 for older client
-
-//	chassis_rc_pub = register_pub("RC_CHASSIS", );
-	rc_gimbal_pub = register_pub("RC_GIMBAL", 8);
-	rc_modes_pub = register_pub("RC_MODES", 2);
 }
+
 /**
   * @brief     rc process recv data from dbus
   * @param[in] main rc struct
@@ -280,70 +269,43 @@ void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rc_rx_buffer){
   * @param[in] comm rc struct
   * @retval    None
   */
-static void rc_update_comm_pack(RemoteControl_t *rc_hdlr, CommRemoteControl_t *comm_rc, CommPCControl_t *comm_pc, CommExtPCControl_t *comm_ext_pc){
-	if(rc_hdlr->control_mode == CTRLER_MODE){
-		comm_rc->rc_data[0] = rc_hdlr->ctrl.ch0;
-		comm_rc->rc_data[1] = rc_hdlr->ctrl.ch1;
-		comm_rc->rc_data[2]  = rc_hdlr->ctrl.s1;
-		comm_rc->rc_data[3]  = rc_hdlr->ctrl.s2;
-		comm_rc->send_flag = 1;
-
-		/* not send pc data */
-		comm_pc->send_flag = 0;
-	} else if(rc_hdlr->control_mode == PC_MODE){
-		/* still need to update switch info */
-		comm_rc->rc_data[0] = chassis.chassis_mode;//board mode
-		comm_rc->rc_data[1] = chassis.chassis_act_mode;//act_mode
-		comm_rc->rc_data[2]  = rc_hdlr->ctrl.s1;
-		comm_rc->rc_data[3]  = rc_hdlr->ctrl.s2;
-		comm_rc->send_flag = 1;
-
-		/* update mouse info */
-		comm_pc->pc_data[0] = rc_hdlr->pc.mouse.x;
-		comm_pc->pc_data[1] = rc_hdlr->pc.mouse.y;
-		comm_pc->pc_data[2]  = rc_hdlr->pc.mouse.left_click.status;
-		comm_pc->pc_data[3]  = rc_hdlr->pc.mouse.right_click.status;
-		comm_pc->send_flag = 1;
-
-		/* Determine transit information */
-		comm_ext_pc->pc_data[0] = rc_hdlr->pc.key.C.status;
-		comm_ext_pc->pc_data[1] = rc_hdlr->pc.key.R.status;
-		comm_ext_pc->pc_data[2] = rc_hdlr->pc.key.B.status;
-		comm_ext_pc->pc_data[3] = 0;
-		comm_ext_pc->send_flag = 1;
-
-
-	}
+static void rc_update_comm_pack(RemoteControl_t *rc_hdlr){
+	// TODO: Implement player commands?
+//	if(rc_hdlr->control_mode == CTRLER_MODE){
+//		comm_rc->rc_data[0] = rc_hdlr->ctrl.ch0;
+//		comm_rc->rc_data[1] = rc_hdlr->ctrl.ch1;
+//		comm_rc->rc_data[2]  = rc_hdlr->ctrl.s1;
+//		comm_rc->rc_data[3]  = rc_hdlr->ctrl.s2;
+//		comm_rc->send_flag = 1;
+//
+//		/* not send pc data */
+//		comm_pc->send_flag = 0;
+//	} else if(rc_hdlr->control_mode == PC_MODE){
+//		/* still need to update switch info */
+//		comm_rc->rc_data[0] = chassis.chassis_mode;//board mode
+//		comm_rc->rc_data[1] = chassis.chassis_act_mode;//act_mode
+//		comm_rc->rc_data[2]  = rc_hdlr->ctrl.s1;
+//		comm_rc->rc_data[3]  = rc_hdlr->ctrl.s2;
+//		comm_rc->send_flag = 1;
+//
+//		/* update mouse info */
+//		comm_pc->pc_data[0] = rc_hdlr->pc.mouse.x;
+//		comm_pc->pc_data[1] = rc_hdlr->pc.mouse.y;
+//		comm_pc->pc_data[2]  = rc_hdlr->pc.mouse.left_click.status;
+//		comm_pc->pc_data[3]  = rc_hdlr->pc.mouse.right_click.status;
+//		comm_pc->send_flag = 1;
+//
+//		/* Determine transit information */
+//		comm_ext_pc->pc_data[0] = rc_hdlr->pc.key.C.status;
+//		comm_ext_pc->pc_data[1] = rc_hdlr->pc.key.R.status;
+//		comm_ext_pc->pc_data[2] = rc_hdlr->pc.key.B.status;
+//		comm_ext_pc->pc_data[3] = 0;
+//		comm_ext_pc->send_flag = 1;
+//	}
 }
 
 
-static void rc_publish_gimbal(RemoteControl_t *rc_hdlr) {
-	float delta_yaw, delta_pitch;
-	if (rc_hdlr->control_mode == CTRLER_MODE) {
-		//TODO fine tune the precision of the controller
-		delta_yaw = in_out_map(rc_hdlr->ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL, CHANNEL_OFFSET_MAX_ABS_VAL,
-		-0.5*0.16667*PI, 0.5*0.16667*PI);//(-15d, 15d)
-		delta_pitch = in_out_map(rc_hdlr->ctrl.ch1, -CHANNEL_OFFSET_MAX_ABS_VAL, CHANNEL_OFFSET_MAX_ABS_VAL,
-		-0.39*0.16667*PI, 0.391*0.16667*PI);//(-12d, 12d)
-	} else if (rc_hdlr->control_mode == PC_MODE) {
-		//TODO fine tune the precision of the mouse
-		/* expotional filter applied here */
-		rc_hdlr->pc.mouse.x = ewma_filter(&ewma_gimbal_yaw, rc_hdlr->pc.mouse.x);
-		//		rc_hdlr->pc.mouse.x = sliding_window_mean_filter(&gbal->swm_f_x, rc_hdlr->pc.mouse.x);
-		delta_yaw = in_out_map(rc_hdlr->pc.mouse.x, -MOUSE_MAX_SPEED_VALUE, MOUSE_MAX_SPEED_VALUE,
-				-30*PI, 30*PI);// 1000 -> 2*pi, old value +-30*PI
-		rc_hdlr->pc.mouse.y = ewma_filter(&ewma_gimbal_pitch, rc_hdlr->pc.mouse.y);
-		//		rc_hdlr->pc.mouse.y = sliding_window_mean_filter(&gbal->swm_f_y, rc_hdlr->pc.mouse.y);
-		delta_pitch = in_out_map(rc_hdlr->pc.mouse.y, -MOUSE_MAX_SPEED_VALUE, MOUSE_MAX_SPEED_VALUE,
-				-30*PI, 30*PI);// 1000 -> 2*pi, old value +-30*PI
-	}
-
-	float rc_gimbal_data[] = { delta_yaw, delta_pitch };
-	pub_message(rc_gimbal_pub, rc_gimbal_data);
-}
-
-
-static void rc_publish_modes(RemoteControl_t *rc_hdlr) {
+static void rc_publish_info(RemoteControl_t *rc_hdlr) {
 	BoardMode_t    board_mode = IDLE_MODE;
 	BoardActMode_t act_mode   = INDPET_MODE;
 	ShootActMode_t shoot_mode = SHOOT_CEASE;
@@ -390,8 +352,27 @@ static void rc_publish_modes(RemoteControl_t *rc_hdlr) {
 		shoot_mode = SHOOT_CEASE;
 	}
 
+	// Publish to RC_INFO for other tasks.
 	uint8_t modes[3] = { board_mode, act_mode, shoot_mode };
-	pub_message(rc_modes_pub, modes);
+	int16_t channels[4] = {
+			rc_hdlr->ctrl.ch0,
+			rc_hdlr->ctrl.ch1,
+			rc_hdlr->ctrl.ch2,
+			rc_hdlr->ctrl.ch3
+	};
+	RCInfoMessage_t rc_info_message = {
+			.modes = modes,
+			.channels = channels,
+	};
+
+	pub_message(RC_INFO, &rc_info_message);
+
+	// Publish to COMM_OUT (Chassis -> Gimbal).
+	CANCommMessage_t comm_message;
+	comm_message.topic_name = RC_INFO;
+	memcpy(comm_message.data, modes, sizeof(uint8_t) * 3);
+	memcpy(&(comm_message.data[4]), channels, sizeof(int16_t) * 2);
+	pub_message(COMM_OUT, &comm_message);
 }
 
 /**

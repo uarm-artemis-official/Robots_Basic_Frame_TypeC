@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "gpio.h"
 
 /* USER CODE BEGIN Includes */
 

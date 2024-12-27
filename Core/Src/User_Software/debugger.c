@@ -71,10 +71,10 @@ void motor_spid_step_signal_generator(float idle_time_100ms, float target, float
 void motor_fpid_step_signal_generator(float idle_time_100ms, float target, int motor_id, GimbalMotorMode_t mode){
 	debugger_signal_flag = 1;
 	if(debugger_signal_counter >= idle_time_100ms){
-		if(motor_id == yaw_id)
+		if(motor_id == YAW_ID)
 		/* for outer loop control  parameters */
 			set_motor_debug_can_volt(target, 0, 0, 0, DUAL_LOOP_PID_CONTROL, mode);
-		else if(motor_id == pitch_id)
+		else if(motor_id == PITCH_ID)
 			set_motor_debug_can_volt(0, target, 0, 0, DUAL_LOOP_PID_CONTROL, mode);
 	}
 	else{

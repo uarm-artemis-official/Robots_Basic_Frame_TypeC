@@ -27,6 +27,8 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "stm32f4xx_hal.h"
 #include "public_defines.h"
+#include "motor.h"
+#include "message_center.h"
 
 typedef struct {
 	uint32_t comm_id;

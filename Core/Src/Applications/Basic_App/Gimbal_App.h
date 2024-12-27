@@ -11,20 +11,21 @@
 #ifndef __GIMBAL_APP_H__
 #define __GIMBAL_APP_H__
 
-#include <auto_aim_pack.h>
-#include <imu.h>
+#include <string.h>
+
+#include "imu.h"
 #include <motor.h>
 #include "ramp.h"
 #include "maths.h"
 #include "kalman_filters.h"
 #include "message_center.h"
-#include <string.h>
 #include "debugger.h"
 #include "public_defines.h"
 #include "angle_process.h"
 #include "auto_aim.h"
 #include "dwt.h"
 #include "task.h"
+#include "gpio.h"
 
 /*
  * @attention:
@@ -56,7 +57,7 @@
 
 /* define user structure here */
 
-typedef struct{
+typedef struct Gimbal_t {
 	/* gimbal speed related */
 	float yaw_ang_rate;				//angular velocity in degree/s, not used
 	float pitch_ang_rate;
@@ -129,12 +130,10 @@ typedef struct{
 	BoardMode_t gimbal_mode;			  //idle(safe) or normal
 
 }Gimbal_t;
-Gimbal_t gimbal;
 
 
 /* extern global variables here */
 extern CAN_HandleTypeDef hcan1;
-extern Comm_t comm_pack;
 extern uint8_t gimbal_cali_done_flag;
 extern IMU_t imu;
 extern PID_t tune_pid_f;
@@ -149,14 +148,16 @@ void Gimbal_Task_Function(void const * argument);
 void gimbal_task_init(Gimbal_t *gbal);
 void gimbal_reset_data(Gimbal_t *gbal);
 void gimbal_calibration_reset(Gimbal_t *gbal);
-void gimbal_set_mode(Gimbal_t *gbal, BoardMode_t mode);
+void gimbal_get_rc_info(Gimbal_t *gbal);
+void gimbal_set_modes(Gimbal_t* gbal, uint8_t modes[3]);
+void gimbal_set_board_mode(Gimbal_t *gbal, BoardMode_t mode);
 void gimbal_set_act_mode(Gimbal_t *gbal, BoardActMode_t mode);
 void gimbal_set_motor_mode(Gimbal_t *gbal, GimbalMotorMode_t mode);
 void gimbal_safe_mode_switch(Gimbal_t *gbal);
 // gyro base functions
 void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr);
 void gimbal_get_euler_angle(Gimbal_t *gbal);
-void gimbal_gyro_update_abs_angle(Gimbal_t *gbal);
+void gimbal_gyro_update_abs_angle(Gimbal_t *gbal, float yaw, float pitch);
 // ecd base fucntions
 void gimbal_get_ecd_fb_data(Gimbal_t *gbal);
 int16_t gimbal_get_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
@@ -169,6 +170,7 @@ void gimbal_set_limited_angle(Gimbal_t *gbal, float yaw_target_angle, float pitc
 void gimbal_set_spd(Gimbal_t *gbal, int16_t yaw_target_spd);
 void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode, uint8_t idle_flags);
 void gimbal_update_rel_turns(Gimbal_t* gbal, int jump_threshold);
+void gimbal_send_rel_angles(Gimbal_t *gbal);
 
 
 #endif /* __SRC_APPLICATIONS_GIMBAL_APP_H_ */

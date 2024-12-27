@@ -20,11 +20,7 @@
 #include "string.h"
 
 #define USART_COMM 0
-extern Comm_t comm_pack;
-extern Chassis_t chassis;
-extern Gimbal_t gimbal; // TODO if we have multiple gimbals, we need to change this
 extern can_comm_rx_t can_comm_rx[TOTAL_COMM_ID];
-extern RemoteControl_t rc;
 
 /* user defined variable */
 /* rx and tx buffer for ensure the transmission accuracy:
@@ -45,6 +41,15 @@ float can_rx_scale_buffer[TOTAL_COMM_ID][4] = {0};//or use malloc. Since it has 
 float can_tx_scale_buffer[TOTAL_COMM_ID][4] = {0};
 int32_t capture_flag = 0;
 
+//static BoardComm_t chassis_comm;
+//static BoardComm_t gimbal_comm;
+static CanMessage_t canQueue[MAX_QUEUE_SIZE];
+static QueueManage_t canqm;
+static BoardStatus_t board_status;
+
+
+static void can_transmit_comm_message(CAN_HandleTypeDef *hcan, uint8_t *send_data, uint32_t comm_id);
+
 /**
 * @brief Function implementing the Comm_Task thread. Set for the comm task bw upper and lower boards
 * @param argument: Not used
@@ -53,16 +58,19 @@ int32_t capture_flag = 0;
 void Comm_Task_Func(void const * argument)
 {
   /* USER CODE BEGIN Comm_Task_Func */
-	while(1){
+	board_status = *(BoardStatus_t*) argument;
+	while(1) {
 		if(USART_COMM == 1){
 			usart_comm_process();
 		}
 		else{
-			if(board_status == CHASSIS_BOARD)
-				can_comm_process(&chassis_comm);
-			else if(board_status == GIMBAL_BOARD)
-				can_comm_process(&gimbal_comm);
+//			if(board_status == CHASSIS_BOARD)
+//				can_comm_process(&chassis_comm);
+//			else if(board_status == GIMBAL_BOARD)
+//				can_comm_process(&gimbal_comm);
+			can_comm_process();
 		}
+
 	}
   /* USER CODE END Comm_Task_Func */
 }
@@ -72,46 +80,46 @@ void Comm_Task_Func(void const * argument)
 * @param None
 * @retval None
 */
-void can_comm_subscribe_process(void){
-	if(board_status == CHASSIS_BOARD){
-		comm_subscribe(&chassis_comm.sub_list, COMM_REMOTE_CONTROL, Transmitter);
-		comm_subscribe(&chassis_comm.sub_list, COMM_PC_CONTROL, Transmitter);
-		comm_subscribe(&chassis_comm.sub_list, COMM_EXT_PC_CONTROL, Transmitter);
-		comm_subscribe(&chassis_comm.sub_list, COMM_GIMBAL_ANGLE, Receiver);
-	}
-	else if(board_status == GIMBAL_BOARD){
-		comm_subscribe(&gimbal_comm.sub_list, COMM_GIMBAL_ANGLE, Transmitter);
-		comm_subscribe(&gimbal_comm.sub_list, COMM_REMOTE_CONTROL, Receiver);
-		comm_subscribe(&gimbal_comm.sub_list, COMM_PC_CONTROL, Receiver);
-		comm_subscribe(&gimbal_comm.sub_list, COMM_EXT_PC_CONTROL, Receiver);
-	}
-}
-/**
-* @brief CAN commnication struct initialization
-* @param None
-* @retval None
-*/
-void can_comm_reset_config(BoardComm_t *comm){
-	comm->comm_mode = CAN_COMM_MODE;
-	comm->can_comm.comm_id = IDLE_COMM_ID;
-	/* init rx buffer */
-
-	for(int i = 0; i < TOTAL_COMM_ID; i++) {
-		if(i<4)
-			comm->can_comm.tx_data[i] = 0;
-		comm->can_comm.rx_data[i][0] = 0;
-		comm->can_comm.rx_data[i][1] = 0;
-		comm->can_comm.rx_data[i][2] = 0;
-		comm->can_comm.rx_data[i][3] = 0;
-	}
-    comm->can_comm.can_send_comm_data = can_send_comm_data;
-    comm->can_comm.can_recv_comm_data = can_recv_comm_data;
-
-    /* init subscription list */
-    memset(&comm->sub_list, 0, sizeof(CommMessageSublist_t));
-	/* init fifo queue */
-	queueM_init(&canqm);
-}
+//void can_comm_subscribe_process(void){
+//	if(board_status == CHASSIS_BOARD){
+//		comm_subscribe(&chassis_comm.sub_list, COMM_REMOTE_CONTROL, Transmitter);
+//		comm_subscribe(&chassis_comm.sub_list, COMM_PC_CONTROL, Transmitter);
+//		comm_subscribe(&chassis_comm.sub_list, COMM_EXT_PC_CONTROL, Transmitter);
+//		comm_subscribe(&chassis_comm.sub_list, COMM_GIMBAL_ANGLE, Receiver);
+//	}
+//	else if(board_status == GIMBAL_BOARD){
+//		comm_subscribe(&gimbal_comm.sub_list, COMM_GIMBAL_ANGLE, Transmitter);
+//		comm_subscribe(&gimbal_comm.sub_list, COMM_REMOTE_CONTROL, Receiver);
+//		comm_subscribe(&gimbal_comm.sub_list, COMM_PC_CONTROL, Receiver);
+//		comm_subscribe(&gimbal_comm.sub_list, COMM_EXT_PC_CONTROL, Receiver);
+//	}
+//}
+///**
+//* @brief CAN commnication struct initialization
+//* @param None
+//* @retval None
+//*/
+//void can_comm_reset_config(BoardComm_t *comm){
+//	comm->comm_mode = CAN_COMM_MODE;
+//	comm->can_comm.comm_id = IDLE_COMM_ID;
+//	/* init rx buffer */
+//
+//	for(int i = 0; i < TOTAL_COMM_ID; i++) {
+//		if(i<4)
+//			comm->can_comm.tx_data[i] = 0;
+//		comm->can_comm.rx_data[i][0] = 0;
+//		comm->can_comm.rx_data[i][1] = 0;
+//		comm->can_comm.rx_data[i][2] = 0;
+//		comm->can_comm.rx_data[i][3] = 0;
+//	}
+//    comm->can_comm.can_send_comm_data = can_send_comm_data;
+//    comm->can_comm.can_recv_comm_data = can_recv_comm_data;
+//
+//    /* init subscription list */
+//    memset(&comm->sub_list, 0, sizeof(CommMessageSublist_t));
+//	/* init fifo queue */
+//	queueM_init(&canqm);
+//}
 
 /**
 * @brief CAN communication process
@@ -119,126 +127,168 @@ void can_comm_reset_config(BoardComm_t *comm){
 * @retval None
 */
 /* Task exec time: 3ms */
-static Publisher_t *gimbal_angle_pub, *rc_pub, *mode_pub, *pc_pub;
 
-void can_comm_process(BoardComm_t *comm){
+void can_comm_process(){
 
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(1.5); // 200hz make sure this task quicker than rc app
 
-	gimbal_angle_pub = register_pub("GIMBAL_ANGLE", 8);
-	rc_pub = register_pub("RC",);
-
 	/* reset the comm struct configure */
-	can_comm_reset_config(comm);
+//	can_comm_reset_config(comm);
 	/* subscribe the message before starting comms */
-	can_comm_subscribe_process();
+//	can_comm_subscribe_process();
 
 	/* init the task ticks */
     xLastWakeTime = xTaskGetTickCount();
 
 	for(;;){
+		CANCommMessage_t outgoing_message, incoming_message;
+		BaseType_t new_send_message = get_message(COMM_OUT, &outgoing_message, 0);
+		BaseType_t new_receive_message = get_message(COMM_IN, &incoming_message, 0);
 
-		/* recv data */
-		comm->can_comm.can_recv_comm_data(&hcan2, 8, comm->can_comm.rx_data);
-		/* process data */
-		if(isSubscribed(&comm->sub_list, COMM_GIMBAL_ANGLE) == SUB_SUCCESS){
-			switch(gimbal_angle_message.role){
-			 	 /* need to scale and re-scale angle data in both side */
-				case Transmitter:
-					if(gimbal_angle_message.message.comm_ga.send_flag == 1){
-						process_tx_data_ftoi16(gimbal_angle_message.message.comm_ga.angle_data, comm->can_comm.tx_data, 4, ANGLE_COMM_SCALE_FACTOR);
-						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, ANGLE_COMM_ID);
-						gimbal_angle_message.message.comm_ga.send_flag = 0;//reset flag to avoid message flooding
-					}
-					break;
-				case Receiver:
-					if(can_comm_rx[ANGLE_IDX].comm_id == ANGLE_COMM_ID){
-						process_rx_data_i16tof(comm, gimbal_angle_message.message.comm_ga.angle_data, ANGLE_COMM_SCALE_FACTOR, ANGLE_IDX);
-						chassis.gimbal_yaw_rel_angle = gimbal_angle_message.message.comm_ga.angle_data[0];//can_rx_scale_buffer[ANGLE_IDX][0];
-						chassis.gimbal_yaw_abs_angle = gimbal_angle_message.message.comm_ga.angle_data[1];//can_rx_scale_buffer[ANGLE_IDX][1];
-						can_comm_rx[ANGLE_IDX].comm_id = 0;//reset id to avoid message flooding
-					}
-					break;
+		if (new_send_message == pdTRUE) {
+			can_transmit_comm_message(&hcan2, outgoing_message.data, outgoing_message.topic_name);
+		}
+
+		if (new_receive_message == pdTRUE) {
+			switch (incoming_message.topic_name) {
+			case REF_INFO:
+				// TODO: Implement
+				break;
+			case GIMBAL_REL_ANGLES: {
+				float rel_angles[2];
+				memcpy(rel_angles, incoming_message.data, sizeof(float) * 2);
+				pub_message(GIMBAL_REL_ANGLES, rel_angles);
+			}
+			break;
+			case RC_INFO: {
+				RCInfoMessage_t rc_info;
+				memcpy(rc_info.channels, &(incoming_message.data[4]), sizeof(int16_t) * 2);
+				memcpy(rc_info.modes, incoming_message.data, sizeof(uint8_t) * 3);
+			}
+			break;
+			case PLAYER_COMMANDS:
+				// TODO: Implement
+			break;
+			default:
+				break;
 			}
 		}
-		if(isSubscribed(&comm->sub_list, COMM_REMOTE_CONTROL) == SUB_SUCCESS){
-			switch(rc_message.role){
-				case Transmitter:
-					if(rc_message.message.comm_rc.send_flag == 1){
-						memcpy(comm->can_comm.tx_data, &(rc_message.message.comm_rc.rc_data), sizeof(rc_message.message.comm_rc.rc_data));
-						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, RC_COMM_ID);
-						rc_message.message.comm_rc.send_flag = 0;//reset flag to avoid message flooding
-					}
-					break;
-				case Receiver:
-					if(can_comm_rx[RC_IDX].comm_id == RC_COMM_ID){
-						rc.ctrl.s1  = comm->can_comm.rx_data[RC_IDX][2];
-						rc.ctrl.s2  = comm->can_comm.rx_data[RC_IDX][3];
-						if(rc.ctrl.s1 == SW_MID && rc.ctrl.s2 == SW_DOWN){
-							rc.control_mode = PC_MODE;
-							/* update gimbal mode */
-							//FIXME: if have multiple gimbals, we need to change this.
-							gimbal.gimbal_mode = comm->can_comm.rx_data[RC_IDX][0];
-							gimbal.gimbal_act_mode = comm->can_comm.rx_data[RC_IDX][1];
-						}
-						else{
-							rc.control_mode = CTRLER_MODE;
-							/* get normal controller data*/
-							rc.ctrl.ch0 = comm->can_comm.rx_data[RC_IDX][0];
-							rc.ctrl.ch1 = comm->can_comm.rx_data[RC_IDX][1];
-						}
-						can_comm_rx[RC_IDX].comm_id = 0;//reset id to avoid message flooding
-					}
 
-					break;
-			 }
-		}
-		if(isSubscribed(&comm->sub_list, COMM_PC_CONTROL) == SUB_SUCCESS){
-			switch(pc_message.role){
-				case Transmitter:
-					if(pc_message.message.comm_pc.send_flag == 1){
-						memcpy(comm->can_comm.tx_data, &(pc_message.message.comm_pc.pc_data), sizeof(pc_message.message.comm_pc.pc_data));
-						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, PC_COMM_ID);
-						pc_message.message.comm_pc.send_flag = 0;//reset flag to avoid message flooding
-					}
-					break;
-				case Receiver:
-					if(can_comm_rx[PC_IDX].comm_id == PC_COMM_ID){
-						rc.pc.mouse.x = comm->can_comm.rx_data[PC_IDX][0];
-						rc.pc.mouse.y = comm->can_comm.rx_data[PC_IDX][1];
-						rc.pc.mouse.left_click.status  = comm->can_comm.rx_data[PC_IDX][2];
-						rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[PC_IDX][3];
-						can_comm_rx[PC_IDX].comm_id = 0;//reset id to avoid message flooding
-					}
-					break;
-			 }
-		}
-
-		if(isSubscribed(&comm->sub_list, COMM_EXT_PC_CONTROL) == SUB_SUCCESS){
-					switch(pc_ext_message.role){
-						case Transmitter:
-							if(pc_ext_message.message.comm_ext_pc.send_flag == 1){
-								memcpy(comm->can_comm.tx_data, &(pc_ext_message.message.comm_ext_pc.pc_data), sizeof(pc_ext_message.message.comm_ext_pc.pc_data));
-								comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, PC_EXT_KEY_ID);
-								pc_ext_message.message.comm_ext_pc.send_flag = 0;//reset flag to avoid message flooding
-							}
-							break;
-						case Receiver:
-							if(can_comm_rx[PC_EXT_KEY_IDX].comm_id == PC_EXT_KEY_ID){
-								rc.pc.key.C.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][0];
-								rc.pc.key.R.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][1];
-								rc.pc.key.B.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][2];
-//								rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][3];
-								can_comm_rx[PC_EXT_KEY_IDX].comm_id = 0;//reset id to avoid message flooding
-							}
-							break;
-					 }
-				}
+		/* recv data */
+//		comm->can_comm.can_recv_comm_data(&hcan2, 8, comm->can_comm.rx_data);
+//		/* process data */
+//		if(isSubscribed(&comm->sub_list, COMM_GIMBAL_ANGLE) == SUB_SUCCESS){
+//			switch(gimbal_angle_message.role){
+//			 	 /* need to scale and re-scale angle data in both side */
+//				case Transmitter:
+//					if(gimbal_angle_message.message.comm_ga.send_flag == 1){
+//						process_tx_data_ftoi16(gimbal_angle_message.message.comm_ga.angle_data, comm->can_comm.tx_data, 4, ANGLE_COMM_SCALE_FACTOR);
+//						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, ANGLE_COMM_ID);
+//						gimbal_angle_message.message.comm_ga.send_flag = 0;//reset flag to avoid message flooding
+//					}
+//					break;
+//				case Receiver:
+//					if(can_comm_rx[ANGLE_IDX].comm_id == ANGLE_COMM_ID){
+//						process_rx_data_i16tof(comm, gimbal_angle_message.message.comm_ga.angle_data, ANGLE_COMM_SCALE_FACTOR, ANGLE_IDX);
+//						chassis.gimbal_yaw_rel_angle = gimbal_angle_message.message.comm_ga.angle_data[0];//can_rx_scale_buffer[ANGLE_IDX][0];
+//						chassis.gimbal_yaw_abs_angle = gimbal_angle_message.message.comm_ga.angle_data[1];//can_rx_scale_buffer[ANGLE_IDX][1];
+//						can_comm_rx[ANGLE_IDX].comm_id = 0;//reset id to avoid message flooding
+//					}
+//					break;
+//			}
+//		}
+//		if(isSubscribed(&comm->sub_list, COMM_REMOTE_CONTROL) == SUB_SUCCESS){
+//			switch(rc_message.role){
+//				case Transmitter:
+//					if(rc_message.message.comm_rc.send_flag == 1){
+//						memcpy(comm->can_comm.tx_data, &(rc_message.message.comm_rc.rc_data), sizeof(rc_message.message.comm_rc.rc_data));
+//						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, RC_COMM_ID);
+//						rc_message.message.comm_rc.send_flag = 0;//reset flag to avoid message flooding
+//					}
+//					break;
+//				case Receiver:
+//					if(can_comm_rx[RC_IDX].comm_id == RC_COMM_ID){
+//						rc.ctrl.s1  = comm->can_comm.rx_data[RC_IDX][2];
+//						rc.ctrl.s2  = comm->can_comm.rx_data[RC_IDX][3];
+//						if(rc.ctrl.s1 == SW_MID && rc.ctrl.s2 == SW_DOWN){
+//							rc.control_mode = PC_MODE;
+//							/* update gimbal mode */
+//							//FIXME: if have multiple gimbals, we need to change this.
+//							gimbal.gimbal_mode = comm->can_comm.rx_data[RC_IDX][0];
+//							gimbal.gimbal_act_mode = comm->can_comm.rx_data[RC_IDX][1];
+//						}
+//						else{
+//							rc.control_mode = CTRLER_MODE;
+//							/* get normal controller data*/
+//							rc.ctrl.ch0 = comm->can_comm.rx_data[RC_IDX][0];
+//							rc.ctrl.ch1 = comm->can_comm.rx_data[RC_IDX][1];
+//						}
+//						can_comm_rx[RC_IDX].comm_id = 0;//reset id to avoid message flooding
+//					}
+//
+//					break;
+//			 }
+//		}
+//		if(isSubscribed(&comm->sub_list, COMM_PC_CONTROL) == SUB_SUCCESS){
+//			switch(pc_message.role){
+//				case Transmitter:
+//					if(pc_message.message.comm_pc.send_flag == 1){
+//						memcpy(comm->can_comm.tx_data, &(pc_message.message.comm_pc.pc_data), sizeof(pc_message.message.comm_pc.pc_data));
+//						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, PC_COMM_ID);
+//						pc_message.message.comm_pc.send_flag = 0;//reset flag to avoid message flooding
+//					}
+//					break;
+//				case Receiver:
+//					if(can_comm_rx[PC_IDX].comm_id == PC_COMM_ID){
+//						rc.pc.mouse.x = comm->can_comm.rx_data[PC_IDX][0];
+//						rc.pc.mouse.y = comm->can_comm.rx_data[PC_IDX][1];
+//						rc.pc.mouse.left_click.status  = comm->can_comm.rx_data[PC_IDX][2];
+//						rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[PC_IDX][3];
+//						can_comm_rx[PC_IDX].comm_id = 0;//reset id to avoid message flooding
+//					}
+//					break;
+//			 }
+//		}
+//
+//		if(isSubscribed(&comm->sub_list, COMM_EXT_PC_CONTROL) == SUB_SUCCESS){
+//					switch(pc_ext_message.role){
+//						case Transmitter:
+//							if(pc_ext_message.message.comm_ext_pc.send_flag == 1){
+//								memcpy(comm->can_comm.tx_data, &(pc_ext_message.message.comm_ext_pc.pc_data), sizeof(pc_ext_message.message.comm_ext_pc.pc_data));
+//								comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, PC_EXT_KEY_ID);
+//								pc_ext_message.message.comm_ext_pc.send_flag = 0;//reset flag to avoid message flooding
+//							}
+//							break;
+//						case Receiver:
+//							if(can_comm_rx[PC_EXT_KEY_IDX].comm_id == PC_EXT_KEY_ID){
+//								rc.pc.key.C.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][0];
+//								rc.pc.key.R.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][1];
+//								rc.pc.key.B.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][2];
+////								rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][3];
+//								can_comm_rx[PC_EXT_KEY_IDX].comm_id = 0;//reset id to avoid message flooding
+//							}
+//							break;
+//					 }
+//				}
 
 		/* delay until wake time */
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
+}
+
+
+static void can_transmit_comm_message(CAN_HandleTypeDef *hcan, uint8_t *send_data, uint32_t comm_id) {
+	//	uint32_t send_mail_box;
+	CAN_TxHeaderTypeDef  comm_tx_message;
+
+	comm_tx_message.IDE = CAN_ID_STD;
+	comm_tx_message.RTR = CAN_RTR_DATA;
+	comm_tx_message.DLC = 0x08;
+	comm_tx_message.StdId = comm_id;
+
+	enqueueCanMessage(&comm_tx_message, canQueue, &canqm, send_data);
+	sendNextCanMessage(hcan, canQueue, &canqm);
 }
 
 /**
@@ -246,7 +296,8 @@ void can_comm_process(BoardComm_t *comm){
 * @param comm: main comm app struct
 * 		 scale_factor: corresponding scale_factor
 */
-void process_tx_data_ftoi16(float* input_data, int16_t* output_data, int length, float scale_factor){
+// TODO: Look into better float to int16_t conversion.
+void process_tx_data_ftoi16(const float* input_data, int16_t* output_data, int length, float scale_factor){
     for (int i = 0; i < length; i++) {
         output_data[i] = (int16_t)(input_data[i] * scale_factor);
     }
@@ -257,12 +308,10 @@ void process_tx_data_ftoi16(float* input_data, int16_t* output_data, int length,
 * @param comm: main comm app struct
 * 		 scale_factor: corresponding scale_factor
 */
-void process_rx_data_i16tof(BoardComm_t *comm, float *output_buffer, float scale_factor, uint32_t idx) {
-	/*we cannot set the output buffer as a local variable in this fucntion
-	 * since it may cause "dangling pointer" problem */
+// TODO: Look into better int16_t to float conversion.
+void process_rx_data_i16tof(float *output_buffer, int16_t input_data[4], float scale_factor) {
     for (int i = 0; i < 4; i++) {
-//        comm->can_comm.rx_data[idx][i] = (comm->can_comm.rx_data[idx][i*2] << 8) | comm->can_comm.rx_data[1][i*2+1];
-        output_buffer[i] = (float)comm->can_comm.rx_data[idx][i] / scale_factor;
+        output_buffer[i] = ((float) input_data[i]) / scale_factor;
     }
 }
 
@@ -307,7 +356,7 @@ void can_send_comm_data(CAN_HandleTypeDef* hcan, int16_t* send_data, uint32_t co
 * 		 int32_t* send_data: The data is ready to be sent
 * @retval None
 */
-void can_recv_comm_data(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx_buffer)[TOTAL_COMM_ID][4]){
+void can_recv_comm_data(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx_buffer)[TOTAL_COMM_ID][4]) {
 	uint8_t comm_temp_rx_buffer[8];
 	for(int i=0;i<TOTAL_COMM_ID;i++){
 		memcpy(comm_temp_rx_buffer, can_comm_rx[i].comm_rx_buffer, data_len);
@@ -326,18 +375,18 @@ void can_recv_comm_data(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx
 * @param None
 * @retval None
 */
-void usart_comm_process(void){
-	for(;;){
-		if(capture_flag == 0){
-			comm_pack.vision.target_num = 0;
-		}
-		else{
-			osDelay(3000);
-			if(capture_flag == 1)
-				capture_flag = 0;
-		}
-	}
-}
+//void usart_comm_process(void){
+//	for(;;){
+//		if(capture_flag == 0){
+//			comm_pack.vision.target_num = 0;
+//		}
+//		else{
+//			osDelay(3000);
+//			if(capture_flag == 1)
+//				capture_flag = 0;
+//		}
+//	}
+//}
 #ifndef USE_UART_DMA
 static uint8_t temp_buffer[PACKLEN+1];
 /**

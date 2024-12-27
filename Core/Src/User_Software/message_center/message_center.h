@@ -5,42 +5,69 @@
 #ifndef PUBSUB_H
 #define PUBSUB_H
 
+#include "cmsis_os.h"
 #include "stdint.h"
 #include "stdlib.h"
-#include "string.h"
-#include "maths.h"
-
-#define MAX_TOPIC_NAME_LEN 32
-#define MAX_QUEUE_SIZE 1
-
-typedef struct Subscriber_t
-{
-    void *queue[MAX_QUEUE_SIZE];
-    uint8_t data_len;
-    uint8_t front_idx;
-    uint8_t back_idx;
-    uint8_t queue_size;
-
-    struct Subscriber_t *next_sub;
-} Subscriber_t;
+#include "public_defines.h"
 
 
-typedef struct Publisher_t
-{
+typedef enum Topic_Name_t {
+	MOTOR_SET = 100,
+	MOTOR_READ,
+	MOTOR_IN,
+	COMM_OUT,
+	COMM_IN,
+	IMU_READINGS,
+	REF_INFO,
+	PLAYER_COMMANDS,
+	RC_INFO,
+	REFEREE_INFO,
 
-    char topic_name[MAX_TOPIC_NAME_LEN + 1];
-    uint8_t data_len;
+	// Gimbal -> Chassis
+	GIMBAL_REL_ANGLES,
+} Topic_Name_t;
 
-    Subscriber_t *next_sub;
 
-    struct Publisher_t *next_topic_node;
-    uint8_t pub_registered_flag;
-} Publisher_t;
+typedef struct Topic_Handle_t {
+	Topic_Name_t name;
+	uint8_t item_size;
+	uint8_t queue_length;
+	QueueHandle_t queue_handle;
+} Topic_Handle_t;
 
-Subscriber_t *register_sub(char *name, uint8_t data_len);
-Publisher_t *register_pub(char *name, uint8_t data_len);
-uint8_t get_message(Subscriber_t *sub, void *data_ptr);
-uint8_t pub_message(Publisher_t *pub, void *data_ptr);
 
+typedef struct {
+	uint32_t topic_name;
+	uint8_t data[8];
+} CANCommMessage_t;
+
+
+typedef struct {
+	/*
+	 * modes[0] - BoardMode_t
+	 * modes[1] - BoardActMode_t
+	 * modes[2] - ShootActMode_t
+	 */
+	uint8_t modes[3];
+
+	/*
+	 * channels[0-3] - Have info from RC on Chassis.
+	 * channels[0-1] - Have info from Chassis on Gimbal.
+	 * Gimbal is not given channels[2] and channels[3] because it does not need channels[0] and
+	 * channels[1] for calculations. This allows RC info to be transmitted in one CAN frame (8 bytes).
+	 */
+	int16_t channels[4];
+} RCInfoMessage_t;
+
+
+typedef struct {
+	int32_t motor_can_volts[MOTOR_TX_BUFFER_SIZE];
+	uint32_t data_enable;
+} MotorSetMessage_t;
+
+void message_center_init();
+BaseType_t get_message(Topic_Name_t topic, void *data_ptr, int ticks_to_wait);
+BaseType_t peek_message(Topic_Name_t topic, void *data_ptr, int ticks_to_wait);
+BaseType_t pub_message(Topic_Name_t topic, void *data_ptr);
 
 #endif // !PUBSUB_H

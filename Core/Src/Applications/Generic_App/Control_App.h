@@ -31,7 +31,6 @@
 #define DBUS_MAX_LEN    50//not used
 
 #define CHANNEL_CENTER  1024
-#define CHANNEL_OFFSET_MAX_ABS_VAL 660
 
 #define MOUSE_MAX_SPEED_VALUE 30000
 //#define MOUSE_MIN_SPEED_VALUE 10000
@@ -66,10 +65,6 @@
   * @brief  main struct of rc task
   */
 /* remote controller mode */
-typedef enum{
-	CTRLER_MODE = 1,
-	PC_MODE
-}CtrlMode_t;
 
 typedef enum{
 	RELEASED = 0,	    // key released

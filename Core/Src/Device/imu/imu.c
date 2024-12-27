@@ -152,10 +152,6 @@ uint8_t bmi088_set_offset(void)
     gyro_offset[1] = gyro_offset[1] / cali_times;
     gyro_offset[2] = gyro_offset[2] / cali_times;
 
-//    accel_offset[0] = accel_offset[0] / 300;
-//	accel_offset[1] = accel_offset[1] / 300;
-//	accel_offset[2] = accel_offset[2] / 300;
-
     accel_offset[0] += accel_offset[0] / cali_times;
 	accel_offset[1] += accel_offset[1] / cali_times;
 	accel_offset[2] += accel_offset[2] / cali_times;

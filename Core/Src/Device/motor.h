@@ -84,14 +84,17 @@ typedef struct {
  *			motor_data[5]: gimbal 	6020 yaw
  *			motor_data[6]: magazine 2006
  * */
-Motor motor_data[MOTOR_COUNT];
 
-void parse_motor_feedback(CAN_HandleTypeDef* hcan);
+void init_motor_data(void);
+
+void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback, uint8_t size);
 void set_motor_voltage(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4);
 void motor_init(uint8_t motor_id, int32_t max_out_f, float max_i_out_f, float max_err_f, float kp_f, float ki_f, float kd_f,
 								  int32_t max_out_s, float max_i_out_s, float max_err_s, float kp_s, float ki_s, float kd_s,
 								  float kf);
-void set_motor_can_volt(int32_t *motor_tx_buffer, float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag);
+float calc_gimbal_motor_dual_pid(float ff_input, float f_cur_val, int motor_idx, float dt);
+float calc_gimbal_motor_single_pid(float target_value, int motor_idx, float dt);
+//void set_motor_can_volt(int32_t *motor_tx_buffer, float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag, Gimbal_t *gimbal);
 void set_motor_can_current(int32_t v1, int32_t v2, int32_t v3, int32_t v4, int32_t control_indicator);
 void get_Motor_buffer(Motor* origin, Motor* destination);
 void set_Motor_buffer(Motor* origin, Motor* destination);

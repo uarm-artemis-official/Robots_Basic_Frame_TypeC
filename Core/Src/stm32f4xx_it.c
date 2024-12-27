@@ -24,8 +24,6 @@
 #include "task.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Control_App.h"
-extern RemoteControl_t rc;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

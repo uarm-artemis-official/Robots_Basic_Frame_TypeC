@@ -34,6 +34,37 @@
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
+#define VAL_LIMIT(val, min, max) \
+  do                             \
+  {                              \
+    if ((val) <= (min))          \
+    {                            \
+      (val) = (min);             \
+    }                            \
+    else if ((val) >= (max))     \
+    {                            \
+      (val) = (max);             \
+    }                            \
+  } while (0)
+
+#define ANGLE_LIMIT_360(val, angle) \
+  do                                \
+  {                                 \
+    (val) = (angle) - (int)(angle); \
+    (val) += (int)(angle) % 360;    \
+  } while (0)
+
+#define ANGLE_LIMIT_360_TO_180(val) \
+  do                                \
+  {                                 \
+    if((val)>180)                   \
+      (val) -= 360;                 \
+  } while (0)
+
+#define VAL_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define VAL_MAX(a, b) ((a) > (b) ? (a) : (b))
+
+
 /* define maths' struct */
 typedef struct{
 	float cur_data;

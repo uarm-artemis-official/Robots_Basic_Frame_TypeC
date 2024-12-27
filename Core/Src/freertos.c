@@ -23,6 +23,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -60,7 +61,7 @@ osThreadId defaultTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-BoardStatusType get_board_status();
+BoardStatus_t get_board_status();
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -127,27 +128,26 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   osThreadDef(TimerTask, Timer_Task_Func, osPriorityHigh, 0, 256);
-    TimerTaskHandle = osThreadCreate(osThread(TimerTask), (void*) board_status);
+    TimerTaskHandle = osThreadCreate(osThread(TimerTask), (void*) &board_status);
 
     osThreadDef(CommTask, Comm_Task_Func, osPriorityHigh, 0, 256);
-    CommTaskHandle = osThreadCreate(osThread(CommTask), (void*) board_status);
+    CommTaskHandle = osThreadCreate(osThread(CommTask), (void*) &board_status);
 
-    osThreadDef(WDGTask, WatchDog_Task_Function, osPriorityHigh, 0, 256);
-    WDGTaskHandle = osThreadCreate(osThread(WDGTask), (void*) board_status);
+//    osThreadDef(WDGTask, WatchDog_Task_Function, osPriorityHigh, 0, 256);
+//    WDGTaskHandle = osThreadCreate(osThread(WDGTask), (void*) board_status);
 
 
-    if(board_status == CHASSIS_BOARD){
+    if (board_status == CHASSIS_BOARD) {
     	  osThreadDef(ChassisTask, Chassis_Task_Func, osPriorityRealtime, 0, 256);
     	  ChassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
 
     	  osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
     	  RCTaskHandle = osThreadCreate(osThread(RCTask), NULL);
 
-    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
-    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
+//    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
+//    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
 
-      }
-    else if(board_status == GIMBAL_BOARD){
+    } else if (board_status == GIMBAL_BOARD) {
     	  osThreadDef(GimbalTask, Gimbal_Task_Function, osPriorityRealtime, 0, 512);
     	  GimbalTaskHandle = osThreadCreate(osThread(GimbalTask), NULL);
 
@@ -157,8 +157,8 @@ void MX_FREERTOS_Init(void) {
     	  osThreadDef(IMUTask, IMU_Task_Function, osPriorityHigh, 0, 256);
     	  IMUTaskHandle = osThreadCreate(osThread(IMUTask), NULL);
 
-    	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
-    	  PCUARTTaskHandle = osThreadCreate(osThread(PCUARTTask), NULL);
+//    	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
+//    	  PCUARTTaskHandle = osThreadCreate(osThread(PCUARTTask), NULL);
       }
   /* USER CODE END RTOS_THREADS */
 
@@ -184,13 +184,4 @@ void StartDefaultTask(void const * argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-uint8_t get_board_status() {
-	BoardStatusType board_status;
-	if(HAL_GPIO_ReadPin(Board_Status_GPIO_Port, Board_Status_Pin) == GPIO_PIN_RESET) {
-		board_status = CHASSIS_BOARD;
-	} else {
-		board_status = GIMBAL_BOARD;
-	}
-	return board_status;
-}
 /* USER CODE END Application */

@@ -100,7 +100,6 @@
 #include "stdio.h"
 #include "dwt.h"
 #include "buzzer.h"
-#include "auto_aim_pack.h"
 #include "self_check.h"
 #include "auto_aim.h"
 #include "PC_UART_App.h"
@@ -136,10 +135,6 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t shoot_reserve_flag = 0;
-uint8_t shoot_reserve_counter = 0;
-uint8_t shoot_check_flag = 0;
-uint16_t shoot_check_counter = 0;
 int16_t referee_parsed_flag = 0;
 uint8_t referee_timeout_counter = 0;
 uint8_t referee_timeout_check_flag = 0;
@@ -152,13 +147,11 @@ uint8_t ref_rx_frame[256]={0}; //referee temp frame buffer
 uint8_t rc_rx_buffer[DBUS_BUFFER_LEN]; //rc temporary buffer
 uint16_t chassis_gyro_counter = 0; // used for backup robots without slipring
 uint8_t chassis_gyro_flag = 0;	   // used for backup robots without slipring
-char pdata[PACKLEN]={0};	//old mini pc vision pack temp buffer
 
 extern Motor motor_data[MOTOR_COUNT]; //MOTOR_COUNT
-extern Referee_t referee;
-extern CommVision_t vision_pack;
-extern UC_Auto_Aim_Pack_t uc_rx_pack;
 extern Buzzer_t buzzer;
+
+static BoardStatus_t board_status;
 
 /* USER CODE END 0 */
 
@@ -178,7 +171,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  publish_board_status();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -211,10 +203,11 @@ int main(void)
 #endif
 	HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);// turn off the green led
 	if(firmware_and_system_init() != HAL_OK){
-	  Error_Handler();
+		Error_Handler();
+	} else {
+		HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);// turn on the green led
 	}
-	else
-	  HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);// turn on the green led
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
@@ -279,48 +272,38 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 HAL_StatusTypeDef firmware_and_system_init(void){
- /* CAN1 & CAN2 Init */
- if( HAL_CAN_Start(&hcan1) != HAL_OK){
-	 return HAL_ERROR;
- }
- if( HAL_CAN_Start(&hcan2) != HAL_OK){
- 	 return HAL_ERROR;
- }
- /* CAN1 & CAN2 filter Init */
- can_filter_enable(&hcan1);
- can_filter_enable(&hcan2);
+	/* CAN1 & CAN2 Init */
+	if( HAL_CAN_Start(&hcan1) != HAL_OK){
+		return HAL_ERROR;
+	}
+	if( HAL_CAN_Start(&hcan2) != HAL_OK){
+		return HAL_ERROR;
+	}
+	/* CAN1 & CAN2 filter Init */
+	can_filter_enable(&hcan1);
+	can_filter_enable(&hcan2);
 
- /* Timer 13 IT Init */
- if( HAL_TIM_Base_Start_IT(&htim13) != HAL_OK){
-  	 return HAL_ERROR;
- }
- /* Heat PWM signal Init */
- if( HAL_TIM_PWM_Start(&htim10,TIM_CHANNEL_1) != HAL_OK){
-   	 return HAL_ERROR;
- }
- /* Read Board Status */
+	/* Timer 13 IT Init */
+	if( HAL_TIM_Base_Start_IT(&htim13) != HAL_OK){
+		return HAL_ERROR;
+	}
+	/* Heat PWM signal Init */
+	if( HAL_TIM_PWM_Start(&htim10,TIM_CHANNEL_1) != HAL_OK){
+		return HAL_ERROR;
+	}
 
+	init_motor_data();
+	// referee_init(&referee);
+	buzzer_init(&buzzer);
+	uc_auto_aim_pack_init(&uc_auto_aim_pack);
+	dwt_init();
 
+	board_status = get_board_status();
 
- /* init fb struct of motors */
- for(int i=0;i<MOTOR_COUNT;i++){
-	 memset(&(motor_data[i].motor_feedback), 0, sizeof(Motor_Feedback_t));
- }
- /* referee system init*/
- referee_init(&referee);
+	message_center_init();
 
- /* init buzzer */
- buzzer_init(&buzzer);
-
- /* init vision pack */
- uc_auto_aim_pack_init(&uc_auto_aim_pack);
-
- /* DWT init */
- dwt_init();
-
- return HAL_OK;
+	return HAL_OK;
 }
 /**
   * @brief  Period elapsed callback in non blocking mode
@@ -337,8 +320,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	{
 		if(debugger_signal_flag == 1)
 			++debugger_signal_counter;
-		if(shoot_reserve_flag == 1)
-			++shoot_reserve_counter;
+//		if(shoot_reserve_flag == 1)
+//			++shoot_reserve_counter;
 //		if(shoot_check_flag == 1)
 //			++shoot_check_counter;
 		if(chassis_gyro_flag ==1)
@@ -392,7 +375,7 @@ void XferCpltCallback(DMA_HandleTypeDef *hdma){
  * 			 Mini PC recv: 		  UART6_DMA2_Stream1
  *
  * */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   if(huart == &huart1 && board_status == CHASSIS_BOARD){
 	 /* re-activate DMA */
 	  referee_parsed_flag = 1;
@@ -407,7 +390,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	  HAL_UART_Receive_DMA(&UC_HUART, uc_pack_input_buffer, UC_PACK_SIZE);
 
   }
-
 }
 #endif
 /* USER CODE END 4 */

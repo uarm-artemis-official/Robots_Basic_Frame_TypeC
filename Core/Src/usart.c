@@ -24,7 +24,6 @@
 #include "Comm_App.h"
 #include "Control_App.h"
 #include "auto_aim.h"
-extern char pdata[PACKLEN];
 extern uint8_t ref_rx_frame[256];
 /* USER CODE END 0 */
 

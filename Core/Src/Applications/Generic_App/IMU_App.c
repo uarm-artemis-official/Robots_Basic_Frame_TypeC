@@ -15,60 +15,66 @@
 #include "imu.h"
 #include "public_defines.h"
 
-uint8_t imu_init_flag = 0;
 
 /**
   * @brief     IMU task main entry function
   * @retval    None
   */
 /* Task execution time (per loop): 1 ms */
-void IMU_Task_Function(void){
+void IMU_Task_Function(void const * argument) {
 
 	/* set task exec period */
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(5); // task exec period 1ms
+	const TickType_t xFrequency = pdMS_TO_TICKS(1); // task exec period 1ms
 
 	/* init the task ticks */
 	xLastWakeTime = xTaskGetTickCount();
 
+	Attitude_t attitude;
+	float message_data[2];
+
+	imu_task_init(xFrequency);
 	/* main imu task begins */
 	for(;;){
-
 		/* set watch point */
-		if( imu_init_flag != 1){//gimbal_cali_done_flag == 1 &&
-
-			/* init imu parameters */
-			imu_task_init();
-
-			while(imu.temp_status != NORMAL){
-				imu.temp = get_BMI088_temperature();
-				imu_temp_pid_control();
-				vTaskDelayUntil(&xLastWakeTime, xFrequency);
-			}
-
-			/* set the offset when the temperature reach normal status */
-			__HAL_TIM_SET_COMPARE(&IMU_TMP_PWM_HTIM, IMU_TMP_PWM_CHANNEL, 1000);//small current to keep tmp
-			bmi088_get_offset();
-
-			/* imu init finished */
-			imu_init_flag = 1;
-			buzzer_play_mario(300);
-			}
-
 		/* IMU temperature PID control*/
 		imu_temp_pid_control();
 		/* read the mpu data */
-		if(imu_init_flag == 1){
+
+		if (imu.temp_status == NORMAL) {
 			bmi088_get_data(&imu.ahrs_sensor);
+
+			madgwick_ahrs_update(&imu.ahrs_sensor, &attitude);
+
+			message_data[0] = attitude.yaw;
+			message_data[1] = attitude.pitch;
+			pub_message(IMU_READINGS, message_data);
 		}
 
 		/* delay utill wake time */
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
-
 	}
 }
 
-void imu_task_init(void){
+
+static void calibrate_imu(TickType_t xFrequency) {
+	TickType_t xLastWakeTime = xTaskGetTickCount();
+	while(imu.temp_status != NORMAL){
+		imu.temp = get_BMI088_temperature();
+		imu_temp_pid_control();
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+	}
+
+	/* set the offset when the temperature reach normal status */
+	__HAL_TIM_SET_COMPARE(&IMU_TMP_PWM_HTIM, IMU_TMP_PWM_CHANNEL, 1000);//small current to keep tmp
+	bmi088_get_offset();
+
+	/* imu init finished */
+	buzzer_play_mario(300);
+}
+
+
+void imu_task_init(TickType_t xFrequency) {
 	/* inint bmi088 */
 	bmi088_device_init();
 	ist8310_init();
@@ -84,6 +90,7 @@ void imu_task_init(void){
     }
 //	imu.sample_time = DWT_Get();
 	imu.temp = 0.0;
+	calibrate_imu(xFrequency);
 }
 
 /**

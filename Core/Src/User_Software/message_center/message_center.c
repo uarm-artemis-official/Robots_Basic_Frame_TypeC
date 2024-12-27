@@ -1,109 +1,113 @@
 #include "message_center.h"
 
 
-static Publisher_t message_center = {
-    .topic_name = "Message_Manager",
-    .next_sub = NULL,
-    .next_topic_node = NULL};
+static Topic_Handle_t topic_handles[] = {
+		{
+				.name = MOTOR_SET,
+				//
+				.item_size = sizeof(MotorSetMessage_t),
+				.queue_length = 1,
+				.queue_handle = NULL
+		},
+		{
+				.name = MOTOR_READ,
+				//
+				.item_size = sizeof(uint8_t) * 8 * 8,
+				.queue_length = 1,
+				.queue_handle = NULL
+		},
+//		{
+//				.name = MOTOR_IN,
+//				.item_size = sizeof()
+//		},
+		{
+				.name = RC_INFO,
+				.item_size = sizeof(RCInfoMessage_t),
+				.queue_length = 1,
+				.queue_handle = NULL
+		},
+		{
+				.name = COMM_OUT,
+				// TODO: Make struct for standardizing communication over CAN.
+				.item_size = sizeof(CANCommMessage_t),
+				.queue_length = 5,
+				.queue_handle = NULL
+		},
+		{
+				.name = COMM_IN,
+				.item_size = sizeof(CANCommMessage_t),
+				.queue_length = 5,
+				.queue_handle = NULL
+		},
+		{
+				.name = IMU_READINGS,
+				// Pitch and yaw readings.
+				.item_size = sizeof(float) * 2,
+				.queue_length = 1,
+				.queue_handle = NULL
+		},
+		{
+				/*
+				 * float[0] - gimbal yaw relative angle.
+				 * float[1] - gimbal pitch relative angle.
+				 */
+				.name = GIMBAL_REL_ANGLES,
+				.item_size = sizeof(float) * 2,
+				.queue_length = 1,
+				.queue_handle = NULL
+		},
+		{
+				.name = REF_INFO,
+				// TODO: Make struct with necessary info from ref system.
+				.item_size = 0,
+				.queue_length = 1,
+				.queue_handle = NULL
+		},
+		{
+				.name = PLAYER_COMMANDS,
+				// TODO: Make struct with necessary info for commands from player inputs.
+				.item_size = 0,
+				.queue_length = 1,
+				.queue_handle = NULL
+		},
+		{
+				.name = REFEREE_INFO,
+				.item_size = sizeof(uint8_t) * 2,
+				.queue_length = 1,
+				.queue_handle = NULL
+		}
+};
 
-static void check_name_length(char *name)
-{
-    if (strnlen(name, MAX_TOPIC_NAME_LEN + 1) >= MAX_TOPIC_NAME_LEN)
-    {
-    	// Name is too long error.
-        while (1);
-    }
+
+static QueueHandle_t get_queue_handle_by_topic(Topic_Name_t name) {
+	for (int i = 0; i < sizeof(topic_handles) / sizeof(Topic_Handle_t); i++) {
+		if (topic_handles[i].name == name) {
+			return topic_handles[i].queue_handle;
+		}
+	}
 }
 
-static void match_lengths(uint8_t len1, uint8_t len2)
-{
-    if (len1 != len2)
-    {
-    	// Lengths do not match error.
-        while (1);
-    }
-}
 
-Publisher_t *register_pub(char *name, uint8_t data_len)
-{
-    check_name_length(name);
-    Publisher_t *node = &message_center;
-    while (node->next_topic_node)
-    {
-        node = node->next_topic_node;
-        if (strcmp(node->topic_name, name) == 0)
-        {
-            match_lengths(data_len, node->data_len);
-            node->pub_registered_flag = 1;
-            return node;
-        }
-    }
-
-    node->next_topic_node = (Publisher_t *)malloc(sizeof(Publisher_t));
-    memset(node->next_topic_node, 0, sizeof(Publisher_t));
-    node->next_topic_node->data_len = data_len;
-    strcpy(node->next_topic_node->topic_name, name);
-    node->pub_registered_flag = 1;
-    return node->next_topic_node;
-}
-
-Subscriber_t *register_sub(char *name, uint8_t data_len) {
-	// Not guaranteed that publishers are registered before subscribers
-	// register publisher before trying to register subscriber.
-    Publisher_t *pub = register_pub(name, data_len);
-
-    Subscriber_t *ret = (Subscriber_t *)malloc(sizeof(Subscriber_t));
-    memset(ret, 0, sizeof(Subscriber_t));
-
-    ret->data_len = data_len;
-    for (size_t i = 0; i < MAX_QUEUE_SIZE; ++i) {
-        ret->queue[i] = malloc(data_len);
-    }
-
-    if (pub->next_sub == NULL)
-    {
-        pub->next_sub = ret;
-        return ret;
-    }
-
-    Subscriber_t *sub = pub->next_sub;
-    while (sub->next_sub) {
-        sub = sub->next_sub;
-    }
-    sub->next_sub = ret;
-    return ret;
+void message_center_init() {
+	for (int i = 0; i < sizeof(topic_handles) / sizeof(Topic_Handle_t); i++) {
+		topic_handles[i].queue_handle = xQueueCreate(topic_handles[i].queue_length, topic_handles[i].item_size);
+	}
 }
 
 
-uint8_t get_message(Subscriber_t *sub, void *rx_ptr)
-{
-    if (sub->queue_size == 0)
-    {
-        return 0;
-    }
-    memcpy(rx_ptr, sub->queue[sub->front_idx], sub->data_len);
-    sub->front_idx = (sub->front_idx++) % MAX_QUEUE_SIZE;
-    sub->queue_size--;
-    return 1;
+BaseType_t get_message(Topic_Name_t topic, void *data_ptr, int ticks_to_wait) {
+	QueueHandle_t queue_handle = get_queue_handle_by_topic(topic);
+	return xQueueReceive(queue_handle, data_ptr, ticks_to_wait);
 }
 
 
-uint8_t pub_message(Publisher_t *pub, void *tx_ptr)
-{
-    static Subscriber_t *iter;
-    iter = pub->next_sub;
+BaseType_t peek_message(Topic_Name_t topic, void *data_ptr, int ticks_to_wait) {
+	QueueHandle_t queue_handle = get_queue_handle_by_topic(topic);
+	return xQueuePeek(queue_handle, data_ptr, ticks_to_wait);
+}
 
-    while (iter) {
-        if (iter->queue_size == MAX_QUEUE_SIZE) {
-        	iter->front_idx = (iter->front_idx + 1) % MAX_QUEUE_SIZE;
-            iter->queue_size--;
-        }
 
-        memcpy(iter->queue[iter->back_idx], tx_ptr, pub->data_len);
-        iter->back_idx = (iter->back_idx + 1) % MAX_QUEUE_SIZE;
-        iter->queue_size++;
-
-        iter = iter->next_sub;
-    }
-    return 1;
+BaseType_t pub_message(Topic_Name_t topic, void *data_ptr) {
+	QueueHandle_t queue_handle = get_queue_handle_by_topic(topic);
+	return xQueueOverwrite(queue_handle, data_ptr);
 }

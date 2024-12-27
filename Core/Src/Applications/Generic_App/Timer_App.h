@@ -21,7 +21,6 @@
 #include "FreeRTOS.h"
 
 
-#define MOTOR_TX_BUFFER_SIZE 8
 
 extern CAN_HandleTypeDef hcan1;
 

@@ -27,8 +27,12 @@
 typedef enum {
     GIMBAL_BOARD = 1,
     CHASSIS_BOARD = 2
-} BoardStatusType;
+} BoardStatus_t;
 
+typedef enum{
+	CTRLER_MODE = 1,
+	PC_MODE
+} CtrlMode_t;
 
 typedef enum {
 	PATROL_MODE = 1,
@@ -37,7 +41,7 @@ typedef enum {
 	AUTO_PILOT_MODE,
 	IDLE_MODE,
 	DEBUG_MODE,
-	PC_MODE
+//	PC_MODE
 }BoardMode_t; //only for sentry
 
 
@@ -63,12 +67,18 @@ typedef enum {
     ENCODE_MODE
 } GimbalMotorMode_t;
 
-typedef struct{
+
+typedef struct {
 	float vx;
 	float vy;
 	float wz;
 } Gimbal_Axis_t; //for remote controller set gimbal dir
 
+
+
+#define MOTOR_TX_BUFFER_SIZE 8
+
+#define CHANNEL_OFFSET_MAX_ABS_VAL 660
 
 /* Task exec time in secs */
 #define CHASSIS_TASK_EXEC_TIME 1
@@ -84,12 +94,12 @@ typedef struct{
 #define wheel_id3 2
 #define wheel_id4 3
 
-#define yaw_id 4
-#define pitch_id 5
+#define YAW_ID 4
+#define PITCH_ID 5
 
 #define fric_left_id 0
 #define fric_right_id 1
-#define mag_2006_id 6
+#define MAG_2006_ID 6
 #define mag_3508_id 2
 
 /* motor pid param */

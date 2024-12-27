@@ -11,7 +11,7 @@
 #define __CHASSIS_APP_C__
 
 #define WITH_SLIPRING
-#define CHASSIS_POWER_LIMIT
+//#define CHASSIS_POWER_LIMIT
 
 #include "Chassis_App.h"
 
@@ -21,21 +21,11 @@ uint16_t temp_max_vx = 100;
 uint16_t temp_max_vy = 100;
 uint16_t temp_max_wz = 100;
 
-KeyStatus_t downgrade_pre_mode = RELEASED;
-KeyStatus_t upgrade_pre_mode = RELEASED;
-
 extern uint16_t chassis_gyro_counter;
 extern uint8_t chassis_gyro_flag;
-extern Comm_t comm_pack;
-extern BoardComm_t chassis_comm;
-extern RemoteControl_t rc;
-
-Referee_t temp_referee; // A buffer to memcpy the referee data
 
 static Chassis_t chassis;
 
-/* define internal functions */
-static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr);
 /**
 * @brief Function implementing the Chassis_Task thread.
 * @param argument: Not used
@@ -62,8 +52,9 @@ void Chassis_Task_Func(void const * argument)
   {
 	  /* main chassis task function */
 //	  memcpy(&temp_referee, &referee, sizeof(Referee_t));
-	  chassis_rc_mode_selection(&chassis, &rc);
-	  chassis_manual_gear_set(&chassis, &rc);
+	  chassis_get_rc_info(&chassis);
+	  chassis_get_gimbal_rel_angles(&chassis);
+//	  chassis_manual_gear_set(&chassis, &rc);
 	  chassis_exec_act_mode(&chassis);
 
 	  /* delay until wake time */
@@ -173,142 +164,138 @@ void chassis_execute(Chassis_t *chassis_hdlr){
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
-void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hdlr){
-	if(rc_hdlr->control_mode == CTRLER_MODE){
-		/* controller data is not required to be filtered */
-		chassis_hdlr->gimbal_axis.vx = rc_hdlr->ctrl.ch3; // apply vx data here
-		chassis_hdlr->gimbal_axis.vy = rc_hdlr->ctrl.ch2; // apply vy data here
-		chassis_hdlr->gimbal_axis.wz = rc_hdlr->ctrl.ch0; // apply wz data here
-	}
-	else if(rc_hdlr->control_mode == PC_MODE){
-		/* x axis process */
-		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status == PRESSED)
-			/* why did you do this bro ? */
-			chassis_hdlr->gimbal_axis.vx = 0;
-		/* both not pressed, brake slowly*/
-		else if(rc_hdlr->pc.key.W.status != PRESSED && rc_hdlr->pc.key.S.status != PRESSED){
-			chassis_brake(&chassis_hdlr->gimbal_axis.vx, 1.0f, 2.0f);
-		}
-
-		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status != PRESSED){// check holding
-			chassis_hdlr->gimbal_axis.vx += CHASSIS_PC_RAMP_VALUE; // apply ramp-like mode to engage chassis
-			if(chassis_hdlr->gimbal_axis.vx >= chassis_hdlr->max_vx)
-				chassis_hdlr->gimbal_axis.vx = chassis_hdlr->max_vx;
-		}
-
-		if(rc_hdlr->pc.key.S.status == PRESSED && rc_hdlr->pc.key.W.status != PRESSED){// check holding
-			chassis_hdlr->gimbal_axis.vx -= CHASSIS_PC_RAMP_VALUE; // apply ramp-like mode to engage chassis
-			if(chassis_hdlr->gimbal_axis.vx < -chassis_hdlr->max_vx)
-				chassis_hdlr->gimbal_axis.vx = -chassis_hdlr->max_vx;
-		}
-
-		/* y axis process */
-		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status == PRESSED)
-			/* why did you do this bro ? */
-			chassis_hdlr->gimbal_axis.vy = 0;
-		/* both not pressed, brake slowly*/
-		else if(rc_hdlr->pc.key.A.status != PRESSED && rc_hdlr->pc.key.D.status != PRESSED){
-			chassis_brake(&chassis_hdlr->gimbal_axis.vy, 1.0f, 2.0f);
-		}
-
-		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status != PRESSED){// check holding
-			chassis_hdlr->gimbal_axis.vy -= CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
-			if(chassis_hdlr->gimbal_axis.vy < -chassis_hdlr->max_vy)
-				chassis_hdlr->gimbal_axis.vy = -chassis_hdlr->max_vy;
-		}
-
-		if(rc_hdlr->pc.key.D.status == PRESSED && rc_hdlr->pc.key.A.status != PRESSED){// check holding
-			chassis_hdlr->gimbal_axis.vy += CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
-			if(chassis_hdlr->gimbal_axis.vy > chassis_hdlr->max_vy)
-				chassis_hdlr->gimbal_axis.vy = chassis_hdlr->max_vy;
-		}
-
-		/* angular velocity process, only used in Gimbal Follow mode */
-		if(chassis_hdlr->chassis_act_mode == GIMBAL_FOLLOW){
-			if(rc_hdlr->pc.key.Q.status == PRESSED && rc_hdlr->pc.key.E.status == PRESSED)
-				/* why did you do this bro ? */
-				chassis_hdlr->gimbal_axis.wz = 0;
-			/* both not pressed, brake slowly*/
-			else if(rc_hdlr->pc.key.Q.status != PRESSED && rc_hdlr->pc.key.E.status != PRESSED){
-				chassis_brake(&chassis_hdlr->gimbal_axis.wz, 1.0f, 2.0f);
-			}
-
-			if(rc_hdlr->pc.key.Q.status == PRESSED && rc_hdlr->pc.key.E.status != PRESSED){// check holding
-				chassis_hdlr->gimbal_axis.wz -= CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
-				if(chassis_hdlr->gimbal_axis.wz < -chassis_hdlr->max_wz)
-					chassis_hdlr->gimbal_axis.wz = -chassis_hdlr->max_wz;
-			}
-
-			if(rc_hdlr->pc.key.E.status == PRESSED && rc_hdlr->pc.key.Q.status != PRESSED){// check holding
-				chassis_hdlr->gimbal_axis.wz += CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
-				if(chassis_hdlr->gimbal_axis.wz > chassis_hdlr->max_vy)
-					chassis_hdlr->gimbal_axis.wz = chassis_hdlr->max_vy;
-			}
-		}
-	}
+void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RCInfoMessage_t rc_info){
+	/* controller data is not required to be filtered */
+	chassis_hdlr->gimbal_axis.vx = rc_info.channels[3]; // apply vx data here
+	chassis_hdlr->gimbal_axis.vy = rc_info.channels[2]; // apply vy data here
+	chassis_hdlr->gimbal_axis.wz = rc_info.channels[0]; // apply wz data here
+//	else if(rc_hdlr->control_mode == PC_MODE){
+//		/* x axis process */
+//		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status == PRESSED)
+//			/* why did you do this bro ? */
+//			chassis_hdlr->gimbal_axis.vx = 0;
+//		/* both not pressed, brake slowly*/
+//		else if(rc_hdlr->pc.key.W.status != PRESSED && rc_hdlr->pc.key.S.status != PRESSED){
+//			chassis_brake(&chassis_hdlr->gimbal_axis.vx, 1.0f, 2.0f);
+//		}
+//
+//		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status != PRESSED){// check holding
+//			chassis_hdlr->gimbal_axis.vx += CHASSIS_PC_RAMP_VALUE; // apply ramp-like mode to engage chassis
+//			if(chassis_hdlr->gimbal_axis.vx >= chassis_hdlr->max_vx)
+//				chassis_hdlr->gimbal_axis.vx = chassis_hdlr->max_vx;
+//		}
+//
+//		if(rc_hdlr->pc.key.S.status == PRESSED && rc_hdlr->pc.key.W.status != PRESSED){// check holding
+//			chassis_hdlr->gimbal_axis.vx -= CHASSIS_PC_RAMP_VALUE; // apply ramp-like mode to engage chassis
+//			if(chassis_hdlr->gimbal_axis.vx < -chassis_hdlr->max_vx)
+//				chassis_hdlr->gimbal_axis.vx = -chassis_hdlr->max_vx;
+//		}
+//
+//		/* y axis process */
+//		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status == PRESSED)
+//			/* why did you do this bro ? */
+//			chassis_hdlr->gimbal_axis.vy = 0;
+//		/* both not pressed, brake slowly*/
+//		else if(rc_hdlr->pc.key.A.status != PRESSED && rc_hdlr->pc.key.D.status != PRESSED){
+//			chassis_brake(&chassis_hdlr->gimbal_axis.vy, 1.0f, 2.0f);
+//		}
+//
+//		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status != PRESSED){// check holding
+//			chassis_hdlr->gimbal_axis.vy -= CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
+//			if(chassis_hdlr->gimbal_axis.vy < -chassis_hdlr->max_vy)
+//				chassis_hdlr->gimbal_axis.vy = -chassis_hdlr->max_vy;
+//		}
+//
+//		if(rc_hdlr->pc.key.D.status == PRESSED && rc_hdlr->pc.key.A.status != PRESSED){// check holding
+//			chassis_hdlr->gimbal_axis.vy += CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
+//			if(chassis_hdlr->gimbal_axis.vy > chassis_hdlr->max_vy)
+//				chassis_hdlr->gimbal_axis.vy = chassis_hdlr->max_vy;
+//		}
+//
+//		/* angular velocity process, only used in Gimbal Follow mode */
+//		if(chassis_hdlr->chassis_act_mode == GIMBAL_FOLLOW){
+//			if(rc_hdlr->pc.key.Q.status == PRESSED && rc_hdlr->pc.key.E.status == PRESSED)
+//				/* why did you do this bro ? */
+//				chassis_hdlr->gimbal_axis.wz = 0;
+//			/* both not pressed, brake slowly*/
+//			else if(rc_hdlr->pc.key.Q.status != PRESSED && rc_hdlr->pc.key.E.status != PRESSED){
+//				chassis_brake(&chassis_hdlr->gimbal_axis.wz, 1.0f, 2.0f);
+//			}
+//
+//			if(rc_hdlr->pc.key.Q.status == PRESSED && rc_hdlr->pc.key.E.status != PRESSED){// check holding
+//				chassis_hdlr->gimbal_axis.wz -= CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
+//				if(chassis_hdlr->gimbal_axis.wz < -chassis_hdlr->max_wz)
+//					chassis_hdlr->gimbal_axis.wz = -chassis_hdlr->max_wz;
+//			}
+//
+//			if(rc_hdlr->pc.key.E.status == PRESSED && rc_hdlr->pc.key.Q.status != PRESSED){// check holding
+//				chassis_hdlr->gimbal_axis.wz += CHASSIS_PC_RAMP_VALUE;// apply ramp-like mode to engage chassis
+//				if(chassis_hdlr->gimbal_axis.wz > chassis_hdlr->max_vy)
+//					chassis_hdlr->gimbal_axis.wz = chassis_hdlr->max_vy;
+//			}
+//		}
+//	}
 }
 /*
  * @brief 	  Update chassis ground data through rc
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
-void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hdlr){
+void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, RCInfoMessage_t rc_info){
 	/*chassis coordinates only for debugging purpose, thus no pc control processing*/
-	if(rc_hdlr->control_mode == CTRLER_MODE){
-		chassis_hdlr->vx = rc.ctrl.ch3; // apply vx data here
-		chassis_hdlr->vy = rc.ctrl.ch2; // apply vy data here
-		chassis_hdlr->wz = rc.ctrl.ch0;
-	}
-	else if(rc_hdlr->control_mode == PC_MODE){
-		/* x axis process */
-		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status == PRESSED)
-			/* why did you do this bro ? */
-			chassis_hdlr->vx = 0;
-		/* both not pressed, brake slowly*/
-		else if(rc_hdlr->pc.key.W.status != PRESSED && rc_hdlr->pc.key.S.status != PRESSED){
-			chassis_brake(&chassis_hdlr->vx, 1.0f, 2.0f);
-		}
-
-		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status != PRESSED){// check holding
-			chassis_hdlr->vx += CHASSIS_PC_RAMP_VALUE ; // apply ramp-like mode to engage chassis
-			if(chassis_hdlr->vx >= chassis_hdlr->max_vx)
-				chassis_hdlr->vx = chassis_hdlr->max_vx;
-		}
-
-		if(rc_hdlr->pc.key.S.status == PRESSED && rc_hdlr->pc.key.W.status != PRESSED){// check holding
-			chassis_hdlr->vx -= CHASSIS_PC_RAMP_VALUE ; // apply ramp-like mode to engage chassis
-			if(chassis_hdlr->vx < -chassis_hdlr->max_vx)
-				chassis_hdlr->vx = -chassis_hdlr->max_vx;
-		}
-
-		/* y axis process */
-		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status == PRESSED)
-			/* why did you do this bro ? */
-			chassis_hdlr->vy = 0;
-		/* both not pressed, brake slowly*/
-		else if(rc_hdlr->pc.key.A.status != PRESSED && rc_hdlr->pc.key.D.status != PRESSED){
-			chassis_brake(&chassis_hdlr->vy, 1.0f, 2.0f);
-		}
-
-		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status != PRESSED){// check holding
-			chassis_hdlr->vy -= CHASSIS_PC_RAMP_VALUE ;// apply ramp-like mode to engage chassis
-			if(chassis_hdlr->vy < -chassis_hdlr->max_vy)
-				chassis_hdlr->vy = -chassis_hdlr->max_vy;
-		}
-
-		if(rc_hdlr->pc.key.D.status == PRESSED && rc_hdlr->pc.key.A.status != PRESSED){// check holding
-			chassis_hdlr->vy += CHASSIS_PC_RAMP_VALUE ;// apply ramp-like mode to engage chassis
-			if(chassis_hdlr->vy > chassis_hdlr->max_vy)
-				chassis_hdlr->vy = chassis_hdlr->max_vy;
-		}
-
-		chassis_hdlr->wz = 2.0*rc_hdlr->pc.mouse.x;
-		if(chassis_hdlr->wz < -chassis_hdlr->max_wz)
-			chassis_hdlr->wz = -chassis_hdlr->max_wz;
-//		if(chassis_hdlr->wz > -chassis_hdlr->max_wz)
-//			chassis_hdlr->wz = chassis_hdlr->max_wz;
-
-	}
+	chassis_hdlr->vx = rc_info.channels[3]; // apply vx data here
+	chassis_hdlr->vy = rc_info.channels[2]; // apply vy data here
+	chassis_hdlr->wz = rc_info.channels[0];
+//	else if(rc_hdlr->control_mode == PC_MODE){
+//		/* x axis process */
+//		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status == PRESSED)
+//			/* why did you do this bro ? */
+//			chassis_hdlr->vx = 0;
+//		/* both not pressed, brake slowly*/
+//		else if(rc_hdlr->pc.key.W.status != PRESSED && rc_hdlr->pc.key.S.status != PRESSED){
+//			chassis_brake(&chassis_hdlr->vx, 1.0f, 2.0f);
+//		}
+//
+//		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status != PRESSED){// check holding
+//			chassis_hdlr->vx += CHASSIS_PC_RAMP_VALUE ; // apply ramp-like mode to engage chassis
+//			if(chassis_hdlr->vx >= chassis_hdlr->max_vx)
+//				chassis_hdlr->vx = chassis_hdlr->max_vx;
+//		}
+//
+//		if(rc_hdlr->pc.key.S.status == PRESSED && rc_hdlr->pc.key.W.status != PRESSED){// check holding
+//			chassis_hdlr->vx -= CHASSIS_PC_RAMP_VALUE ; // apply ramp-like mode to engage chassis
+//			if(chassis_hdlr->vx < -chassis_hdlr->max_vx)
+//				chassis_hdlr->vx = -chassis_hdlr->max_vx;
+//		}
+//
+//		/* y axis process */
+//		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status == PRESSED)
+//			/* why did you do this bro ? */
+//			chassis_hdlr->vy = 0;
+//		/* both not pressed, brake slowly*/
+//		else if(rc_hdlr->pc.key.A.status != PRESSED && rc_hdlr->pc.key.D.status != PRESSED){
+//			chassis_brake(&chassis_hdlr->vy, 1.0f, 2.0f);
+//		}
+//
+//		if(rc_hdlr->pc.key.A.status == PRESSED && rc_hdlr->pc.key.D.status != PRESSED){// check holding
+//			chassis_hdlr->vy -= CHASSIS_PC_RAMP_VALUE ;// apply ramp-like mode to engage chassis
+//			if(chassis_hdlr->vy < -chassis_hdlr->max_vy)
+//				chassis_hdlr->vy = -chassis_hdlr->max_vy;
+//		}
+//
+//		if(rc_hdlr->pc.key.D.status == PRESSED && rc_hdlr->pc.key.A.status != PRESSED){// check holding
+//			chassis_hdlr->vy += CHASSIS_PC_RAMP_VALUE ;// apply ramp-like mode to engage chassis
+//			if(chassis_hdlr->vy > chassis_hdlr->max_vy)
+//				chassis_hdlr->vy = chassis_hdlr->max_vy;
+//		}
+//
+//		chassis_hdlr->wz = 2.0*rc_hdlr->pc.mouse.x;
+//		if(chassis_hdlr->wz < -chassis_hdlr->max_wz)
+//			chassis_hdlr->wz = -chassis_hdlr->max_wz;
+////		if(chassis_hdlr->wz > -chassis_hdlr->max_wz)
+////			chassis_hdlr->wz = chassis_hdlr->max_wz;
+//
+//	}
 }
 
 /*
@@ -319,21 +306,12 @@ void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_h
 //FIXME: Didn't consider the acceleration. Acceleration can help us better explicit the buffer energy.
 //		 But with more critical strict on power management.
 void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
-#ifndef WITH_SLIPRING
-	/* this is just for a robots without a slipring */
-	if(chassis_hdlr->chassis_act_mode != SELF_GYRO){
-		chassis_gyro_flag = 0;
-		chassis_gyro_counter = 0;
-	}
-	else
-		chassis_gyro_flag = 1;//start the timer counter interrupt
-#endif
 
 	if(chassis_hdlr->chassis_mode == IDLE_MODE){
 		chassis_hdlr->vx = 0;
 		chassis_hdlr->vy = 0;
 		chassis_hdlr->wz = 0;
-		}
+	}
 	else if(chassis_hdlr->chassis_act_mode == GIMBAL_CENTER){ // gyro mode
 		/* The front of chassis always chases gimbal yaw's ecd center (aka Twist mode) */
 		chassis_hdlr->vx = chassis_hdlr->gimbal_axis.vx;
@@ -344,28 +322,19 @@ void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
 		/* The chassis always move along gimbal's coord/axis , but not chasing yaw's center */
 		chassis_hdlr->vx = chassis_hdlr->gimbal_axis.vx * arm_cos_f32(chassis_hdlr->gimbal_yaw_rel_angle) - chassis_hdlr->gimbal_axis.vy * arm_sin_f32(chassis_hdlr->gimbal_yaw_rel_angle);
 		chassis_hdlr->vy = chassis_hdlr->gimbal_axis.vx * arm_sin_f32(chassis_hdlr->gimbal_yaw_rel_angle) + chassis_hdlr->gimbal_axis.vy * arm_cos_f32(chassis_hdlr->gimbal_yaw_rel_angle);
-		if(rc.control_mode == CTRLER_MODE)
-			chassis_hdlr->wz = 0;
-		else if(rc.control_mode == PC_MODE)
-			chassis_hdlr->wz = chassis_hdlr->gimbal_axis.wz;
+		chassis_hdlr->wz = 0;
+//		if(rc.control_mode == CTRLER_MODE)
+//			chassis_hdlr->wz = 0;
+//		else if(rc.control_mode == PC_MODE)
+//			chassis_hdlr->wz = chassis_hdlr->gimbal_axis.wz;
 	}
 	else if(chassis_hdlr->chassis_act_mode == SELF_GYRO){ // gyro or encoder mode
 		/* The chassis always move along gimbal's coord/axis , meanwhile spinning the chassis with a fixed speed */
 		chassis_hdlr->vx = chassis_hdlr->gimbal_axis.vx * arm_cos_f32(chassis_hdlr->gimbal_yaw_rel_angle) - chassis_hdlr->gimbal_axis.vy * arm_sin_f32(chassis_hdlr->gimbal_yaw_rel_angle);
 		chassis_hdlr->vy = chassis_hdlr->gimbal_axis.vx * arm_sin_f32(chassis_hdlr->gimbal_yaw_rel_angle) + chassis_hdlr->gimbal_axis.vy * arm_cos_f32(chassis_hdlr->gimbal_yaw_rel_angle);
 		/* for robots with slipring */
-#ifdef WITH_SLIPRING
 		//FIXME apply differential rotary control or use Q&E to change direction
 		chassis_hdlr->wz =  CHASSIS_ECD_CONST_OMEGA * 3.5f;
-#else
-		/* for robots without slipring */
-		if(chassis_gyro_counter <= 8) //800 msec period to change a direction
-			chassis_hdlr->wz =  CHASSIS_ECD_CONST_OMEGA * 2.0f;
-		else if(chassis_gyro_counter <= 17)
-			chassis_hdlr->wz =  -CHASSIS_ECD_CONST_OMEGA * 2.0f;
-		else
-			chassis_gyro_counter = 0;
-#endif
 	}
 	else if(chassis_hdlr->chassis_act_mode == INDPET_MODE){ // encoder mode
 		/* The chassis follow the ground axis
@@ -438,52 +407,43 @@ void chassis_brake(float *vel, float ramp_step, float stop_threshold){
 		*vel = 0;
 }
 
+
+void chassis_get_gimbal_rel_angles(Chassis_t *chassis_hdlr) {
+	float rel_angles[2];
+	BaseType_t new_rel_angle_message = peek_message(GIMBAL_REL_ANGLES, rel_angles, 0);
+	if (new_rel_angle_message == pdTRUE) {
+		chassis_hdlr->gimbal_yaw_rel_angle = rel_angles[0];
+		chassis_hdlr->gimbal_pitch_rel_angle = rel_angles[1];
+	}
+}
+
+
+void chassis_get_rc_info(Chassis_t *chassis_hdlr) {
+	RCInfoMessage_t rc_info;
+	BaseType_t new_message = peek_message(RC_INFO, &rc_info, 0);
+
+	if (new_message == pdTRUE) {
+		BoardMode_t board_mode = rc_info.modes[0];
+		BoardActMode_t act_mode = rc_info.modes[1];
+
+		chassis_set_mode(chassis_hdlr, board_mode);
+		chassis_set_act_mode(chassis_hdlr, act_mode);
+
+		chassis_update_chassis_coord(chassis_hdlr, rc_info);
+		chassis_update_gimbal_coord(chassis_hdlr, rc_info);
+	}
+}
+
 /* define rc used count vars */
-int8_t chassis_pc_mode_toggle = 1; // encoder mode
-int8_t chassis_pc_submode_toggle = -1; // default to gimbal follow mode
-int32_t temp_toggle_count = 0;
+//int8_t chassis_pc_mode_toggle = 1; // encoder mode
+//int8_t chassis_pc_submode_toggle = -1; // default to gimbal follow mode
+//int32_t temp_toggle_count = 0;
 /*
  * @brief     mode selection based on remote controller
  * @param[in] chassis: main chassis handler
  * @param[in] rc: main remote controller handler
  * */
-static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr){
-	BoardMode_t    board_mode = IDLE_MODE;
-	BoardActMode_t act_mode   = INDPET_MODE;
-
-	/* controller end mode selection */
-	if(rc_hdlr->control_mode == CTRLER_MODE){
-		if(rc_hdlr->ctrl.s1 == SW_MID){
-			/* if s1 down, then just shut down everything */
-			board_mode = IDLE_MODE;
-		}
-		else{
-			/* else just set up to patrol mode */
-			board_mode = PATROL_MODE;
-			if(rc_hdlr->ctrl.s1 == SW_UP){
-				/* chassis follow gimbal center while follow yaw axis */
-				act_mode = GIMBAL_CENTER;
-				if(rc_hdlr->ctrl.s1 == SW_UP && rc_hdlr->ctrl.s2 == SW_DOWN){
-					/* spinning chassis while follow yaw axis */
-					act_mode = SELF_GYRO;
-				}
-				/* update gimbal axis */
-				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
-			}
-			else if(rc_hdlr->ctrl.s1 == SW_DOWN){
-				/* chassis only follow yaw axis */
-				act_mode = GIMBAL_FOLLOW;
-				/* update gimbal axis */
-				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
-					if(rc_hdlr->ctrl.s1 == SW_DOWN && rc_hdlr->ctrl.s2 == SW_DOWN){
-						/* independent mode */
-						act_mode = INDPET_MODE;
-						/* update ground axis */
-						chassis_update_chassis_coord(chassis_hdlr, rc_hdlr);
-				}
-			}
-		}
-	 }
+static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr){
 
 	/* Mode quick check:
 	 * -----------------------------------------------------------------------
@@ -500,116 +460,114 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr, RemoteControl_t *
 	 * -----------------------------------------------------------------------
 	 * */
 	/* pc end mode selection */
-	else if(rc_hdlr->control_mode == PC_MODE){
-		if(rc_hdlr->pc.key.key_buffer & KEY_BOARD_G){
-				/* if s1 down, then just shut down everything */
-				board_mode = IDLE_MODE;
-			}
-		else{
-			/* else just set up to patrol mode */
-			board_mode = PATROL_MODE;
-			/* update keys state */
-//			if(rc_hdlr->pc.key.key_buffer & KEY_BOARD_CTRL)
-			if(rc_get_key_status(&rc_hdlr->pc.key.Ctrl) == RELEASED_TO_PRESS){ // check rising edge
-				chassis_pc_mode_toggle = -chassis_pc_mode_toggle;
-				temp_toggle_count++;
-			}
-			if(rc_get_key_status(&rc_hdlr->pc.key.F) == RELEASED_TO_PRESS) // check rising edge
-				chassis_pc_submode_toggle = -chassis_pc_submode_toggle;
-
-			/* mode decide */
-			if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == -1){
-				/* chassis follow gimbal center while follow yaw axis */
-				act_mode = GIMBAL_CENTER;
-				/* update gimbal axis */
-				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
-			}
-
-			else if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == 1){
-				/* spinning chassis while follow yaw axis */
-				act_mode = SELF_GYRO;
-				/* update gimbal axis */
-				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
-			}
-			else if(chassis_pc_mode_toggle == 1 && chassis_pc_submode_toggle == -1){
-				/* chassis only follow yaw axis */
-				act_mode = GIMBAL_FOLLOW;
-				/* update gimbal axis */
-				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
-			}
-			else if(chassis_pc_mode_toggle == 1 && chassis_pc_submode_toggle == 1){
-				/* independent mode */
-				act_mode = INDPET_MODE;
-				/* update ground axis */
-				chassis_update_chassis_coord(chassis_hdlr, rc_hdlr);
-			}
-		}// else patrol mode
-	}//pc mode
+//	else if(rc_hdlr->control_mode == PC_MODE) {
+//		if(rc_hdlr->pc.key.key_buffer & KEY_BOARD_G){
+//				/* if s1 down, then just shut down everything */
+//				board_mode = IDLE_MODE;
+//			}
+//		else{
+//			/* else just set up to patrol mode */
+//			board_mode = PATROL_MODE;
+//			/* update keys state */
+////			if(rc_hdlr->pc.key.key_buffer & KEY_BOARD_CTRL)
+//			if(rc_get_key_status(&rc_hdlr->pc.key.Ctrl) == RELEASED_TO_PRESS){ // check rising edge
+//				chassis_pc_mode_toggle = -chassis_pc_mode_toggle;
+//				temp_toggle_count++;
+//			}
+//			if(rc_get_key_status(&rc_hdlr->pc.key.F) == RELEASED_TO_PRESS) // check rising edge
+//				chassis_pc_submode_toggle = -chassis_pc_submode_toggle;
+//
+//			/* mode decide */
+//			if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == -1){
+//				/* chassis follow gimbal center while follow yaw axis */
+//				act_mode = GIMBAL_CENTER;
+//				/* update gimbal axis */
+//				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
+//			}
+//
+//			else if(chassis_pc_mode_toggle == -1 && chassis_pc_submode_toggle == 1){
+//				/* spinning chassis while follow yaw axis */
+//				act_mode = SELF_GYRO;
+//				/* update gimbal axis */
+//				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
+//			}
+//			else if(chassis_pc_mode_toggle == 1 && chassis_pc_submode_toggle == -1){
+//				/* chassis only follow yaw axis */
+//				act_mode = GIMBAL_FOLLOW;
+//				/* update gimbal axis */
+//				chassis_update_gimbal_coord(chassis_hdlr, rc_hdlr);
+//			}
+//			else if(chassis_pc_mode_toggle == 1 && chassis_pc_submode_toggle == 1){
+//				/* independent mode */
+//				act_mode = INDPET_MODE;
+//				/* update ground axis */
+//				chassis_update_chassis_coord(chassis_hdlr, rc_hdlr);
+//			}
+//		}// else patrol mode
+//	}//pc mode
 
 	/* set modes */
-	chassis_set_mode(chassis_hdlr, board_mode);
-	chassis_set_act_mode(chassis_hdlr, act_mode);// act mode only works when debuging with rc
 }
 
-void chassis_manual_gear_set(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr){
-	/* Manually set the levels of robot */
-	KeyStatus_t temp_upgrade_status = rc_get_key_status(&rc_hdlr->pc.key.V);
-	KeyStatus_t temp_downgrade_status = rc_get_key_status(&rc_hdlr->pc.key.Shift);
-	if( temp_upgrade_status == RELEASED_TO_PRESS && upgrade_pre_mode == RELEASED){
-		chassis_hdlr->cur_robot_level++;
-		upgrade_pre_mode = RELEASED_TO_PRESS;
-	}
-	else{
-		upgrade_pre_mode = temp_upgrade_status;
-	}
-	if(temp_downgrade_status == RELEASED_TO_PRESS && downgrade_pre_mode == RELEASED){
-		chassis_hdlr->cur_robot_level--;
-		downgrade_pre_mode = RELEASED_TO_PRESS;
-	}
-	else{
-		downgrade_pre_mode = temp_downgrade_status;
-	}
-
-	/* Safety check */
-	if(chassis_hdlr->cur_robot_level >= 10)
-		chassis_hdlr->cur_robot_level = 10;
-	if(chassis_hdlr->cur_robot_level <= 1)
-		chassis_hdlr->cur_robot_level = 1;
-
-	/* Set level */
-	switch(chassis_hdlr->cur_robot_level){
-			case 1: chassis_hdlr->max_vx = chassis_l1_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l1_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l1_hpf_spin_speed;break;
-			case 2: chassis_hdlr->max_vx = chassis_l2_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l2_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l2_hpf_spin_speed;break;
-			case 3: chassis_hdlr->max_vx = chassis_l3_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l3_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l3_hpf_spin_speed;break;
-			case 4: chassis_hdlr->max_vx = chassis_l4_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l4_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l4_hpf_spin_speed;break;
-			case 5: chassis_hdlr->max_vx = chassis_l5_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l5_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l5_hpf_spin_speed;break;
-			case 6: chassis_hdlr->max_vx = chassis_l6_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l6_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l6_hpf_spin_speed;break;
-			case 7: chassis_hdlr->max_vx = chassis_l7_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l7_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l7_hpf_spin_speed;break;
-			case 8: chassis_hdlr->max_vx = chassis_l8_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l8_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l8_hpf_spin_speed;break;
-			case 9: chassis_hdlr->max_vx = chassis_l9_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l9_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l9_hpf_spin_speed;break;
-			case 10: chassis_hdlr->max_vx = chassis_l10_hpf_padding_speed;
-					chassis_hdlr->max_vy = chassis_l10_hpf_padding_speed;
-					chassis_hdlr->max_wz = chassis_l10_hpf_spin_speed;break;
-	}
-}
+//void chassis_manual_gear_set(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr){
+//	/* Manually set the levels of robot */
+//	KeyStatus_t temp_upgrade_status = rc_get_key_status(&rc_hdlr->pc.key.V);
+//	KeyStatus_t temp_downgrade_status = rc_get_key_status(&rc_hdlr->pc.key.Shift);
+//	if( temp_upgrade_status == RELEASED_TO_PRESS && upgrade_pre_mode == RELEASED){
+//		chassis_hdlr->cur_robot_level++;
+//		upgrade_pre_mode = RELEASED_TO_PRESS;
+//	}
+//	else{
+//		upgrade_pre_mode = temp_upgrade_status;
+//	}
+//	if(temp_downgrade_status == RELEASED_TO_PRESS && downgrade_pre_mode == RELEASED){
+//		chassis_hdlr->cur_robot_level--;
+//		downgrade_pre_mode = RELEASED_TO_PRESS;
+//	}
+//	else{
+//		downgrade_pre_mode = temp_downgrade_status;
+//	}
+//
+//	/* Safety check */
+//	if(chassis_hdlr->cur_robot_level >= 10)
+//		chassis_hdlr->cur_robot_level = 10;
+//	if(chassis_hdlr->cur_robot_level <= 1)
+//		chassis_hdlr->cur_robot_level = 1;
+//
+//	/* Set level */
+//	switch(chassis_hdlr->cur_robot_level){
+//			case 1: chassis_hdlr->max_vx = chassis_l1_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l1_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l1_hpf_spin_speed;break;
+//			case 2: chassis_hdlr->max_vx = chassis_l2_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l2_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l2_hpf_spin_speed;break;
+//			case 3: chassis_hdlr->max_vx = chassis_l3_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l3_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l3_hpf_spin_speed;break;
+//			case 4: chassis_hdlr->max_vx = chassis_l4_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l4_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l4_hpf_spin_speed;break;
+//			case 5: chassis_hdlr->max_vx = chassis_l5_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l5_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l5_hpf_spin_speed;break;
+//			case 6: chassis_hdlr->max_vx = chassis_l6_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l6_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l6_hpf_spin_speed;break;
+//			case 7: chassis_hdlr->max_vx = chassis_l7_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l7_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l7_hpf_spin_speed;break;
+//			case 8: chassis_hdlr->max_vx = chassis_l8_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l8_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l8_hpf_spin_speed;break;
+//			case 9: chassis_hdlr->max_vx = chassis_l9_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l9_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l9_hpf_spin_speed;break;
+//			case 10: chassis_hdlr->max_vx = chassis_l10_hpf_padding_speed;
+//					chassis_hdlr->max_vy = chassis_l10_hpf_padding_speed;
+//					chassis_hdlr->max_wz = chassis_l10_hpf_spin_speed;break;
+//	}
+//}
 
 void select_chassis_speed(Chassis_t* chassis_hdlr, uint8_t level){
 	chassis_hdlr->prev_robot_level =  level;

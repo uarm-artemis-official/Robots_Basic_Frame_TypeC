@@ -29,6 +29,7 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -57,74 +58,13 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define Servo_Motor_Pin_Pin GPIO_PIN_6
-#define Servo_Motor_Pin_GPIO_Port GPIOI
-#define Board_Status_Pin GPIO_PIN_1
-#define Board_Status_GPIO_Port GPIOF
-#define RSTN_IST8310_Pin GPIO_PIN_6
-#define RSTN_IST8310_GPIO_Port GPIOG
-#define IMU_Heat_Pin_Pin GPIO_PIN_6
-#define IMU_Heat_Pin_GPIO_Port GPIOF
-#define LED_Red_Pin GPIO_PIN_12
-#define LED_Red_GPIO_Port GPIOH
-#define DRDY_IST8310_Pin GPIO_PIN_3
-#define DRDY_IST8310_GPIO_Port GPIOG
-#define LED_Green_Pin GPIO_PIN_11
-#define LED_Green_GPIO_Port GPIOH
-#define LED_Blue_Pin GPIO_PIN_10
-#define LED_Blue_GPIO_Port GPIOH
-#define Buzzer_Pin_Pin GPIO_PIN_14
-#define Buzzer_Pin_GPIO_Port GPIOD
-#define CS1_ACCEL_Pin GPIO_PIN_4
-#define CS1_ACCEL_GPIO_Port GPIOA
-#define INT1_ACCEL_Pin GPIO_PIN_4
-#define INT1_ACCEL_GPIO_Port GPIOC
-#define INT1_ACCEL_EXTI_IRQn EXTI4_IRQn
-#define SOFTWARE_EXTI_Pin GPIO_PIN_0
-#define SOFTWARE_EXTI_GPIO_Port GPIOG
-#define SOFTWARE_EXTI_EXTI_IRQn EXTI0_IRQn
-#define INT1_GYRO_Pin GPIO_PIN_5
-#define INT1_GYRO_GPIO_Port GPIOC
-#define INT1_GYRO_EXTI_IRQn EXTI9_5_IRQn
-#define CS1_GYRO_Pin GPIO_PIN_0
-#define CS1_GYRO_GPIO_Port GPIOB
-#define HIGH_VOLT_Pin GPIO_PIN_15
-#define HIGH_VOLT_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 typedef _Bool bool_t;
-#define VAL_LIMIT(val, min, max) \
-  do                             \
-  {                              \
-    if ((val) <= (min))          \
-    {                            \
-      (val) = (min);             \
-    }                            \
-    else if ((val) >= (max))     \
-    {                            \
-      (val) = (max);             \
-    }                            \
-  } while (0)
-
-#define ANGLE_LIMIT_360(val, angle) \
-  do                                \
-  {                                 \
-    (val) = (angle) - (int)(angle); \
-    (val) += (int)(angle) % 360;    \
-  } while (0)
-
-#define ANGLE_LIMIT_360_TO_180(val) \
-  do                                \
-  {                                 \
-    if((val)>180)                   \
-      (val) -= 360;                 \
-  } while (0)
-
-#define VAL_MIN(a, b) ((a) < (b) ? (a) : (b))
-#define VAL_MAX(a, b) ((a) > (b) ? (a) : (b))
-
 
 /* declare init function */
 HAL_StatusTypeDef firmware_and_system_init(void);
+
 extern char pdata[32]; //PACKLEN
 extern int16_t referee_parsed_flag;
 //extern uint8_t rc_rx_buffer[18];
