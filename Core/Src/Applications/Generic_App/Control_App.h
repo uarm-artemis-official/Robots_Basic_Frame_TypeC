@@ -29,7 +29,7 @@
 
 /* define general declarations for gimbal task here */
 #define DBUS_BUFFER_LEN 18
-#define DBUS_RAW_OFFSET 1
+#define DBUS_RAW_OFFSET 0
 #define DBUS_INDEX(i) ((i + DBUS_RAW_OFFSET) % DBUS_BUFFER_LEN)
 
 #define CHANNEL_CENTER  1024

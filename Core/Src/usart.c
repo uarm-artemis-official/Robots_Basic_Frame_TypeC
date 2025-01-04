@@ -92,6 +92,7 @@ void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
+  HAL_UART_DMAStop(&huart3);
   HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
   /* USER CODE END USART3_Init 2 */
 

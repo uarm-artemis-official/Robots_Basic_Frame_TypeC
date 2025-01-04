@@ -386,9 +386,9 @@ static void rc_publish_info(RemoteControl_t *rc_hdlr) {
   */
 void rc_reset(RemoteControl_t *rc_hdlr){
 	/* stop DMA */
-	HAL_UART_DMAStop(&huart3);
+//	HAL_UART_DMAStop(&huart3);
 	/* try to reconnect to rc */
-	HAL_UART_Receive_DMA(&huart3, rc_rx_buffer, DBUS_BUFFER_LEN);
+//	HAL_UART_Receive_DMA(&huart3, rc_rx_buffer, DBUS_BUFFER_LEN);
 }
 
 /* Keyboard operation process */
