@@ -13,12 +13,15 @@
 #define MOTOR_H_
 
 
-#include "main.h"
+#include "usart.h"
+#include "pid.h"
+#include "math.h"
+#include <string.h>
+#include "public_defines.h"
 #include "cmsis_os.h"
 #include "can.h"
 #include "pid.h"
 #include "feedforward.h"
-#include "public_defines.h"
 
 //Define needs to go ahead of include here for whatever reason....
 
@@ -54,17 +57,7 @@ typedef struct {
 	PID_t f_pid; //first pid handler for single-loop control
 	PID_t s_pid; //second pid handler for dual-loop control
 	FeedForward_t ff;
-}Motor_Info;
-
-// CAN rx feedback structure
-#pragma pack(1)
-typedef struct {
-	int16_t rx_angle;
-	int16_t rx_rpm;
-	int16_t rx_current;
-	int16_t rx_temp;
-} Motor_Feedback_t;
-#pragma pack(0)
+} Motor_Info;
 
 
 typedef struct {
@@ -72,7 +65,7 @@ typedef struct {
 	Motor_Feedback_t motor_feedback;
 	//Data need to sent to Motor
 	int32_t tx_data;
-}Motor;
+} Motor_t;
 /*
  * @brief Structure for all motors installed
  * @Note  first 4 motors will use 0x200, last 4 motors will use 0x1FF
@@ -85,21 +78,20 @@ typedef struct {
  *			motor_data[6]: magazine 2006
  * */
 
-void init_motor_data(void);
-
-void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback, uint8_t size);
-void set_motor_voltage(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4);
-void motor_init(uint8_t motor_id, int32_t max_out_f, float max_i_out_f, float max_err_f, float kp_f, float ki_f, float kd_f,
+void motor_data_init(Motor_t *motor);
+void motor_init(Motor_t *motor, int32_t max_out_f, float max_i_out_f, float max_err_f, float kp_f, float ki_f, float kd_f,
 								  int32_t max_out_s, float max_i_out_s, float max_err_s, float kp_s, float ki_s, float kd_s,
 								  float kf);
-float calc_gimbal_motor_dual_pid(float ff_input, float f_cur_val, int motor_idx, float dt);
-float calc_gimbal_motor_single_pid(float target_value, int motor_idx, float dt);
-//void set_motor_can_volt(int32_t *motor_tx_buffer, float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag, Gimbal_t *gimbal);
+
+void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback, uint8_t size);
+
+void set_motor_voltage(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4);
 void set_motor_can_current(int32_t v1, int32_t v2, int32_t v3, int32_t v4, int32_t control_indicator);
-void get_Motor_buffer(Motor* origin, Motor* destination);
-void set_Motor_buffer(Motor* origin, Motor* destination);
-void Motor_pid_set_angle(Motor* motor, double angle, double p, double i, double d, int is_Pitch);
-void Motor_set_raw_value(Motor* motor, double value);
+
+float calc_shoot_mag_dual_pid(float target_value, float f_cur_val, float s_cur_val, int motor_idx, float dt);
+//void set_motor_can_volt(int32_t *motor_tx_buffer, float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag, Gimbal_t *gimbal);
+void Motor_pid_set_angle(Motor_t* motor, double angle, double p, double i, double d, int is_Pitch);
+void Motor_set_raw_value(Motor_t* motor, double value);
 
 /* debug mode */
 void motor_debug_init(uint8_t motor_id, int32_t max_out_f, float max_i_out_f, float max_err_f, float kp_f, float ki_f, float kd_f,

@@ -11,8 +11,11 @@
 #ifndef __SRC_IMU_APP_H__
 #define __SRC_IMU_APP_H__
 
-#include "Gimbal_App.h"
 #include "gpio.h"
+#include "buzzer.h"
+#include "imu.h"
+#include "public_defines.h"
+#include "message_center.h"
 
 
 /* define general declarations for gimbal task here */

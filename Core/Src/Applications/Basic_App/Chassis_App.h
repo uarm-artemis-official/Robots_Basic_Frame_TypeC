@@ -34,6 +34,13 @@
 #define POWER_TO_CURRENT          (1.0f) //random value, test soon
 #define CHASSIS_PC_RAMP_VALUE 	 (0.5f) //ramp value for increment of the motors
 
+// Wheel index defines
+#define CHASSIS_WHEEL1_INDEX 0
+#define CHASSIS_WHEEL2_INDEX 1
+#define CHASSIS_WHEEL3_INDEX 2
+#define CHASSIS_WHEEL4_INDEX 3
+
+
 /* define user structure here */
 /*
  * @brief basic chassis structure
@@ -100,15 +107,16 @@ typedef struct{
 void Chassis_Task_Func(void const * argument);
 void chasiss_task_init(Chassis_t* chassis_hdlr);
 void chassis_reset_data(Chassis_t *chassis_hdlr);
-void chassis_set_mode(Chassis_t *chassis_hdlr, BoardMode_t mode);
-void chassis_set_act_mode(Chassis_t *chassis_hdlr, BoardActMode_t mode);
 void mecanum_wheel_calc_speed(Chassis_t *chassis_hdlr);
-void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, RCInfoMessage_t rc_info);
-void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RCInfoMessage_t rc_info);
+void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, int16_t *channels);
+void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, int16_t *channels);
 void chassis_brake(float *vel, float ramp_step, float stop_threshold);
 void chassis_exec_act_mode(Chassis_t *chassis_hdlr);
-void chassis_execute(Chassis_t *chassis_hdlr);
-void chassis_get_rc_info(Chassis_t *chassis_hdlr);
+
+void chassis_calc_wheel_pid_out(Chassis_t *chassis_hdlr, Motor_t *wheels);
+void chassis_send_wheel_volts(Chassis_t *chassis_hdlr, Motor_t *wheels);
+void chassis_get_rc_info(Chassis_t *chassis_hdlr, int16_t *channels);
+void chassis_get_wheel_feedback(Motor_t *wheels);
 void chassis_get_gimbal_rel_angles(Chassis_t *chassis_hdlr);
 
 /* power limit */

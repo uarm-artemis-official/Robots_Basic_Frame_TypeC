@@ -55,6 +55,9 @@
 #define GIMBAL_INIT_TIME_MS 1000 // init delay duration in mili-second
 #define GIMBAL_JUMP_THRESHOLD 5.6f
 
+#define GIMBAL_YAW_MOTOR_INDEX 0
+#define GIMBAL_PITCH_MOTOR_INDEX 1
+
 /* define user structure here */
 
 typedef struct Gimbal_t {
@@ -100,8 +103,8 @@ typedef struct Gimbal_t {
 	int16_t yaw_ecd_center;			//center position of the yaw motor by encoder
 	int16_t pitch_ecd_center;		//center position of the pitch motor by encoder
 
-	Motor_Feedback_t yaw_ecd_fb;	//yaw feedback data pool
-	Motor_Feedback_t pitch_ecd_fb; //pitch feedback data pool
+//	Motor_Feedback_t yaw_ecd_fb;	//yaw feedback data pool
+//	Motor_Feedback_t pitch_ecd_fb; //pitch feedback data pool
 
 	/* algorithm related */
 	ramp_t yaw_ramp;		  // yaw ramp for calibration process
@@ -145,10 +148,11 @@ extern PID_t tune_pid_s;
 
 /* functions declaration here */
 void Gimbal_Task_Function(void const * argument);
-void gimbal_task_init(Gimbal_t *gbal);
-void gimbal_reset_data(Gimbal_t *gbal);
-void gimbal_calibration_reset(Gimbal_t *gbal);
+void gimbal_task_init(Gimbal_t *gbal, Motor_t *g_motors);
+void gimbal_reset_data(Gimbal_t *gbal, Motor_t *g_motors);
+void gimbal_calibration_reset(Gimbal_t *gbal, Motor_t *g_motors);
 void gimbal_get_rc_info(Gimbal_t *gbal);
+void gimbal_get_motor_feedback(Gimbal_t *gbal, Motor_t *g_motors);
 void gimbal_set_modes(Gimbal_t* gbal, uint8_t modes[3]);
 void gimbal_set_board_mode(Gimbal_t *gbal, BoardMode_t mode);
 void gimbal_set_act_mode(Gimbal_t *gbal, BoardActMode_t mode);
@@ -159,18 +163,24 @@ void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr);
 void gimbal_get_euler_angle(Gimbal_t *gbal);
 void gimbal_gyro_update_abs_angle(Gimbal_t *gbal, float yaw, float pitch);
 // ecd base fucntions
-void gimbal_get_ecd_fb_data(Gimbal_t *gbal);
+//void gimbal_get_ecd_fb_data(Gimbal_t *gbal);
 int16_t gimbal_get_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 void gimbal_update_ecd_euler_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
-void gimbal_update_ecd_rel_angle(Gimbal_t *gbal);
+void gimbal_update_ecd_rel_angle(Gimbal_t *gbal, Motor_t *g_motors);
 //public functions
 void gimbal_update_truns(Gimbal_t *gbal, float halfc);
 void gimbal_set_angle(Gimbal_t *gbal, float target_angle);
 void gimbal_set_limited_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
 void gimbal_set_spd(Gimbal_t *gbal, int16_t yaw_target_spd);
-void gimbal_cmd_exec(Gimbal_t *gbal, uint8_t mode, uint8_t idle_flags);
+void gimbal_cmd_exec(Gimbal_t *gbal, Motor_t *g_motors, uint8_t mode, uint8_t idle_flag);
 void gimbal_update_rel_turns(Gimbal_t* gbal, int jump_threshold);
 void gimbal_send_rel_angles(Gimbal_t *gbal);
+void gimbal_update_rc_rel_angle(Gimbal_t *gbal, float delta_yaw, float delta_pitch);
+void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, UC_Auto_Aim_Pack_t *pack);
+
+void gimbal_calc_dual_pid_out(Motor_t *motor, float target, float f_cur_val);
+void gimbal_calc_single_pid_out(Motor_t *motor, float target);
+void gimbal_send_motor_volts(Motor_t *g_motors);
 
 
 #endif /* __SRC_APPLICATIONS_GIMBAL_APP_H_ */

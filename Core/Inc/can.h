@@ -24,6 +24,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+
 /* USER CODE BEGIN Includes */
 #include "stm32f4xx_hal.h"
 #include "public_defines.h"

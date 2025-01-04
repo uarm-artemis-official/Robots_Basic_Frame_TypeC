@@ -14,7 +14,6 @@
 
 //#define __USE_REDIRECTION__
 
-#include "main.h"
 #include <stdio.h>
 #include <errno.h>
 #include "usart.h"

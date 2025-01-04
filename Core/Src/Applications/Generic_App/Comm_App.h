@@ -12,10 +12,11 @@
 #ifndef __COMM_APP_H__
 #define __COMM_APP_H__
 
-#include <Gimbal_App.h>
-#include <queue_m.h>
-#include <comms.h>
+#include "queue_m.h"
+#include "comms.h"
 #include "public_defines.h"
+#include "tim.h"
+#include "string.h"
 
 #define USE_UART_DMA 1
 

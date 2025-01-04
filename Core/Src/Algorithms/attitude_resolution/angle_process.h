@@ -17,7 +17,6 @@
 
 #ifndef __ANGLE_PROCESS_H__
 #define __ANGLE_PROCESS_H__
-#include "main.h"
 #include "ahrs.h"
 #include "kalman_filters.h"
 

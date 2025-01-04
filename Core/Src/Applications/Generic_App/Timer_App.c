@@ -26,7 +26,7 @@ static BoardStatus_t board_status;
 void Timer_Task_Func(void const * argument){
 
 	/* set task exec period */
-	const TickType_t xFrequency = pdMS_TO_TICKS(1);
+	const TickType_t xFrequency = pdMS_TO_TICKS(TIMER_TASK_EXEC_TIME);
 	TickType_t xLastWakeTime = xTaskGetTickCount();
 
 	board_status = *(BoardStatus_t*) argument;
@@ -47,15 +47,15 @@ void Timer_Task_Func(void const * argument){
 			if(board_status == CHASSIS_BOARD) {
 				// TODO: Figure out why this is setting "voltage" when PID is calculated based on current.
 				set_motor_voltage(&hcan1, MOTOR_3508_STDID,
-					motor_tx_buffer[wheel_id1],
-					motor_tx_buffer[wheel_id2],
-					motor_tx_buffer[wheel_id3],
-					motor_tx_buffer[wheel_id4]);
+					motor_tx_buffer[CHASSIS_WHEEL1_CAN_ID],
+					motor_tx_buffer[CHASSIS_WHEEL2_CAN_ID],
+					motor_tx_buffer[CHASSIS_WHEEL3_CAN_ID],
+					motor_tx_buffer[CHASSIS_WHEEL4_CAN_ID]);
 			} else if(board_status == GIMBAL_BOARD) {
 				set_motor_voltage(&hcan1, MOTOR_6020_STDID,
-					motor_tx_buffer[YAW_ID],
-					motor_tx_buffer[PITCH_ID],
-					motor_tx_buffer[MAG_2006_ID],
+					motor_tx_buffer[GIMBAL_YAW_CAN_ID],
+					motor_tx_buffer[GIMBAL_PITCH_CAN_ID],
+					motor_tx_buffer[SHOOT_LOADER_CAN_ID],
 					0);
 #ifdef USE_CAN_FRIC
 				set_motor_voltage(&hcan1, MOTOR_3508_STDID,

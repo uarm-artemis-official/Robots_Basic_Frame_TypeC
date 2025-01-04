@@ -18,12 +18,13 @@
 #ifndef __RC_APP_H__
 #define __RC_APP_H__
 
-#include "maths.h"
-#include "public_defines.h"
-#include "message_center.h"
 #include "stdint.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
+#include "maths.h"
+#include "public_defines.h"
+#include "message_center.h"
+#include "usart.h"
 
 
 /* define general declarations for gimbal task here */
@@ -141,13 +142,8 @@ typedef struct{
 }RemoteControl_t;
 
 /* extern global variables here */
-extern uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
 extern UART_HandleTypeDef huart3;
 extern DMA_HandleTypeDef hdma_usart3_rx;
-
-
-/* define user created variables here */
-
 
 
 /* functions declaration here */
@@ -161,7 +157,8 @@ void rc_key_scan(KeyObject_t *key_obj, uint16_t key_buffer, uint16_t compare_key
 KeyStatus_t rc_get_key_status(KeyObject_t *key);
 
 
-
+void rc_on_uart_complete();
+void rc_on_uart_error();
 
 #endif /*__RC_APP_H__*/
 

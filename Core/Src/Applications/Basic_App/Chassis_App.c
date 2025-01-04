@@ -15,16 +15,10 @@
 
 #include "Chassis_App.h"
 
-//#define REF_CHASSIS_DEBUG 1
 
-uint16_t temp_max_vx = 100;
-uint16_t temp_max_vy = 100;
-uint16_t temp_max_wz = 100;
-
-extern uint16_t chassis_gyro_counter;
-extern uint8_t chassis_gyro_flag;
-
+static Motor_t chassis_wheels[4];
 static Chassis_t chassis;
+static int16_t rc_channels[4];
 
 /**
 * @brief Function implementing the Chassis_Task thread.
@@ -32,34 +26,35 @@ static Chassis_t chassis;
 * @retval None
 */
 /* Task execution time (per loop): 1ms */
-void Chassis_Task_Func(void const * argument)
-{
-  /* task LD indicator */
-  HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
+void Chassis_Task_Func(void const * argument) {
+	/* task LD indicator */
+	HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
 
-  /* init chassis task */
-  chasiss_task_init(&chassis); // For remote debug, set act mode as GIMBAL_CENTER
-  	  	  	  	  	  	  	   //					set mode as DEBUG_MODE
+	chasiss_task_init(&chassis);
 
-  /* set task exec period */
-  TickType_t xLastWakeTime;
-  const TickType_t xFrequency = pdMS_TO_TICKS(CHASSIS_TASK_EXEC_TIME); // task exec period 1ms
+	/* set task exec period */
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = pdMS_TO_TICKS(CHASSIS_TASK_EXEC_TIME);
 
-  /* init the task ticks */
-  xLastWakeTime = xTaskGetTickCount();
+	/* init the task ticks */
+	xLastWakeTime = xTaskGetTickCount();
 
-  for(;;)
-  {
-	  /* main chassis task function */
-//	  memcpy(&temp_referee, &referee, sizeof(Referee_t));
-	  chassis_get_rc_info(&chassis);
-	  chassis_get_gimbal_rel_angles(&chassis);
-//	  chassis_manual_gear_set(&chassis, &rc);
-	  chassis_exec_act_mode(&chassis);
+	for(;;) {
+		// memcpy(&temp_referee, &referee, sizeof(Referee_t));
+		chassis_get_rc_info(&chassis, rc_channels);
+		chassis_get_wheel_feedback(chassis_wheels);
+		chassis_get_gimbal_rel_angles(&chassis);
 
-	  /* delay until wake time */
-	  vTaskDelayUntil(&xLastWakeTime, xFrequency);
-  }
+		chassis_update_chassis_coord(&chassis, rc_channels);
+		chassis_update_gimbal_coord(&chassis, rc_channels);
+		// chassis_manual_gear_set(&chassis, &rc);
+		chassis_exec_act_mode(&chassis);
+		chassis_calc_wheel_pid_out(&chassis, chassis_wheels);
+
+		chassis_send_wheel_volts(&chassis, chassis_wheels);
+
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
+	}
 }
 
 /*
@@ -67,19 +62,21 @@ void Chassis_Task_Func(void const * argument)
  * @param[in] chassis: main chassis handler
  * */
 void chasiss_task_init(Chassis_t* chassis_hdlr){
-	  /* set pid parameters for chassis motors */
-	  for(int i=0;i<max_wheel_num;i++){
-		  motor_init(i, max_out_wheel,  max_I_out_wheel, max_err_wheel, kp_wheel, ki_wheel, kd_wheel,
-		  							 0, 0, 0, 0, 0, 0,//no second loop
-		  							 0);//spd ff gain
-	  }
-	  pid_param_init(&(chassis_hdlr->f_pid), 8000, 500, 5000, 600, 0.1, 100); // chassis twist pid init
-	  /* set initial chassis mode to idle mode or debug mode */
-	  chassis_set_mode(chassis_hdlr, IDLE_MODE);
-	  chassis_set_act_mode(chassis_hdlr, INDPET_MODE);// act mode only works when debuging with rc
-	  chassis_hdlr->chassis_gear_mode = AUTO_GEAR;
-	  /* reset data */
-	  chassis_reset_data(chassis_hdlr);
+	/* set pid parameters for chassis motors */
+	for(int i = 0; i < CHASSIS_MAX_WHEELS; i++) {
+		motor_init(&(chassis_wheels[i]), max_out_wheel,  max_I_out_wheel, max_err_wheel, kp_wheel, ki_wheel, kd_wheel,
+					0, 0, 0, 0, 0, 0,//no second loop
+					0);//spd ff gain
+		motor_data_init(&(chassis_wheels[i]));
+	}
+	pid_param_init(&(chassis_hdlr->f_pid), 8000, 500, 5000, 600, 0.1, 100); // chassis twist pid init
+	/* set initial chassis mode to idle mode or debug mode */
+	chassis_hdlr->chassis_mode = IDLE_MODE;
+	chassis_hdlr->chassis_act_mode = INDPET_MODE;
+
+	chassis_hdlr->chassis_gear_mode = AUTO_GEAR;
+	/* reset data */
+	chassis_reset_data(chassis_hdlr);
 }
 
 /*
@@ -87,7 +84,7 @@ void chasiss_task_init(Chassis_t* chassis_hdlr){
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
-void chassis_reset_data(Chassis_t *chassis_hdlr){
+void chassis_reset_data(Chassis_t *chassis_hdlr) {
 	/* init both coordinates */
 	chassis_hdlr->vx = 0;
 	chassis_hdlr->vy = 0;
@@ -109,6 +106,8 @@ void chassis_reset_data(Chassis_t *chassis_hdlr){
 	/* reset mecanum wheel speed */
 	for(int i=0;i<4;i++)
 		chassis_hdlr->mec_spd[i] = 0;
+
+	memset(rc_channels, 0, sizeof(int16_t) * 4);
 }
 
 /*
@@ -132,13 +131,37 @@ void mecanum_wheel_calc_speed(Chassis_t *chassis_hdlr){
 	 *
 	 * */
 	/* X type installation */
-	chassis_hdlr->mec_spd[wheel_id1] = (int16_t)(  chassis_hdlr->vx + chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH)*0.5) * CHASSIS_MOTOR_DEC_RATIO;
-	chassis_hdlr->mec_spd[wheel_id2] = (int16_t)(- chassis_hdlr->vx + chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH)*0.5) * CHASSIS_MOTOR_DEC_RATIO;
-	chassis_hdlr->mec_spd[wheel_id3] = (int16_t)(- chassis_hdlr->vx - chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH)*0.5) * CHASSIS_MOTOR_DEC_RATIO;
-	chassis_hdlr->mec_spd[wheel_id4] = (int16_t)(  chassis_hdlr->vx - chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH)*0.5) * CHASSIS_MOTOR_DEC_RATIO;
+	chassis_hdlr->mec_spd[CHASSIS_WHEEL1_CAN_ID] = (int16_t)(  chassis_hdlr->vx + chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH)*0.5) * CHASSIS_MOTOR_DEC_RATIO;
+	chassis_hdlr->mec_spd[CHASSIS_WHEEL2_CAN_ID] = (int16_t)(- chassis_hdlr->vx + chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH)*0.5) * CHASSIS_MOTOR_DEC_RATIO;
+	chassis_hdlr->mec_spd[CHASSIS_WHEEL3_CAN_ID] = (int16_t)(- chassis_hdlr->vx - chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH)*0.5) * CHASSIS_MOTOR_DEC_RATIO;
+	chassis_hdlr->mec_spd[CHASSIS_WHEEL4_CAN_ID] = (int16_t)(  chassis_hdlr->vx - chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH)*0.5) * CHASSIS_MOTOR_DEC_RATIO;
 
 	/* may apply super super capacity gain here */
 	/* may apply level up gain and power limit here when we have referee system feedback */
+}
+
+
+void chassis_calc_wheel_pid_out(Chassis_t *chassis_hdlr, Motor_t *wheels) {
+	wheels[CHASSIS_WHEEL1_INDEX].tx_data = pid_single_loop_control(
+			chassis_hdlr->mec_spd[CHASSIS_WHEEL1_INDEX],
+		&(wheels[CHASSIS_WHEEL1_INDEX].motor_info.f_pid),
+		wheels[CHASSIS_WHEEL1_INDEX].motor_feedback.rx_rpm,
+		CHASSIS_TASK_EXEC_TIME*0.001);
+	wheels[CHASSIS_WHEEL2_INDEX].tx_data = pid_single_loop_control(
+			chassis_hdlr->mec_spd[CHASSIS_WHEEL2_INDEX],
+		&(wheels[CHASSIS_WHEEL2_INDEX].motor_info.f_pid),
+		wheels[CHASSIS_WHEEL2_INDEX].motor_feedback.rx_rpm,
+		CHASSIS_TASK_EXEC_TIME*0.001);
+	wheels[CHASSIS_WHEEL3_INDEX].tx_data = pid_single_loop_control(
+			chassis_hdlr->mec_spd[CHASSIS_WHEEL3_INDEX],
+		&(wheels[CHASSIS_WHEEL3_INDEX].motor_info.f_pid),
+		wheels[CHASSIS_WHEEL3_INDEX].motor_feedback.rx_rpm,
+		CHASSIS_TASK_EXEC_TIME*0.001);
+	wheels[CHASSIS_WHEEL4_INDEX].tx_data = pid_single_loop_control(
+			chassis_hdlr->mec_spd[CHASSIS_WHEEL4_INDEX],
+		&(wheels[CHASSIS_WHEEL4_INDEX].motor_info.f_pid),
+		wheels[CHASSIS_WHEEL4_INDEX].motor_feedback.rx_rpm,
+		CHASSIS_TASK_EXEC_TIME*0.001);
 }
 
 /*
@@ -146,17 +169,22 @@ void mecanum_wheel_calc_speed(Chassis_t *chassis_hdlr){
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
-void chassis_execute(Chassis_t *chassis_hdlr){
+void chassis_send_wheel_volts(Chassis_t *chassis_hdlr, Motor_t *wheels) {
 	mecanum_wheel_calc_speed(chassis_hdlr);
 	/* max +-16834 */
-	for(int i=0;i<4;i++){
+	for (int i = 0; i < 4; i++) {
 		VAL_LIMIT(chassis_hdlr->mec_spd[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
 	}
-	set_motor_can_current(chassis_hdlr->mec_spd[wheel_id1],
-						  chassis_hdlr->mec_spd[wheel_id2],
-						  chassis_hdlr->mec_spd[wheel_id3],
-						  chassis_hdlr->mec_spd[wheel_id4],
-						  SINGLE_LOOP_PID_CONTROL);
+	MotorSetMessage_t motor_set_message;
+	motor_set_message.motor_can_volts[CHASSIS_WHEEL1_CAN_ID] = wheels[CHASSIS_WHEEL1_INDEX].tx_data;
+	motor_set_message.motor_can_volts[CHASSIS_WHEEL2_CAN_ID] = wheels[CHASSIS_WHEEL2_INDEX].tx_data;
+	motor_set_message.motor_can_volts[CHASSIS_WHEEL3_CAN_ID] = wheels[CHASSIS_WHEEL3_INDEX].tx_data;
+	motor_set_message.motor_can_volts[CHASSIS_WHEEL4_CAN_ID] = wheels[CHASSIS_WHEEL4_INDEX].tx_data;
+	motor_set_message.data_enable = (1 << CHASSIS_WHEEL1_CAN_ID) |
+									(1 << CHASSIS_WHEEL2_CAN_ID) |
+									(1 << CHASSIS_WHEEL3_CAN_ID) |
+									(1 << CHASSIS_WHEEL4_CAN_ID);
+	pub_message(MOTOR_SET, &motor_set_message);
 }
 
 /*
@@ -164,11 +192,11 @@ void chassis_execute(Chassis_t *chassis_hdlr){
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
-void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RCInfoMessage_t rc_info){
+void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, int16_t *channels) {
 	/* controller data is not required to be filtered */
-	chassis_hdlr->gimbal_axis.vx = rc_info.channels[3]; // apply vx data here
-	chassis_hdlr->gimbal_axis.vy = rc_info.channels[2]; // apply vy data here
-	chassis_hdlr->gimbal_axis.wz = rc_info.channels[0]; // apply wz data here
+	chassis_hdlr->gimbal_axis.vx = channels[3]; // apply vx data here
+	chassis_hdlr->gimbal_axis.vy = channels[2]; // apply vy data here
+	chassis_hdlr->gimbal_axis.wz = channels[0]; // apply wz data here
 //	else if(rc_hdlr->control_mode == PC_MODE){
 //		/* x axis process */
 //		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status == PRESSED)
@@ -241,11 +269,11 @@ void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RCInfoMessage_t rc_inf
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
-void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, RCInfoMessage_t rc_info){
+void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, int16_t *channels) {
 	/*chassis coordinates only for debugging purpose, thus no pc control processing*/
-	chassis_hdlr->vx = rc_info.channels[3]; // apply vx data here
-	chassis_hdlr->vy = rc_info.channels[2]; // apply vy data here
-	chassis_hdlr->wz = rc_info.channels[0];
+	chassis_hdlr->vx = channels[3]; // apply vx data here
+	chassis_hdlr->vy = channels[2]; // apply vy data here
+	chassis_hdlr->wz = channels[0];
 //	else if(rc_hdlr->control_mode == PC_MODE){
 //		/* x axis process */
 //		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status == PRESSED)
@@ -373,28 +401,8 @@ void chassis_exec_act_mode(Chassis_t *chassis_hdlr){
 	if(fabs(chassis_hdlr->wz) < 50.0f)
 		/* PID dead zone risk management */
 		chassis_hdlr->wz = 0;
-
-	/* execute the cmd */
-	chassis_execute(chassis_hdlr);
-
 }
 
-/*
- * @brief set chassis mode
- *			patrol | detected armor | Auto_Poilt | IDLE(no action) | Debug(remote control)
- */
-void chassis_set_mode(Chassis_t *chassis_hdlr, BoardMode_t mode){
-	chassis_hdlr->chassis_mode = mode;
-}
-
-/*
- * @brief set chassis action mode
- *			follow gimbal center| move_along gimbal coordinate |
- *			self-spinning while follow the gimbal coordinate | independent(ground coordinate)
- */
-void chassis_set_act_mode(Chassis_t *chassis_hdlr, BoardActMode_t mode){
-	chassis_hdlr->chassis_act_mode = mode;
-}
 /*
  * @brief brake the chassis slowly to avoid instant power overlimt
  */
@@ -418,19 +426,30 @@ void chassis_get_gimbal_rel_angles(Chassis_t *chassis_hdlr) {
 }
 
 
-void chassis_get_rc_info(Chassis_t *chassis_hdlr) {
+void chassis_get_rc_info(Chassis_t *chassis_hdlr, int16_t *channels) {
 	RCInfoMessage_t rc_info;
 	BaseType_t new_message = peek_message(RC_INFO, &rc_info, 0);
 
 	if (new_message == pdTRUE) {
+		// TODO: Add input validation for modes and channels.
 		BoardMode_t board_mode = rc_info.modes[0];
 		BoardActMode_t act_mode = rc_info.modes[1];
 
-		chassis_set_mode(chassis_hdlr, board_mode);
-		chassis_set_act_mode(chassis_hdlr, act_mode);
+		chassis_hdlr->chassis_mode = board_mode;
+		chassis_hdlr->chassis_act_mode = act_mode;
+		memcpy(channels, &(rc_info.channels), sizeof(int16_t) * 4);
+	}
+}
 
-		chassis_update_chassis_coord(chassis_hdlr, rc_info);
-		chassis_update_gimbal_coord(chassis_hdlr, rc_info);
+
+void chassis_get_wheel_feedback(Motor_t *wheels) {
+	Motor_Feedback_t feedback[8];
+	BaseType_t new_motor_read_message = peek_message(MOTOR_READ, feedback, 0);
+	if (new_motor_read_message == pdTRUE) {
+		memcpy(&(wheels[CHASSIS_WHEEL1_INDEX].motor_feedback), &(feedback[CHASSIS_WHEEL1_CAN_ID]), sizeof(Motor_Feedback_t));
+		memcpy(&(wheels[CHASSIS_WHEEL2_INDEX].motor_feedback), &(feedback[CHASSIS_WHEEL2_CAN_ID]), sizeof(Motor_Feedback_t));
+		memcpy(&(wheels[CHASSIS_WHEEL3_INDEX].motor_feedback), &(feedback[CHASSIS_WHEEL3_CAN_ID]), sizeof(Motor_Feedback_t));
+		memcpy(&(wheels[CHASSIS_WHEEL4_INDEX].motor_feedback), &(feedback[CHASSIS_WHEEL4_CAN_ID]), sizeof(Motor_Feedback_t));
 	}
 }
 
@@ -666,9 +685,9 @@ void chassis_power_limit_referee(Chassis_t* chassis_hdlr){
 	}
 	//step 4: Weighted assignment (soft-max filter) of the current motor output value (conditional judgment)
 	//softmax(chassis_hdlr->mec_spd, 4); //softmax cannot handle negative value very well
-	for(int i=0;i<max_wheel_num;i++)
+	for(int i=0;i<CHASSIS_MAX_WHEELS;i++)
 		abs_current_weighted_sum += abs(chassis_hdlr->mec_spd[i]);
-	for(int i=0;i<max_wheel_num;i++)
+	for(int i=0;i<CHASSIS_MAX_WHEELS;i++)
 		chassis_hdlr->mec_spd[i] = chassis_hdlr->mec_spd[i] * (abs(chassis_hdlr->mec_spd[i])/abs_current_weighted_sum);
 }
 
@@ -686,7 +705,7 @@ void chassis_power_limit_local(Chassis_t* chassis_hdlr, uint16_t local_power_lim
 	int32_t total_current = 0;
 	int32_t abs_current_weighted_sum = 0;
 
-	for (int i=0; i<max_wheel_num; i++){
+	for (int i=0; i<CHASSIS_MAX_WHEELS; i++){
 		current_power += 24 * motor_data[i].motor_feedback.rx_current * CHASSIS_MAX_SPEED/20;//assume the feedbcak current has same range with tx data
 	}
 
@@ -699,9 +718,9 @@ void chassis_power_limit_local(Chassis_t* chassis_hdlr, uint16_t local_power_lim
     }
 
 	/*apply current */
-	for(int i=0;i<max_wheel_num;i++)
+	for(int i=0;i<CHASSIS_MAX_WHEELS;i++)
 		abs_current_weighted_sum += abs(chassis_hdlr->mec_spd[i]);
-	for(int i=0;i<max_wheel_num;i++)
+	for(int i=0;i<CHASSIS_MAX_WHEELS;i++)
 		chassis_hdlr->mec_spd[i] = (int16_t)chassis_hdlr->mec_spd[i] * (abs(chassis_hdlr->mec_spd[i])/abs_current_weighted_sum);
 }
 

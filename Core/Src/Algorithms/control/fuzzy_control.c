@@ -11,7 +11,6 @@
 #ifndef __FUZZY_CONTROL_C__
 #define __FUZZY_CONTROL_C__
 
-#include "main.h"
 #include "fuzzy_control.h"
 
 /* @attention

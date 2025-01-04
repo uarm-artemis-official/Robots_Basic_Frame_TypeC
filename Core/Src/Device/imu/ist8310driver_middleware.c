@@ -18,9 +18,7 @@
   */
 
 #include "ist8310driver_middleWare.h"
-#include "main.h"
 
-extern I2C_HandleTypeDef hi2c3;
 
 /**
   * @brief          initialize ist8310 gpio.

@@ -15,10 +15,10 @@
 #define SRC_APPLICATIONS_TIMER_APP_H_
 
 #include "stm32f4xx_hal.h"
+#include "FreeRTOS.h"
 #include "public_defines.h"
 #include "message_center.h"
 #include "motor.h"
-#include "FreeRTOS.h"
 
 
 

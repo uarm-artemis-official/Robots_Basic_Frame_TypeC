@@ -23,6 +23,16 @@
 
 #define MAX_CAN_MOTOR_NUM 8
 #define MOTOR_COUNT 8
+#define DBUS_BUFFER_LEN 18
+
+#pragma pack(1)
+typedef struct {
+	int16_t rx_angle;
+	int16_t rx_rpm;
+	int16_t rx_current;
+	int16_t rx_temp;
+} Motor_Feedback_t;
+#pragma pack(0)
 
 typedef enum {
     GIMBAL_BOARD = 1,
@@ -80,29 +90,35 @@ typedef struct {
 
 #define CHANNEL_OFFSET_MAX_ABS_VAL 660
 
-/* Task exec time in secs */
+/* Task exec time in milliseconds */
 #define CHASSIS_TASK_EXEC_TIME 1
 #define GIMBAL_TASK_EXEC_TIME 1
 #define SHOOT_TASK_EXEC_TIME 1
 #define IMU_TASK_EXEC_TIME 1
+#define TIMER_TASK_EXEC_TIME 1
 
 /* motor can id */
 #define CHASSIS_ECD_CONST_OMEGA 120
-#define max_wheel_num 4
-#define wheel_id1 0
-#define wheel_id2 1
-#define wheel_id3 2
-#define wheel_id4 3
+#define CHASSIS_MAX_WHEELS 4
 
-#define YAW_ID 4
-#define PITCH_ID 5
+// These are used for idexing the motor feedback array from MOTOR_READ topic.
+// Formula: CAN ID = Chassis Motor CAN Std. IDs - CAN_RX_ID_START.
+#define CHASSIS_WHEEL1_CAN_ID 0
+#define CHASSIS_WHEEL2_CAN_ID 1
+#define CHASSIS_WHEEL3_CAN_ID 2
+#define CHASSIS_WHEEL4_CAN_ID 3
 
-#define fric_left_id 0
-#define fric_right_id 1
-#define MAG_2006_ID 6
-#define mag_3508_id 2
+// These are used for idexing the motor feedback array from MOTOR_READ topic.
+// Formula: CAN ID = Gimbal Motor CAN Std. IDs - CAN_RX_ID_START.
+#define SHOOT_LEFT_FRIC_CAN_ID 0
+#define SHOOT_RIGHT_FRIC_CAN_ID 1
+#define SHOOT_LOADER_CAN_ID 6
+#define GIMBAL_YAW_CAN_ID 4
+#define GIMBAL_PITCH_CAN_ID 5
+//#define MAG_3508_ID 2
 
 /* motor pid param */
+// TODO: Move PID parameters into separate header file.
 /* wheels 3508 single loop control */
 #define kp_wheel 5
 #define ki_wheel 0

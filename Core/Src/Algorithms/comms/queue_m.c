@@ -11,9 +11,7 @@
 #ifndef __QUEUE_M_C__
 #define __QUEUE_M_C__
 
-#include <queue_m.h>
-#include "main.h"
-#include "string.h"
+#include "queue_m.h"
 
 /* Since we have multiple can comm works in the future , there is necessity that apply
  * FIFO Queue management of our CAN2 data pool. */

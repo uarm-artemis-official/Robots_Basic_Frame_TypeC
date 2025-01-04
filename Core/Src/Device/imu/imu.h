@@ -11,6 +11,14 @@
 #ifndef __IMU_H__
 #define __IMU_H__
 
+
+#include "ahrs.h"
+#include "spi.h"
+#include "bmi088_driver.h"
+#include "ist8310driver.h"
+#include "pid.h"
+#include "cmsis_os.h"
+
 /* define general declarations here */
 #define IMU_OK  0
 #define IMU_ERR 1

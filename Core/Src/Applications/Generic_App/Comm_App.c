@@ -13,11 +13,7 @@
 #ifndef __COMM_APP_C__
 #define __COMM_APP_C__
 
-#include <Control_App.h>
 #include "Comm_App.h"
-#include "Chassis_App.h"
-#include "tim.h"
-#include "string.h"
 
 #define USART_COMM 0
 extern can_comm_rx_t can_comm_rx[TOTAL_COMM_ID];

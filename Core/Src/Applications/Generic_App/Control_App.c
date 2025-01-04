@@ -98,10 +98,12 @@
 /* define rc global handler */
 static RemoteControl_t rc;
 static ewma_filter_t ewma_gimbal_yaw, ewma_gimbal_pitch;
+static uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
+static uint32_t rc_errors = 0;
+static uint32_t rc_completes = 0;
 
 /* define internal functions */
 static void rc_update_comm_pack(RemoteControl_t *rc_hdlr);
-static void rc_publish_gimbal_deltas(RemoteControl_t *rc_hdlr);
 static void rc_publish_info(RemoteControl_t *rc_hdlr);
 /**
   * @brief     main remote control task
@@ -124,13 +126,14 @@ void RC_Task_Func(){
 	xLastWakeTime = xTaskGetTickCount();
 
 	for(;;){
-
-		rc_process_rx_data(&rc, rc_rx_buffer);
-		rc_publish_info(&rc);
+		BaseType_t new_rc_raw_message = get_message(RC_RAW, rc_rx_buffer, 0);
+		if (new_rc_raw_message == pdTRUE) {
+			rc_process_rx_data(&rc, rc_rx_buffer);
+			rc_publish_info(&rc);
+		}
 		/* delay until wake time */
 	    vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
-
 }
 /**
   * @brief     init all the struct before task begin
@@ -187,6 +190,8 @@ void rc_task_init(RemoteControl_t *rc_hdlr){
 
 	init_ewma_filter(&ewma_gimbal_yaw, 0.8f);//0.65 for older client
 	init_ewma_filter(&ewma_gimbal_pitch, 0.8f);//0.6 for older client
+
+	memset(rc_rx_buffer, 0, sizeof(rc_rx_buffer));
 }
 
 /**
@@ -194,10 +199,10 @@ void rc_task_init(RemoteControl_t *rc_hdlr){
   * @param[in] main rc struct
   * @retval    None
   */
-void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rc_rx_buffer){
+void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rx_buffer){
 	/* no matter what mode, read switch data */
-	rc_hdlr->ctrl.s1   = ((rc_rx_buffer[5] >> 4)& 0x000C) >> 2;
-	rc_hdlr->ctrl.s2   = ((rc_rx_buffer[5] >> 4)& 0x0003);      //may use this as mode swap indicator
+	rc_hdlr->ctrl.s1   = ((rx_buffer[5] >> 4)& 0x000C) >> 2;
+	rc_hdlr->ctrl.s2   = ((rx_buffer[5] >> 4)& 0x0003);      //may use this as mode swap indicator
 
 	/* currently hard coding */
 	if(rc_hdlr->ctrl.s1 == SW_MID && rc_hdlr->ctrl.s2 == SW_DOWN)
@@ -207,11 +212,11 @@ void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rc_rx_buffer){
 
 	if(rc_hdlr->control_mode == CTRLER_MODE){
 		/* remote controller parse process */
-		rc_hdlr->ctrl.ch0  = ((rc_rx_buffer[0]| (rc_rx_buffer[1] << 8)) & 0x07ff) - CHANNEL_CENTER;
-		rc_hdlr->ctrl.ch1  = (((rc_rx_buffer[1] >> 3) | (rc_rx_buffer[2] << 5)) & 0x07ff) - CHANNEL_CENTER;
-		rc_hdlr->ctrl.ch2  = (((rc_rx_buffer[2] >> 6) | (rc_rx_buffer[3] << 2) | (rc_rx_buffer[4] << 10)) & 0x07ff) - CHANNEL_CENTER;
-		rc_hdlr->ctrl.ch3  = (((rc_rx_buffer[4] >> 1) | (rc_rx_buffer[5] << 7)) & 0x07ff) - CHANNEL_CENTER;
-		rc_hdlr->ctrl.wheel = ((rc_rx_buffer[16]|(rc_rx_buffer[17]<<8))&0x07FF) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.ch0  = ((rx_buffer[0]| (rx_buffer[1] << 8)) & 0x07ff) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.ch1  = (((rx_buffer[1] >> 3) | (rx_buffer[2] << 5)) & 0x07ff) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.ch2  = (((rx_buffer[2] >> 6) | (rx_buffer[3] << 2) | (rx_buffer[4] << 10)) & 0x07ff) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.ch3  = (((rx_buffer[4] >> 1) | (rx_buffer[5] << 7)) & 0x07ff) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.wheel = ((rx_buffer[16]|(rx_buffer[17]<<8))&0x07FF) - CHANNEL_CENTER;
 
 		/* calibration process to avoid some unexpected values */
 		if ((abs(rc_hdlr->ctrl.ch0)  > CHANNEL_OFFSET_MAX_ABS_VAL) ||(abs(rc_hdlr->ctrl.ch1) > CHANNEL_OFFSET_MAX_ABS_VAL) || \
@@ -225,12 +230,12 @@ void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rc_rx_buffer){
 	}
 	else if(rc_hdlr->control_mode == PC_MODE){
 		/* pc parse process */
-		rc_hdlr->pc.mouse.x = rc_rx_buffer[6] | (rc_rx_buffer[7] << 8);
-		rc_hdlr->pc.mouse.y = rc_rx_buffer[8] | (rc_rx_buffer[9] << 8);
-		rc_hdlr->pc.mouse.z = rc_rx_buffer[10] | (rc_rx_buffer[11] << 8);//why the official parse process has z axis??
-		rc_hdlr->pc.mouse.click_l = rc_rx_buffer[12];
-		rc_hdlr->pc.mouse.click_r = rc_rx_buffer[13];
-		rc_hdlr->pc.key.key_buffer = rc_rx_buffer[14] | (rc_rx_buffer[15] << 8);//multiple keys reading
+		rc_hdlr->pc.mouse.x = rx_buffer[6] | (rx_buffer[7] << 8);
+		rc_hdlr->pc.mouse.y = rx_buffer[8] | (rx_buffer[9] << 8);
+		rc_hdlr->pc.mouse.z = rx_buffer[10] | (rx_buffer[11] << 8);//why the official parse process has z axis??
+		rc_hdlr->pc.mouse.click_l = rx_buffer[12];
+		rc_hdlr->pc.mouse.click_r = rx_buffer[13];
+		rc_hdlr->pc.key.key_buffer = rx_buffer[14] | (rx_buffer[15] << 8);//multiple keys reading
 
 		/* scan all the keys */
 		rc_key_scan(&rc_hdlr->pc.key.W, rc_hdlr->pc.key.key_buffer, KEY_BOARD_W);
@@ -360,11 +365,9 @@ static void rc_publish_info(RemoteControl_t *rc_hdlr) {
 			rc_hdlr->ctrl.ch2,
 			rc_hdlr->ctrl.ch3
 	};
-	RCInfoMessage_t rc_info_message = {
-			.modes = modes,
-			.channels = channels,
-	};
-
+	RCInfoMessage_t rc_info_message;
+	memcpy(&(rc_info_message.modes), modes, sizeof(uint8_t) * 3);
+	memcpy(&(rc_info_message.channels), channels, sizeof(int16_t) * 4);
 	pub_message(RC_INFO, &rc_info_message);
 
 	// Publish to COMM_OUT (Chassis -> Gimbal).
@@ -456,4 +459,14 @@ void rc_get_comm_info(RemoteControl_t *rc_hdlr){
 
 }
 
+
+void rc_on_uart_complete() {
+	rc_completes++;
+}
+
+
+void rc_on_uart_error() {
+	rc_errors++;
+	receive_rc_info(rc_rx_buffer, DBUS_BUFFER_LEN);
+}
 #endif /*__RC_APP_C__*/

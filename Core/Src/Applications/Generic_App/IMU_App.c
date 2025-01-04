@@ -11,9 +11,6 @@
 #define __IMU_APP_C__
 
 #include "IMU_App.h"
-#include "buzzer.h"
-#include "imu.h"
-#include "public_defines.h"
 
 
 /**

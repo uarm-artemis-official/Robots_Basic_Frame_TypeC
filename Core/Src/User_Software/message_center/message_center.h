@@ -21,6 +21,7 @@ typedef enum Topic_Name_t {
 	REF_INFO,
 	PLAYER_COMMANDS,
 	RC_INFO,
+	RC_RAW,
 	REFEREE_INFO,
 
 	// Gimbal -> Chassis
@@ -69,5 +70,6 @@ void message_center_init();
 BaseType_t get_message(Topic_Name_t topic, void *data_ptr, int ticks_to_wait);
 BaseType_t peek_message(Topic_Name_t topic, void *data_ptr, int ticks_to_wait);
 BaseType_t pub_message(Topic_Name_t topic, void *data_ptr);
+BaseType_t pub_message_from_isr(Topic_Name_t topic, void *data_ptr, BaseType_t *will_context_switch);
 
 #endif // !PUBSUB_H

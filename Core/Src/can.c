@@ -300,12 +300,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, can_rx_buffer[idx]);
 
 		parse_motor_feedback(can_rx_buffer[idx], motor_feedback, MOTOR_COUNT);
-		pub_message(MOTOR_READ, motor_feedback);
+		pub_message_from_isr(MOTOR_READ, motor_feedback, NULL);
 	}
 	if(hcan == &hcan2){
 		incoming_message.topic_name = rx_header.StdId;
 		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, incoming_message.data);
-		pub_message(COMM_IN, &incoming_message);
+		pub_message_from_isr(COMM_IN, &incoming_message, NULL);
 	}
 }
 /* USER CODE END 1 */

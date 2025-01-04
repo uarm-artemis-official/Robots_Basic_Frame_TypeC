@@ -11,10 +11,11 @@
 #ifndef __BMI088_MIDDLEWARE_H__
 #define __BMI088_MIDDLEWARE_H__
 
+#include "stdint.h"
+
+
 #define BMI088_USE_SPI
 //#define BMI088_USE_IIC
-
-#include "main.h"
 
 extern void BMI088_GPIO_Init(void);
 extern void BMI088_Com_Init(void);

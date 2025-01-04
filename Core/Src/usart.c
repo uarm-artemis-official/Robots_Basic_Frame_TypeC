@@ -21,10 +21,11 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-#include "Comm_App.h"
-#include "Control_App.h"
-#include "auto_aim.h"
-extern uint8_t ref_rx_frame[256];
+static uint8_t rc_frame_buffer[DBUS_BUFFER_LEN];
+static int uart_error_count = 0;
+static int uart_complete_count = 0;
+
+extern BoardStatus_t board_status;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -83,7 +84,7 @@ void MX_USART3_UART_Init(void)
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_EVEN;
-  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.Mode = UART_MODE_RX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart3) != HAL_OK)
@@ -91,7 +92,7 @@ void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-//  HAL_UART_Receive_IT(&huart3, rc_rx_buffer, DBUS_BUFFER_LEN);
+  HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
   /* USER CODE END USART3_Init 2 */
 
 }
@@ -230,7 +231,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart3_rx.Init.MemInc = DMA_MINC_ENABLE;
     hdma_usart3_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_usart3_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart3_rx.Init.Mode = DMA_CIRCULAR;
+    hdma_usart3_rx.Init.Mode = DMA_NORMAL;
     hdma_usart3_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
     hdma_usart3_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     if (HAL_DMA_Init(&hdma_usart3_rx) != HAL_OK)
@@ -380,5 +381,37 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+/*
+ * @brief  UART DMA Callback function, update all the dma transmission IT here
+ * @note   This function is called when：
+ * 			 Referee system recv: UART3_DMA1_Stream1
+ * 			 Mini PC recv: 		  UART6_DMA2_Stream1
+ *
+ * */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if(huart == &huart1 && board_status == CHASSIS_BOARD){
+	 /* re-activate DMA */
+//		referee_parsed_flag = 1;
+//	} else if (huart == &UC_HUART && board_status == GIMBAL_BOARD) {
+	//		uc_on_RxCplt();
+	//	  uint32_t DWTcnt = dwt_getCnt_us();// systemclock_core 168MHz ->usec
+	//	  int32_t delta_t = DWTcnt - prev_uart_timestamp;
+	//	  prev_uart_timestamp = DWTcnt;
+	//	  xQueueSendFromISR(UC_Pack_Queue, uc_pack_input_buffer, NULL);
+	//	  memset(uc_pack_input_buffer, 0, UC_PACK_SIZE);
+	//	  HAL_UART_Receive_DMA(&UC_HUART, uc_pack_input_buffer, UC_PACK_SIZE);
 
+	} else if (huart == &huart3 && board_status == CHASSIS_BOARD) {
+		uart_complete_count++;
+		pub_message_from_isr(RC_RAW, rc_frame_buffer, NULL);
+		HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
+	}
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+	if (huart == &huart3 && board_status == CHASSIS_BOARD) {
+		uart_error_count++;
+		// TODO: Implement error handling.
+	}
+}
 /* USER CODE END 1 */

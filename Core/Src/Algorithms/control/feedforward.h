@@ -12,8 +12,6 @@
 #ifndef __FEEDFORWARD_H__
 #define __FEEDFORWARD_H__
 
-#include "main.h"
-
 /* define general declarations for gimbal task here */
 #define CHASSIS_FF_GAIN 100 //roughlt setting
 #define GIMBAL_FF_GAIN 100

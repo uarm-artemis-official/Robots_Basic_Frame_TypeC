@@ -11,13 +11,7 @@
 #ifndef __IMU_C__
 #define __IMU_C__
 
-#include "main.h"
-#include "ahrs.h"
-#include "spi.h"
 #include "imu.h"
-#include "bmi088_driver.h"
-#include "ist8310driver.h"
-#include "pid.h"
 
 extern IMU_t imu;
 #define ABS_F(x) (x) < 0 ? -(x) : (x)

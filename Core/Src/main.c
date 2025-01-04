@@ -94,16 +94,14 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Control_App.h"
-#include "Comm_App.h"
 #include "motor.h"
 #include "stdio.h"
 #include "dwt.h"
 #include "buzzer.h"
 #include "self_check.h"
 #include "auto_aim.h"
-#include "PC_UART_App.h"
 #include "message_center.h"
+#include "Control_App.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -144,14 +142,14 @@ uint32_t prev_uart_timestamp = 0;
 uint32_t debugger_signal_counter = 0;//count the idle time
 uint32_t debugger_signal_flag = 0; //mark the debugger task
 uint8_t ref_rx_frame[256]={0}; //referee temp frame buffer
-uint8_t rc_rx_buffer[DBUS_BUFFER_LEN]; //rc temporary buffer
 uint16_t chassis_gyro_counter = 0; // used for backup robots without slipring
 uint8_t chassis_gyro_flag = 0;	   // used for backup robots without slipring
 
-extern Motor motor_data[MOTOR_COUNT]; //MOTOR_COUNT
+extern Motor_t motor_data[MOTOR_COUNT]; //MOTOR_COUNT
 extern Buzzer_t buzzer;
 
-static BoardStatus_t board_status;
+// TODO: Find better way
+BoardStatus_t board_status;
 
 /* USER CODE END 0 */
 
@@ -193,6 +191,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   MX_I2C3_Init();
+//  MX_IWDG_Init();
   MX_TIM5_Init();
   MX_USART6_UART_Init();
   MX_TIM1_Init();
@@ -292,11 +291,8 @@ HAL_StatusTypeDef firmware_and_system_init(void){
 	if( HAL_TIM_PWM_Start(&htim10,TIM_CHANNEL_1) != HAL_OK){
 		return HAL_ERROR;
 	}
-
-	init_motor_data();
 	// referee_init(&referee);
 	buzzer_init(&buzzer);
-	uc_auto_aim_pack_init(&uc_auto_aim_pack);
 	dwt_init();
 
 	board_status = get_board_status();
@@ -335,63 +331,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   /* USER CODE END Callback 1 */
 }
-/*
- * @brief  DMA Callback function, update all the dma transmission IT here
- * @note   This function is called when：
- * 			 Referee system recv: UART3_DMA1_Stream1
- * 			 Mini PC recv: 		  UART6_DMA2_Stream1
- *
- * 	THIS FUNCTION WAS ABONDONED BC THE HAL_DMA_START_IT NEED US TO CALL A UINT32_T ADDR WHICH IS
- * 	CONFLICT WITH REFEREE SYSTEM REQUIREMENT
- *
- * */
-#ifdef ABONDONED_FUNC
-void XferCpltCallback(DMA_HandleTypeDef *hdma){
-//	HAL_GPIO_TogglePin(LD_G_GPIO_Port,LD_G_Pin);
-	if(hdma->Instance == DMA1_Stream1){
-		huart3.Instance->CR3&=~USART_CR3_DMAT;//disable the uart3 dma using register
-		/*read data*/
-		referee_read_data(&referee, ref_rx_frame);
-		/* re-activate DMA */
-//		HAL_UART_Receive_DMA(&huart3, ref_rx_frame, sizeof(ref_rx_frame));
-		huart6.Instance->CR3|=USART_CR3_DMAT;
-	}
-	if(hdma->Instance == DMA2_Stream1 && board_status == CHASSIS_BOARD){
-		huart6.Instance->CR3&=~USART_CR3_DMAT;//disable the uart3 dma using register
-		/*read data from mini pc pack*/
-		comm_pack.vision = parse_all(pdata);
-		/* re-activate DMA */
-//		HAL_UART_Receive_DMA(&huart6, pdata, PACKLEN);
-		huart6.Instance->CR3|=USART_CR3_DMAT;
-		}
 
-//	HAL_GPIO_TogglePin(LD_G_GPIO_Port,LD_G_Pin);
-}
-#elif defined(USE_UART_DMA)
-/*
- * @brief  UART DMA Callback function, update all the dma transmission IT here
- * @note   This function is called when：
- * 			 Referee system recv: UART3_DMA1_Stream1
- * 			 Mini PC recv: 		  UART6_DMA2_Stream1
- *
- * */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-  if(huart == &huart1 && board_status == CHASSIS_BOARD){
-	 /* re-activate DMA */
-	  referee_parsed_flag = 1;
-  }
-  else if (huart == &UC_HUART && board_status == GIMBAL_BOARD) {
-//		uc_on_RxCplt();
-	  uint32_t DWTcnt = dwt_getCnt_us();// systemclock_core 168MHz ->usec
-	  int32_t delta_t = DWTcnt - prev_uart_timestamp;
-	  prev_uart_timestamp = DWTcnt;
-	  xQueueSendFromISR(UC_Pack_Queue, uc_pack_input_buffer, NULL);
-	  memset(uc_pack_input_buffer, 0, UC_PACK_SIZE);
-	  HAL_UART_Receive_DMA(&UC_HUART, uc_pack_input_buffer, UC_PACK_SIZE);
 
-  }
-}
-#endif
 /* USER CODE END 4 */
 
 /**
