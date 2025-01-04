@@ -53,6 +53,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+static BoardStatus_t board_status;
 QueueHandle_t UC_Pack_Queue;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
@@ -100,7 +101,7 @@ void MX_FREERTOS_Init(void) {
   osThreadId PCUARTTaskHandle;
   osThreadId RefTaskHandle;
 
-  uint8_t board_status = get_board_status();
+  board_status = get_board_status();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */

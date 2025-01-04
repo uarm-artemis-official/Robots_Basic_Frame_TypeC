@@ -83,7 +83,7 @@ void motor_init(Motor_t *motor, int32_t max_out_f, float max_i_out_f, float max_
 								  int32_t max_out_s, float max_i_out_s, float max_err_s, float kp_s, float ki_s, float kd_s,
 								  float kf);
 
-void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback, uint8_t size);
+void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback);
 
 void set_motor_voltage(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4);
 void set_motor_can_current(int32_t v1, int32_t v2, int32_t v3, int32_t v4, int32_t control_indicator);

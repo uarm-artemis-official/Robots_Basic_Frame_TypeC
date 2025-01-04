@@ -206,7 +206,8 @@ void gimbal_calibration_reset(Gimbal_t *gbal, Motor_t *g_motors) {
 			 osDelay(1);
 		 }
 	 } else {
-		 Error_Handler();
+		 // TODO: Implement proper error handling for unknown states.
+//		 Error_Handler();
 	 }
 }
 
@@ -653,7 +654,7 @@ void gimbal_cmd_exec(Gimbal_t *gbal, Motor_t *g_motors, uint8_t mode, uint8_t id
 			gimbal_calc_dual_pid_out(&(g_motors[GIMBAL_YAW_MOTOR_INDEX]), gbal->yaw_tar_angle, gbal->final_abs_yaw);
 			gimbal_calc_dual_pid_out(&(g_motors[GIMBAL_PITCH_MOTOR_INDEX]), gbal->pitch_tar_angle, gbal->pitch_cur_rel_angle);
 		} else {
-			Error_Handler();
+//			Error_Handler();
 		}
 	} else if(mode == SINGLE_LOOP_PID_CONTROL) { // only spd control
 		gimbal_calc_single_pid_out(&(g_motors[GIMBAL_YAW_MOTOR_INDEX]), gbal->yaw_tar_spd);

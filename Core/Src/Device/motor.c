@@ -36,13 +36,11 @@ void motor_init(Motor_t *motor, int32_t max_out_f, float max_i_out_f, float max_
   * @param[in] can1/can2 type header
   * @retval    None
   */
-void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback, uint8_t size) {
-	for (int i = 0; i < size; i++){
-		motor_feedback[i].rx_angle	 =(int16_t)(can_data[0] << 8 | can_data[1]);
-		motor_feedback[i].rx_rpm	 =(int16_t)(can_data[2] << 8 | can_data[3]);
-		motor_feedback[i].rx_current =(int16_t)(can_data[4] << 8 | can_data[5]);
-		motor_feedback[i].rx_temp	 =(int16_t)(can_data[6]);
-	}
+void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback) {
+	motor_feedback->rx_angle   = (((int16_t) can_data[0]) << 8) | ((int16_t) can_data[1]);
+	motor_feedback->rx_rpm	   = (((int16_t) can_data[2]) << 8) | ((int16_t) can_data[3]);
+	motor_feedback->rx_current = (((int16_t) can_data[4]) << 8) | ((int16_t) can_data[5]);
+	motor_feedback->rx_temp	   = (int16_t) (can_data[6]);
 }
 
 /**

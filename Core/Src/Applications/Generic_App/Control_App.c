@@ -199,10 +199,11 @@ void rc_task_init(RemoteControl_t *rc_hdlr){
   * @param[in] main rc struct
   * @retval    None
   */
-void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rx_buffer){
+void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rx_buffer) {
 	/* no matter what mode, read switch data */
-	rc_hdlr->ctrl.s1   = ((rx_buffer[5] >> 4)& 0x000C) >> 2;
-	rc_hdlr->ctrl.s2   = ((rx_buffer[5] >> 4)& 0x0003);      //may use this as mode swap indicator
+	rc_hdlr->ctrl.s1   = ((rx_buffer[DBUS_INDEX(5)] >> 4)& 0x000C) >> 2;
+	rc_hdlr->ctrl.s2   = ((rx_buffer[DBUS_INDEX(5)] >> 4)& 0x0003);      //may use this as mode swap indicator
+
 
 	/* currently hard coding */
 	if(rc_hdlr->ctrl.s1 == SW_MID && rc_hdlr->ctrl.s2 == SW_DOWN)
@@ -212,11 +213,11 @@ void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rx_buffer){
 
 	if(rc_hdlr->control_mode == CTRLER_MODE){
 		/* remote controller parse process */
-		rc_hdlr->ctrl.ch0  = ((rx_buffer[0]| (rx_buffer[1] << 8)) & 0x07ff) - CHANNEL_CENTER;
-		rc_hdlr->ctrl.ch1  = (((rx_buffer[1] >> 3) | (rx_buffer[2] << 5)) & 0x07ff) - CHANNEL_CENTER;
-		rc_hdlr->ctrl.ch2  = (((rx_buffer[2] >> 6) | (rx_buffer[3] << 2) | (rx_buffer[4] << 10)) & 0x07ff) - CHANNEL_CENTER;
-		rc_hdlr->ctrl.ch3  = (((rx_buffer[4] >> 1) | (rx_buffer[5] << 7)) & 0x07ff) - CHANNEL_CENTER;
-		rc_hdlr->ctrl.wheel = ((rx_buffer[16]|(rx_buffer[17]<<8))&0x07FF) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.ch0  = ((rx_buffer[DBUS_INDEX(0)]| (rx_buffer[DBUS_INDEX(1)] << 8)) & 0x07ff) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.ch1  = (((rx_buffer[DBUS_INDEX(1)] >> 3) | (rx_buffer[DBUS_INDEX(2)] << 5)) & 0x07ff) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.ch2  = (((rx_buffer[DBUS_INDEX(2)] >> 6) | (rx_buffer[DBUS_INDEX(3)] << 2) | (rx_buffer[DBUS_INDEX(4)] << 10)) & 0x07ff) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.ch3  = (((rx_buffer[DBUS_INDEX(4)] >> 1) | (rx_buffer[DBUS_INDEX(5)] << 7)) & 0x07ff) - CHANNEL_CENTER;
+		rc_hdlr->ctrl.wheel = ((rx_buffer[DBUS_INDEX(16)]|(rx_buffer[DBUS_INDEX(17)]<<8))&0x07FF) - CHANNEL_CENTER;
 
 		/* calibration process to avoid some unexpected values */
 		if ((abs(rc_hdlr->ctrl.ch0)  > CHANNEL_OFFSET_MAX_ABS_VAL) ||(abs(rc_hdlr->ctrl.ch1) > CHANNEL_OFFSET_MAX_ABS_VAL) || \
@@ -230,12 +231,12 @@ void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rx_buffer){
 	}
 	else if(rc_hdlr->control_mode == PC_MODE){
 		/* pc parse process */
-		rc_hdlr->pc.mouse.x = rx_buffer[6] | (rx_buffer[7] << 8);
-		rc_hdlr->pc.mouse.y = rx_buffer[8] | (rx_buffer[9] << 8);
-		rc_hdlr->pc.mouse.z = rx_buffer[10] | (rx_buffer[11] << 8);//why the official parse process has z axis??
-		rc_hdlr->pc.mouse.click_l = rx_buffer[12];
-		rc_hdlr->pc.mouse.click_r = rx_buffer[13];
-		rc_hdlr->pc.key.key_buffer = rx_buffer[14] | (rx_buffer[15] << 8);//multiple keys reading
+		rc_hdlr->pc.mouse.x = rx_buffer[DBUS_INDEX(6)] | (rx_buffer[DBUS_INDEX(7)] << 8);
+		rc_hdlr->pc.mouse.y = rx_buffer[DBUS_INDEX(8)] | (rx_buffer[DBUS_INDEX(9)] << 8);
+		rc_hdlr->pc.mouse.z = rx_buffer[DBUS_INDEX(10)] | (rx_buffer[DBUS_INDEX(11)] << 8);//why the official parse process has z axis??
+		rc_hdlr->pc.mouse.click_l = rx_buffer[DBUS_INDEX(12)];
+		rc_hdlr->pc.mouse.click_r = rx_buffer[DBUS_INDEX(13)];
+		rc_hdlr->pc.key.key_buffer = rx_buffer[DBUS_INDEX(14)] | (rx_buffer[DBUS_INDEX(15)] << 8);//multiple keys reading
 
 		/* scan all the keys */
 		rc_key_scan(&rc_hdlr->pc.key.W, rc_hdlr->pc.key.key_buffer, KEY_BOARD_W);
