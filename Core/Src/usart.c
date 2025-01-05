@@ -403,7 +403,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	//	  HAL_UART_Receive_DMA(&UC_HUART, uc_pack_input_buffer, UC_PACK_SIZE);
 
 	} else if (huart == &huart3 && board_status == CHASSIS_BOARD) {
-		uart_complete_count++;
+		uart_complete_count = (uart_complete_count + 1) % 1000000;
 		pub_message_from_isr(RC_RAW, rc_frame_buffer, NULL);
 		HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
 	}

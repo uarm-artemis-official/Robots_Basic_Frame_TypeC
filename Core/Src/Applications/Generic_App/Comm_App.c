@@ -161,6 +161,7 @@ void can_comm_process(){
 				RCInfoMessage_t rc_info;
 				memcpy(rc_info.channels, &(incoming_message.data[4]), sizeof(int16_t) * 2);
 				memcpy(rc_info.modes, incoming_message.data, sizeof(uint8_t) * 3);
+				pub_message(RC_INFO, &rc_info);
 			}
 			break;
 			case PLAYER_COMMANDS:
