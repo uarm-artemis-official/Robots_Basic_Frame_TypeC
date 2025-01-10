@@ -13,7 +13,6 @@
 
 #include "imu.h"
 
-extern IMU_t imu;
 #define ABS_F(x) (x) < 0 ? -(x) : (x)
 
 #define BMI088_BOARD_INSTALL_SPIN_MATRIX \
@@ -22,25 +21,25 @@ extern IMU_t imu;
   {0.0f,  0.0f, 1.0f}
 
 
-bmi088_real_data_t bmi088_real_data;
-float gyro_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
-float gyro_offset[3];
-float gyro_cali_offset[3];
-float accel_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
-float accel_offset[3];
-float accel_cali_offset[3];
-float temperature = 0;
+static bmi088_real_data_t bmi088_real_data;
+static float gyro_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
+static float gyro_offset[3];
+static float gyro_cali_offset[3];
+static float accel_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
+static float accel_offset[3];
+static float accel_cali_offset[3];
+static float temperature = 0;
 
-float gyro[3], accel[3], mag[3];
+static float gyro[3], accel[3], mag[3];
 //static float ins_quat[4];
 //float ins_angle[3];
 
 static void bmi088_cali_slove(float gyro[3], float accel[3], bmi088_real_data_t *bmi088);
 
-void bmi088_get_data(AhrsSensor_t *sensor)
+void bmi088_get_data(AhrsSensor_t *sensor, float *temp)
 {
 	/* read bmi088 rawa data */
-    BMI088_Read(bmi088_real_data.gyro, bmi088_real_data.accel, &imu.temp);
+    BMI088_Read(bmi088_real_data.gyro, bmi088_real_data.accel, temp);
     /* data fusion with the offset */
     bmi088_cali_slove(gyro, accel, &bmi088_real_data);
 

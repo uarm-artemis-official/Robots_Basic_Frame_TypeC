@@ -15,10 +15,11 @@
 #include "imu.h"
 #include "auto_aim.h"
 #include "cmsis_os.h"
+#include "public_defines.h"
+#include "message_center.h"
 
 
 extern QueueHandle_t UC_Pack_Queue;
-extern IMU_t imu;
 
 // GLOBALS
 UC_Auto_Aim_Pack_t uc_auto_aim_pack;

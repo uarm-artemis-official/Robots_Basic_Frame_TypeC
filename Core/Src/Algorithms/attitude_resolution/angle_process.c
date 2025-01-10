@@ -18,7 +18,7 @@
 #include "arm_math.h"
 
 /* define internal vars */
-static AhrsSensor_t temp_ahrs;
+//static AhrsSensor_t temp_ahrs;
 /* define internal functions */
 /***********************************************************************************
  * establish the state space rep(tp_bias = temperature bias)

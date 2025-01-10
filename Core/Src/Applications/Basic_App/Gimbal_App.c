@@ -14,7 +14,9 @@
 
 
 static Gimbal_t gimbal;
+static int16_t gimbal_channels[2];
 static UC_Auto_Aim_Pack_t temp_pack;
+
 static Motor_t gimbal_motors[2];
 static int32_t motor_tx_buffer[8];
 
@@ -24,7 +26,6 @@ void Gimbal_Task_Function(void const * argument)
     /* USER CODE BEGIN Gimbal_Task_Function */
 	float temp_idle_yaw = 0.0;
 	float temp_idle_pitch = 0.0;
-	uint8_t gimbal_idle_flag = 1;
 
 	/* gimbal task LD indicator */
 	HAL_GPIO_WritePin(LED_Blue_GPIO_Port, LED_Blue_Pin, GPIO_PIN_SET);
@@ -48,21 +49,13 @@ void Gimbal_Task_Function(void const * argument)
 	for(;;){
 		gimbal_get_rc_info(&gimbal);
 		gimbal_get_motor_feedback(&gimbal, gimbal_motors);
-
-		/* make sure offset already be set to the gyro */
-		float imu_readings[2];
-		BaseType_t new_imu_message = peek_message(IMU_READINGS, imu_readings, 0);
-		if (new_imu_message == pdTRUE) {
-			gimbal_gyro_update_abs_angle(&gimbal, imu_readings[0], imu_readings[1]);
-		} else if(gimbal.gimbal_motor_mode == GYRO_MODE) {
-			/* imu not ready -> deactivate gyro mode*/
-			gimbal.gimbal_act_mode = IDLE_MODE;
-		}
+		gimbal_get_imu_headings(&gimbal);
+		gimbal_update_ecd_rel_angle(&gimbal, gimbal_motors);
+		gimbal_process_rc_channels(&gimbal, gimbal_channels);
 
 		/************************************* MODE SELECTION START *************************************/
 		if(gimbal.gimbal_mode == IDLE_MODE){
 			/* use ramp function to approximate zeros */
-			gimbal_idle_flag = 1;
 //			gimbal_get_ecd_fb_data(&gimbal);
 			//		  gimbal_update_rel_turns(&gimbal, GIMBAL_JUMP_THRESHOLD);
 			temp_idle_yaw = gimbal.yaw_cur_rel_angle + (0 - gimbal.yaw_cur_rel_angle)*ramp_calculate(&(gimbal.yaw_ramp));
@@ -74,7 +67,6 @@ void Gimbal_Task_Function(void const * argument)
 			gimbal.yaw_turns_count = 0;
 		} else {
 			/* reset ramp counter for next use */
-			gimbal_idle_flag = 0;
 			gimbal.pitch_ramp.count = 0;
 			gimbal.yaw_ramp.count = 0;
 			temp_idle_yaw = 0;
@@ -91,7 +83,7 @@ void Gimbal_Task_Function(void const * argument)
 		gimbal.prev_gimbal_motor_mode = gimbal.gimbal_motor_mode;
 
 		/* set motor voltage through cascade pid controller */
-		gimbal_cmd_exec(&gimbal, gimbal_motors, DUAL_LOOP_PID_CONTROL, gimbal_idle_flag);
+		gimbal_cmd_exec(&gimbal, gimbal_motors, DUAL_LOOP_PID_CONTROL);
 		gimbal_send_motor_volts(gimbal_motors);
 
 		/* update rel angle and send to chassis */
@@ -244,22 +236,23 @@ void gimbal_reset_data(Gimbal_t *gbal, Motor_t *g_motors) {
 	kalmanCreate(&(gbal->kalman_f), 0.001, 0.01);//0.0005 0.02
 	gbal->prev_gimbal_motor_mode = ENCODE_MODE;
 }
-/******************  MODE SELECTION FUNCTIONS BELOW ********************/
-void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr){
-	memcpy(&(gbal->ahrs_sensor), &(imu_hldr->ahrs_sensor), sizeof(AhrsSensor_t));
-}
 
-/*
- * @brief     Copy the gyroscope data from imu and calculate quaternion
- * 			  and euler's angle through attitude-breakdown algorithms.
- * @param[in] gimbal: main gimbal handler
- * */
-void gimbal_get_euler_angle(Gimbal_t *gbal){
-	gimbal_get_raw_mpu_data(gbal, &imu); // copy data to avoid mem leaks
-//	atti_math_calc(&gbal->ahrs_sensor, &gbal->euler_angle); //complementary filter parsed angle
-//	mahony_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));	//mahony algo
-	madgwick_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));  //madgwick algo
-}
+/******************  MODE SELECTION FUNCTIONS BELOW ********************/
+//void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr){
+//	memcpy(&(gbal->ahrs_sensor), &(imu_hldr->ahrs_sensor), sizeof(AhrsSensor_t));
+//}
+//
+///*
+// * @brief     Copy the gyroscope data from imu and calculate quaternion
+// * 			  and euler's angle through attitude-breakdown algorithms.
+// * @param[in] gimbal: main gimbal handler
+// * */
+//void gimbal_get_euler_angle(Gimbal_t *gbal){
+//	gimbal_get_raw_mpu_data(gbal, &imu); // copy data to avoid mem leaks
+////	atti_math_calc(&gbal->ahrs_sensor, &gbal->euler_angle); //complementary filter parsed angle
+////	mahony_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));	//mahony algo
+//	madgwick_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));  //madgwick algo
+//}
 
 /*
  * @brief     Copy the gyroscope data from imu and calculate quaternion
@@ -316,7 +309,7 @@ void gimbal_gyro_update_abs_angle(Gimbal_t *gbal, float yaw, float pitch) {
  * @param[in] raw_ecd: abs yaw ecd angle from feedback
  * @param[in] center_offset: the center offset of ecd mode
  * */
-int16_t gimbal_get_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset)
+int16_t gimbal_calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset)
 {
   /* declare a 16-bit signed integer tmp to store the relative angle */
   int16_t tmp = 0;
@@ -352,8 +345,8 @@ int16_t gimbal_get_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset)
  * @param[in] gbal: main gimbal handler
  * */
 void gimbal_update_ecd_rel_angle(Gimbal_t *gbal, Motor_t *g_motors) {
-	int16_t yaw_ecd_rel_angle = gimbal_get_ecd_rel_angle(g_motors[GIMBAL_YAW_MOTOR_INDEX].motor_feedback.rx_angle, gbal->yaw_ecd_center);
-	int16_t pitch_ecd_rel_angle = gimbal_get_ecd_rel_angle(g_motors[GIMBAL_PITCH_MOTOR_INDEX].motor_feedback.rx_angle, gbal->pitch_ecd_center);
+	int16_t yaw_ecd_rel_angle = gimbal_calc_ecd_rel_angle(g_motors[GIMBAL_YAW_MOTOR_INDEX].motor_feedback.rx_angle, gbal->yaw_ecd_center);
+	int16_t pitch_ecd_rel_angle = gimbal_calc_ecd_rel_angle(g_motors[GIMBAL_PITCH_MOTOR_INDEX].motor_feedback.rx_angle, gbal->pitch_ecd_center);
 
 	gbal->yaw_prev_rel_angle = gbal->yaw_cur_rel_angle;
 	gbal->yaw_cur_rel_angle = in_out_map(yaw_ecd_rel_angle,-4095,4096,-PI,PI);
@@ -375,6 +368,23 @@ void gimbal_safe_mode_switch(Gimbal_t *gbal){
 		 gbal->pitch_tar_angle = gbal->pitch_cur_rel_angle;
 	 }
    }
+}
+
+
+void gimbal_process_rc_channels(Gimbal_t *gbal, int16_t *g_channels) {
+	float delta_yaw = in_out_map((float) g_channels[0],
+			-CHANNEL_OFFSET_MAX_ABS_VAL,
+			CHANNEL_OFFSET_MAX_ABS_VAL,
+			-0.5*0.16667*PI, 0.5*0.16667*PI); //(-15d, 15d)
+	float delta_pitch = in_out_map((float) g_channels[1],
+			-CHANNEL_OFFSET_MAX_ABS_VAL,
+			CHANNEL_OFFSET_MAX_ABS_VAL,
+			-0.39*0.16667*PI, 0.391*0.16667*PI); //(-12d, 12d)
+
+	if (gbal->gimbal_mode != IDLE_MODE && (gbal->gimbal_mode != AUTO_AIM_MODE || temp_pack.target_num <= -1)) {
+		gimbal_calc_rel_targets(gbal, delta_yaw, delta_pitch);
+		gimbal_set_limited_angle(gbal, gbal->yaw_tar_angle, gbal->pitch_tar_angle);
+	}
 }
 
 /******************  MODE SELECTION FUNCTIONS ABOVE ********************/
@@ -461,7 +471,7 @@ void gimbal_set_spd(Gimbal_t *gbal, int16_t yaw_target_spd){
 //	cmu->comm_ga.send_flag = 1;
 //}
 
-void gimbal_update_rc_rel_angle(Gimbal_t *gbal, float delta_yaw, float delta_pitch) {
+void gimbal_calc_rel_targets(Gimbal_t *gbal, float delta_yaw, float delta_pitch) {
 	float cur_yaw_target = 0.0;
 	float cur_pitch_target = 0.0;
 
@@ -523,20 +533,7 @@ void gimbal_get_rc_info(Gimbal_t *gbal) {
 	BaseType_t new_rc_info_message = peek_message(RC_INFO, &rc_info, 0);
 	if (new_rc_info_message == pdTRUE) {
 		gimbal_set_modes(gbal, rc_info.modes);
-
-		float delta_yaw = in_out_map((float) rc_info.channels[0],
-				-CHANNEL_OFFSET_MAX_ABS_VAL,
-				CHANNEL_OFFSET_MAX_ABS_VAL,
-				-0.5*0.16667*PI, 0.5*0.16667*PI); //(-15d, 15d)
-		float delta_pitch = in_out_map((float) rc_info.channels[1],
-				-CHANNEL_OFFSET_MAX_ABS_VAL,
-				CHANNEL_OFFSET_MAX_ABS_VAL,
-				-0.39*0.16667*PI, 0.391*0.16667*PI); //(-12d, 12d)
-
-		if (gbal->gimbal_mode != IDLE_MODE && (gbal->gimbal_mode != AUTO_AIM_MODE || temp_pack.target_num <= -1)) {
-			gimbal_update_rc_rel_angle(gbal, delta_yaw, delta_pitch);
-			gimbal_set_limited_angle(gbal, gbal->yaw_tar_angle, gbal->pitch_tar_angle);
-		}
+		memcpy(gimbal_channels, rc_info.channels, sizeof(int16_t) * 2);
 	}
 }
 
@@ -547,6 +544,19 @@ void gimbal_get_motor_feedback(Gimbal_t *gbal, Motor_t *g_motors) {
 	if (new_feedback_message == pdTRUE) {
 		memcpy(&(g_motors[GIMBAL_YAW_MOTOR_INDEX].motor_feedback), &(motor_feedback_buffer[GIMBAL_YAW_CAN_ID]), sizeof(Motor_Feedback_t));
 		memcpy(&(g_motors[GIMBAL_PITCH_MOTOR_INDEX].motor_feedback), &(motor_feedback_buffer[GIMBAL_PITCH_CAN_ID]), sizeof(Motor_Feedback_t));
+	}
+}
+
+
+void gimbal_get_imu_headings(Gimbal_t *gbal) {
+	float imu_readings[2];
+	BaseType_t new_imu_message = peek_message(IMU_READINGS, imu_readings, 0);
+
+	if (new_imu_message == pdTRUE && gimbal.gimbal_motor_mode == GYRO_MODE) {
+		gimbal_gyro_update_abs_angle(gbal, imu_readings[0], imu_readings[1]);
+	} else if(gimbal.gimbal_motor_mode == GYRO_MODE) {
+		/* imu not ready -> deactivate gyro mode*/
+		gimbal.gimbal_act_mode = IDLE_MODE;
 	}
 }
 
@@ -639,11 +649,11 @@ void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, UC_Auto_Aim_Pack_t *pack) {
  * @param[in] mode: DUAL_LOOP_PID_CONTROL/SINGLE_LOOP_PID_CONTROL/GIMBAL_STOP
  * retval 	  None
  */
-void gimbal_cmd_exec(Gimbal_t *gbal, Motor_t *g_motors, uint8_t mode, uint8_t idle_flag) {
+void gimbal_cmd_exec(Gimbal_t *gbal, Motor_t *g_motors, uint8_t mode) {
 	if(mode == DUAL_LOOP_PID_CONTROL) {
 		/* set motor voltage through cascade pid controller */
 		if (gbal->gimbal_motor_mode == ENCODE_MODE) {
-			if (idle_flag == 1) {
+			if (gbal->gimbal_mode == IDLE_MODE) {
 				gimbal_calc_dual_pid_out(&(g_motors[GIMBAL_YAW_MOTOR_INDEX]), gbal->yaw_tar_angle, gbal->yaw_cur_rel_angle);
 				gimbal_calc_dual_pid_out(&(g_motors[GIMBAL_PITCH_MOTOR_INDEX]), gbal->pitch_tar_angle, gbal->pitch_cur_rel_angle);
 			} else {

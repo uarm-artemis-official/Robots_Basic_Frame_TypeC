@@ -91,11 +91,14 @@ typedef struct {
 #define CHANNEL_OFFSET_MAX_ABS_VAL 660
 
 /* Task exec time in milliseconds */
-#define CHASSIS_TASK_EXEC_TIME 1
-#define GIMBAL_TASK_EXEC_TIME 1
-#define SHOOT_TASK_EXEC_TIME 1
+#define CHASSIS_TASK_EXEC_TIME 5
+#define GIMBAL_TASK_EXEC_TIME 5
+#define SHOOT_TASK_EXEC_TIME 5
 #define IMU_TASK_EXEC_TIME 1
 #define TIMER_TASK_EXEC_TIME 1
+#define COMM_TASK_EXEC_TIME 2
+#define RC_TASK_EXEC_TIME 2
+#define PC_UART_TASK_EXEC_TIME 20
 
 /* motor can id */
 #define CHASSIS_ECD_CONST_OMEGA 120
@@ -116,6 +119,8 @@ typedef struct {
 #define GIMBAL_YAW_CAN_ID 4
 #define GIMBAL_PITCH_CAN_ID 5
 //#define MAG_3508_ID 2
+
+#define TIMER_GIMBAL_MAG_ENABLE
 
 /* motor pid param */
 // TODO: Move PID parameters into separate header file.

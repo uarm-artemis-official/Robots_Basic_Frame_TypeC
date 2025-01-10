@@ -462,7 +462,7 @@ void chassis_get_wheel_feedback(Motor_t *wheels) {
  * @param[in] chassis: main chassis handler
  * @param[in] rc: main remote controller handler
  * */
-static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr){
+//static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr){
 
 	/* Mode quick check:
 	 * -----------------------------------------------------------------------
@@ -526,7 +526,7 @@ static void chassis_rc_mode_selection(Chassis_t* chassis_hdlr){
 //	}//pc mode
 
 	/* set modes */
-}
+//}
 
 //void chassis_manual_gear_set(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr){
 //	/* Manually set the levels of robot */

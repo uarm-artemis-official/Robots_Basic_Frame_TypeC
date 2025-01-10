@@ -10,7 +10,7 @@
   * @brief  pid parameters initialization
   * @retval None
   */
-void pid_param_init(PID_t *pid, int32_t max_out, float max_i_out, float max_err, float kp, float ki, float kd){
+void pid_param_init(PID_t *pid, int32_t max_out, float max_i_out, float max_err, float kp, float ki, float kd) {
 	pid->kp = kp;
 	pid->ki = ki;
 	pid->kd = kd;
@@ -44,7 +44,7 @@ float pid_calculate(PID_t *pid, float cur_val, float target_val, float dt)
   if ((pid->max_err != 0) && (fabs(pid->err) > pid->max_err))
     return 0;
   pid->pout = pid->kp * pid->err;
-  pid->iout += pid->ki * pid->err *dt;
+  pid->iout += pid->ki * pid->err * dt;
   pid->dout = pid->kd * (pid->err - pid->last_err) / dt;
 
   abs_limit(&(pid->iout), pid->max_i_out);

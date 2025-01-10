@@ -114,7 +114,7 @@ void RC_Task_Func(){
 
 	/* set task exec period */
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(2); // 5 100Hz, make sure this task slower than comm app
+	const TickType_t xFrequency = pdMS_TO_TICKS(RC_TASK_EXEC_TIME);
 
 	/* init rc task */
 	rc_task_init(&rc);

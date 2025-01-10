@@ -27,7 +27,6 @@
 
 /* extern global variables here */
 extern TIM_HandleTypeDef htim3;
-extern IMU_t imu;
 extern uint8_t imu_init_flag;
 
 /* define user created variables here */

@@ -411,7 +411,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 	if (huart == &huart3 && board_status == CHASSIS_BOARD) {
-		uart_error_count++;
+		uart_error_count = (uart_error_count + 1) % 100000;
 		// TODO: Implement error handling.
 	}
 }

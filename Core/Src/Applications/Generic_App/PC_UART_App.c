@@ -70,7 +70,7 @@ void uc_on_RxCplt() {
 
 void PC_UART_Func() {
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(20); // task exec period 1ms
+	const TickType_t xFrequency = pdMS_TO_TICKS(PC_UART_TASK_EXEC_TIME);
 
 	uint8_t new_pack_buffer[UC_PACK_SIZE];
 	uint8_t idle_count = 0;

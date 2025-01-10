@@ -48,7 +48,7 @@ void Shoot_Task_Func(void const * argument)
 //	  shoot_lid_status_selection(&shoot, &rc);
 
 	  /* get feedback of the magazine motor */
-	  shoot_get_motor_feedback(&shoot);
+	  shoot_get_motor_feedback(&shoot, shoot_motors);
 	  shoot_mag_get_rel_angle(&shoot);
 
 	  /* check the magazine status */
@@ -139,9 +139,10 @@ void shoot_task_init(Shoot_t *sht, Motor_t *s_motors) {
 	shoot_params_init(sht);
 
 	/* reset feedback value */
+	memset(&(s_motors[SHOOT_LEFT_FRIC_WHEEL_INDEX].motor_feedback), 0, sizeof(Motor_Feedback_t));
+	memset(&(s_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX].motor_feedback), 0, sizeof(Motor_Feedback_t));
+	memset(&(s_motors[SHOOT_LOADER_2006_INDEX].motor_feedback), 0, sizeof(Motor_Feedback_t));
 	memset(&(sht->mag_fb), 0, sizeof(Motor_Feedback_t));
-	memset(&(sht->left_fric_fb), 0, sizeof(Motor_Feedback_t));
-	memset(&(sht->right_fric_fb), 0, sizeof(Motor_Feedback_t));
 
 	/* set shoot mode */
 	set_shoot_mode(sht, SHOOT_CEASE);
@@ -280,11 +281,11 @@ void shoot_fric_pwm_engagement(Shoot_t *sht, uint16_t target_pwm){
   * @param[in] target can torque current -> rpm / speed
   * @retval    None
   */
-void shoot_fric_can_engagement(Shoot_t *sht, uint16_t target_can) {
+void shoot_fric_can_engagement(Shoot_t *sht, Motor_t *s_motors, uint16_t target_can) {
 	/* obtain motor feedback for determining the current rpm */
 //	shoot_fric_get_feedback(sht);
-	sht->fric_left_cur_spd = sht->left_fric_fb.rx_rpm;
-	sht->fric_right_cur_spd = sht->right_fric_fb.rx_rpm;
+	sht->fric_left_cur_spd = s_motors[SHOOT_LEFT_FRIC_WHEEL_INDEX].motor_feedback.rx_rpm;
+	sht->fric_right_cur_spd = s_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX].motor_feedback.rx_rpm;
 
 	if(sht->fric_engage_flag == 0){
 		/* engage fric wheel using ramp funcion */
@@ -311,28 +312,18 @@ void shoot_fric_can_engagement(Shoot_t *sht, uint16_t target_can) {
   * @retval    None
   */
 void shoot_execute(Shoot_t *sht, Motor_t *s_motors) {
-	/* then activate fric wheels motor */
-#ifndef USE_CAN_FRIC
-	if(sht->shoot_act_mode == SHOOT_CEASE || sht->shoot_act_mode == SHOOT_RESERVE){
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sht->fric_tar_spd);
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, sht->fric_tar_spd);
-	}
-    else
-    	shoot_fric_pwm_engagement(sht, sht->fric_tar_spd);
-#else
 	/* try single loop first, not considering single shoot using angle loop */
 	if(sht->shoot_act_mode == SHOOT_CEASE || sht->shoot_act_mode == SHOOT_RESERVE) {
 		shoot_calc_fric_pid_out(&(shoot_motors[SHOOT_LEFT_FRIC_WHEEL_INDEX]), sht->fric_can_tar_spd);
-			shoot_calc_fric_pid_out(&(shoot_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX]), -sht->fric_can_tar_spd);
+		shoot_calc_fric_pid_out(&(shoot_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX]), -sht->fric_can_tar_spd);
 	} else {
-		shoot_fric_can_engagement(sht, sht->fric_can_tar_spd);//
+		shoot_fric_can_engagement(sht, s_motors, sht->fric_can_tar_spd);//
 		if(sht->fric_engage_flag == 0 && sht->fric_counter >=FRIC_CAN_RAMP_DELAY) {
 //			osDelay(500);
 			sht->fric_engage_flag = 1;
 			sht->fric_counter = 0;
 		}
 	}
-#endif
 	/* activate magazine later */
 	if(sht->shoot_act_mode == SHOOT_CEASE || sht->shoot_act_mode == SHOOT_RESERVE)
 		shoot_calc_loader_pid_out(sht, s_motors);
@@ -341,13 +332,14 @@ void shoot_execute(Shoot_t *sht, Motor_t *s_motors) {
 }
 
 
-void shoot_get_motor_feedback(Shoot_t *shoot) {
+void shoot_get_motor_feedback(Shoot_t *shoot, Motor_t *s_motors) {
 	Motor_Feedback_t motor_feedbacks[8];
 	BaseType_t motor_feedback_message = peek_message(MOTOR_READ, motor_feedbacks, 0);
 	if (motor_feedback_message == pdTRUE) {
-		memcpy(&(shoot->left_fric_fb), &motor_feedbacks[SHOOT_LEFT_FRIC_CAN_ID], sizeof(Motor_Feedback_t));
-		memcpy(&(shoot->right_fric_fb), &motor_feedbacks[SHOOT_RIGHT_FRIC_CAN_ID], sizeof(Motor_Feedback_t));
 		memcpy(&(shoot->mag_fb), &motor_feedbacks[SHOOT_LOADER_CAN_ID], sizeof(Motor_Feedback_t));
+		memcpy(&(s_motors[SHOOT_LEFT_FRIC_WHEEL_INDEX].motor_feedback), &motor_feedbacks[SHOOT_LEFT_FRIC_CAN_ID], sizeof(Motor_Feedback_t));
+		memcpy(&(s_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX].motor_feedback), &motor_feedbacks[SHOOT_RIGHT_FRIC_CAN_ID], sizeof(Motor_Feedback_t));
+		memcpy(&(s_motors[SHOOT_LOADER_2006_INDEX].motor_feedback), &motor_feedbacks[SHOOT_LOADER_CAN_ID], sizeof(Motor_Feedback_t));
 	}
 }
 

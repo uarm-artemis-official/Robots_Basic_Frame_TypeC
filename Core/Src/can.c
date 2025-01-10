@@ -297,9 +297,9 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 	rx_header.StdId = (CAN_RI0R_STID & hcan->Instance->sFIFOMailBox[CAN_RX_FIFO0].RIR) >> CAN_TI0R_STID_Pos;
 	if (hcan == &hcan1) {
 		uint8_t idx = rx_header.StdId-CAN_RX_ID_START;
-		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, &(can_rx_buffer[idx]));
+		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, can_rx_buffer[idx]);
 
-		parse_motor_feedback(&(can_rx_buffer[idx]), &(motor_feedback[idx]));
+		parse_motor_feedback(can_rx_buffer[idx], &(motor_feedback[idx]));
 		pub_message_from_isr(MOTOR_READ, motor_feedback, NULL);
 	}
 	if (hcan == &hcan2) {

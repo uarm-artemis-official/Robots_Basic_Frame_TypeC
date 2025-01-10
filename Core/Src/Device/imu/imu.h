@@ -59,11 +59,8 @@ typedef struct{
 	IMU_mode_t imu_mode;
 	AhrsSensor_t ahrs_sensor;//for ahrs sensor - processed data
 }IMU_t;
-IMU_t imu;
 
-extern bmi088_real_data_t bmi088_real_data;
-
-void bmi088_get_data(AhrsSensor_t *sensor);
+void bmi088_get_data(AhrsSensor_t *sensor, float *temp);
 void bmi088_get_temp(float *tmp);
 uint8_t bmi088_device_init(void);
 int ahrs_update(AhrsSensor_t *sensor, uint8_t period_ms);

@@ -37,7 +37,8 @@
 #define FRIC_CAN_RAMP_DELAY 40
 
 /* 3508 can value*/
-#define LEVEL_ONE_CAN_SPD 7500 // 28: 7500, 27:7350
+//#define LEVEL_ONE_CAN_SPD 7500 // 28: 7500, 27:7350
+#define LEVEL_ONE_CAN_SPD 7500
 
 #define SHOOT_ONCE_MAG_ANGLE (20.0f * DEGREE2RAD)
 #define SHOOT_CONT_MAG_SPEED 1.0*PI //rpm/sec
@@ -79,8 +80,6 @@ typedef struct{
 	uint8_t lid_counter;
 
 	Motor_Feedback_t mag_fb;
-	Motor_Feedback_t left_fric_fb;
-	Motor_Feedback_t right_fric_fb;
 	ramp_t fric_left_ramp;
 	ramp_t fric_right_ramp;
 	ShootLidStatus_t lid_status;
@@ -103,7 +102,7 @@ void shoot_firc_init(Shoot_t *sht);
 void shoot_params_init(Shoot_t *sht);
 void shoot_servo_init(void);
 void shoot_fric_pwm_engagement(Shoot_t *sht, uint16_t target_pwm);
-void shoot_fric_can_engagement(Shoot_t *sht, uint16_t target_can);
+void shoot_fric_can_engagement(Shoot_t *sht, Motor_t *s_motors, uint16_t target_can);
 void set_shoot_mode(Shoot_t *sht, ShootActMode_t mode);
 void set_lid_status(Shoot_t *sht, ShootLidStatus_t status);
 void set_mag_motor_speed(Shoot_t *sht, float spd);
@@ -111,7 +110,7 @@ void set_mag_motor_angle(Shoot_t *sht, float tar_angle);
 void set_fric_motor_speed(Shoot_t *sht, int16_t spd);
 void set_fric_motor_current(Shoot_t *sht, int16_t spd);
 void set_servo_value(uint16_t pwm_value);
-void shoot_get_motor_feedback(Shoot_t *shoot);
+void shoot_get_motor_feedback(Shoot_t *shoot, Motor_t *s_motors);
 void shoot_calc_loader_pid_out(Shoot_t *sht, Motor_t *s_motors);
 void shoot_calc_fric_pid_out(Motor_t *motor, float target);
 void shoot_send_motor_volts(Motor_t *s_motors);

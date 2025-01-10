@@ -55,20 +55,47 @@ void Comm_Task_Func(void const * argument)
 {
   /* USER CODE BEGIN Comm_Task_Func */
 	board_status = *(BoardStatus_t*) argument;
-	while(1) {
-		if(USART_COMM == 1){
-			usart_comm_process();
-		}
-		else{
-//			if(board_status == CHASSIS_BOARD)
-//				can_comm_process(&chassis_comm);
-//			else if(board_status == GIMBAL_BOARD)
-//				can_comm_process(&gimbal_comm);
-			can_comm_process();
+
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = pdMS_TO_TICKS(COMM_TASK_EXEC_TIME);
+    xLastWakeTime = xTaskGetTickCount();
+
+	for(;;){
+		CANCommMessage_t outgoing_message, incoming_message;
+		BaseType_t new_send_message = get_message(COMM_OUT, &outgoing_message, 0);
+		BaseType_t new_receive_message = get_message(COMM_IN, &incoming_message, 0);
+
+		if (new_send_message == pdTRUE) {
+			can_transmit_comm_message(&hcan2, outgoing_message.data, outgoing_message.topic_name);
 		}
 
+		if (new_receive_message == pdTRUE) {
+			switch (incoming_message.topic_name) {
+			case REF_INFO:
+				// TODO: Implement
+				break;
+			case GIMBAL_REL_ANGLES: {
+				float rel_angles[2];
+				memcpy(rel_angles, incoming_message.data, sizeof(float) * 2);
+				pub_message(GIMBAL_REL_ANGLES, rel_angles);
+			}
+			break;
+			case RC_INFO: {
+				RCInfoMessage_t rc_info;
+				memcpy(rc_info.channels, &(incoming_message.data[4]), sizeof(int16_t) * 2);
+				memcpy(rc_info.modes, incoming_message.data, sizeof(uint8_t) * 3);
+				pub_message(RC_INFO, &rc_info);
+			}
+			break;
+			case PLAYER_COMMANDS:
+				// TODO: Implement
+			break;
+			default:
+				break;
+			}
+		}
+		vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
-  /* USER CODE END Comm_Task_Func */
 }
 /***************************** CAN COMM BEGAIN ************************************/
 /**
@@ -116,163 +143,6 @@ void Comm_Task_Func(void const * argument)
 //	/* init fifo queue */
 //	queueM_init(&canqm);
 //}
-
-/**
-* @brief CAN communication process
-* @param None
-* @retval None
-*/
-/* Task exec time: 3ms */
-
-void can_comm_process(){
-
-	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(1.5); // 200hz make sure this task quicker than rc app
-
-	/* reset the comm struct configure */
-//	can_comm_reset_config(comm);
-	/* subscribe the message before starting comms */
-//	can_comm_subscribe_process();
-
-	/* init the task ticks */
-    xLastWakeTime = xTaskGetTickCount();
-
-	for(;;){
-		CANCommMessage_t outgoing_message, incoming_message;
-		BaseType_t new_send_message = get_message(COMM_OUT, &outgoing_message, 0);
-		BaseType_t new_receive_message = get_message(COMM_IN, &incoming_message, 0);
-
-		if (new_send_message == pdTRUE) {
-			can_transmit_comm_message(&hcan2, outgoing_message.data, outgoing_message.topic_name);
-		}
-
-		if (new_receive_message == pdTRUE) {
-			switch (incoming_message.topic_name) {
-			case REF_INFO:
-				// TODO: Implement
-				break;
-			case GIMBAL_REL_ANGLES: {
-				float rel_angles[2];
-				memcpy(rel_angles, incoming_message.data, sizeof(float) * 2);
-				pub_message(GIMBAL_REL_ANGLES, rel_angles);
-			}
-			break;
-			case RC_INFO: {
-				RCInfoMessage_t rc_info;
-				memcpy(rc_info.channels, &(incoming_message.data[4]), sizeof(int16_t) * 2);
-				memcpy(rc_info.modes, incoming_message.data, sizeof(uint8_t) * 3);
-				pub_message(RC_INFO, &rc_info);
-			}
-			break;
-			case PLAYER_COMMANDS:
-				// TODO: Implement
-			break;
-			default:
-				break;
-			}
-		}
-
-		/* recv data */
-//		comm->can_comm.can_recv_comm_data(&hcan2, 8, comm->can_comm.rx_data);
-//		/* process data */
-//		if(isSubscribed(&comm->sub_list, COMM_GIMBAL_ANGLE) == SUB_SUCCESS){
-//			switch(gimbal_angle_message.role){
-//			 	 /* need to scale and re-scale angle data in both side */
-//				case Transmitter:
-//					if(gimbal_angle_message.message.comm_ga.send_flag == 1){
-//						process_tx_data_ftoi16(gimbal_angle_message.message.comm_ga.angle_data, comm->can_comm.tx_data, 4, ANGLE_COMM_SCALE_FACTOR);
-//						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, ANGLE_COMM_ID);
-//						gimbal_angle_message.message.comm_ga.send_flag = 0;//reset flag to avoid message flooding
-//					}
-//					break;
-//				case Receiver:
-//					if(can_comm_rx[ANGLE_IDX].comm_id == ANGLE_COMM_ID){
-//						process_rx_data_i16tof(comm, gimbal_angle_message.message.comm_ga.angle_data, ANGLE_COMM_SCALE_FACTOR, ANGLE_IDX);
-//						chassis.gimbal_yaw_rel_angle = gimbal_angle_message.message.comm_ga.angle_data[0];//can_rx_scale_buffer[ANGLE_IDX][0];
-//						chassis.gimbal_yaw_abs_angle = gimbal_angle_message.message.comm_ga.angle_data[1];//can_rx_scale_buffer[ANGLE_IDX][1];
-//						can_comm_rx[ANGLE_IDX].comm_id = 0;//reset id to avoid message flooding
-//					}
-//					break;
-//			}
-//		}
-//		if(isSubscribed(&comm->sub_list, COMM_REMOTE_CONTROL) == SUB_SUCCESS){
-//			switch(rc_message.role){
-//				case Transmitter:
-//					if(rc_message.message.comm_rc.send_flag == 1){
-//						memcpy(comm->can_comm.tx_data, &(rc_message.message.comm_rc.rc_data), sizeof(rc_message.message.comm_rc.rc_data));
-//						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, RC_COMM_ID);
-//						rc_message.message.comm_rc.send_flag = 0;//reset flag to avoid message flooding
-//					}
-//					break;
-//				case Receiver:
-//					if(can_comm_rx[RC_IDX].comm_id == RC_COMM_ID){
-//						rc.ctrl.s1  = comm->can_comm.rx_data[RC_IDX][2];
-//						rc.ctrl.s2  = comm->can_comm.rx_data[RC_IDX][3];
-//						if(rc.ctrl.s1 == SW_MID && rc.ctrl.s2 == SW_DOWN){
-//							rc.control_mode = PC_MODE;
-//							/* update gimbal mode */
-//							//FIXME: if have multiple gimbals, we need to change this.
-//							gimbal.gimbal_mode = comm->can_comm.rx_data[RC_IDX][0];
-//							gimbal.gimbal_act_mode = comm->can_comm.rx_data[RC_IDX][1];
-//						}
-//						else{
-//							rc.control_mode = CTRLER_MODE;
-//							/* get normal controller data*/
-//							rc.ctrl.ch0 = comm->can_comm.rx_data[RC_IDX][0];
-//							rc.ctrl.ch1 = comm->can_comm.rx_data[RC_IDX][1];
-//						}
-//						can_comm_rx[RC_IDX].comm_id = 0;//reset id to avoid message flooding
-//					}
-//
-//					break;
-//			 }
-//		}
-//		if(isSubscribed(&comm->sub_list, COMM_PC_CONTROL) == SUB_SUCCESS){
-//			switch(pc_message.role){
-//				case Transmitter:
-//					if(pc_message.message.comm_pc.send_flag == 1){
-//						memcpy(comm->can_comm.tx_data, &(pc_message.message.comm_pc.pc_data), sizeof(pc_message.message.comm_pc.pc_data));
-//						comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, PC_COMM_ID);
-//						pc_message.message.comm_pc.send_flag = 0;//reset flag to avoid message flooding
-//					}
-//					break;
-//				case Receiver:
-//					if(can_comm_rx[PC_IDX].comm_id == PC_COMM_ID){
-//						rc.pc.mouse.x = comm->can_comm.rx_data[PC_IDX][0];
-//						rc.pc.mouse.y = comm->can_comm.rx_data[PC_IDX][1];
-//						rc.pc.mouse.left_click.status  = comm->can_comm.rx_data[PC_IDX][2];
-//						rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[PC_IDX][3];
-//						can_comm_rx[PC_IDX].comm_id = 0;//reset id to avoid message flooding
-//					}
-//					break;
-//			 }
-//		}
-//
-//		if(isSubscribed(&comm->sub_list, COMM_EXT_PC_CONTROL) == SUB_SUCCESS){
-//					switch(pc_ext_message.role){
-//						case Transmitter:
-//							if(pc_ext_message.message.comm_ext_pc.send_flag == 1){
-//								memcpy(comm->can_comm.tx_data, &(pc_ext_message.message.comm_ext_pc.pc_data), sizeof(pc_ext_message.message.comm_ext_pc.pc_data));
-//								comm->can_comm.can_send_comm_data(&hcan2, comm->can_comm.tx_data, PC_EXT_KEY_ID);
-//								pc_ext_message.message.comm_ext_pc.send_flag = 0;//reset flag to avoid message flooding
-//							}
-//							break;
-//						case Receiver:
-//							if(can_comm_rx[PC_EXT_KEY_IDX].comm_id == PC_EXT_KEY_ID){
-//								rc.pc.key.C.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][0];
-//								rc.pc.key.R.status = comm->can_comm.rx_data[PC_EXT_KEY_IDX][1];
-//								rc.pc.key.B.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][2];
-////								rc.pc.mouse.right_click.status  = comm->can_comm.rx_data[PC_EXT_KEY_IDX][3];
-//								can_comm_rx[PC_EXT_KEY_IDX].comm_id = 0;//reset id to avoid message flooding
-//							}
-//							break;
-//					 }
-//				}
-
-		/* delay until wake time */
-		vTaskDelayUntil(&xLastWakeTime, xFrequency);
-	}
-}
 
 
 static void can_transmit_comm_message(CAN_HandleTypeDef *hcan, uint8_t *send_data, uint32_t comm_id) {
