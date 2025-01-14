@@ -565,10 +565,12 @@ void gimbal_send_rel_angles(Gimbal_t *gbal) {
 	CANCommMessage_t rel_angle_message;
 	rel_angle_message.topic_name = GIMBAL_REL_ANGLES;
 	if (gbal->gimbal_motor_mode == GYRO_MODE) {
-		memcpy(rel_angle_message.data, &(gbal->yaw_cur_abs_angle), sizeof(float));
+		float temp_yaw = -gbal->yaw_cur_abs_angle;
+		memcpy(rel_angle_message.data, &temp_yaw, sizeof(float));
 		memcpy(&(rel_angle_message.data[4]), &(gbal->pitch_cur_abs_angle), sizeof(float));
 	} else {
-		memcpy(rel_angle_message.data, &(gbal->yaw_cur_rel_angle), sizeof(float));
+		float temp_yaw = -gbal->yaw_cur_rel_angle;
+		memcpy(rel_angle_message.data, &temp_yaw, sizeof(float));
 		memcpy(&(rel_angle_message.data[4]), &(gbal->pitch_cur_rel_angle), sizeof(float));
 	}
 	pub_message(COMM_OUT, &rel_angle_message);
