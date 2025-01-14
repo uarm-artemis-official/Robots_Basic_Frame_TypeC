@@ -121,6 +121,8 @@ typedef struct {
 //#define MAG_3508_ID 2
 
 #define TIMER_GIMBAL_MAG_ENABLE
+#define TIMER_CHASSIS_WHEELS_ENABLE
+
 
 /* motor pid param */
 // TODO: Move PID parameters into separate header file.

@@ -552,7 +552,7 @@ void gimbal_get_imu_headings(Gimbal_t *gbal) {
 	float imu_readings[2];
 	BaseType_t new_imu_message = peek_message(IMU_READINGS, imu_readings, 0);
 
-	if (new_imu_message == pdTRUE && gimbal.gimbal_motor_mode == GYRO_MODE) {
+	if (new_imu_message == pdTRUE && gbal->gimbal_motor_mode == GYRO_MODE) {
 		gimbal_gyro_update_abs_angle(gbal, imu_readings[0], imu_readings[1]);
 	} else if(gimbal.gimbal_motor_mode == GYRO_MODE) {
 		/* imu not ready -> deactivate gyro mode*/
@@ -564,8 +564,13 @@ void gimbal_get_imu_headings(Gimbal_t *gbal) {
 void gimbal_send_rel_angles(Gimbal_t *gbal) {
 	CANCommMessage_t rel_angle_message;
 	rel_angle_message.topic_name = GIMBAL_REL_ANGLES;
-	memcpy(rel_angle_message.data, &(gbal->yaw_cur_rel_angle), sizeof(float));
-	memcpy(&(rel_angle_message.data[4]), &(gbal->pitch_cur_rel_angle), sizeof(float));
+	if (gbal->gimbal_motor_mode == GYRO_MODE) {
+		memcpy(rel_angle_message.data, &(gbal->yaw_cur_abs_angle), sizeof(float));
+		memcpy(&(rel_angle_message.data[4]), &(gbal->pitch_cur_abs_angle), sizeof(float));
+	} else {
+		memcpy(rel_angle_message.data, &(gbal->yaw_cur_rel_angle), sizeof(float));
+		memcpy(&(rel_angle_message.data[4]), &(gbal->pitch_cur_rel_angle), sizeof(float));
+	}
 	pub_message(COMM_OUT, &rel_angle_message);
 }
 
