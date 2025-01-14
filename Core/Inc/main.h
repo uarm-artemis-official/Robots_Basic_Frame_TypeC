@@ -29,9 +29,10 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -98,6 +99,7 @@ HAL_StatusTypeDef firmware_and_system_init(void);
 
 extern char pdata[32]; //PACKLEN
 extern int16_t referee_parsed_flag;
+extern QueueHandle_t Ref_Pack_Queue;
 //extern uint8_t rc_rx_buffer[18];
 /* USER CODE END Private defines */
 

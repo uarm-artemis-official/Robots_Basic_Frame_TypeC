@@ -241,10 +241,9 @@ void can_filter_enable(CAN_HandleTypeDef* hcan){
 	CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
 	CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
 	CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
-	CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
+	CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_16BIT;
 	CAN_FilterConfigStructure.FilterActivation = ENABLE;
 	if(hcan == &hcan1){
-//		CAN_FilterConfigStructure.SlaveStartFilterBank = 27;
 		CAN_FilterConfigStructure.FilterBank = 0;
 	}
 	else if(hcan == &hcan2){

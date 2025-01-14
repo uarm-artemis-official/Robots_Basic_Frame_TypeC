@@ -85,9 +85,6 @@ void Gimbal_Task_Function(void const * argument)
 		/* set motor voltage through cascade pid controller */
 		gimbal_cmd_exec(&gimbal, gimbal_motors, DUAL_LOOP_PID_CONTROL);
 		gimbal_send_motor_volts(gimbal_motors);
-
-		/* update rel angle and send to chassis */
-		//	 gimbal_update_comm_info(&gimbal, &gimbal_angle_message.message);
 		gimbal_send_rel_angles(&gimbal);
 
 		/* delay until wake time */
@@ -227,8 +224,8 @@ void gimbal_reset_data(Gimbal_t *gbal, Motor_t *g_motors) {
 	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.95f);//0.65 for older client
 	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.95f);//0.6 for older client
 
-	init_swm_filter(&gbal->swm_f_x, 50);// window size 50
-	init_swm_filter(&gbal->swm_f_y, 50);
+	init_swm_filter(&gbal->swm_f_x, 20);// window size 50
+	init_swm_filter(&gbal->swm_f_y, 20);
 
 	memset(&(gbal->ahrs_sensor), 0, sizeof(AhrsSensor_t));
 	memset(&(gbal->euler_angle), 0, sizeof(Attitude_t));
@@ -360,11 +357,11 @@ void gimbal_update_ecd_rel_angle(Gimbal_t *gbal, Motor_t *g_motors) {
 void gimbal_safe_mode_switch(Gimbal_t *gbal){
  if(gbal->prev_gimbal_motor_mode != gbal->gimbal_motor_mode) {
 	 if(gbal->gimbal_motor_mode == GYRO_MODE){
-		 gbal->yaw_tar_angle = gbal->yaw_cur_abs_angle; // Set the target as current angle
+		 gbal->yaw_tar_angle = gbal->final_abs_yaw; // Set the target as current angle
 		 gbal->pitch_tar_angle = gbal->pitch_cur_rel_angle; //  to avoid spin
 	 }
 	 else if(gbal->gimbal_motor_mode == ENCODE_MODE){
-		 gbal->yaw_tar_angle = gbal->yaw_cur_rel_angle;
+		 gbal->yaw_tar_angle = gbal->yaw_total_rel_angle;
 		 gbal->pitch_tar_angle = gbal->pitch_cur_rel_angle;
 	 }
    }
@@ -505,7 +502,7 @@ void gimbal_calc_rel_targets(Gimbal_t *gbal, float delta_yaw, float delta_pitch)
 
 	/* independent mode don't allow set yaw angle */
 	if(gbal->gimbal_act_mode == INDPET_MODE)
-		gbal->yaw_tar_angle = 0;
+		gbal->yaw_tar_angle = gbal->yaw_total_rel_angle - gbal->yaw_cur_rel_angle;
 }
 
 /*

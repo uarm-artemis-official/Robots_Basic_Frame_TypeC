@@ -20,7 +20,6 @@
   #define ECD2RAD    ((2.0*PI)/ 8192.0f)
   #define ECD2DEGREE ( 360f  / 8192.0f)
 #endif
-
 #define MAX_CAN_MOTOR_NUM 8
 #define MOTOR_COUNT 8
 #define DBUS_BUFFER_LEN 18
@@ -135,17 +134,17 @@ typedef struct {
 #define max_err_wheel 5000
 
 /* gimbal 6020 dual loop control */
-#define kp_angle_yaw 380//200
-#define ki_angle_yaw 0.05//0.1
-#define kd_angle_yaw 0
+#define kp_angle_yaw 205//200
+#define ki_angle_yaw 0//0.1
+#define kd_angle_yaw 100
 #define max_out_angle_yaw 10000 // not tuned yet
 #define max_I_out_angle_yaw 1
 #define max_err_angle_yaw 100//2.0f*PI
 
-#define kp_spd_yaw 360//280
+#define kp_spd_yaw 235//280
 #define ki_spd_yaw 0.1//0.1
 #define kd_spd_yaw 0//0.5
-#define max_out_spd_yaw 30000 // not tuned yet
+#define max_out_spd_yaw 13000 // not tuned yet
 #define max_I_out_spd_yaw 1000
 #define max_err_spd_yaw 5000
 #define kf_spd_yaw 0
@@ -236,7 +235,7 @@ typedef struct {
 #define chassis_l10_hpf_power 120
 
 /* chassis max speed - power focused */
-#define chassis_l1_pf_padding_speed 300 //max 660
+#define chassis_l1_pf_padding_speed 500 //max 660
 #define chassis_l2_pf_padding_speed 350 //max 660
 #define chassis_l3_pf_padding_speed 400 //max 660
 #define chassis_l4_pf_padding_speed 450 //max 660
@@ -248,7 +247,7 @@ typedef struct {
 #define chassis_l10_pf_padding_speed 660 //max 660
 
 /* chassis max speed - HP focused */
-#define chassis_l1_hpf_padding_speed 100 //max 660
+#define chassis_l1_hpf_padding_speed 500 //max 660
 #define chassis_l2_hpf_padding_speed 110 //max 660
 #define chassis_l3_hpf_padding_speed 120 //max 660
 #define chassis_l4_hpf_padding_speed 130 //max 660
@@ -260,7 +259,7 @@ typedef struct {
 #define chassis_l10_hpf_padding_speed 190 //max 660
 
 /* chassis max spin speed - power focused */
-#define chassis_l1_pf_spin_speed 100 //max 660
+#define chassis_l1_pf_spin_speed 300 //max 660
 #define chassis_l2_pf_spin_speed 120 //max 660
 #define chassis_l3_pf_spin_speed 140 //max 660
 #define chassis_l4_pf_spin_speed 160 //max 660
@@ -272,7 +271,7 @@ typedef struct {
 #define chassis_l10_pf_spin_speed 280 //max 660
 
 /* chassis max spin speed - HP focused */
-#define chassis_l1_hpf_spin_speed 200 //max 660
+#define chassis_l1_hpf_spin_speed 300 //max 660
 #define chassis_l2_hpf_spin_speed 220 //max 660
 #define chassis_l3_hpf_spin_speed 240 //max 660
 #define chassis_l4_hpf_spin_speed 260 //max 660

@@ -55,6 +55,7 @@
 /* USER CODE BEGIN Variables */
 static BoardStatus_t board_status;
 QueueHandle_t UC_Pack_Queue;
+QueueHandle_t Ref_Pack_Queue;
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 
@@ -118,6 +119,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   UC_Pack_Queue = xQueueCreate(3, UC_PACK_SIZE);
+//  Ref_Pack_Queue = xQueueCreate(5, MAX_REF_BUFFER_SZIE);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */

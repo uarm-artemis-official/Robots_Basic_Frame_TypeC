@@ -32,8 +32,17 @@ void Timer_Task_Func(void const * argument){
 
 	board_status = *(BoardStatus_t*) argument;
 	memset(motor_tx_buffer, 0, 64);
+	/* Simple way to init the lk motor */
+//	for (uint8_t i = 0; i < LK_MOTOR_COUNT; i++) {
+//		LK_motor_init(i);
+//	}
 
-	for (;;) {
+	/* init the task ticks */
+	xLastWakeTime = xTaskGetTickCount();
+
+//	LK_motor_stop(&hcan1, KL_MOTOR_TX_STDID+1);
+
+	for (;;){
 		/* CAN data  */
 
 		BaseType_t received_new_message = get_message(MOTOR_SET, &motor_tx_message, 0);

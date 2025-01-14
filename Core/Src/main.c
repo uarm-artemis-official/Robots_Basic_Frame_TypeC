@@ -142,6 +142,8 @@ uint32_t prev_uart_timestamp = 0;
 uint32_t debugger_signal_counter = 0;//count the idle time
 uint32_t debugger_signal_flag = 0; //mark the debugger task
 uint8_t ref_rx_frame[256]={0}; //referee temp frame buffer
+//uint8_t ref_rx_frame[MAX_REF_BUFFER_SZIE]={0}; //referee temp frame buffer
+//uint8_t rc_rx_buffer[DBUS_BUFFER_LEN]; //rc temporary buffer
 uint16_t chassis_gyro_counter = 0; // used for backup robots without slipring
 uint8_t chassis_gyro_flag = 0;	   // used for backup robots without slipring
 
@@ -164,9 +166,8 @@ int main(void)
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+   HAL_Init();
 
   /* USER CODE BEGIN Init */
   /* USER CODE END Init */
@@ -331,7 +332,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   /* USER CODE END Callback 1 */
 }
-
 
 /* USER CODE END 4 */
 

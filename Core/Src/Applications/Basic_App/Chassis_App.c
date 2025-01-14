@@ -110,6 +110,11 @@ void chassis_reset_data(Chassis_t *chassis_hdlr) {
 	memset(rc_channels, 0, sizeof(int16_t) * 4);
 }
 
+void swerve_drive_wheel_decomposition(Chassis_t *chassis_hdlr){
+	/* Assume we already */
+}
+
+
 /*
  * @brief 	  Inversely calculate the mecanum wheel speed
  * @param[in] chassis_hdlr:chassis main struct
