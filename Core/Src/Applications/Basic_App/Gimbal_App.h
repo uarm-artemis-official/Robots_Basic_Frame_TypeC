@@ -61,47 +61,23 @@
 /* define user structure here */
 
 typedef struct Gimbal_t {
-	/* gimbal speed related */
-	float yaw_ang_rate;				//angular velocity in degree/s, not used
-	float pitch_ang_rate;
-	float yaw_speed_rate;			//rpm in m/s, not used
-	float pitch_speed_rate;			//rpm in m/s, not used
-
 	/* gimbal position related */
-	float yaw_tar_angle;			//yaw angle target angle in radians
-	float yaw_cur_abs_angle;		//yaw current absolute angle updated by gyro
-	float yaw_cur_rel_angle;		//yaw current relative angle updated by encoder
-	float yaw_prev_angle;			//yaw previous absolute angle for updating turns, not used
-	float pitch_tar_angle;			//pitch angle target angle in radians
-	float pitch_cur_abs_angle;		//pitch current absolute angle updated by gyro
-	float pitch_cur_rel_angle;		//pitch current absolute angle updated by gyro
-	float pitch_prev_angle;    		//pitch previous absolute angle for updating turns
+	float yaw_target_angle;
+	float yaw_rel_angle;
+	float yaw_ecd_angle;
+	float yaw_imu_angle;
 
-	/* Solving the turns on gyroscope */
-	float yaw_total_turns;
-	float pitch_total_turns;
-	float final_abs_yaw;
-	float final_abs_pitch;
-
-	float yaw_aa_prev_delta; //
-
-	double gyro_offset_slope;    //offset func: -0.000000000184229  -0.001797605717065
-								 //fit a linear func to compensate yaw abs angle shift, now abandoned
-	uint32_t gyro_offset_count;  // This method has been abandoned
-
-	Gimbal_Axis_t axis;
-
-	/* only spd control */
-	int16_t yaw_tar_spd;
-	int16_t pitch_tar_spd;
-
-	/* Solving the turns on encoder */
-	int32_t yaw_turns_count;		//turns counter
-	float yaw_prev_rel_angle;
-	float yaw_total_rel_angle;
+	float pitch_target_angle;
+	float pitch_rel_angle;
+	float pitch_ecd_angle;
+	float pitch_imu_angle;
 
 	int16_t yaw_ecd_center;			//center position of the yaw motor by encoder
 	int16_t pitch_ecd_center;		//center position of the pitch motor by encoder
+	float yaw_imu_center;
+	float pitch_imu_center;
+
+	Gimbal_Axis_t axis;
 
 //	Motor_Feedback_t yaw_ecd_fb;	//yaw feedback data pool
 //	Motor_Feedback_t pitch_ecd_fb; //pitch feedback data pool
@@ -153,27 +129,31 @@ void gimbal_safe_mode_switch(Gimbal_t *gbal);
 // gyro base functions
 void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr);
 void gimbal_get_euler_angle(Gimbal_t *gbal);
-void gimbal_gyro_update_abs_angle(Gimbal_t *gbal, float yaw, float pitch);
+void gimbal_update_imu_angle(Gimbal_t *gbal, float yaw, float pitch);
 // ecd base fucntions
 //void gimbal_get_ecd_fb_data(Gimbal_t *gbal);
 int16_t gimbal_calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 void gimbal_update_ecd_euler_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
-void gimbal_update_ecd_rel_angle(Gimbal_t *gbal, Motor_t *g_motors);
+void gimbal_update_ecd_angles(Gimbal_t *gbal, Motor_t *g_motors);
 //public functions
 void gimbal_update_truns(Gimbal_t *gbal, float halfc);
 void gimbal_set_angle(Gimbal_t *gbal, float target_angle);
 void gimbal_set_limited_angle(Gimbal_t *gbal, float yaw_target_angle, float pitch_target_angle);
 void gimbal_set_spd(Gimbal_t *gbal, int16_t yaw_target_spd);
-void gimbal_cmd_exec(Gimbal_t *gbal, Motor_t *g_motors, uint8_t mode);
+void gimbal_cmd_exec(Gimbal_t *gbal, Motor_t *g_motors);
 void gimbal_update_rel_turns(Gimbal_t* gbal, int jump_threshold);
 void gimbal_send_rel_angles(Gimbal_t *gbal);
 void gimbal_calc_rel_targets(Gimbal_t *gbal, float delta_yaw, float delta_pitch);
-void gimbal_process_rc_channels(Gimbal_t *gbal, int16_t *g_channels);
+void gimbal_calc_channels_to_angles(const int16_t *g_channels, float deltas[2]);
 void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, UC_Auto_Aim_Pack_t *pack);
 
-void gimbal_calc_dual_pid_out(Motor_t *motor, float target, float f_cur_val);
+void gimbal_calc_dual_pid_out(Motor_t *motor, float f_cur_val);
 void gimbal_calc_single_pid_out(Motor_t *motor, float target);
 void gimbal_send_motor_volts(Motor_t *g_motors);
 
+void gimbal_update_headings(Gimbal_t *gbal, Motor_t *g_motors);
+void gimbal_update_targets(Gimbal_t *gbal, int16_t *g_channels);
+
+float calc_rel_angle(float angle1, float angle2);
 
 #endif /* __SRC_APPLICATIONS_GIMBAL_APP_H_ */
