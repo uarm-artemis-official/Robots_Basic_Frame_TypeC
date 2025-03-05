@@ -106,7 +106,7 @@ float pid_dual_loop_control(float f_tar_val, PID_t *f_pid, PID_t *s_pid, float f
 }
 
 
-void pid2_init(PID2_t *pid, float k_p, float k_i, float k_d, float beta, float yeta, float max_out, float min_out) {
+void pid2_init(PID2_t *pid, float k_p, float k_i, float k_d, float beta, float yeta, float min_out, float max_out) {
 	pid->k_p = k_p;
 	pid->k_i = k_i;
 	pid->k_d = k_d;
@@ -151,7 +151,7 @@ float pid2_calculate(PID2_t *pid, float sp, float pv, float dt) {
 		pid->i_out += pid->k_i * pid->i_error * dt;
 	}
 
-	pid->d_out = pid->k_d * pid->d_error / dt;
+	pid->d_out = pid->k_d * (pid->d_error - pid->prev_d_error) / dt;
 	pid->total_out = pid->p_out + pid->i_out + pid->d_out;
 
 	if (pid->total_out > pid->max_out) pid->total_out = pid->max_out;

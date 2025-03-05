@@ -61,7 +61,6 @@ static void calibrate_imu(TickType_t xFrequency) {
 	}
 
 	/* set the offset when the temperature reach normal status */
-	__HAL_TIM_SET_COMPARE(&IMU_TMP_PWM_HTIM, IMU_TMP_PWM_CHANNEL, 1000);//small current to keep tmp
 	bmi088_get_offset();
 
 	/* imu init finished */
@@ -74,7 +73,8 @@ void imu_task_init(TickType_t xFrequency) {
 	bmi088_device_init();
 	ist8310_init();
 	/* init sensor pid */
-	pid_param_init(&(imu.tmp_pid), 4000, 1500, 25, 1000, 0.1, 1000);
+//	pid_param_init(&(imu.tmp_pid), 4000, 1500, 25, 1000, 0.1, 1000);
+	pid2_init(&(imu.tmp_pid), 1200, 220, 0, 1, 1, 0, 4000);
 	set_imu_temp_status(&imu, ABNORMAL);
 	imu.imu_mode = GA_MODE; // forbid ist8310
     if(imu.imu_mode == GA_MODE){
@@ -96,33 +96,36 @@ void imu_task_init(TickType_t xFrequency) {
   */
 void set_imu_temp_status(IMU_t *pimu, IMU_temp_status status){
 	pimu->temp_status = status;
+
+	uint8_t ready = pimu->temp_status == NORMAL ? 1 : 0;
+	pub_message(IMU_READY, &ready);
 }
 
 void set_imu_pwm(IMU_t *pimu, uint16_t pwm){
 	if (pwm < 0) pwm = 0;
 	__HAL_TIM_SET_COMPARE(&IMU_TMP_PWM_HTIM, IMU_TMP_PWM_CHANNEL, pwm);
 }
+
 /**
   * @brief  temperature of imu pid control
   * @param[in]: Not used
   * @retval 0
   */
-int32_t imu_temp_pid_control(void)
-{
-	float temp=imu.temp;
+static int32_t counter = 0; // TODO: remove
+int32_t imu_temp_pid_control(void) {
+	float temp = imu.temp;
 	float temp_threshold = 0.875f;
-	pid_single_loop_control(DEFAULT_IMU_TEMP, &(imu.tmp_pid), temp, IMU_TASK_EXEC_TIME*0.001); // pid control
-	if (temp <= (DEFAULT_IMU_TEMP+temp_threshold) && temp >= (DEFAULT_IMU_TEMP-temp_threshold)) {
+
+	counter = (counter + 1) % 100;
+	if (counter == 0 && temp < 50) {
+		pid2_single_loop_control(&(imu.tmp_pid), DEFAULT_IMU_TEMP, temp, IMU_TASK_EXEC_TIME * 0.001f * 100); // pid control
+		set_imu_pwm(&imu, imu.tmp_pid.total_out);
+	}
+	if (DEFAULT_IMU_TEMP - temp_threshold <= temp && temp <= DEFAULT_IMU_TEMP + temp_threshold) {
 		HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_RESET);
-		set_imu_pwm(&imu, imu.tmp_pid.total_out);
 		set_imu_temp_status(&imu, NORMAL);
-	} else if (temp > DEFAULT_IMU_TEMP + temp_threshold) {
-		HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
-		set_imu_pwm(&imu, imu.tmp_pid.total_out);
-		set_imu_temp_status(&imu, ABNORMAL);
 	} else {
 		HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
-		set_imu_pwm(&imu, imu.tmp_pid.total_out);
 		set_imu_temp_status(&imu, ABNORMAL);
 	}
 	return 0;

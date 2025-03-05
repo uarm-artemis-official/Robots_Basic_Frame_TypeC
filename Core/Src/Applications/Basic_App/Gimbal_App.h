@@ -15,6 +15,7 @@
 
 #include "imu.h"
 #include <motor.h>
+#include <pack_handler.h>
 #include "ramp.h"
 #include "maths.h"
 #include "kalman_filters.h"
@@ -22,7 +23,6 @@
 #include "debugger.h"
 #include "public_defines.h"
 #include "angle_process.h"
-#include "auto_aim.h"
 #include "dwt.h"
 #include "task.h"
 #include "gpio.h"
@@ -40,11 +40,11 @@
 /* define general declarations for gimbal task here */
 //#define GIMBAL_MOTOR_DEBUG 1
 #define MODE_DEBUG 1
-//#define MANUAL_SET_GIMBAL_MODES
+//#define ENABLE_MANUAL_MODE_SET
 
-#define PITCH_ECD_CENTER 4970 //manually measured data: number increase, head down
+#define PITCH_ECD_CENTER 4750 //manually measured data: number increase, head down
 #define PITCH_ECD_DELTA  1364  //60/180*4096
-#define PITCH_GEAR_RATIO 4    // The ratio of the gear box of the pitch motor
+#define PITCH_GEAR_RATIO 1    // The ratio of the gear box of the pitch motor
 #define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO) 
 
 #define YAW_ECD_CENTER 4800 //620
@@ -76,6 +76,11 @@ typedef struct Gimbal_t {
 	int16_t pitch_ecd_center;		//center position of the pitch motor by encoder
 	float yaw_imu_center;
 	float pitch_imu_center;
+
+	PID2_t yaw_f_pid;
+	PID2_t yaw_s_pid;
+	PID2_t pitch_f_pid;
+	PID2_t pitch_s_pid;
 
 	Gimbal_Axis_t axis;
 
@@ -147,8 +152,7 @@ void gimbal_calc_rel_targets(Gimbal_t *gbal, float delta_yaw, float delta_pitch)
 void gimbal_calc_channels_to_angles(const int16_t *g_channels, float deltas[2]);
 void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, UC_Auto_Aim_Pack_t *pack);
 
-void gimbal_calc_dual_pid_out(Motor_t *motor, float f_cur_val);
-void gimbal_calc_single_pid_out(Motor_t *motor, float target);
+float gimbal_calc_dual_pid_out(PID2_t *f_pid, PID2_t *s_pid, float f_cur_val);
 void gimbal_send_motor_volts(Motor_t *g_motors);
 
 void gimbal_update_headings(Gimbal_t *gbal, Motor_t *g_motors);

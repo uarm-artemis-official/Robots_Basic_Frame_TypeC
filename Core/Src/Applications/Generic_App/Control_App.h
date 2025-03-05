@@ -157,6 +157,10 @@ void rc_key_init(KeyObject_t *key);
 void rc_key_scan(KeyObject_t *key_obj, uint16_t key_buffer, uint16_t compare_key);
 KeyStatus_t rc_get_key_status(KeyObject_t *key);
 
+void rc_update_comm_pack(RemoteControl_t *rc_hdlr);
+void rc_process_rc_info(RemoteControl_t *rc_hdlr);
+void pub_rc_messages(uint8_t modes[3], int16_t channels[4]);
+
 
 void rc_on_uart_complete();
 void rc_on_uart_error();

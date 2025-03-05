@@ -32,6 +32,7 @@ extern "C" {
 #include "stdint.h"
 #include "public_defines.h"
 #include "message_center.h"
+#include "pack_handler.h"
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart1;

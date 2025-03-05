@@ -1,6 +1,8 @@
 #include "message_center.h"
 
-
+// TODO: Add queue configurations for reading and writing permissions
+// Motivation: simplify methods to pub_message and get_message only.
+// TODO: Add message ID to distinguish messages on peek queues.
 static Topic_Handle_t topic_handles[] = {
 		{
 				.name = MOTOR_SET,
@@ -39,8 +41,14 @@ static Topic_Handle_t topic_handles[] = {
 		},
 		{
 				.name = IMU_READINGS,
-				// Pitch and yaw readings.
+				// Yaw and pitch readings.
 				.item_size = sizeof(float) * 2,
+				.queue_length = 1,
+				.queue_handle = NULL
+		},
+		{
+				.name = IMU_READY,
+				.item_size = sizeof(uint8_t),
 				.queue_length = 1,
 				.queue_handle = NULL
 		},
@@ -78,6 +86,18 @@ static Topic_Handle_t topic_handles[] = {
 				.name = RC_RAW,
 				.item_size = sizeof(uint8_t) * 18,
 				.queue_length = 5,
+				.queue_handle = NULL
+		},
+		{
+				.name = UC_PACK_IN,
+				.item_size = sizeof(uint8_t) * MAX_PACK_BUFFER_SIZE,
+				.queue_length = 10,
+				.queue_handle = NULL
+		},
+		{
+				.name = AUTO_AIM,
+				.item_size = sizeof(float) * 2,
+				.queue_length = 1,
 				.queue_handle = NULL
 		}
 };

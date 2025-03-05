@@ -118,7 +118,6 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-  UC_Pack_Queue = xQueueCreate(3, UC_PACK_SIZE);
 //  Ref_Pack_Queue = xQueueCreate(5, MAX_REF_BUFFER_SZIE);
   /* USER CODE END RTOS_QUEUES */
 
@@ -158,8 +157,8 @@ void MX_FREERTOS_Init(void) {
     	  osThreadDef(IMUTask, IMU_Task_Function, osPriorityHigh, 0, 256);
     	  IMUTaskHandle = osThreadCreate(osThread(IMUTask), NULL);
 
-//    	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
-//    	  PCUARTTaskHandle = osThreadCreate(osThread(PCUARTTask), NULL);
+    	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
+    	  PCUARTTaskHandle = osThreadCreate(osThread(PCUARTTask), NULL);
       }
   /* USER CODE END RTOS_THREADS */
 

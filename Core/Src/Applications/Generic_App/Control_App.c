@@ -101,10 +101,8 @@ static ewma_filter_t ewma_gimbal_yaw, ewma_gimbal_pitch;
 static uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
 static uint32_t rc_errors = 0;
 static uint32_t rc_completes = 0;
+static uint32_t rc_idle_count = 0;
 
-/* define internal functions */
-static void rc_update_comm_pack(RemoteControl_t *rc_hdlr);
-static void rc_publish_info(RemoteControl_t *rc_hdlr);
 /**
   * @brief     main remote control task
   * @param[in] None
@@ -119,17 +117,29 @@ void RC_Task_Func(){
 	/* init rc task */
 	rc_task_init(&rc);
 
-	/* reset rc test */
-	rc_reset(&rc);
-
 	/* init the task ticks */
 	xLastWakeTime = xTaskGetTickCount();
 
 	for(;;){
+		if (rc_idle_count >= 2000 || rc_errors >= 500) {
+			uint8_t safe_modes[] = {
+				IDLE_MODE,
+				INDPET_MODE,
+				SHOOT_CEASE
+			};
+			int16_t channels[] = { 0.f, 0.f, 0.f, 0.f };
+			pub_rc_messages(safe_modes, channels);
+			rc_idle_count = 0;
+			rc_errors = 0;
+		}
+
 		BaseType_t new_rc_raw_message = get_message(RC_RAW, rc_rx_buffer, 0);
 		if (new_rc_raw_message == pdTRUE) {
 			rc_process_rx_data(&rc, rc_rx_buffer);
-			rc_publish_info(&rc);
+			rc_process_rc_info(&rc);
+			rc_idle_count = 0;
+		} else {
+			rc_idle_count++;
 		}
 		/* delay until wake time */
 	    vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -275,7 +285,7 @@ void rc_process_rx_data(RemoteControl_t *rc_hdlr, uint8_t *rx_buffer) {
   * @param[in] comm rc struct
   * @retval    None
   */
-static void rc_update_comm_pack(RemoteControl_t *rc_hdlr){
+void rc_update_comm_pack(RemoteControl_t *rc_hdlr){
 	// TODO: Implement player commands?
 //	if(rc_hdlr->control_mode == CTRLER_MODE){
 //		comm_rc->rc_data[0] = rc_hdlr->ctrl.ch0;
@@ -311,7 +321,7 @@ static void rc_update_comm_pack(RemoteControl_t *rc_hdlr){
 }
 
 
-static void rc_publish_info(RemoteControl_t *rc_hdlr) {
+void rc_process_rc_info(RemoteControl_t *rc_hdlr) {
 	BoardMode_t    board_mode = IDLE_MODE;
 	BoardActMode_t act_mode   = INDPET_MODE;
 	ShootActMode_t shoot_mode = SHOOT_CEASE;
@@ -329,7 +339,7 @@ static void rc_publish_info(RemoteControl_t *rc_hdlr) {
 		act_mode   = GIMBAL_FOLLOW;
 		shoot_mode = SHOOT_CONT;
 	} else if (rc_hdlr->ctrl.s1 == SW_MID && rc_hdlr->ctrl.s2 == SW_DOWN) {
-		board_mode = PC_MODE;
+		board_mode = AUTO_AIM_MODE;
 		act_mode   = INDPET_MODE;
 		shoot_mode = SHOOT_CEASE;
 	} else if (rc_hdlr->ctrl.s1 == SW_MID && rc_hdlr->ctrl.s2 == SW_MID) {
@@ -366,6 +376,12 @@ static void rc_publish_info(RemoteControl_t *rc_hdlr) {
 			rc_hdlr->ctrl.ch2,
 			rc_hdlr->ctrl.ch3
 	};
+
+	pub_rc_messages(modes, channels);
+}
+
+
+void pub_rc_messages(uint8_t modes[3], int16_t channels[4]) {
 	RCInfoMessage_t rc_info_message;
 	memcpy(&(rc_info_message.modes), modes, sizeof(uint8_t) * 3);
 	memcpy(&(rc_info_message.channels), channels, sizeof(int16_t) * 4);
@@ -379,15 +395,18 @@ static void rc_publish_info(RemoteControl_t *rc_hdlr) {
 	pub_message(COMM_OUT, &comm_message);
 }
 
+
 /**
   * @brief     reset everything when error occurs
   * @param[in] main rc struct
   * @retval    None
   */
-void rc_reset(RemoteControl_t *rc_hdlr){
+void rc_reset(RemoteControl_t *rc_hdlr) {
 	/* stop DMA */
+//	HAL_UART_Abort_IT(&huart3);
 //	HAL_UART_DMAStop(&huart3);
 	/* try to reconnect to rc */
+//	HAL_UART_Receive_IT(&huart3, rc_rx_buffer, DBUS_BUFFER_LEN);
 //	HAL_UART_Receive_DMA(&huart3, rc_rx_buffer, DBUS_BUFFER_LEN);
 }
 
@@ -458,16 +477,5 @@ void rc_get_comm_info(RemoteControl_t *rc_hdlr){
 //	comm_ext_pc->pc_data[1] = rc_hdlr->pc.key.R.status;
 //	comm_ext_pc->pc_data[2] = rc_hdlr->pc.key.B.status;
 
-}
-
-
-void rc_on_uart_complete() {
-	rc_completes++;
-}
-
-
-void rc_on_uart_error() {
-	rc_errors++;
-	receive_rc_info(rc_rx_buffer, DBUS_BUFFER_LEN);
 }
 #endif /*__RC_APP_C__*/

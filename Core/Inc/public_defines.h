@@ -83,7 +83,10 @@ typedef struct {
 	float wz;
 } Gimbal_Axis_t; //for remote controller set gimbal dir
 
-
+// PACK DEFINITIONS
+#define MAX_PACK_BUFFER_SIZE 64 // Measured in bytes.
+#define PACK_HEADER_SIZE 4
+#define PACK_TRAILER_SIZE 4
 
 #define MOTOR_TX_BUFFER_SIZE 8
 
@@ -97,20 +100,20 @@ typedef struct {
 #define TIMER_TASK_EXEC_TIME 1
 #define COMM_TASK_EXEC_TIME 2
 #define RC_TASK_EXEC_TIME 2
-#define PC_UART_TASK_EXEC_TIME 20
+#define PC_UART_TASK_EXEC_TIME 10
 
 /* motor can id */
 #define CHASSIS_ECD_CONST_OMEGA 120
 #define CHASSIS_MAX_WHEELS 4
 
-// These are used for idexing the motor feedback array from MOTOR_READ topic.
+// These are used for indexing the motor feedback array from MOTOR_READ topic.
 // Formula: CAN ID = Chassis Motor CAN Std. IDs - CAN_RX_ID_START.
 #define CHASSIS_WHEEL1_CAN_ID 0
 #define CHASSIS_WHEEL2_CAN_ID 1
 #define CHASSIS_WHEEL3_CAN_ID 2
 #define CHASSIS_WHEEL4_CAN_ID 3
 
-// These are used for idexing the motor feedback array from MOTOR_READ topic.
+// These are used for indexing the motor feedback array from MOTOR_READ topic.
 // Formula: CAN ID = Gimbal Motor CAN Std. IDs - CAN_RX_ID_START.
 #define SHOOT_LEFT_FRIC_CAN_ID 0
 #define SHOOT_RIGHT_FRIC_CAN_ID 1
@@ -134,32 +137,40 @@ typedef struct {
 #define max_err_wheel 5000
 
 /* gimbal 6020 dual loop control */
-#define kp_angle_yaw 205//200
-#define ki_angle_yaw 0//0.1
-#define kd_angle_yaw 100
-#define max_out_angle_yaw 10000 // not tuned yet
+#define kp_angle_yaw 200
+#define ki_angle_yaw 0
+#define kd_angle_yaw 15
+#define beta_angle_yaw 1
+#define yeta_angle_yaw 0
+#define max_out_angle_yaw 800 // not tuned yet
 #define max_I_out_angle_yaw 1
 #define max_err_angle_yaw 100//2.0f*PI
 
-#define kp_spd_yaw 235//280
-#define ki_spd_yaw 0.1//0.1
+#define kp_spd_yaw 600 // consider going to 500
+#define ki_spd_yaw 80//0.1
 #define kd_spd_yaw 0//0.5
-#define max_out_spd_yaw 13000 // not tuned yet
+#define beta_spd_yaw 1
+#define yeta_spd_yaw 1
+#define max_out_spd_yaw 20000 // not tuned yet
 #define max_I_out_spd_yaw 1000
 #define max_err_spd_yaw 5000
 #define kf_spd_yaw 0
 
-#define kp_angle_pitch 251//900
+#define kp_angle_pitch 0
 #define ki_angle_pitch 0
-#define kd_angle_pitch 10
-#define max_out_angle_pitch 8000 // not tuned yet
+#define kd_angle_pitch 0
+#define beta_angle_pitch 1
+#define yeta_angle_pitch 1
+#define max_out_angle_pitch 1000
 #define max_I_out_angle_pitch 0
 #define max_err_angle_pitch 100//2.0f*PI
 
-#define kp_spd_pitch 76
-#define ki_spd_pitch 0.1
-#define kd_spd_pitch 10
-#define max_out_spd_pitch 30000 // not tuned yet
+#define kp_spd_pitch 0
+#define ki_spd_pitch 0
+#define kd_spd_pitch 0
+#define beta_spd_pitch 1
+#define yeta_spd_pitch 1
+#define max_out_spd_pitch 30000
 #define max_I_out_spd_pitch 3000
 #define max_err_spd_pitch 5000
 #define kf_spd_pitch 0

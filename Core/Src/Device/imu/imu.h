@@ -22,7 +22,7 @@
 /* define general declarations here */
 #define IMU_OK  0
 #define IMU_ERR 1
-#define DEFAULT_IMU_TEMP 45
+#define DEFAULT_IMU_TEMP 40
 
 #ifdef DRV_IMU_H_GLOBAL
     #define DRV_IMU_H_EXTERN
@@ -41,7 +41,7 @@
   * @Note
   */
 typedef enum{
-	NORMAL = 0,
+	NORMAL = 1,
 	ABNORMAL
 }IMU_temp_status;
 
@@ -53,7 +53,7 @@ typedef enum{
 typedef struct{
 	float temp;
 	uint32_t sample_time;
-	PID_t tmp_pid;
+	PID2_t tmp_pid;
 
 	IMU_temp_status temp_status;
 	IMU_mode_t imu_mode;

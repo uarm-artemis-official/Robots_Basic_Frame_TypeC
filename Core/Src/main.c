@@ -99,7 +99,6 @@
 #include "dwt.h"
 #include "buzzer.h"
 #include "self_check.h"
-#include "auto_aim.h"
 #include "message_center.h"
 #include "Control_App.h"
 /* USER CODE END Includes */
@@ -162,12 +161,12 @@ BoardStatus_t board_status;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
-/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-   HAL_Init();
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
   /* USER CODE END Init */

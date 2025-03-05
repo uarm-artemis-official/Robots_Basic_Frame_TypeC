@@ -1,7 +1,3 @@
-/**
-
- */
-
 #ifndef PUBSUB_H
 #define PUBSUB_H
 
@@ -18,11 +14,15 @@ typedef enum Topic_Name_t {
 	COMM_OUT,
 	COMM_IN,
 	IMU_READINGS,
+	IMU_READY,
 	REF_INFO,
 	PLAYER_COMMANDS,
 	RC_INFO,
 	RC_RAW,
 	REFEREE_INFO,
+	UC_PACK_IN,
+	AUTO_AIM,
+	UART_OUT,
 
 	// Gimbal -> Chassis
 	GIMBAL_REL_ANGLES,
