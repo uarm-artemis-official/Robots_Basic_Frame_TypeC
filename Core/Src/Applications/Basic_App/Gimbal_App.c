@@ -163,30 +163,30 @@ void gimbal_calibration_reset(Gimbal_t *gbal, Motor_t *g_motors) {
 		vTaskDelay(GIMBAL_TASK_EXEC_TIME);
 	}
 
-	const int num_samples = 10;
-	int count = 0;
-	float avg_headings[2];
-	for (;;) {
-		uint8_t imu_ready_status = 0;
-		BaseType_t imu_ready = peek_message(IMU_READY, &imu_ready_status, 0);
-		if (imu_ready == pdTRUE && imu_ready_status == 1) {
-			if (count == num_samples) break;
-
-			float headings[2];
-			BaseType_t imu_posting = peek_message(IMU_READINGS, headings, 0);
-			if (imu_posting == pdTRUE) {
-				gimbal_update_imu_angle(gbal, headings[0], headings[1]);
-				avg_headings[0] += gbal->yaw_imu_angle;
-				avg_headings[1] += gbal->pitch_imu_angle;
-				count++;
-			}
-		}
-		osDelay(20);
-	}
-	avg_headings[0] /= num_samples;
-	avg_headings[1] /= num_samples;
-
-	gbal->yaw_imu_center = avg_headings[0];
+//	const int num_samples = 10;
+//	int count = 0;
+//	float avg_headings[2];
+//	for (;;) {
+//		uint8_t imu_ready_status = 0;
+//		BaseType_t imu_ready = peek_message(IMU_READY, &imu_ready_status, 0);
+//		if (imu_ready == pdTRUE && imu_ready_status == 1) {
+//			if (count == num_samples) break;
+//
+//			float headings[2];
+//			BaseType_t imu_posting = peek_message(IMU_READINGS, headings, 0);
+//			if (imu_posting == pdTRUE) {
+//				gimbal_update_imu_angle(gbal, headings[0], headings[1]);
+//				avg_headings[0] += gbal->yaw_imu_angle;
+//				avg_headings[1] += gbal->pitch_imu_angle;
+//				count++;
+//			}
+//		}
+//		osDelay(20);
+//	}
+//	avg_headings[0] /= num_samples;
+//	avg_headings[1] /= num_samples;
+//
+//	gbal->yaw_imu_center = avg_headings[0];
 	// TODO: Uncomment after implementing pitch centering.
 //			gbal->pitch_imu_center = headings[1];
 }
@@ -218,8 +218,8 @@ void gimbal_reset_data(Gimbal_t *gbal, Motor_t *g_motors) {
 	init_ewma_filter(&gbal->ewma_f_aim_yaw, 0.95f);//0.65 for older client
 	init_ewma_filter(&gbal->ewma_f_aim_pitch, 0.95f);//0.6 for older client
 
-	init_swm_filter(&gbal->swm_f_x, 20);// window size 50
-	init_swm_filter(&gbal->swm_f_y, 20);
+//	init_swm_filter(&gbal->swm_f_x, 20);// window size 50
+//	init_swm_filter(&gbal->swm_f_y, 20);
 
 	memset(&(gbal->ahrs_sensor), 0, sizeof(AhrsSensor_t));
 	memset(&(gbal->euler_angle), 0, sizeof(Attitude_t));

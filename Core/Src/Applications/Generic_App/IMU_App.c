@@ -98,7 +98,7 @@ void set_imu_temp_status(IMU_t *pimu, IMU_temp_status status){
 	pimu->temp_status = status;
 
 	uint8_t ready = pimu->temp_status == NORMAL ? 1 : 0;
-	pub_message(IMU_READY, &ready);
+//	pub_message(IMU_READY, &ready);
 }
 
 void set_imu_pwm(IMU_t *pimu, uint16_t pwm){

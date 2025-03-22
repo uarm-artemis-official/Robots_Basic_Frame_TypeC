@@ -46,12 +46,12 @@ static Topic_Handle_t topic_handles[] = {
 				.queue_length = 1,
 				.queue_handle = NULL
 		},
-		{
-				.name = IMU_READY,
-				.item_size = sizeof(uint8_t),
-				.queue_length = 1,
-				.queue_handle = NULL
-		},
+//		{
+//				.name = IMU_READY,
+//				.item_size = sizeof(uint8_t),
+//				.queue_length = 1,
+//				.queue_handle = NULL
+//		},
 		{
 				/*
 				 * float[0] - gimbal yaw relative angle.

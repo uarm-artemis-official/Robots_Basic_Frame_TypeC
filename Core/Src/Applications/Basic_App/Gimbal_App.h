@@ -97,8 +97,8 @@ typedef struct Gimbal_t {
 	/* pc control filters */
 	ewma_filter_t ewma_f_x;  //Exponential mean filtering for yaw
 	ewma_filter_t ewma_f_y;	 //Exponential mean filtering for pitch
-	sliding_mean_filter_t swm_f_x; //Sliding window mean filter for yaw
-	sliding_mean_filter_t swm_f_y; //Sliding window mean filter for pitch
+//	sliding_mean_filter_t swm_f_x; //Sliding window mean filter for yaw
+//	sliding_mean_filter_t swm_f_y; //Sliding window mean filter for pitch
 	/* auto aimming */
 	ewma_filter_t ewma_f_aim_yaw;
 	ewma_filter_t ewma_f_aim_pitch;

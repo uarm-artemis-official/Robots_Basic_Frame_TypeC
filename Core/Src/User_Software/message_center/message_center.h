@@ -14,7 +14,7 @@ typedef enum Topic_Name_t {
 	COMM_OUT,
 	COMM_IN,
 	IMU_READINGS,
-	IMU_READY,
+//	IMU_READY,
 	REF_INFO,
 	PLAYER_COMMANDS,
 	RC_INFO,
