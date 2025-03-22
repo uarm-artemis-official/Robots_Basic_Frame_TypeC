@@ -1,0 +1,9 @@
+auto_aim.c:20:6:uc_auto_aim_pack_init	16	static
+auto_aim.c:27:6:uc_board_data_pack_init	16	static
+auto_aim.c:40:6:uc_flow_control_pack_init	16	static
+auto_aim.c:47:15:calculate_checksum	40	static
+auto_aim.c:73:6:uc_receive	16	static
+auto_aim.c:87:9:uc_send_board_data	88	static
+auto_aim.c:100:9:uc_send	24	static
+auto_aim.c:126:6:uc_stop_receive	8	static
+auto_aim.c:131:9:is_valid_header	16	static

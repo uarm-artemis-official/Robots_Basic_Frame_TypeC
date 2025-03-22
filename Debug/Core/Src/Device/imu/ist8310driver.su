@@ -1,0 +1,3 @@
+ist8310driver.c:50:9:ist8310_init	16	static
+ist8310driver.c:93:6:ist8310_read_over	24	static
+ist8310driver.c:120:6:ist8310_read_mag	24	static

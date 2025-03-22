@@ -23,12 +23,14 @@
 #define CHASSIS_SLEF_GYRO_ANG_VEL 80
 #define CHASSIS_MAX_SPEED 16834
 
+#define OMNI_WHEEL_RADIUS 0.152f//m
+
 /* power limit defines */
 #define CHASSIS_POWER_DANGER      20 //random value, test soon
 #define CHASSIS_POWER_THRESHOLD   45  //random value, test soon
 #define POWER_TO_CURRENT          (1.0f) //random value, test soon
 #define CHASSIS_PC_RAMP_VALUE 	 (0.5f) //ramp value for increment of the motors
-
+#define OMNI_WHEEL_RADIUS 0.152f//  0.152 m
 /* define user structure here */
 /*
  * @brief basic chassis structure
@@ -100,11 +102,13 @@ void chassis_reset_data(Chassis_t *chassis_hdlr);
 void chassis_set_mode(Chassis_t *chassis_hdlr, BoardMode_t mode);
 void chassis_set_act_mode(Chassis_t *chassis_hdlr, BoardActMode_t mode);
 void mecanum_wheel_calc_speed(Chassis_t *chassis_hdlr);
+void omni_wheel_calc_speed(Chassis_t *chassis_hdlr);
 void chassis_update_chassis_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hdlr);
 void chassis_update_gimbal_coord(Chassis_t *chassis_hdlr, RemoteControl_t *rc_hdlr);
 void chassis_brake(float *vel, float ramp_step, float stop_threshold);
 void chassis_exec_act_mode(Chassis_t *chassis_hdlr);
 void chassis_execute(Chassis_t *chassis_hdlr);
+void mecanum_wheel_calc_speed(Chassis_t *chassis_hdlr);
 
 /* power limit */
 void get_chassis_ref_power_stat(Chassis_t* chassis_hdlr, Referee_t *ref);

@@ -13,6 +13,9 @@
 #define WITH_SLIPRING
 #define CHASSIS_POWER_LIMIT
 
+#define OMNI_BASE
+//#define MECANUM_BASE
+
 #include "Chassis_App.h"
 #include "Comm_App.h"
 #include "maths.h"
@@ -128,6 +131,27 @@ void swerve_drive_wheel_decomposition(Chassis_t *chassis_hdlr){
 }
 
 
+void omni_wheel_calc_speed(Chassis_t *chassis_hdlr){
+	/* Assume we install the mecanum wheels as O type (also have X type), right hand define positive dir
+	 *			 r length
+	 *		 v1  // --- \\  v2     <Front>		   	 A       __
+	 *		      |     |		 r length			  | vx  /
+	 *		  	  |	    |                             |     \__>   wz
+	 *		 v4	 \\ --- //  v3     <Rear>     vy  < ---
+	 *
+	 *		--	vector([vx, vy, wz]) --
+	 *	v1 = [-vx, vy, wz] * (1/r/sqrt(2)) * gear_ratio
+	 *	v2 = [ vx, vy, wz] * (1/r/sqrt(2)) * gear_ratio
+	 *	v3 = [ vx,-vy, wz] * (1/r/sqrt(2)) * gear_ratio
+	 *	v4 = [-vx,-vy, wz] * (1/r/sqrt(2)) * gear_ratio
+	 * */
+	chassis_hdlr->mec_spd[wheel_id1] = (int16_t)( -chassis_hdlr->vx + chassis_hdlr->vy + chassis_hdlr->wz * (1/OMNI_WHEEL_RADIUS/sqrt(2))) * CHASSIS_MOTOR_DEC_RATIO;
+	chassis_hdlr->mec_spd[wheel_id2] = (int16_t)(  chassis_hdlr->vx + chassis_hdlr->vy + chassis_hdlr->wz * (1/OMNI_WHEEL_RADIUS/sqrt(2))) * CHASSIS_MOTOR_DEC_RATIO;
+	chassis_hdlr->mec_spd[wheel_id3] = (int16_t)(  chassis_hdlr->vx - chassis_hdlr->vy + chassis_hdlr->wz * (1/OMNI_WHEEL_RADIUS/sqrt(2))) * CHASSIS_MOTOR_DEC_RATIO;
+	chassis_hdlr->mec_spd[wheel_id4] = (int16_t)( -chassis_hdlr->vx - chassis_hdlr->vy + chassis_hdlr->wz * (1/OMNI_WHEEL_RADIUS/sqrt(2))) * CHASSIS_MOTOR_DEC_RATIO;
+}
+
+
 /*
  * @brief 	  Inversely calculate the mecanum wheel speed
  * @param[in] chassis_hdlr:chassis main struct
@@ -158,13 +182,42 @@ void mecanum_wheel_calc_speed(Chassis_t *chassis_hdlr){
 	/* may apply level up gain and power limit here when we have referee system feedback */
 }
 
+///*
+// * @brief 	  Inversely calculate the mecanum wheel speed
+// * @param[in] chassis_hdlr:chassis main struct
+// * @retval    None
+// */
+//void chassis_execute(Chassis_t *chassis_hdlr){
+//	mecanum_wheel_calc_speed(chassis_hdlr);
+//	/* max +-16834 */
+//	for(int i=0;i<4;i++){
+//		VAL_LIMIT(chassis_hdlr->mec_spd[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
+//	}
+//	set_motor_can_current(chassis_hdlr->mec_spd[wheel_id1],
+//						  chassis_hdlr->mec_spd[wheel_id2],
+//						  chassis_hdlr->mec_spd[wheel_id3],
+//						  chassis_hdlr->mec_spd[wheel_id4],
+//						  SINGLE_LOOP_PID_CONTROL);
+//}
+
 /*
  * @brief 	  Inversely calculate the mecanum wheel speed
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
 void chassis_execute(Chassis_t *chassis_hdlr){
+#ifdef MECANUM_BASE
 	mecanum_wheel_calc_speed(chassis_hdlr);
+#endif
+#ifdef OMNI_BASE
+	omni_wheel_calc_speed(chassis_hdlr);
+#endif
+
+//#ifdef CHASSIS_POWER_LIMIT
+//	/* Chassis Power Management Starts Here */
+////	chassis_power_limit_referee(chassis_hdlr);
+//	chassis_power_limit_local(chassis_hdlr, chassis_l1_power);
+//#endif
 	/* max +-16834 */
 	for(int i=0;i<4;i++){
 		VAL_LIMIT(chassis_hdlr->mec_spd[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);

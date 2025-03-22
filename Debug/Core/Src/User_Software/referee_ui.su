@@ -1,0 +1,3 @@
+referee_ui.c:24:6:referee_general_draw_act_mode	48	static
+referee_ui.c:52:6:referee_hero_draw_marks	16	static
+referee_ui.c:213:6:referee_infantry_draw_marks	16	static
