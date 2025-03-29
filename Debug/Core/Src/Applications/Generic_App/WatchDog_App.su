@@ -1,0 +1,4 @@
+WatchDog_App.c:35:6:WatchDog_Task_Function	16	static
+WatchDog_App.c:110:6:wdg_task_init	8	static
+WatchDog_App.c:115:6:wdg_daemon_feed_dog	8	static
+WatchDog_App.c:120:6:wdg_daemon_reset_system	4	static

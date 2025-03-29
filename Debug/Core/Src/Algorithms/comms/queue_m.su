@@ -1,0 +1,3 @@
+queue_m.c:21:6:queueM_init	16	static
+queue_m.c:32:6:enqueueCanMessage	32	static
+queue_m.c:50:6:sendNextCanMessage	32	static

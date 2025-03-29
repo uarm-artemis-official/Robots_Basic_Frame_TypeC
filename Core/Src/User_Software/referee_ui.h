@@ -227,8 +227,11 @@ typedef struct __attribute__((__packed__))
 	uint16_t ref_cmd_id;
 
 	uint8_t first_drawing_flag;
+	uint8_t first_printing_flag;
 	uint8_t cur_sending_count;
 	referee_ui_t cur_sending_id;
+
+	uint8_t counter_infantry;//changed
 
 	robot_color_t robot_color;
 

@@ -144,6 +144,7 @@ void referee_init(Referee_t *ref){
 	ref->ref_cmd_id = IDLE_ID;
 	ref->ui_intrect_data.data_cmd_id = IDLE_ID;
 	ref->robot_color = UNKOWN;
+	ref->counter_infantry = 0;
 }
 
 /**

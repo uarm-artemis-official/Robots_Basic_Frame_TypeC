@@ -1,0 +1,6 @@
+Referee_App.c:52:6:Referee_Task_Func	280	static
+Referee_App.c:129:6:referee_init	16	static
+Referee_App.c:156:6:referee_read_data	16	static
+Referee_App.c:228:6:referee_dma_reset	8	static
+Referee_App.c:248:6:referee_send_ui_data	24	static
+Referee_App.c:275:6:referee_set_ui_data	16	static

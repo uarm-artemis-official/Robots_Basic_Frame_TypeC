@@ -1,0 +1,9 @@
+bmi088_middleware.c:21:6:BMI088_GPIO_Init	4	static
+bmi088_middleware.c:26:6:BMI088_Com_Init	4	static
+bmi088_middleware.c:32:6:BMI088_Delay_ms	16	static
+bmi088_middleware.c:38:6:BMI088_Delay_us	40	static
+bmi088_middleware.c:72:6:BMI088_ACCEL_NS_L	8	static
+bmi088_middleware.c:76:6:BMI088_ACCEL_NS_H	8	static
+bmi088_middleware.c:81:6:BMI088_GYRO_NS_L	8	static
+bmi088_middleware.c:85:6:BMI088_GYRO_NS_H	8	static
+bmi088_middleware.c:90:9:BMI088_Read_Write_Byte	32	static

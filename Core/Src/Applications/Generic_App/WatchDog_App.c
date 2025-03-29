@@ -41,7 +41,7 @@ void WatchDog_Task_Function(void){
 
 	/* set task exec period */
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = pdMS_TO_TICKS(150); // task exec period 1ms
+	const TickType_t xFrequency = pdMS_TO_TICKS(1000); // task exec period 1ms
 
 	/* init the task ticks */
 	xLastWakeTime = xTaskGetTickCount();
@@ -72,6 +72,10 @@ void WatchDog_Task_Function(void){
 			case UI_INFANTRY_MARK: {
 				referee_set_ui_data(&referee, UI_INFANTRY_MARK);
 				referee_send_ui_data(INTERA_UI_ID, (uint8_t *)&referee.ui_intrect_data, UI_INFANTRY_MARK_LEN);
+//				referee_set_ui_data(&referee, UI_ROBOT_ACT_MODE);
+
+//				referee_general_draw_act_mode(&referee);
+//				referee_send_ui_data(INTERA_UI_ID, (uint8_t *)&referee.ui_custom_data, UI_ACT_MODE_LEN);
 				break;
 						}
 			default:break;

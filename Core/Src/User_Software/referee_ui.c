@@ -30,7 +30,7 @@ void referee_general_draw_act_mode(Referee_t *ref){
 	/* Draw 7 letters*/
 	ref->ui_intrect_data.data_cmd_id = SUB_UI_EXT_CUSTOM_ID;
 	/* Set up a temp buffer for collect mode */
-	char buffer[30] = "MODE:GF";
+	char buffer[30] = "MODEGF";
 //	uint8_t *mode = "GF";s
 //	snprintf(buffer, sizeof(buffer), "MODE: %s", mode);
 
@@ -38,10 +38,10 @@ void referee_general_draw_act_mode(Referee_t *ref){
     ref->ui_custom_data.figure_data_struct.figure_name[1] = 0;
     ref->ui_custom_data.figure_data_struct.figure_name[2] = 1;
     ref->ui_custom_data.figure_data_struct.operate_tpye = 1;
-    ref->ui_custom_data.figure_data_struct.figure_tpye = 7; // String
+    ref->ui_custom_data.figure_data_struct.figure_tpye = 6; // int
     ref->ui_custom_data.figure_data_struct.layer = 0;
     ref->ui_custom_data.figure_data_struct.details_a = 20;  // Font size
-    ref->ui_custom_data.figure_data_struct.start_x = 1551;
+    ref->ui_custom_data.figure_data_struct.start_x = 1400;//1551
     ref->ui_custom_data.figure_data_struct.start_y = 770;
     ref->ui_custom_data.figure_data_struct.color = 1;
     ref->ui_custom_data.figure_data_struct.details_b = 7;   // String len
@@ -67,8 +67,10 @@ void referee_hero_draw_marks(Referee_t *ref){
 
 	if(ref->first_drawing_flag)
 		ref->ui_figure_struct_data.interaction_figure[0].operate_tpye= 1; // 0: None, 1: Add, 2: Modify. 3: Delete
-	else
-		ref->ui_figure_struct_data.interaction_figure[0].operate_tpye= 2; // If not first drawing, select modify
+	else{
+		ref->ui_figure_struct_data.interaction_figure[0].operate_tpye= 3; // If not first drawing, select modify
+		//ref->first_drawing_flag = 1;
+	}
 	/* Drawing */
 	/*
 	 * The top three bytes represent the graphic name, used for graphic indexing,
@@ -202,7 +204,7 @@ void referee_hero_draw_marks(Referee_t *ref){
 	ref->ui_figure_struct_data.interaction_figure[6].details_e = 420;  // For straight line, it's end_y
 
 	if(ref->first_drawing_flag == 1){
-		ref->first_drawing_flag = 1;
+		ref->first_drawing_flag = 0;
 	}
 
 	/* Memcpy to main interact struct */
@@ -329,7 +331,7 @@ void referee_infantry_draw_marks(Referee_t *ref){
 	if(ref->first_drawing_flag)
 		ref->ui_figure_struct_data.interaction_figure[5].operate_tpye= 1; // 0: None, 1: Add, 2: Modify. 3: Delete
 	else
-		ref->ui_figure_struct_data.interaction_figure[5].operate_tpye= 2; // If not first drawing, select modify
+		ref->ui_figure_struct_data.interaction_figure[5].operate_tpye= 3; // If not first drawing, select modify
 	/* Drawing */
 	ref->ui_figure_struct_data.interaction_figure[5].figure_name[0] = FIGURE_ID;
 	ref->ui_figure_struct_data.interaction_figure[5].figure_name[1] = 0;
@@ -353,17 +355,35 @@ void referee_infantry_draw_marks(Referee_t *ref){
 	ref->ui_figure_struct_data.interaction_figure[6].figure_name[0] = FIGURE_ID;
 	ref->ui_figure_struct_data.interaction_figure[6].figure_name[1] = 0;
 	ref->ui_figure_struct_data.interaction_figure[6].figure_name[2] = 6;// Graphic name
-	ref->ui_figure_struct_data.interaction_figure[6].figure_tpye= 0;  // Graphic type, 0: straight line, check user manual for others
+	ref->ui_figure_struct_data.interaction_figure[6].figure_tpye= 6;  // Graphic type, 0: straight line, check user manual for others
 	ref->ui_figure_struct_data.interaction_figure[6].layer= 0; // Number of layers
 	ref->ui_figure_struct_data.interaction_figure[6].color= 1; // 0 Correspond team color(Red/Blue), 1 yellow, 2 green
 	ref->ui_figure_struct_data.interaction_figure[6].width= 3;
-	ref->ui_figure_struct_data.interaction_figure[6].start_x= 910; // Start point/origin's x-coordinate
-	ref->ui_figure_struct_data.interaction_figure[6].start_y= 420; // Start point/origin's y-coordinate
-	ref->ui_figure_struct_data.interaction_figure[6].details_d = 1010; // For straight line, it's end_x
-	ref->ui_figure_struct_data.interaction_figure[6].details_e = 420;  // For straight line, it's end_y
+//	ref->ui_figure_struct_data.interaction_figure[6].start_x= 910; // Start point/origin's x-coordinate 910
+//	ref->ui_figure_struct_data.interaction_figure[6].start_y= 420; // Start point/origin's y-coordinate 420
+//	ref->ui_figure_struct_data.interaction_figure[6].details_d = 1010; // For straight line, it's end_x
+//	ref->ui_figure_struct_data.interaction_figure[6].details_e = 420;  // For straight line, it's end_y
+
+	ref->ui_figure_struct_data.interaction_figure[6].start_x= 1500;
+	ref->ui_figure_struct_data.interaction_figure[6].start_y= 800;
+
+// print number ref->counter_infantry
+	ref->ui_figure_struct_data.interaction_figure[6].details_a = 50;
+	ref->ui_figure_struct_data.interaction_figure[6].details_c = ref->counter_infantry;
+	ref->ui_figure_struct_data.interaction_figure[6].details_d = 0;
+	ref->ui_figure_struct_data.interaction_figure[6].details_e = 0;
+
+//	ref->ui_figure_struct_data.interaction_figure[6].details_a = 50;
+//	ref->ui_figure_struct_data.interaction_figure[6].details_b = 7;
+//	char buffer[30] = "MODE:GF";
+//	strcpy((char*)referee.ui_custom_data.data, buffer);
+
+	ref->counter_infantry++;
+	if(ref->counter_infantry == 6)
+		ref->counter_infantry = 0;
 
 	if(ref->first_drawing_flag == 1){
-		ref->first_drawing_flag = 1;
+		ref->first_drawing_flag = 0;
 	}
 
 	/* Memcpy to main interact struct */
@@ -371,6 +391,37 @@ void referee_infantry_draw_marks(Referee_t *ref){
 
 }
 
+
+
+
+
+//void referee_infantry_print_letters(Referee_t *ref){
+//	/*Figure #8: print integer 2*/
+//	if(ref->first_printing_flag)
+//		ref->ui_figure_struct_data.interaction_figure[7].operate_tpye= 1;
+//	else
+//		ref->ui_figure_struct_data.interaction_figure[7].operate_tpye= 3;
+//
+//	ref->ui_figure_struct_data.interaction_figure[7].figure_name[0] = FIGURE_ID;
+//	ref->ui_figure_struct_data.interaction_figure[7].figure_name[1] = 0;
+//	ref->ui_figure_struct_data.interaction_figure[7].figure_name[2] = 7;
+//	ref->ui_figure_struct_data.interaction_figure[7].figure_tpye= 6;
+//	ref->ui_figure_struct_data.interaction_figure[7].layer= 0;
+//	ref->ui_figure_struct_data.interaction_figure[7].color= 1;
+//	ref->ui_figure_struct_data.interaction_figure[7].width= 3;
+//	ref->ui_figure_struct_data.interaction_figure[7].start_x= 1500;
+//	ref->ui_figure_struct_data.interaction_figure[7].start_y= 800;
+//
+//	ref->ui_figure_struct_data.interaction_figure[7].details_a = 50;
+//	ref->ui_figure_struct_data.interaction_figure[7].details_c = 2;
+//	ref->ui_figure_struct_data.interaction_figure[7].details_d = 0;
+//	ref->ui_figure_struct_data.interaction_figure[7].details_e = 0;
+//
+//	if(ref->first_printing_flag == 1){
+//			ref->first_printing_flag = 0;
+//	}
+//	memcpy(ref->ui_intrect_data.user_data, &ref->ui_figure_struct_data, sizeof(ref->ui_figure_struct_data));
+//}
 
 
 #endif /*__REFEREE_UI_C__*/
