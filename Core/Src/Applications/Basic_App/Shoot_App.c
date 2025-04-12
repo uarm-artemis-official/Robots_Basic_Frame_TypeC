@@ -303,6 +303,9 @@ void shoot_fric_can_engagement(Shoot_t *sht, Motor_t *s_motors, uint16_t target_
 	// Motor_t *s_motors, int16_t motor_index, int16_t can_id, float target
 	shoot_calc_fric_pid_out(&(shoot_motors[SHOOT_LEFT_FRIC_WHEEL_INDEX]), -sht->fric_can_tar_spd);
 	shoot_calc_fric_pid_out(&(shoot_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX]), sht->fric_can_tar_spd);
+
+//	shoot_motors[SHOOT_LEFT_FRIC_WHEEL_INDEX].tx_data = 250;
+//	shoot_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX].tx_data = -250;
 }
 
 /**
@@ -314,6 +317,8 @@ void shoot_fric_can_engagement(Shoot_t *sht, Motor_t *s_motors, uint16_t target_
 void shoot_execute(Shoot_t *sht, Motor_t *s_motors) {
 	/* try single loop first, not considering single shoot using angle loop */
 	if(sht->shoot_act_mode == SHOOT_CEASE || sht->shoot_act_mode == SHOOT_RESERVE) {
+//		shoot_motors[SHOOT_LEFT_FRIC_WHEEL_INDEX].tx_data = 0;
+//		shoot_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX].tx_data = 0;
 		shoot_calc_fric_pid_out(&(shoot_motors[SHOOT_LEFT_FRIC_WHEEL_INDEX]), sht->fric_can_tar_spd);
 		shoot_calc_fric_pid_out(&(shoot_motors[SHOOT_RIGHT_FRIC_WHEEL_INDEX]), -sht->fric_can_tar_spd);
 	} else {

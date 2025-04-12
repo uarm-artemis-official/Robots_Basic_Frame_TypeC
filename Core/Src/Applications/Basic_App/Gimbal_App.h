@@ -47,7 +47,7 @@
 #define PITCH_GEAR_RATIO 1    // The ratio of the gear box of the pitch motor
 #define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO) 
 
-#define YAW_ECD_CENTER 4800 //620
+#define YAW_ECD_CENTER 3350
 #define YAW_GEAR_RATIO 1.0f		 //if install a gear, calc the gear ratio here
 #define YAW_POSITIVE_DIR -1      //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would
 								 //posiibly is turned to negative value, we need to calibrate the correct direction

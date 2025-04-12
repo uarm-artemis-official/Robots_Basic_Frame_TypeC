@@ -124,6 +124,8 @@ typedef struct {
 
 #define TIMER_GIMBAL_MAG_ENABLE
 #define TIMER_CHASSIS_WHEELS_ENABLE
+#define TIMER_FRIC_WHEELS_ENABLE
+//#define TUNE_GIMBAL_PID
 
 
 /* motor pid param */
@@ -136,18 +138,57 @@ typedef struct {
 #define max_I_out_wheel 0
 #define max_err_wheel 5000
 
-/* gimbal 6020 dual loop control */
-#define kp_angle_yaw 200
+#ifdef TUNE_GIMBAL_PID
+#define kp_angle_yaw 0
 #define ki_angle_yaw 0
-#define kd_angle_yaw 15
+#define kd_angle_yaw 0
+#define beta_angle_yaw 1
+#define yeta_angle_yaw 0
+#define max_out_angle_yaw 800
+#define max_I_out_angle_yaw 1
+#define max_err_angle_yaw 100
+
+#define kp_spd_yaw 0
+#define ki_spd_yaw 0
+#define kd_spd_yaw 0
+#define beta_spd_yaw 1
+#define yeta_spd_yaw 1
+#define max_out_spd_yaw 20000
+#define max_I_out_spd_yaw 1000
+#define max_err_spd_yaw 5000
+#define kf_spd_yaw 0
+
+#define kp_angle_pitch 0
+#define ki_angle_pitch 0
+#define kd_angle_pitch 0
+#define beta_angle_pitch 1
+#define yeta_angle_pitch 1
+#define max_out_angle_pitch 1000
+#define max_I_out_angle_pitch 0
+#define max_err_angle_pitch 100
+
+#define kp_spd_pitch 0
+#define ki_spd_pitch 0
+#define kd_spd_pitch 0
+#define beta_spd_pitch 1
+#define yeta_spd_pitch 1
+#define max_out_spd_pitch 30000
+#define max_I_out_spd_pitch 3000
+#define max_err_spd_pitch 5000
+#define kf_spd_pitch 0
+#else
+/* gimbal 6020 dual loop control */
+#define kp_angle_yaw 150 // 200
+#define ki_angle_yaw 0
+#define kd_angle_yaw 0 // 15
 #define beta_angle_yaw 1
 #define yeta_angle_yaw 0
 #define max_out_angle_yaw 800 // not tuned yet
 #define max_I_out_angle_yaw 1
 #define max_err_angle_yaw 100//2.0f*PI
 
-#define kp_spd_yaw 600 // consider going to 500
-#define ki_spd_yaw 80//0.1
+#define kp_spd_yaw 400 // consider going to 500 (600)
+#define ki_spd_yaw 70 //0.1 (80)
 #define kd_spd_yaw 0//0.5
 #define beta_spd_yaw 1
 #define yeta_spd_yaw 1
@@ -174,6 +215,7 @@ typedef struct {
 #define max_I_out_spd_pitch 3000
 #define max_err_spd_pitch 5000
 #define kf_spd_pitch 0
+#endif
 
 /* shoot 3508/2006  mag dual loop/3508 fric single loop control */
 //2006 mag settings

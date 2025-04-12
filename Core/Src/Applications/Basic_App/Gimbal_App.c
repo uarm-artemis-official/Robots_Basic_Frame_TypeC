@@ -17,7 +17,7 @@ static Gimbal_t gimbal;
 static int16_t gimbal_channels[2];
 
 static Motor_t gimbal_motors[2];
-static int32_t motor_tx_buffer[8];
+//static int32_t motor_tx_buffer[8];
 
 /* With encoder mode, task execution time (per loop): 1ms */
 void Gimbal_Task_Function(void const * argument)
@@ -116,7 +116,7 @@ void gimbal_task_init(Gimbal_t *gbal, Motor_t *g_motors) {
 	gimbal_set_act_mode(gbal, INDPET_MODE);
 	gimbal_set_motor_mode(gbal, ENCODE_MODE);
 
-	memset(motor_tx_buffer, 999999, 32);
+//	memset(motor_tx_buffer, 999999, 32);
 }
 
 /*
@@ -140,8 +140,10 @@ void gimbal_calibration_reset(Gimbal_t *gbal, Motor_t *g_motors) {
 			 break;
 		 }
 
-		float yaw_diff = gimbal_calc_ecd_rel_angle(gbal->yaw_ecd_center, g_motors[GIMBAL_YAW_MOTOR_INDEX].motor_feedback.rx_angle);
-		float pitch_diff = gimbal_calc_ecd_rel_angle(gbal->pitch_ecd_center, g_motors[GIMBAL_PITCH_MOTOR_INDEX].motor_feedback.rx_angle);
+//		float yaw_diff = gimbal_calc_ecd_rel_angle(gbal->yaw_ecd_center, g_motors[GIMBAL_YAW_MOTOR_INDEX].motor_feedback.rx_angle);
+//		float pitch_diff = gimbal_calc_ecd_rel_angle(gbal->pitch_ecd_center, g_motors[GIMBAL_PITCH_MOTOR_INDEX].motor_feedback.rx_angle);
+		float yaw_diff = calc_rel_angle(gbal->yaw_target_angle, gbal->yaw_rel_angle);
+		float pitch_diff = calc_rel_angle(gbal->pitch_target_angle, gbal->pitch_rel_angle);
 
 		g_motors[GIMBAL_YAW_MOTOR_INDEX].tx_data = pid2_dual_loop_control(&(gbal->yaw_f_pid),
 					&(gbal->yaw_s_pid),
@@ -494,6 +496,8 @@ void gimbal_update_targets(Gimbal_t *gbal, int16_t *g_channels) {
 			gbal->yaw_target_angle = gbal->yaw_rel_angle + deltas[0];
 			gbal->pitch_target_angle = gbal->pitch_rel_angle + deltas[1];
 		}
+	} else if (gbal->gimbal_mode == PATROL_MODE && gbal->gimbal_act_mode == INDPET_MODE) {
+		gbal->yaw_target_angle = 0;
 	} else {
 		float deltas[2];
 		gimbal_calc_channels_to_angles(g_channels, deltas);
