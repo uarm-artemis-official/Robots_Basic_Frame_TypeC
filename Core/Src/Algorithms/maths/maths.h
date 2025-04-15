@@ -14,6 +14,7 @@
 #ifndef __MATHS_H__
 #define __MATHS_H__
 
+#include "stm32f407xx.h"
 #include "math.h"
 #include "arm_math.h"
 #include "float.h"

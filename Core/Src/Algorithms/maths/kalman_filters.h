@@ -12,7 +12,10 @@
 #define __KALMAN_FILTERS_H__
 
 #include "stdlib.h"
+
+#include "stm32f407xx.h"
 #include "arm_math.h"
+
 /* define general declarations for gimbal task here */
 #define sys_dim 2 // the dimension of state vector
 #ifdef sys_dim
