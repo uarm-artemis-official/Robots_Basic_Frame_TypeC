@@ -14,6 +14,9 @@
 #include "error_handler.h"
 
 
+// Number of sync events that can occur at the same time.
+// A sync event group has one event group that can allows up to 24 different tasks
+// (listed in Task_Sync_t) to "sync" to one particular event (Sync_Event_t).
 #define NUM_SYNC_GROUPS 5
 
 // There is a maximum of 24 bits for our configuration for one event group.
@@ -52,10 +55,19 @@ typedef struct {
 } Sync_group_t;
 
 
+// Initialize event center.
 void event_center_init();
+
+// Block until events or timeout occur.
 EventBits_t wait_events(EventBits_t wait_events, TickType_t timeout);
+
+// Emit events to event groups in event center.
 void emit_events(EventBits_t new_events);
+
+// Clear events for event groups in event center.
 void clear_events(EventBits_t clear_events);
+
+// Sync tasks to a particular sync event.
 BaseType_t sync_tasks(Sync_Event_t sync_event, EventBits_t set_task, TickType_t timeout);
 
 #endif /* SRC_EVENT_CENTER_H_ */
