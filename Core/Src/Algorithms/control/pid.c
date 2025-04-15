@@ -5,13 +5,12 @@
  *      Author: Haoran
  */
 #include "pid.h"
-#include "maths.h"
 
 /**
   * @brief  pid parameters initialization
   * @retval None
   */
-void pid_param_init(PID_t *pid, int32_t max_out, float max_i_out, float max_err, float kp, float ki, float kd){
+void pid_param_init(PID_t *pid, int32_t max_out, float max_i_out, float max_err, float kp, float ki, float kd) {
 	pid->kp = kp;
 	pid->ki = ki;
 	pid->kd = kd;
@@ -45,7 +44,7 @@ float pid_calculate(PID_t *pid, float cur_val, float target_val, float dt)
   if ((pid->max_err != 0) && (fabs(pid->err) > pid->max_err))
     return 0;
   pid->pout = pid->kp * pid->err;
-  pid->iout += pid->ki * pid->err *dt;
+  pid->iout += pid->ki * pid->err * dt;
   pid->dout = pid->kd * (pid->err - pid->last_err) / dt;
 
   abs_limit(&(pid->iout), pid->max_i_out);
@@ -106,3 +105,67 @@ float pid_dual_loop_control(float f_tar_val, PID_t *f_pid, PID_t *s_pid, float f
 	return pid_calculate(s_pid, s_cur_val, f_out, dt);
 }
 
+
+void pid2_init(PID2_t *pid, float k_p, float k_i, float k_d, float beta, float yeta, float min_out, float max_out) {
+	pid->k_p = k_p;
+	pid->k_i = k_i;
+	pid->k_d = k_d;
+	pid->beta = beta;
+	pid->yeta = yeta;
+
+	pid->plant_value = 0;
+	pid->setpoint = 0;
+
+	pid->p_error = 0;
+	pid->i_error = 0;
+	pid->d_error = 0;
+	pid->prev_d_error = 0;
+
+	pid->p_out = 0;
+	pid->i_out = 0;
+	pid->d_out = 0;
+
+	pid->max_out = max_out;
+	pid->min_out = min_out;
+
+	pid->prev_total_out = 0;
+	pid->total_out = 0;
+}
+
+
+float pid2_calculate(PID2_t *pid, float sp, float pv, float dt) {
+	pid->plant_value = pv;
+	pid->setpoint = sp;
+	pid->prev_d_error = pid->d_error;
+	pid->prev_total_out = pid->total_out;
+
+	// Calculate error terms.
+	pid->p_error = pid->beta * sp - pv;
+	pid->i_error = sp - pv;
+	pid->d_error = pid->yeta * sp - pv;
+
+	pid->p_out = pid->k_p * pid->p_error;
+
+	// Anti-integrator wind up
+	if (pid->min_out < pid->prev_total_out && pid->prev_total_out < pid->max_out) {
+		pid->i_out += pid->k_i * pid->i_error * dt;
+	}
+
+	pid->d_out = pid->k_d * (pid->d_error - pid->prev_d_error) / dt;
+	pid->total_out = pid->p_out + pid->i_out + pid->d_out;
+
+	if (pid->total_out > pid->max_out) pid->total_out = pid->max_out;
+	if (pid->total_out < pid->min_out) pid->total_out = pid->min_out;
+	return pid->total_out;
+}
+
+
+float pid2_single_loop_control(PID2_t *pid, float sp, float pv, float dt) {
+	return pid2_calculate(pid, sp, pv, dt);
+}
+
+
+float pid2_dual_loop_control(PID2_t *f_pid, PID2_t *s_pid, float sp, float f_pv, float s_pv, float f_dt, float s_dt) {
+	float f_out = pid2_calculate(f_pid, sp, f_pv, f_dt);
+	return pid2_calculate(s_pid, f_out, s_pv, s_dt);
+}

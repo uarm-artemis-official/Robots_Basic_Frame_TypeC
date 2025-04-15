@@ -12,10 +12,11 @@
 #ifndef __COMM_APP_H__
 #define __COMM_APP_H__
 
-#include <auto_aim_pack.h>
-#include <Gimbal_App.h>
-#include <queue_m.h>
-#include <comms.h>
+#include "queue_m.h"
+#include "comms.h"
+#include "public_defines.h"
+#include "tim.h"
+#include "string.h"
 
 #define USE_UART_DMA 1
 
@@ -67,39 +68,31 @@ typedef struct{
 }CanComm_t;
 
 /* main comm app struct */
-typedef struct{
-	CommMode_t comm_mode;
-	UartComm_t uart_comm;
-	CanComm_t can_comm;
+//typedef struct{
+//	CommMode_t comm_mode;
+//	UartComm_t uart_comm;
+//	CanComm_t can_comm;
+//
+//	/* message subscription list*/
+//	CommMessageSublist_t sub_list;
+//}BoardComm_t;
 
-	/* message subscription list*/
-	CommMessageSublist_t sub_list;
-}BoardComm_t;
-
-BoardComm_t chassis_comm;
-BoardComm_t gimbal_comm;
-CanMessage_t canQueue[QUEUE_SIZE];
-QueueManage_t canqm;
 
 /* User Defined Varibales*/
 
 /* extern global variables*/
 extern UART_HandleTypeDef huart7;
 extern UART_HandleTypeDef huart6;
-extern BoardStatusType board_status;
-extern char pdata[PACKLEN];
-extern float can_rx_scale_buffer[TOTAL_COMM_ID][4];
-extern float can_tx_scale_buffer[TOTAL_COMM_ID][4];
 
 /* declare function here */
 void Comm_Task_Func(void const * argument);
 void usart_comm_process(void);
-void can_comm_process(BoardComm_t *comm);
+void can_comm_process();
 void can_comm_subscribe_process(void);
-void can_comm_reset_config(BoardComm_t *comm);
+//void can_comm_reset_config(BoardComm_t *comm);
 void can_send_comm_data(CAN_HandleTypeDef* hcan, int16_t* send_data, uint32_t tx_id);
 void can_recv_comm_data(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx_buffer)[TOTAL_COMM_ID][4]);
-void process_rx_data_i16tof(BoardComm_t *comm, float *output_buffer, float scale_factor, uint32_t idx);
-void process_tx_data_ftoi16(float* input_data, int16_t* output_data, int length, float scale_factor);
+void process_tx_data_ftoi16(const float* input_data, int16_t* output_data, int length, float scale_factor);
+void process_rx_data_i16tof(float *output_buffer, int16_t input_data[4], float scale_factor);
 
 #endif /*__COMM_APP_H__*/

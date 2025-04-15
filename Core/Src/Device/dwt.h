@@ -11,6 +11,11 @@
 #ifndef __DWT_H__
 #define __DWT_H__
 
+#include "stm32f4xx_hal.h"
+#include "core_cm4.h"
+#include "cmsis_os.h"
+
+
 #define SYSTEM_CORE_FREQ 168 //MHz
 
 /* define main struct of dwt */

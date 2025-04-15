@@ -17,11 +17,8 @@
 #include "maths.h"
 #include "arm_math.h"
 
-/*extern imu struct */
-extern IMU_t imu;
-
 /* define internal vars */
-AhrsSensor_t temp_ahrs;
+//static AhrsSensor_t temp_ahrs;
 /* define internal functions */
 /***********************************************************************************
  * establish the state space rep(tp_bias = temperature bias)
@@ -62,9 +59,9 @@ void atti_math_calc(AhrsSensor_t *ahrs, Attitude_t *atti){
 
 	/* update the estimated value of the tilt angle */
 	// note ahrs->wx * dt is acatually the integral of the wx (rate)
-	atti->pitch = GYRO_WEIGHT * (atti->pitch + ahrs->wx * dt) + ACCEL_WEIGHT * accel_pitch; //accel cali
-	atti->roll  = GYRO_WEIGHT * (atti->roll + ahrs->wy * dt)   + ACCEL_WEIGHT * accel_roll;  //accel cali
-	atti->yaw   += ahrs->wz * dt; // no accel cali
+	atti->pitch = GYRO_WEIGHT * (atti->pitch + ahrs->wx * SAMPLE_DT) + ACCEL_WEIGHT * accel_pitch; //accel cali
+	atti->roll  = GYRO_WEIGHT * (atti->roll + ahrs->wy * SAMPLE_DT)   + ACCEL_WEIGHT * accel_roll;  //accel cali
+	atti->yaw   += ahrs->wz * SAMPLE_DT; // no accel cali
 
 	/* for debugging */
 	atti->pitch = atti->pitch * RAD2DEGEE;

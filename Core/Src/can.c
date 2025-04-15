@@ -21,10 +21,7 @@
 #include "can.h"
 
 /* USER CODE BEGIN 0 */
-#include "Comm_App.h"
-extern BoardStatusType board_status;
-extern BoardComm_t chassis_comm;
-extern BoardComm_t gimbal_comm;
+extern BoardStatus_t board_status;
 can_comm_rx_t can_comm_rx[7] = {
     {0, {0, 0, 0, 0, 0, 0, 0, 0}}, // IDLE_COMM_ID
     {0, {0, 0, 0, 0, 0, 0, 0, 0}}, // ANGLE_COMM_ID
@@ -34,6 +31,10 @@ can_comm_rx_t can_comm_rx[7] = {
     {0, {0, 0, 0, 0, 0, 0, 0, 0}},
 	{0, {0, 0, 0, 0, 0, 0, 0, 0}},
 };
+//FIXME: don't why it cannot detect MOTOR_COUNT and TOTAL_COMM_ID
+static uint8_t can_rx_buffer[8][8]; // Motor count + maximum once sending bytes
+static Motor_Feedback_t motor_feedback[MOTOR_COUNT];
+static CANCommMessage_t incoming_message;
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -44,7 +45,6 @@ void MX_CAN1_Init(void)
 {
 
   /* USER CODE BEGIN CAN1_Init 0 */
-
   /* USER CODE END CAN1_Init 0 */
 
   /* USER CODE BEGIN CAN1_Init 1 */
@@ -294,21 +294,17 @@ void can_filter_disable(CAN_HandleTypeDef* hcan){
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 	CAN_RxHeaderTypeDef rx_header;
 	rx_header.StdId = (CAN_RI0R_STID & hcan->Instance->sFIFOMailBox[CAN_RX_FIFO0].RIR) >> CAN_TI0R_STID_Pos;
-	if(hcan == &hcan1){
-		uint8_t idx=rx_header.StdId-CAN_RX_ID_START;
+	if (hcan == &hcan1) {
+		uint8_t idx = rx_header.StdId-CAN_RX_ID_START;
 		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, can_rx_buffer[idx]);
+
+		parse_motor_feedback(can_rx_buffer[idx], &(motor_feedback[idx]));
+		pub_message_from_isr(MOTOR_READ, motor_feedback, NULL);
 	}
-	if(hcan == &hcan2){
-		if(board_status==CHASSIS_BOARD){
-			uint8_t idx=rx_header.StdId-IDLE_COMM_ID;
-			can_comm_rx[idx].comm_id = rx_header.StdId;
-			HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, can_comm_rx[idx].comm_rx_buffer);
-		}
-		if(board_status==GIMBAL_BOARD){
-			uint8_t idx=rx_header.StdId-IDLE_COMM_ID;
-			can_comm_rx[idx].comm_id = rx_header.StdId;
-			HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, can_comm_rx[idx].comm_rx_buffer);
-		}
+	if (hcan == &hcan2) {
+		incoming_message.topic_name = rx_header.StdId;
+		HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, incoming_message.data);
+		pub_message_from_isr(COMM_IN, &incoming_message, NULL);
 	}
 }
 /* USER CODE END 1 */

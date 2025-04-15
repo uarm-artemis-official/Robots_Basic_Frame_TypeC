@@ -17,15 +17,16 @@
 
 #ifndef __ANGLE_PROCESS_H__
 #define __ANGLE_PROCESS_H__
-#include "main.h"
 #include "ahrs.h"
 #include "kalman_filters.h"
 
 
 /* define general declarations for gimbal task here */
 #define ACCEL_WEIGHT 0.01f  // Define the weight of the accelerometer data, adjust according to the actual situation
-#define GYRO_WEIGHT  (1.0f-ACCEL_WEIGHT)  // Define the weight of the gyroscope data, adjust according to the actual situation
-#define dt 0.0001f  // Define the sampling period, adjust according to the actual situation
+#define GYRO_WEIGHT (1.0f-ACCEL_WEIGHT)  // Define the weight of the gyroscope data, adjust according to the actual situation
+
+// TODO: Investigate this sampling dt
+#define SAMPLE_DT 0.0001f  // Define the sampling period, adjust according to the actual situation
 
 /* define user structure here */
 

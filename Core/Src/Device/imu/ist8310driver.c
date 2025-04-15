@@ -18,8 +18,6 @@
   */
 
 #include "ist8310driver.h"
-#include "ist8310driver_middleware.h"
-#include "main.h"
 
 #define MAG_SEN 0.3f //raw int16 data change to uT unit. ԭʼ�������ݱ�� ��λut
 

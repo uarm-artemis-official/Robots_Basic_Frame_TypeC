@@ -11,9 +11,13 @@
 #ifndef __SHOOT_APP_H__
 #define __SHOOT_APP_H__
 
-#include <Gimbal_App.h>
+#include "string.h"
+#include "tim.h"
+#include "public_defines.h"
 #include "buzzer.h"
-#include "Control_App.h"
+#include "motor.h"
+#include "ramp.h"
+#include "message_center.h"
 
 /* define general declarations for gimbal task here */
 #define USE_CAN_FRIC 1//if use 3508 instead of pwm-based fric wheel motor
@@ -33,12 +37,18 @@
 #define FRIC_CAN_RAMP_DELAY 40
 
 /* 3508 can value*/
-#define LEVEL_ONE_CAN_SPD 7500 // 28: 7500, 27:7350
+//#define LEVEL_ONE_CAN_SPD 7500 // 28: 7500, 27:7350
+#define LEVEL_ONE_CAN_SPD 7500
 
 #define SHOOT_ONCE_MAG_ANGLE (20.0f * DEGREE2RAD)
 #define SHOOT_CONT_MAG_SPEED 1.0*PI //rpm/sec
 #define SHOOT_MAG_GEAR_RATIO 19
 #define SHOOT_REVERSE_MAG_SPEED 0.2*PI
+
+
+#define SHOOT_LEFT_FRIC_WHEEL_INDEX 0
+#define SHOOT_RIGHT_FRIC_WHEEL_INDEX 1
+#define SHOOT_LOADER_2006_INDEX 2
 
 /* define user structure here */
 /**
@@ -49,13 +59,6 @@ typedef enum{
 	CLOSE
 }ShootLidStatus_t;
 
-typedef enum{
-	SHOOT_ONCE = 0,
-	SHOOT_TRIPLE,
-	SHOOT_CONT,
-	SHOOT_RESERVE,
-	SHOOT_CEASE
-}ShootActMode_t;
 
 typedef struct{
 	float mag_tar_spd;
@@ -76,27 +79,17 @@ typedef struct{
 
 	uint8_t lid_counter;
 
-	Motor_Feedback_Data_t mag_fb;
-	Motor_Feedback_Data_t left_fric_fb;
-	Motor_Feedback_Data_t right_fric_fb;
+	Motor_Feedback_t mag_fb;
 	ramp_t fric_left_ramp;
 	ramp_t fric_right_ramp;
 	ShootLidStatus_t lid_status;
 	ShootActMode_t shoot_act_mode;
 }Shoot_t;
-Shoot_t shoot;
 
-/* extern global variables here */
-extern Comm_t comm_pack;
-extern uint8_t shoot_reserve_flag;
-extern uint8_t shoot_reserve_counter;
-extern uint8_t shoot_check_flag;
-extern uint16_t shoot_check_counter;
-
+extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim8;
-extern RemoteControl_t rc;
 
 /* define user created variables here */
 
@@ -104,12 +97,12 @@ extern RemoteControl_t rc;
 
 /* functions declaration here */
 void Shoot_Task_Func(void const * argument);
-void shoot_task_init(Shoot_t *sht);
+void shoot_task_init(Shoot_t *sht, Motor_t *s_motors);
 void shoot_firc_init(Shoot_t *sht);
 void shoot_params_init(Shoot_t *sht);
 void shoot_servo_init(void);
 void shoot_fric_pwm_engagement(Shoot_t *sht, uint16_t target_pwm);
-void shoot_fric_can_engagement(Shoot_t *sht, uint16_t target_can);
+void shoot_fric_can_engagement(Shoot_t *sht, Motor_t *s_motors, uint16_t target_can);
 void set_shoot_mode(Shoot_t *sht, ShootActMode_t mode);
 void set_lid_status(Shoot_t *sht, ShootLidStatus_t status);
 void set_mag_motor_speed(Shoot_t *sht, float spd);
@@ -117,13 +110,15 @@ void set_mag_motor_angle(Shoot_t *sht, float tar_angle);
 void set_fric_motor_speed(Shoot_t *sht, int16_t spd);
 void set_fric_motor_current(Shoot_t *sht, int16_t spd);
 void set_servo_value(uint16_t pwm_value);
-void shoot_mag_get_feedback(Shoot_t *sht);
-void shoot_fric_get_feedback(Shoot_t *sht);
+void shoot_get_motor_feedback(Shoot_t *shoot, Motor_t *s_motors);
+void shoot_calc_loader_pid_out(Shoot_t *sht, Motor_t *s_motors);
+void shoot_calc_fric_pid_out(Motor_t *motor, float target);
+void shoot_send_motor_volts(Motor_t *s_motors);
 void shoot_mag_get_rel_angle(Shoot_t *sht);
-void shoot_mag_dual_loop_control(Shoot_t *sht);
 void shoot_detect_mag_status(Shoot_t *sht);
 void shoot_stop(Shoot_t *sht);
-void shoot_execute(Shoot_t *sht);
+void shoot_execute(Shoot_t *sht, Motor_t *s_motors);
+void shoot_get_rc_info(Shoot_t *shoot);
 int16_t shoot_mag_update_turns(Shoot_t *sht, int16_t raw_ecd, int16_t prev_ecd);
 
 

@@ -13,8 +13,8 @@
 #define __BMI088_MIDDLEWARE_C__
 
 #include "bmi088_middleware.h"
-#include "main.h"
 #include "cmsis_os.h"
+#include "gpio.h"
 
 extern SPI_HandleTypeDef hspi1;
 

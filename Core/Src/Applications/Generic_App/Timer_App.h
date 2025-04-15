@@ -14,10 +14,15 @@
 #ifndef SRC_APPLICATIONS_TIMER_APP_H_
 #define SRC_APPLICATIONS_TIMER_APP_H_
 
-#include "Gimbal_App.h"
-#include "IMU_App.h"
-#include "tim.h"
+#include "stm32f4xx_hal.h"
+#include "FreeRTOS.h"
+#include "public_defines.h"
+#include "message_center.h"
+#include "motor.h"
 
+
+
+extern CAN_HandleTypeDef hcan1;
 
 void Timer_Task_Func(void const * argument);
 

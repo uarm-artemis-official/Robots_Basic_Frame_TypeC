@@ -11,11 +11,14 @@
 #ifndef __SRC_IMU_APP_H__
 #define __SRC_IMU_APP_H__
 
-#include "Gimbal_App.h"
+#include "gpio.h"
+#include "buzzer.h"
+#include "imu.h"
+#include "public_defines.h"
+#include "message_center.h"
 
 
 /* define general declarations for gimbal task here */
-#define DEFAULT_IMU_TEMP 40 		// degrees centigrade
 #define IMU_TMP_PWM_HTIM    htim10
 #define IMU_TMP_PWM_CHANNEL  TIM_CHANNEL_1
 
@@ -24,7 +27,6 @@
 
 /* extern global variables here */
 extern TIM_HandleTypeDef htim3;
-extern IMU_t imu;
 extern uint8_t imu_init_flag;
 
 /* define user created variables here */
@@ -32,10 +34,10 @@ extern uint8_t imu_init_flag;
 
 
 /* functions declaration here */
-void IMU_Task_Function(void);
+void IMU_Task_Function(void const * argument);
 void set_imu_temp_status(IMU_t *pimu, IMU_temp_status status);
 int32_t imu_temp_pid_control(void);
-void imu_task_init(void);
+void imu_task_init(TickType_t xFrequency);
 
 
 

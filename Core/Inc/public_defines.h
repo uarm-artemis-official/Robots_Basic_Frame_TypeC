@@ -21,30 +21,115 @@
   #define ECD2DEGREE ( 360f  / 8192.0f)
 #endif
 #define MAX_CAN_MOTOR_NUM 8
+#define MOTOR_COUNT 8
+#define DBUS_BUFFER_LEN 18
 
-/* Task exec time in secs */
-#define CHASSIS_TASK_EXEC_TIME 1
-#define GIMBAL_TASK_EXEC_TIME 1
-#define SHOOT_TASK_EXEC_TIME 1
+#pragma pack(1)
+typedef struct {
+	int16_t rx_angle;
+	int16_t rx_rpm;
+	int16_t rx_current;
+	int16_t rx_temp;
+} Motor_Feedback_t;
+#pragma pack(0)
+
+typedef enum {
+    GIMBAL_BOARD = 1,
+    CHASSIS_BOARD = 2
+} BoardStatus_t;
+
+typedef enum{
+	CTRLER_MODE = 1,
+	PC_MODE
+} CtrlMode_t;
+
+typedef enum {
+	PATROL_MODE = 1,
+	DETECTION_MODE,
+	AUTO_AIM_MODE,
+	AUTO_PILOT_MODE,
+	IDLE_MODE,
+	DEBUG_MODE,
+//	PC_MODE
+}BoardMode_t; //only for sentry
+
+
+typedef enum {
+    GIMBAL_CENTER = 1, // relative angle control using encoder, chassis front always facing yaw center
+    GIMBAL_FOLLOW,	   // relative angle control using encoder, chassis always moving along gimbal coordinate but not align center.
+	SELF_GYRO, 		   // relative angle control using encoder, chassis keep spinning while gimbal can move freely
+	INDPET_MODE,	   // chassis ground coordinate, or dummy version of self-gyro mode
+}BoardActMode_t;	   // should be determined by remore controller
+
+
+typedef enum{
+	SHOOT_ONCE = 1,
+	SHOOT_TRIPLE,
+	SHOOT_CONT,
+	SHOOT_RESERVE,
+	SHOOT_CEASE
+}ShootActMode_t;
+
+
+typedef enum {
+    GYRO_MODE = 1,
+    ENCODE_MODE
+} GimbalMotorMode_t;
+
+
+typedef struct {
+	float vx;
+	float vy;
+	float wz;
+} Gimbal_Axis_t; //for remote controller set gimbal dir
+
+// PACK DEFINITIONS
+#define MAX_PACK_BUFFER_SIZE 64 // Measured in bytes.
+#define PACK_HEADER_SIZE 4
+#define PACK_TRAILER_SIZE 4
+
+#define MOTOR_TX_BUFFER_SIZE 8
+
+#define CHANNEL_OFFSET_MAX_ABS_VAL 660
+
+/* Task exec time in milliseconds */
+#define CHASSIS_TASK_EXEC_TIME 5
+#define GIMBAL_TASK_EXEC_TIME 5
+#define SHOOT_TASK_EXEC_TIME 5
 #define IMU_TASK_EXEC_TIME 1
+#define TIMER_TASK_EXEC_TIME 1
+#define COMM_TASK_EXEC_TIME 2
+#define RC_TASK_EXEC_TIME 2
+#define PC_UART_TASK_EXEC_TIME 10
 
 /* motor can id */
 #define CHASSIS_ECD_CONST_OMEGA 120
-#define max_wheel_num 4
-#define wheel_id1 0
-#define wheel_id2 1
-#define wheel_id3 2
-#define wheel_id4 3
+#define CHASSIS_MAX_WHEELS 4
 
-#define yaw_id 4
-#define pitch_id 5
+// These are used for indexing the motor feedback array from MOTOR_READ topic.
+// Formula: CAN ID = Chassis Motor CAN Std. IDs - CAN_RX_ID_START.
+#define CHASSIS_WHEEL1_CAN_ID 0
+#define CHASSIS_WHEEL2_CAN_ID 1
+#define CHASSIS_WHEEL3_CAN_ID 2
+#define CHASSIS_WHEEL4_CAN_ID 3
 
-#define fric_left_id 0
-#define fric_right_id 1
-#define mag_2006_id 6
-#define mag_3508_id 2
+// These are used for indexing the motor feedback array from MOTOR_READ topic.
+// Formula: CAN ID = Gimbal Motor CAN Std. IDs - CAN_RX_ID_START.
+#define SHOOT_LEFT_FRIC_CAN_ID 0
+#define SHOOT_RIGHT_FRIC_CAN_ID 1
+#define SHOOT_LOADER_CAN_ID 6
+#define GIMBAL_YAW_CAN_ID 4
+#define GIMBAL_PITCH_CAN_ID 5
+//#define MAG_3508_ID 2
+
+#define TIMER_GIMBAL_MAG_ENABLE
+#define TIMER_CHASSIS_WHEELS_ENABLE
+//#define TIMER_FRIC_WHEELS_ENABLE
+//#define TUNE_GIMBAL_PID
+
 
 /* motor pid param */
+// TODO: Move PID parameters into separate header file.
 /* wheels 3508 single loop control */
 #define kp_wheel 5
 #define ki_wheel 0
@@ -53,36 +138,84 @@
 #define max_I_out_wheel 0
 #define max_err_wheel 5000
 
-/* gimbal 6020 dual loop control */
-#define kp_angle_yaw 205//200
-#define ki_angle_yaw 0//0.1
-#define kd_angle_yaw 100
-#define max_out_angle_yaw 10000 // not tuned yet
+#ifdef TUNE_GIMBAL_PID
+#define kp_angle_yaw 0
+#define ki_angle_yaw 0
+#define kd_angle_yaw 0
+#define beta_angle_yaw 1
+#define yeta_angle_yaw 0
+#define max_out_angle_yaw 800
 #define max_I_out_angle_yaw 1
-#define max_err_angle_yaw 100//2.0f*PI
+#define max_err_angle_yaw 100
 
-#define kp_spd_yaw 235//280
-#define ki_spd_yaw 0.1//0.1
-#define kd_spd_yaw 0//0.5
-#define max_out_spd_yaw 13000 // not tuned yet
+#define kp_spd_yaw 0
+#define ki_spd_yaw 0
+#define kd_spd_yaw 0
+#define beta_spd_yaw 1
+#define yeta_spd_yaw 1
+#define max_out_spd_yaw 20000
 #define max_I_out_spd_yaw 1000
 #define max_err_spd_yaw 5000
 #define kf_spd_yaw 0
 
-#define kp_angle_pitch 251//900
+#define kp_angle_pitch 0
 #define ki_angle_pitch 0
-#define kd_angle_pitch 10
-#define max_out_angle_pitch 8000 // not tuned yet
+#define kd_angle_pitch 0
+#define beta_angle_pitch 1
+#define yeta_angle_pitch 1
+#define max_out_angle_pitch 1000
 #define max_I_out_angle_pitch 0
-#define max_err_angle_pitch 100//2.0f*PI
+#define max_err_angle_pitch 100
 
-#define kp_spd_pitch 76
-#define ki_spd_pitch 0.1
-#define kd_spd_pitch 10
-#define max_out_spd_pitch 30000 // not tuned yet
+#define kp_spd_pitch 0
+#define ki_spd_pitch 0
+#define kd_spd_pitch 0
+#define beta_spd_pitch 1
+#define yeta_spd_pitch 1
+#define max_out_spd_pitch 30000
 #define max_I_out_spd_pitch 3000
 #define max_err_spd_pitch 5000
 #define kf_spd_pitch 0
+#else
+/* gimbal 6020 dual loop control */
+#define kp_angle_yaw 150 // 200
+#define ki_angle_yaw 0
+#define kd_angle_yaw 0 // 15
+#define beta_angle_yaw 1
+#define yeta_angle_yaw 0
+#define max_out_angle_yaw 800 // not tuned yet
+#define max_I_out_angle_yaw 1
+#define max_err_angle_yaw 100//2.0f*PI
+
+#define kp_spd_yaw 400 // consider going to 500 (600)
+#define ki_spd_yaw 70 //0.1 (80)
+#define kd_spd_yaw 0//0.5
+#define beta_spd_yaw 1
+#define yeta_spd_yaw 1
+#define max_out_spd_yaw 20000 // not tuned yet
+#define max_I_out_spd_yaw 1000
+#define max_err_spd_yaw 5000
+#define kf_spd_yaw 0
+
+#define kp_angle_pitch 0
+#define ki_angle_pitch 0
+#define kd_angle_pitch 0
+#define beta_angle_pitch 1
+#define yeta_angle_pitch 1
+#define max_out_angle_pitch 1000
+#define max_I_out_angle_pitch 0
+#define max_err_angle_pitch 100//2.0f*PI
+
+#define kp_spd_pitch 0
+#define ki_spd_pitch 0
+#define kd_spd_pitch 0
+#define beta_spd_pitch 1
+#define yeta_spd_pitch 1
+#define max_out_spd_pitch 30000
+#define max_I_out_spd_pitch 3000
+#define max_err_spd_pitch 5000
+#define kf_spd_pitch 0
+#endif
 
 /* shoot 3508/2006  mag dual loop/3508 fric single loop control */
 //2006 mag settings

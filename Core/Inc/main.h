@@ -29,7 +29,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "cmsis_os.h"
@@ -93,68 +92,10 @@ void Error_Handler(void);
 #define HIGH_VOLT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 typedef _Bool bool_t;
-#define MAX_REF_BUFFER_SZIE 256
-#define MAX_REF_TX_DATA_LEN 128
-#define VAL_LIMIT(val, min, max) \
-  do                             \
-  {                              \
-    if ((val) <= (min))          \
-    {                            \
-      (val) = (min);             \
-    }                            \
-    else if ((val) >= (max))     \
-    {                            \
-      (val) = (max);             \
-    }                            \
-  } while (0)
-
-#define ANGLE_LIMIT_360(val, angle) \
-  do                                \
-  {                                 \
-    (val) = (angle) - (int)(angle); \
-    (val) += (int)(angle) % 360;    \
-  } while (0)
-
-#define ANGLE_LIMIT_360_TO_180(val) \
-  do                                \
-  {                                 \
-    if((val)>180)                   \
-      (val) -= 360;                 \
-  } while (0)
-
-#define VAL_MIN(a, b) ((a) < (b) ? (a) : (b))
-#define VAL_MAX(a, b) ((a) > (b) ? (a) : (b))
-
-/**
-  * @brief  Structure for record the board belongings
-  * @note   indicate the current worked is either gimbal or chassis board
-  * @param  None
-  * @retval None
-  */
-typedef enum {
-    GIMBAL_BOARD = 0,
-    CHASSIS_BOARD = 1
-} BoardStatusType;
-BoardStatusType board_status;
-
-typedef enum {
-	PATROL_MODE = 0,
-	DETECTION_MODE,
-	AUTO_AIM_MODE,
-	AUTO_PILOT_MODE,
-	IDLE_MODE,
-	DEBUG_MODE
-}BoardMode_t; //only for sentry
-
-typedef enum {
-    GIMBAL_CENTER = 0, // relative angle control using encoder, chassis front always facing yaw center
-    GIMBAL_FOLLOW,	   // relative angle control using encoder, chassis always moving along gimbal coordinate but not align center.
-	SELF_GYRO, 		   // relative angle control using encoder, chassis keep spinning while gimbal can move freely
-	INDPET_MODE,	   // chassis ground coordinate, or dummy version of self-gyro mode
-}BoardActMode_t;	   // should be determined by remore controller
 
 /* declare init function */
 HAL_StatusTypeDef firmware_and_system_init(void);
+
 extern char pdata[32]; //PACKLEN
 extern int16_t referee_parsed_flag;
 extern QueueHandle_t Ref_Pack_Queue;

@@ -18,16 +18,21 @@
 #ifndef __RC_APP_H__
 #define __RC_APP_H__
 
-#include "main.h"
+#include "stdint.h"
+#include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
 #include "maths.h"
+#include "public_defines.h"
+#include "message_center.h"
+#include "usart.h"
 
 
 /* define general declarations for gimbal task here */
 #define DBUS_BUFFER_LEN 18
-#define DBUS_MAX_LEN    50//not used
+#define DBUS_RAW_OFFSET 0
+#define DBUS_INDEX(i) ((i + DBUS_RAW_OFFSET) % DBUS_BUFFER_LEN)
 
 #define CHANNEL_CENTER  1024
-#define CHANNEL_OFFSET_MAX_ABS_VAL 660
 
 #define MOUSE_MAX_SPEED_VALUE 15000
 //#define MOUSE_MIN_SPEED_VALUE 10000
@@ -62,10 +67,6 @@
   * @brief  main struct of rc task
   */
 /* remote controller mode */
-typedef enum{
-	CTRLER_MODE = 0,
-	PC_MODE
-}CtrlMode_t;
 
 typedef enum{
 	RELEASED = 0,	    // key released
@@ -142,14 +143,8 @@ typedef struct{
 }RemoteControl_t;
 
 /* extern global variables here */
-extern RemoteControl_t rc;
-extern uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
 extern UART_HandleTypeDef huart3;
 extern DMA_HandleTypeDef hdma_usart3_rx;
-
-
-/* define user created variables here */
-
 
 
 /* functions declaration here */
@@ -162,8 +157,13 @@ void rc_key_init(KeyObject_t *key);
 void rc_key_scan(KeyObject_t *key_obj, uint16_t key_buffer, uint16_t compare_key);
 KeyStatus_t rc_get_key_status(KeyObject_t *key);
 
+void rc_update_comm_pack(RemoteControl_t *rc_hdlr);
+void rc_process_rc_info(RemoteControl_t *rc_hdlr);
+void pub_rc_messages(uint8_t modes[3], int16_t channels[4]);
 
 
+void rc_on_uart_complete();
+void rc_on_uart_error();
 
 #endif /*__RC_APP_H__*/
 

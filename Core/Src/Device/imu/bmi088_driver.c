@@ -11,10 +11,7 @@
 #ifndef __BMI088_DRIVER_C__
 #define __BMI088_DRIVER_C__
 
-
 #include <bmi088_driver.h>
-#include "bmi088_reg.h"
-#include "bmi088_middleware.h"
 
 float BMI088_ACCEL_SEN = BMI088_ACCEL_3G_SEN;
 float BMI088_GYRO_SEN = BMI088_GYRO_2000_SEN;

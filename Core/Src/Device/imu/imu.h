@@ -11,10 +11,18 @@
 #ifndef __IMU_H__
 #define __IMU_H__
 
+
+#include "ahrs.h"
+#include "spi.h"
+#include "bmi088_driver.h"
+#include "ist8310driver.h"
+#include "pid.h"
+#include "cmsis_os.h"
+
 /* define general declarations here */
 #define IMU_OK  0
 #define IMU_ERR 1
-#define DEFAULT_IMU_TEMP 45
+#define DEFAULT_IMU_TEMP 40
 
 #ifdef DRV_IMU_H_GLOBAL
     #define DRV_IMU_H_EXTERN
@@ -33,7 +41,7 @@
   * @Note
   */
 typedef enum{
-	NORMAL = 0,
+	NORMAL = 1,
 	ABNORMAL
 }IMU_temp_status;
 
@@ -45,17 +53,14 @@ typedef enum{
 typedef struct{
 	float temp;
 	uint32_t sample_time;
-	PID_t tmp_pid;
+	PID2_t tmp_pid;
 
 	IMU_temp_status temp_status;
 	IMU_mode_t imu_mode;
 	AhrsSensor_t ahrs_sensor;//for ahrs sensor - processed data
 }IMU_t;
-IMU_t imu;
 
-extern bmi088_real_data_t bmi088_real_data;
-
-void bmi088_get_data(AhrsSensor_t *sensor);
+void bmi088_get_data(AhrsSensor_t *sensor, float *temp);
 void bmi088_get_temp(float *tmp);
 uint8_t bmi088_device_init(void);
 int ahrs_update(AhrsSensor_t *sensor, uint8_t period_ms);

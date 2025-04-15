@@ -12,9 +12,9 @@
 #ifndef __BMI088_DRIVER_H__
 #define __BMI088_DRIVER_H__
 
-#include "main.h"
-
-
+#include "stdint.h"
+#include "bmi088_reg.h"
+#include "bmi088_middleware.h"
 
 /* public defines of IMU */
 #define BMI088_TEMP_FACTOR 0.125f

@@ -59,10 +59,10 @@ void LK_motor_send(CAN_HandleTypeDef* hcan, uint32_t id, LK_Motor_Command_t cont
   * @param[in] can1/can2 type header
   * @retval    None
   */
-void LK_motor_read(CAN_HandleTypeDef* hcan) {
+void LK_motor_read(uint8_t **rx_buffer) {
 	uint8_t LKmotorStatus[LK_MOTOR_COUNT];
 	for (int i=0; i<LK_MOTOR_COUNT; i++){
-		memcpy(LKmotorStatus, can_rx_buffer[8+i], 8);// 0-7 is for RM motor , so start from 8
+		memcpy(LKmotorStatus, rx_buffer[8+i], 8);// 0-7 is for RM motor , so start from 8
 		lk_motor[i].motor_feedback.rx_angle	  = (int16_t)(LKmotorStatus[7] << 8 | LKmotorStatus[6]);
 		lk_motor[i].motor_feedback.rx_rpm	  = (int16_t)(LKmotorStatus[5] << 8 | LKmotorStatus[4]);
 		lk_motor[i].motor_feedback.rx_current = (int16_t)(LKmotorStatus[3] << 8 | LKmotorStatus[2]);

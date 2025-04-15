@@ -11,8 +11,6 @@
 #ifndef __DWT_C__
 #define __DWT_C__
 
-#include "main.h"
-#include "core_cm4.h"
 #include "dwt.h"
 
 /**

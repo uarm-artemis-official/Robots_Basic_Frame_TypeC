@@ -44,7 +44,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-extern BoardStatusType board_status;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,6 +53,7 @@ extern BoardStatusType board_status;
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+static BoardStatus_t board_status;
 QueueHandle_t UC_Pack_Queue;
 QueueHandle_t Ref_Pack_Queue;
 /* USER CODE END Variables */
@@ -61,7 +61,7 @@ osThreadId defaultTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+BoardStatus_t get_board_status();
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -101,6 +101,8 @@ void MX_FREERTOS_Init(void) {
   osThreadId WDGTaskHandle;
   osThreadId PCUARTTaskHandle;
   osThreadId RefTaskHandle;
+
+  board_status = get_board_status();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -116,8 +118,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-  UC_Pack_Queue = xQueueCreate(3, UC_PACK_SIZE);
-  Ref_Pack_Queue = xQueueCreate(5, MAX_REF_BUFFER_SZIE);
+//  Ref_Pack_Queue = xQueueCreate(5, MAX_REF_BUFFER_SZIE);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -127,27 +128,26 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   osThreadDef(TimerTask, Timer_Task_Func, osPriorityHigh, 0, 256);
-    TimerTaskHandle = osThreadCreate(osThread(TimerTask), NULL);
+    TimerTaskHandle = osThreadCreate(osThread(TimerTask), (void*) &board_status);
 
     osThreadDef(CommTask, Comm_Task_Func, osPriorityHigh, 0, 256);
-    CommTaskHandle = osThreadCreate(osThread(CommTask), NULL);
+    CommTaskHandle = osThreadCreate(osThread(CommTask), (void*) &board_status);
 
-    osThreadDef(WDGTask, WatchDog_Task_Function, osPriorityHigh, 0, 256);
-    WDGTaskHandle = osThreadCreate(osThread(WDGTask), NULL);
+//    osThreadDef(WDGTask, WatchDog_Task_Function, osPriorityHigh, 0, 256);
+//    WDGTaskHandle = osThreadCreate(osThread(WDGTask), (void*) board_status);
 
 
-    if(board_status == CHASSIS_BOARD){
+    if (board_status == CHASSIS_BOARD) {
     	  osThreadDef(ChassisTask, Chassis_Task_Func, osPriorityRealtime, 0, 256);
     	  ChassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
 
     	  osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
     	  RCTaskHandle = osThreadCreate(osThread(RCTask), NULL);
 
-    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
-    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
+//    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
+//    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
 
-      }
-    else if(board_status == GIMBAL_BOARD){
+    } else if (board_status == GIMBAL_BOARD) {
     	  osThreadDef(GimbalTask, Gimbal_Task_Function, osPriorityRealtime, 0, 512);
     	  GimbalTaskHandle = osThreadCreate(osThread(GimbalTask), NULL);
 
@@ -184,5 +184,4 @@ void StartDefaultTask(void const * argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-
 /* USER CODE END Application */

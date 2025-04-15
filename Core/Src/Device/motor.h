@@ -13,15 +13,15 @@
 #define MOTOR_H_
 
 
-#include "main.h"
+#include "usart.h"
+#include "pid.h"
+#include "math.h"
+#include <string.h>
+#include "public_defines.h"
 #include "cmsis_os.h"
 #include "can.h"
 #include "pid.h"
 #include "feedforward.h"
-
-/* define ecd to angles */
-#define ECD2RAD    ((2.0*PI)/ 8192.0f)
-#define ECD2DEGREE ( 360f  / 8192.0f)
 
 //Define needs to go ahead of include here for whatever reason....
 #define MOTOR_COUNT 8 // RM motor 0-7,
@@ -78,37 +78,25 @@ typedef enum {
 /**
   * @brief basic gimbal struct
   */
-typedef enum {
-    GYRO_MODE = 0,
-    ENCODE_MODE
-} GimbalMotorMode_t;
-
 typedef struct {
 	uint32_t stdid;
 	PID_t f_pid; //first pid handler for single-loop control
 	PID_t s_pid; //second pid handler for dual-loop control
 	FeedForward_t ff;
-}Motor_Info;
+} Motor_Info;
 
-// CAN rx feedback structure
-typedef struct {
-	int16_t rx_angle;
-	int16_t rx_rpm;
-	int16_t rx_current;
-	int16_t rx_temp;
-} Motor_Feedback_Data_t;
 
 typedef struct {
 	Motor_Info motor_info;
-	Motor_Feedback_Data_t motor_feedback;
+	Motor_Feedback_t motor_feedback;
 	//Data need to sent to Motor
 	int32_t tx_data;
-}Motor;
+} Motor_t;
 
 typedef struct {
 	uint32_t send_id;
 	LK_Motor_Command_t motor_cmd;
-	Motor_Feedback_Data_t motor_feedback;
+	Motor_Feedback_t motor_feedback;
 	int32_t tx_data; // Data need to sent to LK Motor
 }LK_Motor_t;
 
@@ -125,19 +113,21 @@ LK_Motor_t lk_motor[LK_MOTOR_COUNT];
  *			motor_data[5]: gimbal 	6020 yaw
  *			motor_data[6]: magazine 2006
  * */
-Motor motor_data[MOTOR_COUNT];
 
-void Motor_Data_Read(CAN_HandleTypeDef* hcan);
-void Motor_Data_Send(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4);
-void motor_init(uint8_t motor_id, int32_t max_out_f, float max_i_out_f, float max_err_f, float kp_f, float ki_f, float kd_f,
+void motor_data_init(Motor_t *motor);
+void motor_init(Motor_t *motor, int32_t max_out_f, float max_i_out_f, float max_err_f, float kp_f, float ki_f, float kd_f,
 								  int32_t max_out_s, float max_i_out_s, float max_err_s, float kp_s, float ki_s, float kd_s,
 								  float kf);
-void set_motor_can_volt(float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag);
+
+void parse_motor_feedback(const uint8_t *can_data, Motor_Feedback_t *motor_feedback);
+
+void set_motor_voltage(CAN_HandleTypeDef* hcan, int32_t id, int32_t d1, int32_t d2, int32_t d3, int32_t d4);
 void set_motor_can_current(int32_t v1, int32_t v2, int32_t v3, int32_t v4, int32_t control_indicator);
-void get_Motor_buffer(Motor* origin, Motor* destination);
-void set_Motor_buffer(Motor* origin, Motor* destination);
-void Motor_pid_set_angle(Motor* motor, double angle, double p, double i, double d, int is_Pitch);
-void Motor_set_raw_value(Motor* motor, double value);
+
+float calc_shoot_mag_dual_pid(float target_value, float f_cur_val, float s_cur_val, int motor_idx, float dt);
+//void set_motor_can_volt(int32_t *motor_tx_buffer, float a1, float a2, int32_t v3, int32_t v4, int32_t control_indicator, GimbalMotorMode_t mode, uint8_t idle_flag, Gimbal_t *gimbal);
+void Motor_pid_set_angle(Motor_t* motor, double angle, double p, double i, double d, int is_Pitch);
+void Motor_set_raw_value(Motor_t* motor, double value);
 
 /* LK motor */
 void LK_motor_init(uint8_t lk_motor_id);

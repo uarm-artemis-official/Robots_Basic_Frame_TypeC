@@ -13,7 +13,6 @@
 #ifndef __FEEDFORWARD_C__
 #define __FEEDFORWARD_C__
 
-#include "main.h"
 #include "feedforward.h"
 
 /* define internal vars */

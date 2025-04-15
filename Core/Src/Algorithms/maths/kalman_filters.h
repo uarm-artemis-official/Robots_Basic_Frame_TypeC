@@ -11,7 +11,6 @@
 #ifndef __KALMAN_FILTERS_H__
 #define __KALMAN_FILTERS_H__
 
-#include "main.h"
 #include "stdlib.h"
 #include "arm_math.h"
 /* define general declarations for gimbal task here */

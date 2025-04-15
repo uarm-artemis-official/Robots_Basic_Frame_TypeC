@@ -18,6 +18,8 @@
 #ifndef __AHRS_H__
 #define __AHRS_H__
 
+#include "stdint.h"
+
 #ifdef AHRS_H_GLOBAL
     #define AHRS_H_EXTERN 
 #else
