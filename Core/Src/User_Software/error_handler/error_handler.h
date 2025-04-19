@@ -8,6 +8,10 @@
 #ifndef SRC_ERROR_HANDLER_H_
 #define SRC_ERROR_HANDLER_H_
 
+#include "stm32f4xx_hal.h"
+#include "oled/ssd1306_driver.h"
+
+
 #define ASSERT(cond, msg) if (!(cond)) error_handler((msg))
 
 

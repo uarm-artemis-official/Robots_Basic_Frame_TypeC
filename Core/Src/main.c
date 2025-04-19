@@ -191,10 +191,11 @@ int main(void)
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   MX_I2C3_Init();
-//  MX_IWDG_Init();
+  MX_IWDG_Init();
   MX_TIM5_Init();
   MX_USART6_UART_Init();
   MX_TIM1_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 #ifdef USE_IWDG
 /*To deactivate IWDG, go to main.h and comment #define USE_IWDG 1 */
