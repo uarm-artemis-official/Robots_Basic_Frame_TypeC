@@ -165,31 +165,35 @@ void gimbal_calibration_reset(Gimbal_t *gbal, Motor_t *g_motors) {
 		vTaskDelay(GIMBAL_TASK_EXEC_TIME);
 	}
 
-//	const int num_samples = 10;
-//	int count = 0;
-//	float avg_headings[2];
-//	for (;;) {
-//		uint8_t imu_ready_status = 0;
-//		BaseType_t imu_ready = peek_message(IMU_READY, &imu_ready_status, 0);
-//		if (imu_ready == pdTRUE && imu_ready_status == 1) {
-//			if (count == num_samples) break;
-//
-//			float headings[2];
-//			BaseType_t imu_posting = peek_message(IMU_READINGS, headings, 0);
-//			if (imu_posting == pdTRUE) {
-//				gimbal_update_imu_angle(gbal, headings[0], headings[1]);
-//				avg_headings[0] += gbal->yaw_imu_angle;
-//				avg_headings[1] += gbal->pitch_imu_angle;
-//				count++;
-//			}
-//		}
-//		osDelay(20);
-//	}
-//	avg_headings[0] /= num_samples;
-//	avg_headings[1] /= num_samples;
-//
-//	gbal->yaw_imu_center = avg_headings[0];
-	// TODO: Uncomment after implementing pitch centering.
+
+
+	const int num_samples = 10;
+	int count = 0;
+	float avg_headings[2];
+
+	EventBits_t res = 0;
+	while ((res & IMU_READY) != IMU_READY) {
+		res = wait_events(IMU_READY, 100000);
+	}
+
+	for (;;) {
+		if (count == num_samples) break;
+
+		float headings[2];
+		BaseType_t imu_posting = peek_message(IMU_READINGS, headings, 0);
+		if (imu_posting == pdTRUE) {
+			gimbal_update_imu_angle(gbal, headings[0], headings[1]);
+			avg_headings[0] += gbal->yaw_imu_angle;
+			avg_headings[1] += gbal->pitch_imu_angle;
+			count++;
+		}
+		osDelay(20);
+	}
+	avg_headings[0] /= num_samples;
+	avg_headings[1] /= num_samples;
+
+	gbal->yaw_imu_center = avg_headings[0];
+//	 TODO: Uncomment after implementing pitch centering.
 //			gbal->pitch_imu_center = headings[1];
 }
 

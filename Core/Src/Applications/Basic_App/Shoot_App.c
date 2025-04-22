@@ -18,11 +18,10 @@
 //#define SHOOT_HEAT_LIMIT 1
 
 /* sentry only */
-int16_t shoot_counter= 0;
-uint8_t shoot_reserve_flag = 0;
-uint8_t shoot_reserve_counter = 0;
-uint8_t shoot_check_flag = 0;
-uint16_t shoot_check_counter = 0;
+static uint8_t shoot_reserve_flag = 0;
+static uint8_t shoot_reserve_counter = 0;
+static uint8_t shoot_check_flag = 0;
+static uint16_t shoot_check_counter = 0;
 
 static Shoot_t shoot;
 static Motor_t shoot_motors[3];

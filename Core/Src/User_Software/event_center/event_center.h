@@ -22,30 +22,26 @@
 // There is a maximum of 24 bits for our configuration for one event group.
 // The other 8 bits are reserved for other use.
 typedef enum Event_t {
-	TEST_EVENT_0                 = 1 << 1,
-	TEST_EVENT_1                 = 1 << 2,
-	TEST_EVENT_2                 = 1 << 3,
-	TEST_EVENT_3                 = 1 << 4,
-	TEST_EVENT_4                 = 1 << 5,
+	IMU_READY           = 1 << 0
 } Event_t;
 
 
 typedef enum Task_Sync_t {
-	TS_CHASSIS = 0,
-	TS_GIMBAL  = 1 << 0,
-	TS_SHOOT   = 1 << 1,
-	TS_IMU     = 1 << 2,
-	TS_CONTROL = 1 << 3,
-	TS_COMM    = 1 << 4,
-	TS_REFEREE = 1 << 5,
-	TS_TASK4   = 1 << 6,
-	TS_TASK5   = 1 << 7,
+	TS_CHASSIS  = 1 << 1,
+	TS_GIMBAL   = 1 << 2,
+	TS_SHOOT    = 1 << 3,
+	TS_COMM     = 1 << 4,
+	TS_CONTROL  = 1 << 5,
+	TS_IMU      = 1 << 6,
+	TS_PC_UART  = 1 << 7,
+	TS_REFEREE  = 1 << 8,
+	TS_TIMER    = 1 << 9,
+	TS_WATCHDOG = 1 << 10,
 } Task_Sync_t;
 
 
 typedef enum Sync_Event_t {
 	None,
-	Sync_Test = TS_TASK4 | TS_TASK5,
 } Sync_Event_t;
 
 

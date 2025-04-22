@@ -16,6 +16,7 @@
 #include "imu.h"
 #include "public_defines.h"
 #include "message_center.h"
+#include "event_center.h"
 
 
 /* define general declarations for gimbal task here */

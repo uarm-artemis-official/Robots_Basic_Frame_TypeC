@@ -100,6 +100,7 @@
 #include "buzzer.h"
 #include "self_check.h"
 #include "message_center.h"
+#include "event_center.h"
 #include "Control_App.h"
 /* USER CODE END Includes */
 
@@ -191,7 +192,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_SPI1_Init();
   MX_I2C3_Init();
-  MX_IWDG_Init();
+//  MX_IWDG_Init();
   MX_TIM5_Init();
   MX_USART6_UART_Init();
   MX_TIM1_Init();
@@ -299,6 +300,7 @@ HAL_StatusTypeDef firmware_and_system_init(void){
 	board_status = get_board_status();
 
 	message_center_init();
+	event_center_init();
 
 	return HAL_OK;
 }

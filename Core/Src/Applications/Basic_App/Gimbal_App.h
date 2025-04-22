@@ -20,6 +20,7 @@
 #include "maths.h"
 #include "kalman_filters.h"
 #include "message_center.h"
+#include "event_center.h"
 #include "debugger.h"
 #include "public_defines.h"
 #include "angle_process.h"

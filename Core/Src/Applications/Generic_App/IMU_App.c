@@ -46,7 +46,9 @@ void IMU_Task_Function(void const * argument) {
 			message_data[0] = attitude.yaw;
 			message_data[1] = attitude.pitch;
 			pub_message(IMU_READINGS, message_data);
+
 		}
+
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
 }
@@ -64,7 +66,7 @@ static void calibrate_imu(TickType_t xFrequency) {
 	bmi088_get_offset();
 
 	/* imu init finished */
-	buzzer_play_mario(300);
+//	buzzer_play_mario(300);
 }
 
 
@@ -97,8 +99,11 @@ void imu_task_init(TickType_t xFrequency) {
 void set_imu_temp_status(IMU_t *pimu, IMU_temp_status status){
 	pimu->temp_status = status;
 
-	uint8_t ready = pimu->temp_status == NORMAL ? 1 : 0;
-//	pub_message(IMU_READY, &ready);
+	if (pimu->temp_status == NORMAL) {
+		emit_events(IMU_READY);
+	} else {
+		clear_events(IMU_READY);
+	}
 }
 
 void set_imu_pwm(IMU_t *pimu, uint16_t pwm){
