@@ -15,6 +15,7 @@
 #include "cmsis_os.h"
 #include "stdlib.h"
 #include "string.h"
+#include "stdint.h"
 #include "i2c.h"
 
 
@@ -28,7 +29,7 @@
 
 extern I2C_HandleTypeDef hi2c2;
 
-#define I2C_DEVICE hi2c2;
+#define I2C_DEVICE hi2c2
 
 
 typedef struct {

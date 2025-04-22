@@ -8,6 +8,7 @@
  * 	messages onto 128x64 OLED screens controlled by SSD1306 drivers (e.g. DFR0650).
  */
 
+#include "ssd1306_driver.h"
 
 void ssd1306_send_command(uint8_t command) {
     uint8_t buffer[2] = {0x00, command};

@@ -88,6 +88,7 @@ typedef struct{
 	float output_data;
 	float last_output_data;
 
+
 	float a; //filter parameter
 }ewma_filter_t;
 

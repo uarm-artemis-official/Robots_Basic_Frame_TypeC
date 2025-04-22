@@ -20,8 +20,8 @@
 void dwt_init(void) {
     if (!(CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk)) {
         CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Enable Debug Core
-        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // Enable Cycle Counter
         DWT->CYCCNT = 0; // Reset Cycle Counter Value
+        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // Enable Cycle Counter
     }
 }
 /**
