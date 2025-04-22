@@ -47,6 +47,7 @@ typedef struct {
 } Message_t;
 
 int get_line_start_index(char* msg, uint8_t line);
+uint8_t get_line_count(char *msg);
 
 void ssd1306_send_command(uint8_t command);
 void ssd1306_send_data(uint8_t* data, size_t size);

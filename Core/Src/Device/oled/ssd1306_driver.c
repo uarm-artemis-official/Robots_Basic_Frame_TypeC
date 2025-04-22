@@ -10,77 +10,8 @@
 
 #include "ssd1306_driver.h"
 
-void ssd1306_send_command(uint8_t command) {
-    uint8_t buffer[2] = {0x00, command};
-    HAL_I2C_Master_Transmit(&I2C_DEVICE, OLED_ADDRESS, buffer, 2, HAL_MAX_DELAY);
-}
 
-
-void ssd1306_send_data(uint8_t* data, size_t size) {
-    uint8_t* buffer = malloc(size + 1);
-    buffer[0] = 0x40;
-    memcpy(&buffer[1], data, size);
-    HAL_I2C_Master_Transmit(&I2C_DEVICE, OLED_ADDRESS, buffer, size + 1, HAL_MAX_DELAY);
-    free(buffer);
-}
-
-
-void ssd1306_init() {
-	HAL_Delay(100); // Wait after power-on
-
-	ssd1306_send_command(0xAE); // Display OFF
-
-	ssd1306_send_command(0xD5); // Set display clock divide ratio/oscillator freq
-	ssd1306_send_command(0x80); // Default setting
-
-	ssd1306_send_command(0xA8); // Set multiplex ratio
-	ssd1306_send_command(0x3F); // 1/64 duty
-
-	ssd1306_send_command(0xD3); // Set display offset
-	ssd1306_send_command(0x00); // No offset
-
-	ssd1306_send_command(0x40); // Set start line to 0
-
-	ssd1306_send_command(0x8D); // Enable charge pump
-	ssd1306_send_command(0x14); // Enable
-
-	ssd1306_send_command(0x20); // Set Memory Addressing Mode
-	ssd1306_send_command(0x00); // Horizontal addressing mode
-
-	ssd1306_send_command(0xA1); // Segment re-map
-	ssd1306_send_command(0xC8); // COM Output Scan Direction
-
-	ssd1306_send_command(0xDA); // COM pins hardware config
-	ssd1306_send_command(0x12);
-
-	ssd1306_send_command(0x81); // Set contrast control
-	ssd1306_send_command(0xCF);
-
-	ssd1306_send_command(0xD9); // Set pre-charge period
-	ssd1306_send_command(0xF1);
-
-	ssd1306_send_command(0xDB); // Set VCOMH deselect level
-	ssd1306_send_command(0x40);
-
-	ssd1306_send_command(0xA4); // Resume to RAM content display
-	ssd1306_send_command(0xA6); // Normal display
-
-	ssd1306_send_command(0xAF); // Display ON
-}
-
-
-void ssd1306_clear(void) {
-    uint8_t zeroBuffer[128] = {0};
-
-    for (uint8_t page = 0; page < 8; page++) {
-        ssd1306_send_command(0xB0 + page); // Set page address
-        ssd1306_send_command(0x00);        // Set column low nibble
-        ssd1306_send_command(0x10);        // Set column high nibble
-        ssd1306_send_data(zeroBuffer, 128);
-    }
-}
-
-
+// 5x7 font used for drawing characters onto OLED display.
 static const uint8_t font5x7[][5] = {
     // ASCII 0x20 (space) to 0x7E (~)
     {0x00,0x00,0x00,0x00,0x00}, // 0x20 ' '
@@ -181,6 +112,77 @@ static const uint8_t font5x7[][5] = {
 };
 
 
+void ssd1306_send_command(uint8_t command) {
+    uint8_t buffer[2] = {0x00, command};
+    HAL_I2C_Master_Transmit(&I2C_DEVICE, OLED_ADDRESS, buffer, 2, HAL_MAX_DELAY);
+}
+
+
+void ssd1306_send_data(uint8_t* data, size_t size) {
+    uint8_t* buffer = malloc(size + 1);
+    buffer[0] = 0x40;
+    memcpy(&buffer[1], data, size);
+    HAL_I2C_Master_Transmit(&I2C_DEVICE, OLED_ADDRESS, buffer, size + 1, HAL_MAX_DELAY);
+    free(buffer);
+}
+
+
+void ssd1306_init() {
+	HAL_Delay(100); // Wait after power-on
+
+	ssd1306_send_command(0xAE); // Display OFF
+
+	ssd1306_send_command(0xD5); // Set display clock divide ratio/oscillator freq
+	ssd1306_send_command(0x80); // Default setting
+
+	ssd1306_send_command(0xA8); // Set multiplex ratio
+	ssd1306_send_command(0x3F); // 1/64 duty
+
+	ssd1306_send_command(0xD3); // Set display offset
+	ssd1306_send_command(0x00); // No offset
+
+	ssd1306_send_command(0x40); // Set start line to 0
+
+	ssd1306_send_command(0x8D); // Enable charge pump
+	ssd1306_send_command(0x14); // Enable
+
+	ssd1306_send_command(0x20); // Set Memory Addressing Mode
+	ssd1306_send_command(0x00); // Horizontal addressing mode
+
+	ssd1306_send_command(0xA1); // Segment re-map
+	ssd1306_send_command(0xC8); // COM Output Scan Direction
+
+	ssd1306_send_command(0xDA); // COM pins hardware config
+	ssd1306_send_command(0x12);
+
+	ssd1306_send_command(0x81); // Set contrast control
+	ssd1306_send_command(0xCF);
+
+	ssd1306_send_command(0xD9); // Set pre-charge period
+	ssd1306_send_command(0xF1);
+
+	ssd1306_send_command(0xDB); // Set VCOMH deselect level
+	ssd1306_send_command(0x40);
+
+	ssd1306_send_command(0xA4); // Resume to RAM content display
+	ssd1306_send_command(0xA6); // Normal display
+
+	ssd1306_send_command(0xAF); // Display ON
+}
+
+
+void ssd1306_clear(void) {
+    uint8_t zeroBuffer[128] = {0};
+
+    for (uint8_t page = 0; page < 8; page++) {
+        ssd1306_send_command(0xB0 + page); // Set page address
+        ssd1306_send_command(0x00);        // Set column low nibble
+        ssd1306_send_command(0x10);        // Set column high nibble
+        ssd1306_send_data(zeroBuffer, 128);
+    }
+}
+
+
 void ssd1306_write_char_to_buffer(Display_t* display, char c, uint8_t cursor_row, uint8_t cursor_col) {
 	// TODO: Add checks to make sure cursor_row and cursor_col are non-negative and
 	// less than the maximum respective value.
@@ -223,6 +225,31 @@ int get_line_start_index(char* msg, uint8_t line) {
 	} else {
 		return -1;
 	}
+}
+
+
+uint8_t get_line_count(char *msg) {
+	uint8_t cursor_row = 0;
+	uint8_t cursor_col = 0;
+	uint8_t count = 0;
+	int msg_length = strlen(msg);
+	for (int i = 0; i < msg_length; i++) {
+		if (msg[i] == '\n') {
+			cursor_row++;
+			cursor_col = 0;
+			count++;
+		} else {
+			cursor_col += CHAR_WIDTH;
+			if (cursor_col >= OLED_WIDTH - CHAR_WIDTH) {
+				cursor_row++;
+				cursor_col = 0;
+				count++;
+			}
+		}
+	}
+
+	if (msg[msg_length - 1] != '\n') count++;
+	return count;
 }
 
 

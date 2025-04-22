@@ -10,6 +10,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "oled/ssd1306_driver.h"
+#include "dwt.h"
 
 
 #define ASSERT(cond, msg) if (!(cond)) error_handler((msg))

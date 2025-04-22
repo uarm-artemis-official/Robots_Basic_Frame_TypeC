@@ -32,5 +32,23 @@ uint32_t dwt_getCnt_us(void){
     return DWT->CYCCNT / SYSTEM_CORE_FREQ;//unit: usec
 }
 
+// Suitable sleep function for when all interrupts are disabled.
+// This function relies on counting CPU clock cycles using DWT.
+// This is fairly accurate for times < 1000 ms but loses accuracy
+// for longer sleep durations.
+//
+// HAL_Delay and FreeRTOS delay functions rely on interrupts to functions.
+// In critical sections or when __disable_irq() is called, these functions
+// will hang when called.
+void dwt_sleep(uint32_t ms) {
+	SystemCoreClockUpdate(); // update core clock variable
+	uint64_t cycles = (SystemCoreClock / 1000L);
+	uint32_t count = 0;
+	while (count < ms) {
+		uint64_t start = DWT->CYCCNT;
+		while (((uint64_t) DWT->CYCCNT - start + 0xffffffff % 0xffffffff) < cycles);
+		count++;
+	}
+}
 
 #endif /* __DWT_H__ */

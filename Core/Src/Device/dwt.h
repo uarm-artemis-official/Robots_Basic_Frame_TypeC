@@ -27,5 +27,6 @@ typedef struct
 /* declare dwt functions */
 void dwt_init(void);
 uint32_t dwt_getCnt_us(void);
+void dwt_sleep(uint32_t ms);
 
 #endif
