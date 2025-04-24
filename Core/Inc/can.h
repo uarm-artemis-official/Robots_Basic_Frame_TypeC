@@ -42,6 +42,7 @@ extern can_comm_rx_t can_comm_rx[7];
 /* USER CODE END Includes */
 
 extern CAN_HandleTypeDef hcan1;
+
 extern CAN_HandleTypeDef hcan2;
 
 /* USER CODE BEGIN Private defines */

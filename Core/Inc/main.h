@@ -32,6 +32,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "cmsis_os.h"
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -90,6 +91,7 @@ void Error_Handler(void);
 #define CS1_GYRO_GPIO_Port GPIOB
 #define HIGH_VOLT_Pin GPIO_PIN_15
 #define HIGH_VOLT_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 typedef _Bool bool_t;
 
