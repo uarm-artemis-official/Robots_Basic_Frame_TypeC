@@ -1,21 +1,11 @@
 {
     "files.associations": {
-        "dma.h": "c",
-        "can.h": "c",
-        "public_defines.h": "c",
-        "stm32f4xx_hal.h": "c",
-        "main.h": "c",
-        "usart.h": "c",
         "gpio.h": "c",
-        "iwdg.h": "c",
-        "cmsis_os.h": "c",
-        "message_center.h": "c",
-        "freertos.h": "c",
-        "portable.h": "c",
         "motor.h": "c",
-        "pid.h": "c",
         "maths.h": "c",
+        "stm32f407xx.h": "c",
+        "kalman_filters.h": "c",
         "math.h": "c",
-        "arm_math.h": "c"
+        "message_center.h": "c"
     }
 }

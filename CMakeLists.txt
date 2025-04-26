@@ -21,8 +21,8 @@ endif()
 # Set the project name
 set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
 
-# Include toolchain file
-include("cmake/gcc-arm-none-eabi.cmake")
+include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+include("cmake/definitions.cmake") # global defintions (mostly for variables)
 
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -39,6 +39,8 @@ add_executable(${CMAKE_PROJECT_NAME})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
+add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src)
+add_subdirectory(${PROJECT_SOURCE_DIR}/Drivers/CMSIS/DSP)
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE

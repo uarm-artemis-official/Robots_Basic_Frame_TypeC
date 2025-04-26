@@ -1,0 +1,3 @@
+add_library(ARM_MATH INTERFACE)
+target_include_directories(ARM_MATH INTERFACE Include)
+target_link_libraries(ARM_MATH INTERFACE Lib)
