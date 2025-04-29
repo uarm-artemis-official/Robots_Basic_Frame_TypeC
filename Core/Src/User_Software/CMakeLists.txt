@@ -13,4 +13,5 @@ target_include_directories(USER_SOFTWARE_LIBRARIES PUBLIC ${CMAKE_CURRENT_SOURCE
 target_link_libraries(USER_SOFTWARE_LIBRARIES 
     PUBLIC
         COMMON_INCLUDES
-        SSD1306_DRIVER)
+        SSD1306_DRIVER
+        DWT)

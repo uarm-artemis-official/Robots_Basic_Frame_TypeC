@@ -91,17 +91,6 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackTy
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-  osThreadId ChassisTaskHandle;
-  osThreadId GimbalTaskHandle;
-  osThreadId ShootTaskHandle;
-  osThreadId TimerTaskHandle;
-  osThreadId CommTaskHandle;
-  osThreadId IMUTaskHandle;
-  osThreadId RCTaskHandle;
-  osThreadId WDGTaskHandle;
-  osThreadId PCUARTTaskHandle;
-  osThreadId RefTaskHandle;
-
   board_status = get_board_status();
   /* USER CODE END Init */
 
@@ -124,14 +113,14 @@ void MX_FREERTOS_Init(void) {
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
   osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   osThreadDef(TimerTask, Timer_Task_Func, osPriorityHigh, 0, 256);
-    TimerTaskHandle = osThreadCreate(osThread(TimerTask), (void*) &board_status);
+  osThreadCreate(osThread(TimerTask), (void*) &board_status);
 
-    osThreadDef(CommTask, Comm_Task_Func, osPriorityHigh, 0, 256);
-    CommTaskHandle = osThreadCreate(osThread(CommTask), (void*) &board_status);
+  osThreadDef(CommTask, Comm_Task_Func, osPriorityHigh, 0, 256);
+  osThreadCreate(osThread(CommTask), (void*) &board_status);
 
 //    osThreadDef(WDGTask, WatchDog_Task_Function, osPriorityHigh, 0, 256);
 //    WDGTaskHandle = osThreadCreate(osThread(WDGTask), (void*) board_status);
@@ -139,26 +128,26 @@ void MX_FREERTOS_Init(void) {
 
     if (board_status == CHASSIS_BOARD) {
     	  osThreadDef(ChassisTask, Chassis_Task_Func, osPriorityRealtime, 0, 256);
-    	  ChassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
+    	  osThreadCreate(osThread(ChassisTask), NULL);
 
     	  osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
-    	  RCTaskHandle = osThreadCreate(osThread(RCTask), NULL);
+    	  osThreadCreate(osThread(RCTask), NULL);
 
 //    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
 //    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
 
     } else if (board_status == GIMBAL_BOARD) {
     	  osThreadDef(GimbalTask, Gimbal_Task_Function, osPriorityRealtime, 0, 512);
-    	  GimbalTaskHandle = osThreadCreate(osThread(GimbalTask), NULL);
+    	  osThreadCreate(osThread(GimbalTask), NULL);
 
     	  osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
-    	  ShootTaskHandle = osThreadCreate(osThread(ShootTask), NULL);
+    	  osThreadCreate(osThread(ShootTask), NULL);
 
     	  osThreadDef(IMUTask, IMU_Task_Function, osPriorityHigh, 0, 256);
-    	  IMUTaskHandle = osThreadCreate(osThread(IMUTask), NULL);
+    	  osThreadCreate(osThread(IMUTask), NULL);
 
     	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
-    	  PCUARTTaskHandle = osThreadCreate(osThread(PCUARTTask), NULL);
+    	  osThreadCreate(osThread(PCUARTTask), NULL);
       }
   /* USER CODE END RTOS_THREADS */
 

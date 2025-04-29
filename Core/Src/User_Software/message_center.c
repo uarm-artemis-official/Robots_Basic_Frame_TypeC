@@ -98,7 +98,7 @@ static Topic_Handle_t topic_handles[] = {
 
 
 static Topic_Handle_t* get_topic_handle(Topic_Name_t name) {
-	for (int i = 0; i < sizeof(topic_handles) / sizeof(Topic_Handle_t); i++) {
+	for (size_t i = 0; i < sizeof(topic_handles) / sizeof(Topic_Handle_t); i++) {
 		if (topic_handles[i].name == name) {
 			return &(topic_handles[i]);
 		}
@@ -110,7 +110,7 @@ static Topic_Handle_t* get_topic_handle(Topic_Name_t name) {
 
 
 void message_center_init() {
-	for (int i = 0; i < sizeof(topic_handles) / sizeof(Topic_Handle_t); i++) {
+	for (size_t i = 0; i < sizeof(topic_handles) / sizeof(Topic_Handle_t); i++) {
 		topic_handles[i].queue_handle = xQueueCreate(topic_handles[i].queue_length, topic_handles[i].item_size);
 	}
 }

@@ -98,9 +98,7 @@ typedef struct {
 	LK_Motor_Command_t motor_cmd;
 	Motor_Feedback_t motor_feedback;
 	int32_t tx_data; // Data need to sent to LK Motor
-}LK_Motor_t;
-
-LK_Motor_t lk_motor[LK_MOTOR_COUNT];
+} LK_Motor_t;
 
 /*
  * @brief Structure for all motors installed

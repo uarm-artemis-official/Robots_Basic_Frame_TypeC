@@ -29,16 +29,14 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
+#include "stm32f407xx.h"
 #include "stm32f4xx_hal.h"
 #include "public_defines.h"
-#include "motor.h"
-#include "message_center.h"
 
 typedef struct {
 	uint32_t comm_id;
 	uint8_t comm_rx_buffer[8];
 } can_comm_rx_t;
-extern can_comm_rx_t can_comm_rx[7];
 /* USER CODE END Includes */
 
 extern CAN_HandleTypeDef hcan1;

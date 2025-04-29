@@ -1,7 +1,11 @@
 add_subdirectory(imu)
 add_subdirectory(oled)
 
-add_library(DEVICE_LIBRARIES STATIC motor.c dwt.c LK_motor.c buzzer.c)
+add_library(DWT STATIC dwt.c)
+target_include_directories(DWT PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(DWT PUBLIC COMMON_INCLUDES)
+
+add_library(DEVICE_LIBRARIES STATIC motor.c LK_motor.c buzzer.c)
 target_include_directories(DEVICE_LIBRARIES PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(DEVICE_LIBRARIES 
     PUBLIC
@@ -9,4 +13,5 @@ target_link_libraries(DEVICE_LIBRARIES
         CONTROL_LIBRARIES
         USER_SOFTWARE_LIBRARIES
         IMU
+        DWT
         SSD1306_DRIVER)

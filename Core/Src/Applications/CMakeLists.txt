@@ -5,6 +5,7 @@ target_link_libraries(BASIC_APPS
         COMMON_INCLUDES 
         USER_SOFTWARE_LIBRARIES
         DEVICE_LIBRARIES
+        ARM_MATH
         MATHS_LIBRARIES)
 
 add_library(GENERIC_APPS 
@@ -20,4 +21,5 @@ target_include_directories(GENERIC_APPS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(GENERIC_APPS 
     PUBLIC 
         COMMON_INCLUDES
-        DEVICE_LIBRARIES)
+        DEVICE_LIBRARIES
+        COMMS_LIBRARIES)

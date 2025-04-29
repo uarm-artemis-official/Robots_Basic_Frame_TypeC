@@ -13,6 +13,8 @@
 #include "public_defines.h"
 
 
+static LK_Motor_t lk_motor[LK_MOTOR_COUNT];
+
 /**
   * @brief     LK motor init
   * @param[in] lk_motor_id  actual sending id - 1

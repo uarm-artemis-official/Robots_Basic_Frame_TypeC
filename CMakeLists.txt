@@ -42,7 +42,7 @@ target_link_libraries(COMMON_INCLUDES
         stm32cubemx)
 target_compile_definitions(COMMON_INCLUDES
     INTERFACE
-        ARM_MATH_M4)
+        ARM_MATH_CM4)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)

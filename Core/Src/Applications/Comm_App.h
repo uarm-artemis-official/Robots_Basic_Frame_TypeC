@@ -18,6 +18,8 @@
 #include "tim.h"
 #include "can.h"
 #include "string.h"
+#include "message_center.h"
+#include "queue_m.h"
 
 #define USE_UART_DMA 1
 
@@ -40,6 +42,7 @@
 #define KEY_IDX   	 (KEY_COMM_ID-IDLE_COMM_ID)
 #define PC_EXT_KEY_IDX  (PC_EXT_KEY_ID-IDLE_COMM_ID)
 
+#define MAX_QUEUE_SIZE 5
 
 #define ANGLE_COMM_SCALE_FACTOR (32767.0f / PI - 500.0f) //32767 is the maximum size of int16_t														 // exp: since we need to transmit the float angle(-pi, pi), we need to transfer it														 // to int16_t, and rescale it in the receiver side.
 

@@ -201,7 +201,7 @@ int get_line_start_index(char* msg, uint8_t line) {
 	uint8_t cursor_row = 0;
 	uint8_t cursor_col = 0;
 	uint8_t good = 0;
-	int i;
+	size_t i;
 	for (i = 0; i < strlen(msg); i++) {
 		if (cursor_row == line) {
 			good = 1;

@@ -39,7 +39,7 @@ int32_t capture_flag = 0;
 
 //static BoardComm_t chassis_comm;
 //static BoardComm_t gimbal_comm;
-static CanMessage_t canQueue[MAX_QUEUE_SIZE];
+static CanMessage_t canQueue[MAX_QUEUE_SIZE]; // TODO: Get rid of this for FreeRTOS queue or something.
 static QueueManage_t canqm;
 static BoardStatus_t board_status;
 

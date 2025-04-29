@@ -11,10 +11,11 @@
 #ifndef __KALMAN_FILTERS_H__
 #define __KALMAN_FILTERS_H__
 
-#include "stdlib.h"
 
 #include "stm32f407xx.h"
 #include "arm_math.h"
+#include "stdlib.h"
+#include "FreeRTOS.h"
 
 /* define general declarations for gimbal task here */
 #define sys_dim 2 // the dimension of state vector
@@ -81,11 +82,6 @@ typedef struct {
     mat temp_vector2;
 
 }KalmanFilter_t;
-
-
-typedef struct {
- /* Not implement yet */
-}ExtendKalmanFilter_t;
 
 /** ******************************************************************************
   * @file    first order kalman main structure                                                            *
