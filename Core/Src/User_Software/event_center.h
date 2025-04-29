@@ -8,6 +8,9 @@
 #ifndef SRC_EVENT_CENTER_H_
 #define SRC_EVENT_CENTER_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "cmsis_os.h"
 
@@ -65,5 +68,9 @@ void clear_events(EventBits_t clear_events);
 
 // Sync tasks to a particular sync event.
 BaseType_t sync_tasks(Sync_Event_t sync_event, EventBits_t set_task, TickType_t timeout);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SRC_EVENT_CENTER_H_ */

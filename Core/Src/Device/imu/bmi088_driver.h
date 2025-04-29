@@ -12,6 +12,10 @@
 #ifndef __BMI088_DRIVER_H__
 #define __BMI088_DRIVER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stdint.h"
 #include "bmi088_reg.h"
 #include "bmi088_middleware.h"
@@ -96,8 +100,6 @@ enum
     BMI088_NO_SENSOR = 0xFF,
 };
 
-
-
 /* define private functions of IMU */
 uint8_t BMI088_init(void);
 uint8_t bmi088_accel_init(void);
@@ -114,9 +116,8 @@ float get_BMI088_temperature(void);
 void get_BMI088_gyro(int16_t gyro[3]);
 void get_BMI088_accel(float accel[3]);
 
-
-
-
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

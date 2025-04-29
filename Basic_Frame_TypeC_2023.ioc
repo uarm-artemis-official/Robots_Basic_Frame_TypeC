@@ -1,6 +1,6 @@
 #MicroXplorer Configuration settings - do not modify
-CAD.formats=
-CAD.pinconfig=
+CAD.formats=[]
+CAD.pinconfig=Dual
 CAD.provider=
 CAN1.ABOM=ENABLE
 CAN1.AWUM=ENABLE
@@ -394,7 +394,7 @@ ProjectManager.KeepUserCode=true
 ProjectManager.LastFirmware=true
 ProjectManager.LibraryCopy=1
 ProjectManager.MainLocation=Core/Src
-ProjectManager.NoMain=false
+ProjectManager.NoMain=true
 ProjectManager.PreviousToolchain=
 ProjectManager.ProjectBuild=false
 ProjectManager.ProjectFileName=Basic_Frame_TypeC_2023.ioc

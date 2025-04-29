@@ -12,6 +12,10 @@
 #ifndef __BUZZER_H__
 #define __BUZZER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stm32f407xx.h"
 #include "cmsis_os.h"
 #include "tim.h"
@@ -41,5 +45,9 @@ void buzzer_play_chromatic(int32_t duration);
 void buzzer_play_mario(int32_t bpm);
 void play_happy_birthday(int32_t bpm);
 void buzzer_play_c1(int32_t duration);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SRC_BUZZER_H_ */

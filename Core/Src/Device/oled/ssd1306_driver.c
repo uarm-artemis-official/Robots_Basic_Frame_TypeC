@@ -119,7 +119,7 @@ void ssd1306_send_command(uint8_t command) {
 
 
 void ssd1306_send_data(uint8_t* data, size_t size) {
-    uint8_t* buffer = malloc(size + 1);
+    uint8_t* buffer = (uint8_t*) malloc(size + 1); // TODO: replace with static buffer or portalloc?
     buffer[0] = 0x40;
     memcpy(&buffer[1], data, size);
     HAL_I2C_Master_Transmit(&I2C_DEVICE, OLED_ADDRESS, buffer, size + 1, HAL_MAX_DELAY);

@@ -11,6 +11,10 @@
 #ifndef __DWT_H__
 #define __DWT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stm32f407xx.h"
 #include "cmsis_os.h"
 #include "stm32f4xx_hal.h"
@@ -28,5 +32,9 @@ typedef struct
 void dwt_init(void);
 uint32_t dwt_getCnt_us(void);
 void dwt_sleep(uint32_t ms);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

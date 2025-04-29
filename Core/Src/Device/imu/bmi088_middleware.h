@@ -11,6 +11,10 @@
 #ifndef __BMI088_MIDDLEWARE_H__
 #define __BMI088_MIDDLEWARE_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stm32f407xx.h"
 #include "stdint.h"
 
@@ -46,6 +50,10 @@ extern void BMI088_Delay_us(uint16_t us);
 
     #define BMI088_IIC_Read_Muli_Reg(data, len, addr, reg) I2C_ReadByte((data), (len), (addr), (reg))
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

@@ -11,6 +11,10 @@
 #ifndef SRC_DEVICE_OLED_SSD1306_DRIVER_H_
 #define SRC_DEVICE_OLED_SSD1306_DRIVER_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 #include "stdlib.h"
@@ -58,5 +62,9 @@ void ssd1306_write_char_to_buffer(Display_t* display, char c, uint8_t cursor_row
 void ssd1306_write_title(Display_t* display, Message_t message, uint8_t offset);
 void ssd1306_write_body(Display_t* display, Message_t message, uint8_t line_start);
 void ssd1306_write_buffer_to_gddram(Display_t* display);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SRC_DEVICE_OLED_SSD1306_DRIVER_H_ */

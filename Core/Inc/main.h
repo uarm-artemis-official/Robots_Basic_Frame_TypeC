@@ -32,7 +32,6 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "cmsis_os.h"
-#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -93,9 +92,10 @@ void Error_Handler(void);
 #define HIGH_VOLT_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-typedef _Bool bool_t;
+// typedef _Bool bool_t;
 
 /* declare init function */
+void MX_FREERTOS_Init();
 HAL_StatusTypeDef firmware_and_system_init(void);
 
 extern char pdata[32]; //PACKLEN
