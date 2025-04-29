@@ -11,6 +11,7 @@
 #ifndef __KALMAN_FILTERS_C__
 #define __KALMAN_FILTERS_C__
 
+#include "stm32f407xx.h"
 #include <arm_math.h>
 #include "main.h"
 #include "kalman_filters.h"
