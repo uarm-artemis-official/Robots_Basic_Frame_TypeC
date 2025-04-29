@@ -1,8 +1,4 @@
-add_library(MATHS STATIC "maths.c" "maths.h")
-target_link_libraries(MATHS PUBLIC ARM_MATH)
-target_include_directories(MATHS PUBLIC ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-                                 PUBLIC ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Include)
-
-add_library(KALMAN_FILTERS OBJECT "kalman_filters.c" "kalman_filters.h")
-target_link_libraries(KALMAN_FILTERS PRIVATE ARM_MATH)
-target_include_directories(KALMAN_FILTERS PRIVATE CMSIS_DEVICE_INCLUDES)
+add_library(MATHS_LIBRARIES STATIC)
+target_sources(MATHS_LIBRARIES PUBLIC maths.c kalman_filters.c)
+target_link_libraries(MATHS_LIBRARIES PUBLIC ARM_MATH COMMON_INCLUDES)
+target_include_directories(MATHS_LIBRARIES PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -12,16 +12,16 @@
 #ifndef MOTOR_H_
 #define MOTOR_H_
 
-
-#include "usart.h"
-#include "pid.h"
-#include "math.h"
-#include <string.h>
-#include "public_defines.h"
+#include "stm32f407xx.h"
+#include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-#include "can.h"
+#include "usart.h"
+#include "public_defines.h"
 #include "pid.h"
 #include "feedforward.h"
+
+#include "math.h"
+#include "string.h"
 
 //Define needs to go ahead of include here for whatever reason....
 #define MOTOR_COUNT 8 // RM motor 0-7,

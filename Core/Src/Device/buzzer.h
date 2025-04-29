@@ -12,6 +12,7 @@
 #ifndef __BUZZER_H__
 #define __BUZZER_H__
 
+#include "stm32f407xx.h"
 #include "cmsis_os.h"
 #include "tim.h"
 

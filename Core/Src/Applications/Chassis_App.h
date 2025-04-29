@@ -11,6 +11,8 @@
 #ifndef __CHASSIS_APP_H__
 #define __CHASSIS_APP_H__
 
+#include "stm32f407xx.h"
+#include "cmsis_os.h"
 #include "message_center.h"
 #include "math.h"
 #include "maths.h"

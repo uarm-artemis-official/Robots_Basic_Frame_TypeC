@@ -1,0 +1,3 @@
+add_library(SSD1306_DRIVER STATIC ssd1306_driver.c)
+target_include_directories(SSD1306_DRIVER PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(SSD1306_DRIVER PUBLIC COMMON_INCLUDES)

@@ -19,6 +19,7 @@
 #define IST8310DRIVER_MIDDLEWARE_H
 
 //#include "struct_typedef.h"
+#include "stm32f407xx.h"
 #include "i2c.h"
 #include "stdint.h"
 

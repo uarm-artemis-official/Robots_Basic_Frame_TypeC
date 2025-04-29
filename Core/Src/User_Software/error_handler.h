@@ -9,7 +9,7 @@
 #define SRC_ERROR_HANDLER_H_
 
 #include "stm32f4xx_hal.h"
-#include "oled/ssd1306_driver.h"
+#include "ssd1306_driver.h"
 #include "dwt.h"
 
 

@@ -12,7 +12,6 @@
 #ifndef __ANGLE_PROCESS_C__
 #define __ANGLE_PROCESS_C__
 
-#include <imu.h>
 #include "angle_process.h"
 #include "maths.h"
 #include "arm_math.h"

@@ -22,7 +22,6 @@ endif()
 set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
 
 include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
-include("cmake/definitions.cmake") # global defintions (mostly for variables)
 
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -36,6 +35,14 @@ enable_language(C ASM)
 
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
+
+add_library(COMMON_INCLUDES INTERFACE)
+target_link_libraries(COMMON_INCLUDES
+    INTERFACE
+        stm32cubemx)
+target_compile_definitions(COMMON_INCLUDES
+    INTERFACE
+        ARM_MATH_M4)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
@@ -55,6 +62,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    ${PROJECT_SOURCE_DIR}/Core/Inc
 )
 
 # Add project symbols (macros)
@@ -65,6 +73,7 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-
+    BASIC_APPS
+    GENERIC_APPS
     # Add user defined libraries
 )

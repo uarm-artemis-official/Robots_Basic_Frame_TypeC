@@ -11,13 +11,16 @@
 #ifndef __IMU_H__
 #define __IMU_H__
 
+#include "cmsis_os.h"
+#include "stm32f407xx.h"
+#include "stm32f4xx_hal.h"
 
 #include "ahrs.h"
 #include "spi.h"
 #include "bmi088_driver.h"
 #include "ist8310driver.h"
 #include "pid.h"
-#include "cmsis_os.h"
+
 
 /* define general declarations here */
 #define IMU_OK  0
@@ -30,9 +33,6 @@
     #define DRV_IMU_H_EXTERN extern
 #endif
 
-#include "stm32f4xx_hal.h"
-#include "ahrs.h"
-#include "pid.h"
 #include "bmi088_driver.h"
 
 #define BMI088_PARAM_KEY "BMI088_PARAM"

@@ -11,6 +11,7 @@
 #ifndef __BMI088_MIDDLEWARE_H__
 #define __BMI088_MIDDLEWARE_H__
 
+#include "stm32f407xx.h"
 #include "stdint.h"
 
 

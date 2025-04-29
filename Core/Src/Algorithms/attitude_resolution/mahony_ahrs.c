@@ -15,7 +15,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  ***************************************************************************/
 
-#include <imu.h>
 #include "math.h"
 #include "stdint.h"
 #include "ahrs.h"
