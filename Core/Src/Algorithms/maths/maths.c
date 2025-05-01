@@ -17,6 +17,7 @@
 
 #include "maths.h"
 #include "maths_defines.h"
+#include "string.h"
 
 
 /*********** For genral use of the maths **********/
@@ -68,10 +69,12 @@ void softmax(float* x, int len) {
   */
 void abs_limit(float *a, float ABS_MAX)
 {
-  if (*a > ABS_MAX)
-    *a = ABS_MAX;
-  if (*a < -ABS_MAX)
-    *a = -ABS_MAX;
+  if (ABS_MAX >= 0) {
+    if (*a > ABS_MAX)
+      *a = ABS_MAX;
+    if (*a < -ABS_MAX)
+      *a = -ABS_MAX;
+  }
 }
 
 /**

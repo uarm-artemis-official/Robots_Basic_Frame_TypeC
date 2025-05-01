@@ -14,6 +14,9 @@
         "error_handler.h": "c",
         "buzzer.h": "c",
         "timer_app.h": "c",
-        "device_defines.h": "c"
+        "device_defines.h": "c",
+        "maths_defines.h": "c",
+        "maths_types.h": "c",
+        "arm_math.h": "c"
     }
 }

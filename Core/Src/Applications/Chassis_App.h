@@ -11,7 +11,7 @@
 #ifndef __CHASSIS_APP_H__
 #define __CHASSIS_APP_H__
 
-#include "motor.h"
+#include "device_types.h"
 #include "apps_types.h"
 
 /* functions declaration here */

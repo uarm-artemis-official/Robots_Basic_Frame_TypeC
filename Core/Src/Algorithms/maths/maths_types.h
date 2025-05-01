@@ -1,7 +1,6 @@
 #ifndef __MATHS_TYPES_H
 #define __MATHS_TYPES_H
 
-#include "arm_math.h"
 #include "maths_defines.h"
 
 /* =========================================================================

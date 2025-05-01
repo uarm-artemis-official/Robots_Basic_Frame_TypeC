@@ -14,7 +14,16 @@
 #ifndef __MATHS_H__
 #define __MATHS_H__
 
-#include "stm32f407xx.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef GTEST
+    #include "stdint.h"
+#else
+    #include "stm32f407xx.h"
+#endif
+
 #include "math.h"
 #include "float.h"
 #include "maths_types.h"
@@ -41,5 +50,8 @@ float ewma_filter(ewma_filter_t *ewma, float cur_data);
 void init_swm_filter(sliding_mean_filter_t *filter, size_t window_size);
 float sliding_window_mean_filter(sliding_mean_filter_t *filter, float new_data);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
