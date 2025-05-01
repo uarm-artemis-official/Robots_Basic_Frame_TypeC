@@ -56,6 +56,31 @@
             ],
             /* If you use external loader, add additional arguments */
             //"serverArgs": ["--extload", "path/to/ext/loader.stldr"],
+        },
+        {
+            "name": "OpenOCD",
+            "cwd": "${workspaceFolder}",
+            "type": "cortex-debug",
+            "executable": "${command:cmake.launchTargetPath}",
+            "request": "launch",
+            "servertype": "openocd",
+            "serverpath": "C:/Users/johnm/Downloads/openocd-v0.12.0-i686-w64-mingw32/bin/openocd.exe",
+            "configFiles": [
+                "dap.cfg"
+            ],
+            "serverArgs": [
+                "-s","${env:SCRIPTS_PATH}",
+                "-d3"
+
+            ],
+            "device": "STM32F407IGHx",
+            "runToEntryPoint": "main",
+            "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32U083.svd",
+            "showDevDebugOutput": "raw",
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 4
+            }
         }
-            ]
+    ]
 }

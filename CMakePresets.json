@@ -6,9 +6,8 @@
             "hidden": true,
             "generator": "MinGW Makefiles",
             "binaryDir": "${sourceDir}/build/${presetName}",
-		    "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake",
-            "cacheVariables": {
-            }
+            "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake",
+            "cacheVariables": {}
         },
         {
             "name": "Debug",
@@ -38,6 +37,16 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel"
             }
+        },
+        {
+            "name": "GTest",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "GTest",
+                "CMAKE_VERBOSE_MAKEFILE": "ON",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw64-gcc.cmake"
+            }
         }
     ],
     "buildPresets": [
@@ -56,6 +65,10 @@
         {
             "name": "MinSizeRel",
             "configurePreset": "MinSizeRel"
+        },
+        {
+            "name": "GTest",
+            "configurePreset": "GTest"
         }
     ]
 }
