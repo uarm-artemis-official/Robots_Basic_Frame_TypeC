@@ -13,6 +13,7 @@
 
 
 #include "Shoot_App.h"
+#include "apps_config.h"
 
 
 //#define SHOOT_HEAT_LIMIT 1

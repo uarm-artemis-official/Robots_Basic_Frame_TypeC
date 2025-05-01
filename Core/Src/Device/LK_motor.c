@@ -11,6 +11,7 @@
 #include "pid.h"
 #include "math.h"
 #include "public_defines.h"
+#include "device_defines.h"
 
 
 static LK_Motor_t lk_motor[LK_MOTOR_COUNT];

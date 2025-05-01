@@ -5,6 +5,7 @@
  *      Author: Haoran
  */
 #include "pid.h"
+#include "maths.h"
 
 /**
   * @brief  pid parameters initialization

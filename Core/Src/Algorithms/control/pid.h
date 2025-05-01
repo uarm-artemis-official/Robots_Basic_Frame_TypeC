@@ -9,63 +9,7 @@
 #ifndef INC_PID_H_
 #define INC_PID_H_
 
-#include "maths.h"
-
-
-#define SINGLE_LOOP_PID_CONTROL 0
-#define DUAL_LOOP_PID_CONTROL 1
-#define SINGLE_LOOP_SHOOT_CONTROL 2
-/*
- * @brief pid structure for all pid control
- * @Note None
- * */
-typedef struct {
-	float kp;
-	float ki;
-	float kd;
-	float cur_val;
-	float target_val;
-
-	float err;
-	float last_err;
-	float llast_err;
-
-	float pout;
-	float iout;
-	float dout;
-	float max_out;
-	float max_err;
-	float max_i_out;
-	float total_out;
-} PID_t;
-
-
-typedef struct {
-	float k_p;
-	float k_i;
-	float k_d;
-	float beta;
-	float yeta;
-
-	float plant_value;
-	float setpoint;
-
-	float p_error;
-	float i_error;
-	float d_error;
-	float prev_d_error;
-
-	float p_out;
-	float i_out;
-	float d_out;
-
-	float max_out;
-	float min_out;
-
-	float prev_total_out;
-	float total_out;
-} PID2_t;
-
+#include "control_types.h"
 
 //declare pid functions
 void pid_param_init(PID_t *pid, int32_t max_out, float max_i_out, float max_err, float kp, float ki, float kd);

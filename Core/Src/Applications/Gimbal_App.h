@@ -27,6 +27,7 @@
 #include "dwt.h"
 #include "task.h"
 #include "gpio.h"
+#include "apps_types.h"
 
 /*
  * @attention:
@@ -37,86 +38,6 @@
  * 		3. easier for calculating cos/sin functions
  *
  * */
-
-/* define general declarations for gimbal task here */
-//#define GIMBAL_MOTOR_DEBUG 1
-#define MODE_DEBUG 1
-//#define ENABLE_MANUAL_MODE_SET
-
-#define PITCH_ECD_CENTER 4750 //manually measured data: number increase, head down
-#define PITCH_ECD_DELTA  1364  //60/180*4096
-#define PITCH_GEAR_RATIO 1    // The ratio of the gear box of the pitch motor
-#define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO) 
-
-#define YAW_ECD_CENTER 3350
-#define YAW_GEAR_RATIO 1.0f		 //if install a gear, calc the gear ratio here
-#define YAW_POSITIVE_DIR -1      //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would
-								 //posiibly is turned to negative value, we need to calibrate the correct direction
-								 //of this changed output for speed controller
-#define GIMBAL_INIT_TIME_MS 1000 // init delay duration in mili-second
-#define GIMBAL_JUMP_THRESHOLD 5.6f
-
-#define GIMBAL_YAW_MOTOR_INDEX 0
-#define GIMBAL_PITCH_MOTOR_INDEX 1
-
-/* define user structure here */
-
-typedef struct Gimbal_t {
-	/* gimbal position related */
-	float yaw_target_angle;
-	float yaw_rel_angle;
-	float yaw_ecd_angle;
-	float yaw_imu_angle;
-
-	float pitch_target_angle;
-	float pitch_rel_angle;
-	float pitch_ecd_angle;
-	float pitch_imu_angle;
-
-	int16_t yaw_ecd_center;			//center position of the yaw motor by encoder
-	int16_t pitch_ecd_center;		//center position of the pitch motor by encoder
-	float yaw_imu_center;
-	float pitch_imu_center;
-
-	PID2_t yaw_f_pid;
-	PID2_t yaw_s_pid;
-	PID2_t pitch_f_pid;
-	PID2_t pitch_s_pid;
-
-	Gimbal_Axis_t axis;
-
-//	Motor_Feedback_t yaw_ecd_fb;	//yaw feedback data pool
-//	Motor_Feedback_t pitch_ecd_fb; //pitch feedback data pool
-
-	/* algorithm related */
-	ramp_t yaw_ramp;		  // yaw ramp for calibration process
-	ramp_t pitch_ramp;		  // pitch ramp for calibration process
-	AhrsSensor_t ahrs_sensor; // copy the sensor data from imu
-	Attitude_t euler_angle;   // quaternion to euler's angle
-
-	/* filters */
-	/* pc control filters */
-	ewma_filter_t ewma_f_x;  //Exponential mean filtering for yaw
-	ewma_filter_t ewma_f_y;	 //Exponential mean filtering for pitch
-//	sliding_mean_filter_t swm_f_x; //Sliding window mean filter for yaw
-//	sliding_mean_filter_t swm_f_y; //Sliding window mean filter for pitch
-	/* auto aimming */
-	ewma_filter_t ewma_f_aim_yaw;
-	ewma_filter_t ewma_f_aim_pitch;
-
-	first_order_low_pass_t folp_f_yaw; //first order low pass filter for imu data
-	first_order_low_pass_t folp_f_pitch; //first order low pass filter for imu data;
-	kalman_filter_t kalman_f;// first order gyroscope kalman filter for imu data
-
-	GimbalMotorMode_t gimbal_motor_mode;  //gyro or encoder
-	GimbalMotorMode_t prev_gimbal_motor_mode;  //gyro or encoder
-	BoardActMode_t gimbal_act_mode;		  //gimbal center, gimbal follow, etc
-	BoardActMode_t prev_gimbal_act_mode;
-	BoardMode_t gimbal_mode;			  //idle(safe) or normal
-
-}Gimbal_t;
-
-/* define user created variables here */
 
 /* functions declaration here */
 void Gimbal_Task_Function(void const * argument);

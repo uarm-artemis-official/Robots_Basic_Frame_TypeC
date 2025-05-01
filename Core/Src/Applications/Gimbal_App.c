@@ -10,6 +10,7 @@
 #ifndef __GIMBAL_APP_C__
 #define __GIMBAL_APP_C__
 
+#include "apps_config.h"
 #include "Gimbal_App.h"
 
 

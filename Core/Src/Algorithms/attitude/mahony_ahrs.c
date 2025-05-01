@@ -18,15 +18,8 @@
 #include "math.h"
 #include "stdint.h"
 #include "ahrs.h"
+#include "attitude_defines.h"
 
-//---------------------------------------------------------------------------------------------------
-// Definitions
-
-#define sampleFreq 1000.0f        // sample frequency in Hz
-#define twoKpDef (2.0f * 0.5f)   // 2 * proportional gain
-#define twoKiDef (2.0f * 0.001f) // 2 * integral gain
-
-//---------------------------------------------------------------------------------------------------
 // Variable definitions
 static volatile float twoKp = twoKpDef;                                           // 2 * proportional gain (Kp)
 static volatile float twoKi = twoKiDef;                                           // 2 * integral gain (Ki)
@@ -37,7 +30,6 @@ static volatile float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;               
 //Rest of them represent orientation of the axis of rotation(imaginary part) ->(i, j, k)
 static volatile float integralFBx = 0.0f, integralFBy = 0.0f, integralFBz = 0.0f; // integral error terms scaled by Ki
 static volatile float gx, gy, gz, ax, ay, az, mx, my, mz;
-
 
 //this function takes 56.8us.(168M)
 void mahony_ahrs_update(AhrsSensor_t *sensor, Attitude_t *atti)

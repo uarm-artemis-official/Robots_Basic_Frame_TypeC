@@ -1,3 +1,19 @@
 {
-    "cortex-debug.variableUseNaturalFormat": true
+    "cortex-debug.variableUseNaturalFormat": true,
+    "files.associations": {
+        "public_defines.h": "c",
+        "stdint.h": "c",
+        "message_center.h": "c",
+        "cmath": "c",
+        "fuzzy_control.h": "c",
+        "maths.h": "c",
+        "control_types.h": "c",
+        "atittude_resolution_defines.h": "c",
+        "ahrs.h": "c",
+        "attitude_types.h": "c",
+        "error_handler.h": "c",
+        "buzzer.h": "c",
+        "timer_app.h": "c",
+        "device_defines.h": "c"
+    }
 }

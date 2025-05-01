@@ -12,6 +12,7 @@
 #define __DWT_C__
 
 #include "dwt.h"
+#include "device_defines.h"
 
 /**
   * @brief     DWT init function

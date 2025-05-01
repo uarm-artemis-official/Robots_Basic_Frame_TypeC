@@ -19,13 +19,8 @@
 #include "maths.h"
 #include "stdint.h"
 #include "ahrs.h"
+#include "attitude_defines.h"
 
-//---------------------------------------------------------------------------------------------------
-// Definitions
-#define sampleFreq 1000.0f // sample frequency in Hz
-#define betaDef 0.6f      // 2 * proportional gain 0.1
-
-//---------------------------------------------------------------------------------------------------
 // Variable definitions
 static volatile float beta = betaDef;                             // 2 * proportional gain (Kp)
 static volatile float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f; // quaternion of sensor frame relative to auxiliary frame

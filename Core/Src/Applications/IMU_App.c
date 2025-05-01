@@ -10,6 +10,7 @@
 #ifndef __IMU_APP_C__
 #define __IMU_APP_C__
 
+#include "apps_config.h"
 #include "IMU_App.h"
 
 

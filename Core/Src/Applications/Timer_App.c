@@ -12,6 +12,7 @@
 *******************************************************************************/
 
 #include "Timer_App.h"
+#include "device_defines.h"
 
 /**
 * @brief  Timer app used to update the CAN data

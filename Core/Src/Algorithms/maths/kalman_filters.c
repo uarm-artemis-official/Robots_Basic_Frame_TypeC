@@ -12,6 +12,7 @@
 #define __KALMAN_FILTERS_C__
 
 #include "kalman_filters.h"
+#include "maths_defines.h"
 
 /****************************************************************************************************
 * Kalman filter explanation and examples for gyroscope (assumed to be linear) by Haoran

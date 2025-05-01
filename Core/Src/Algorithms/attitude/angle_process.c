@@ -12,9 +12,12 @@
 #ifndef __ANGLE_PROCESS_C__
 #define __ANGLE_PROCESS_C__
 
+#include "ahrs.h"
 #include "angle_process.h"
 #include "maths.h"
 #include "arm_math.h"
+#include "attitude_defines.h"
+#include "maths_types.h"
 
 /* define internal vars */
 //static AhrsSensor_t temp_ahrs;

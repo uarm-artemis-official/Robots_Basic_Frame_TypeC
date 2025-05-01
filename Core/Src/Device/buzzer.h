@@ -19,18 +19,13 @@ extern "C" {
 #include "stm32f407xx.h"
 #include "cmsis_os.h"
 #include "tim.h"
+#include "device_types.h"
 
 //extern TIM_HandleTypeDef htim12;
 
 #define BUZZ_HTIM htim4
 #define BUZZ_PWM_CH TIM_CHANNEL_3
 
-typedef struct{
-	uint32_t buzzer_tick;
-	uint32_t times_tick;
-
-	uint8_t buzz_times;
-}Buzzer_t;
 
 extern Buzzer_t buzzer;
 

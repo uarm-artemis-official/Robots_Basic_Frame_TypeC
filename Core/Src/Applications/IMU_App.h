@@ -20,8 +20,6 @@
 
 
 /* define general declarations for gimbal task here */
-#define IMU_TMP_PWM_HTIM    htim10
-#define IMU_TMP_PWM_CHANNEL  TIM_CHANNEL_1
 
 /* define user structure here */
 

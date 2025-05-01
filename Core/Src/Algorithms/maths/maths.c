@@ -16,6 +16,7 @@
 #define __MATHS_C__
 
 #include "maths.h"
+#include "maths_defines.h"
 
 
 /*********** For genral use of the maths **********/

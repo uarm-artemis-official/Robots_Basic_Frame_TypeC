@@ -20,13 +20,7 @@ extern "C" {
 #include "stm32f4xx_hal.h"
 
 
-#define SYSTEM_CORE_FREQ 168 //MHz
-
 /* define main struct of dwt */
-typedef struct
-{
-    uint32_t us;
-} DWTTime_t;
 
 /* declare dwt functions */
 void dwt_init(void);
