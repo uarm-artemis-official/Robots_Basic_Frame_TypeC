@@ -2,7 +2,7 @@
 #include "maths.h"
 
 
-TEST(MathsCorrectness, BasicAbsLimit) {
+TEST(MathsCorrectness, AbsLimitBasic) {
     float num = 6.4f;
     abs_limit(&num, 10.0f);
     EXPECT_FLOAT_EQ(num, 6.4f) << "abs_limit is not supposed to limit.";
@@ -20,18 +20,18 @@ TEST(MathsCorrectness, BasicAbsLimit) {
     EXPECT_FLOAT_EQ(num, -5.0f) << "abs_limit is supposed to limit.";
 }
 
-TEST(MathsCorrectness, BasicInOutMap) {
+TEST(MathsCorrectness, InOutMapBasic) {
     EXPECT_FLOAT_EQ(in_out_map(10.0f, 0.f, 20.f, 0.f, 100.f), 50.f);
     EXPECT_FLOAT_EQ(in_out_map(0.0f, 0.f, 20.f, 0.f, 100.f), 0.f);
     EXPECT_FLOAT_EQ(in_out_map(20.0f, 0.f, 20.f, 0.f, 100.f), 100.f);
 }
 
-TEST(MathsFuzz, NegativeAbsLimit) {
+TEST(MathsFuzz, AbsLimitNegativeLimit) {
     float num = 100.0f;
     EXPECT_DEATH(abs_limit(&num, -10.0f), "") << "abs_limit should not accept negative limits.";
 }
 
-TEST(MathsFuzz, InvalidInputInOutMap) {
+TEST(MathsFuzz, InOutMapInvalidInput) {
     EXPECT_DEATH(in_out_map(10.f, 0.f, 5.f, 0.f, 100.f), "") << "Inputs larger than in_max are unacceptable.";
     EXPECT_DEATH(in_out_map(-10.f, 0.f, 5.f, 0.f, 100.f), "") << "Inputs smaller than in_min are unacceptable.";
     EXPECT_DEATH(in_out_map(2.f, 10.f, 0.f, 0.f, 100.f), "") << "Flipped parameters for input domain.";

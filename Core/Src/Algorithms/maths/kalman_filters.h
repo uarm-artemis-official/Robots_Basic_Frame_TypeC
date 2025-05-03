@@ -11,10 +11,12 @@
 #ifndef __KALMAN_FILTERS_H__
 #define __KALMAN_FILTERS_H__
 
+#ifdef GTEST
+    #include "stdint.h"
+#else 
+    #include "stm32f407xx.h"
+#endif
 
-#include "stm32f407xx.h"
-#include "stdlib.h"
-#include "FreeRTOS.h"
 #include "maths_types.h"
 
 /* functions declaration here */

@@ -9,6 +9,10 @@
 #ifndef INC_PID_H_
 #define INC_PID_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "control_types.h"
 
 //declare pid functions
@@ -23,5 +27,8 @@ float pid2_calculate(PID2_t *pid, float sp, float pv, float dt);
 float pid2_single_loop_control(PID2_t *pid, float sp, float pv, float dt);
 float pid2_dual_loop_control(PID2_t *f_pid, PID2_t *s_pid, float sp, float f_pv, float s_pv, float f_dt, float s_dt);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

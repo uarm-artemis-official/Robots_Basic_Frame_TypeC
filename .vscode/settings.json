@@ -18,6 +18,9 @@
         "maths_defines.h": "c",
         "maths_types.h": "c",
         "arm_math.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "kalman_filters.h": "c",
+        "stdlib.h": "c",
+        "uarm_lib.h": "c"
     }
 }

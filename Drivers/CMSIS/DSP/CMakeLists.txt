@@ -2,7 +2,6 @@ add_library(ARM_MATH_HARD STATIC IMPORTED)
 set_property(TARGET ARM_MATH_HARD PROPERTY
     IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/Lib/libarm_cortexM4lf_math.a)
 
-
 add_library(ARM_MATH INTERFACE)
 target_include_directories(ARM_MATH INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/Include)
 target_link_libraries(ARM_MATH INTERFACE ARM_MATH_HARD)

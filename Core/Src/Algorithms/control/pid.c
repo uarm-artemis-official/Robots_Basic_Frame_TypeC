@@ -6,26 +6,34 @@
  */
 #include "pid.h"
 #include "maths.h"
+#include "uarm_lib.h"
 
 /**
   * @brief  pid parameters initialization
   * @retval None
   */
 void pid_param_init(PID_t *pid, int32_t max_out, float max_i_out, float max_err, float kp, float ki, float kd) {
+	ASSERT(max_out >= 0, "max_out has to be non-negative.");
+	ASSERT(max_err >= 0, "max_err has to be non-negative.");
+	ASSERT(max_i_out >= 0, "max_i_out has to be non-negative.");
+
 	pid->kp = kp;
 	pid->ki = ki;
 	pid->kd = kd;
+	pid->cur_val = 0.f;
+	pid->target_val = 0.f;
 
+	pid->err = 0.f;
+	pid->last_err = 0.f;
+	pid->llast_err = 0.f;
+
+	pid->pout = 0.f;
+	pid->iout = 0.f;
+	pid->dout = 0.f;
 	pid->max_out = max_out;
-	pid->max_i_out = max_i_out;
 	pid->max_err = max_err;
-
-	pid->err = 0;
-	pid->last_err = 0;
-	pid->llast_err = 0;
-
-	pid->total_out = 0;
-
+	pid->max_i_out = max_i_out;
+	pid->total_out = 0.f;
 }
 
 /**
@@ -108,6 +116,8 @@ float pid_dual_loop_control(float f_tar_val, PID_t *f_pid, PID_t *s_pid, float f
 
 
 void pid2_init(PID2_t *pid, float k_p, float k_i, float k_d, float beta, float yeta, float min_out, float max_out) {
+	ASSERT(max_out >= min_out, "max_out has to be greater or equal to min_out");
+
 	pid->k_p = k_p;
 	pid->k_i = k_i;
 	pid->k_d = k_d;
