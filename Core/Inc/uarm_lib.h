@@ -4,7 +4,7 @@
 #ifdef GTEST
     #include "assert.h"
 
-    #define ASSERT(cond, msg) assert((cond) && (msg))
+    #define ASSERT(cond, msg) if (!(cond)) assert(0 && (msg))
 #else
     #include "error_handler.h"
 

@@ -1,6 +1,9 @@
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     add_executable(MATHS_TEST maths_test.cpp maths.c)
-    target_include_directories(MATHS_TEST PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(MATHS_TEST 
+        PRIVATE 
+            ${CMAKE_CURRENT_SOURCE_DIR}
+            ${PROJECT_SOURCE_DIR}/Core/Inc)
     target_link_libraries(MATHS_TEST PRIVATE GTest::gtest_main)
     target_compile_definitions(MATHS_TEST 
         PRIVATE

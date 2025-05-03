@@ -17,6 +17,7 @@
         "device_defines.h": "c",
         "maths_defines.h": "c",
         "maths_types.h": "c",
-        "arm_math.h": "c"
+        "arm_math.h": "c",
+        "string.h": "c"
     }
 }

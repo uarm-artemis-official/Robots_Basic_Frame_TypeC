@@ -18,6 +18,7 @@
 #include "maths.h"
 #include "maths_defines.h"
 #include "string.h"
+#include "uarm_lib.h"
 
 
 /*********** For genral use of the maths **********/
@@ -65,23 +66,33 @@ void softmax(float* x, int len) {
 
 /**
   * @brief  absolute limitation
+  * @param a Number to be limited to.
+  * @param abs_limit Limit of the magnitude that `a` can be. Has to be non-negative.
   * @retval None
+  * 
+  * This function limits the magnitude of a floating point number to within a limit. 
+  * Values above (for positive numbers) or below (for negative numbers) abs_limit 
+  * will be truncated down to abs_limit. Values within [-abs_limit, abs_limit] will
+  * remain unchanged.
   */
-void abs_limit(float *a, float ABS_MAX)
+void abs_limit(float *a, float abs_limit)
 {
-  if (ABS_MAX >= 0) {
-    if (*a > ABS_MAX)
-      *a = ABS_MAX;
-    if (*a < -ABS_MAX)
-      *a = -ABS_MAX;
-  }
+    ASSERT(abs_limit >= 0, "abs_limit must be non-negative");
+    if (*a > abs_limit) *a = abs_limit;
+    if (*a < -abs_limit) *a = -abs_limit;
 }
 
 /**
-  * @brief  map the angle vals for motor angular and radians.
+  * @brief  Maps an input value from one domain to another.
   * @retval mapped radians
+  * 
+  * This linearly transforms a value from one domain to another.
+  * e.g. degrees ([0, 360]) to radians ([0, 2pi]).
   */
 float in_out_map(float input, float in_min, float in_max, float out_min, float out_max){
+    ASSERT(out_max >= out_min, "out_max should be greater than out_min");
+    ASSERT(in_max >= in_max, "in_max should be greater than in_min.");
+    ASSERT(input >= in_min && input <= in_max, "input has to be in [in_min, in_max].");
     return (input - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
