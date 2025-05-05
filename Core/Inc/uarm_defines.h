@@ -1,34 +1,8 @@
-#ifndef __MATHS_CONFIG_H
-#define __MATHS_CONFIG_H
+#ifndef __UARM_DEFINES_H
+#define __UARM_DEFINES_H
 
 /* =========================================================================
- * KALMAN FILTERS DEFINES
- * ====================================================================== */
-#ifdef GTEST
-  #include "fake_arm_math.h"
-#else
-  #include "arm_math.h"
-#endif
-
-#define sys_dim 2 // the dimension of state vector
-#ifdef sys_dim
-#endif
-
-/* define matrix operation functions */
-#define mat arm_matrix_instance_f32
-
-#define mat_init  arm_mat_init_f32
-#define mat_add   arm_mat_add_f32
-#define mat_sub   arm_mat_sub_f32
-#define mat_mult  arm_mat_mult_f32
-#define mat_trans arm_mat_trans_f32
-#define mat_inv   arm_mat_inverse_f32
-
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-
-
-/* =========================================================================
- * MATHS DEFINES
+ * UARM MATH DEFINES
  * ====================================================================== */
 #define DEGREE2RAD 0.0174533f
 #define RAD2DEGEE  57.3f

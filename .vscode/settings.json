@@ -21,6 +21,10 @@
         "string.h": "c",
         "kalman_filters.h": "c",
         "stdlib.h": "c",
-        "uarm_lib.h": "c"
+        "uarm_lib.h": "c",
+        "comms_defines.h": "c",
+        "chassis_app.h": "c",
+        "apps_config.h": "c",
+        "projdefs.h": "c"
     }
 }

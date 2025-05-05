@@ -15,10 +15,11 @@
 #ifndef __MATHS_C__
 #define __MATHS_C__
 
-#include "maths.h"
-#include "maths_defines.h"
-#include "string.h"
 #include "uarm_lib.h"
+#include "uarm_math.h"
+#include "uarm_defines.h"
+#include "string.h"
+#include "float.h"
 
 
 /*********** For genral use of the maths **********/

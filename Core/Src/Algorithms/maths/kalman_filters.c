@@ -12,7 +12,6 @@
 #define __KALMAN_FILTERS_C__
 
 #include "kalman_filters.h"
-#include "maths_defines.h"
 #include "uarm_lib.h"
 #include "string.h"
 

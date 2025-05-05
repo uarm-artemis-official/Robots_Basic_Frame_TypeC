@@ -2,6 +2,7 @@
 #define __UARM_LIB_H
 
 #ifdef GTEST
+    #include "stdint.h"
     #include "assert.h"
     #include "stdlib.h"
 
@@ -9,6 +10,7 @@
     #define MALLOC malloc
     #define FREE free
 #else
+    #include "stm32f407xx.h"
     #include "error_handler.h"
     #include "FreeRTOS.h"
 

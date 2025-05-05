@@ -12,7 +12,7 @@
 #define __FUZZY_CONTROL_C__
 
 #include "fuzzy_control.h"
-#include "math.h"
+#include "uarm_math.h"
 
 /* @attention
  * 		This file is created for dynamically adjust parameters during the competition, especially for

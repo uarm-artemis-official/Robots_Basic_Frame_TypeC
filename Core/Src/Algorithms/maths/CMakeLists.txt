@@ -1,4 +1,4 @@
 add_library(MATHS_LIBRARIES STATIC)
-target_sources(MATHS_LIBRARIES PUBLIC maths.c kalman_filters.c)
+target_sources(MATHS_LIBRARIES PUBLIC uarm_math.c kalman_filters.c)
 target_link_libraries(MATHS_LIBRARIES PUBLIC ARM_MATH COMMON_INCLUDES)
 target_include_directories(MATHS_LIBRARIES PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

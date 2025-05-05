@@ -5,7 +5,7 @@
  *      Author: Haoran
  */
 #include "pid.h"
-#include "maths.h"
+#include "uarm_math.h"
 #include "uarm_lib.h"
 
 /**

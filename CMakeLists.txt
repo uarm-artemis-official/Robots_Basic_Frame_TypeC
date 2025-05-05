@@ -21,19 +21,25 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Test)
     include("cmake/mingw64-gcc.cmake") # toolchain file
+else()
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
+    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+endif()
 
-    # Enable compile command to ease indexing with e.g. clangd
-    set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+# Enable compile command to ease indexing with e.g. clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-    # Core project settings
-    project(${CMAKE_PROJECT_NAME})
-    message("Build type: " ${CMAKE_BUILD_TYPE})
+# Core project settings
+project(${CMAKE_PROJECT_NAME})
+message("Build type: " ${CMAKE_BUILD_TYPE})
 
-    enable_language(C CXX ASM)
+enable_language(C CXX ASM)
 
+if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     include(FetchContent)
     FetchContent_Declare(
         googletest
@@ -53,25 +59,11 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
         INTERFACE 
             GTEST)
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/testbeds)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
     add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms/maths)
     add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms/control)
 
 else() # Debug
-    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
-
-    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
-
-    # Enable compile command to ease indexing with e.g. clangd
-    set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-
-    # Core project settings
-    project(${CMAKE_PROJECT_NAME})
-    message("Build type: " ${CMAKE_BUILD_TYPE})
-
-    enable_language(C CXX ASM)
-
     add_executable(${CMAKE_PROJECT_NAME})
 
     add_subdirectory(cmake/stm32cubemx)

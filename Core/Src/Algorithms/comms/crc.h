@@ -11,8 +11,12 @@
 #ifndef __INC_CRC8_H__
 #define __INC_CRC8_H__
 
-#include "stm32f407xx.h"
-#include "stddef.h"
+#ifdef GTEST
+	#include "stdint.h"
+#else
+	#include "stm32f407xx.h"
+#endif
+
 
 #ifndef __FALSE
 	#define __FALSE 0

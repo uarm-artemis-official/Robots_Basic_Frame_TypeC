@@ -13,12 +13,10 @@
 #define WITH_SLIPRING
 //#define CHASSIS_POWER_LIMIT
 
+#include "uarm_lib.h"
+#include "uarm_math.h"
 #include "Chassis_App.h"
 #include "apps_config.h"
-#include "math.h"
-#include "maths.h"
-#include "arm_math.h"
-#include "stm32f407xx.h"
 #include "cmsis_os.h"
 #include "message_center.h"
 #include "pid.h"

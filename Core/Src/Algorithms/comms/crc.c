@@ -11,6 +11,7 @@
 #define __INC_CRC8_C__
 
 #include <crc.h>
+#include "stddef.h"
 
 //crc8 generator polynomial:G(x)=x8+x5+x4+1
 const unsigned char CRC8_INIT = 0xff;

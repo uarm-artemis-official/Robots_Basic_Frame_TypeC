@@ -20,14 +20,14 @@ extern "C" {
 
 #ifdef GTEST
     #include "stdint.h"
+    #include "fake_arm_math.h"
 #else
     #include "stm32f407xx.h"
+    #include "arm_math.h"
 #endif
 
+#include "uarm_types.h"
 #include "math.h"
-#include "float.h"
-#include "maths_types.h"
-
 
 
 /* define maths' struct */
