@@ -23,17 +23,3 @@ target_link_libraries(GENERIC_APPS
         COMMON_INCLUDES
         DEVICE_LIBRARIES
         COMMS_LIBRARIES)
-
-# if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
-#     add_executable(CHASSIS_APP_TEST Chassis_App_Test.cpp)
-#     target_link_directories(CHASSIS_APP_TEST 
-#         PRIVATE
-#             ${PROJECT_SOURCE_DIR}/Core/Src/Device)
-#     target_link_libraries(CHASSIS_APP_TEST 
-#         PRIVATE 
-#             BASIC_APPS
-#             GTest::gtest_main)
-
-#     include(GoogleTest)
-#     gtest_discover_tests(CHASSIS_APP_TEST)
-# endif()
