@@ -11,6 +11,10 @@
 #ifndef __GIMBAL_APP_H__
 #define __GIMBAL_APP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "apps_types.h"
 
 /*
@@ -58,10 +62,15 @@ void gimbal_calc_channels_to_angles(const int16_t *g_channels, float deltas[2]);
 // void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, UC_Auto_Aim_Pack_t *pack);
 
 float gimbal_calc_dual_pid_out(PID2_t *f_pid, PID2_t *s_pid, float f_cur_val);
+void gimbal_send_motor_volts(Gimbal_Motor_Control_t controls[2]);
 
 void gimbal_update_headings(Gimbal_t *gbal, Gimbal_Motor_Control_t controls[2]);
 void gimbal_update_targets(Gimbal_t *gbal, int16_t *g_channels);
 
 float calc_rel_angle(float angle1, float angle2);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __SRC_APPLICATIONS_GIMBAL_APP_H_ */

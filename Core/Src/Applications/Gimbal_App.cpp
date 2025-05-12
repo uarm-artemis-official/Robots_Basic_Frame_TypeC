@@ -16,6 +16,13 @@
 #include "public_defines.h"
 
 #include "Gimbal_App.h"
+#include "uarm_lib.h"
+#include "uarm_os.h"
+#include "uarm_math.h"
+
+#include "pid.h"
+#include "ramp.h"
+
 #include "message_center.h"
 #include "event_center.h"
 #include "ramp.h"
@@ -403,8 +410,8 @@ void gimbal_set_limited_angle(Gimbal_t *gbal, float new_yaw_target_angle, float 
  * @param[in] rc: main remote controller handler
  * */
 void gimbal_set_modes(Gimbal_t* gbal, uint8_t modes[3]) {
-	BoardMode_t board_mode = modes[0];
-	BoardActMode_t act_mode = modes[1];
+	BoardMode_t board_mode = static_cast<BoardMode_t>(modes[0]);
+	BoardActMode_t act_mode = static_cast<BoardActMode_t>(modes[1]);
 	gimbal_set_board_mode(gbal, board_mode);
 	gimbal_set_act_mode(gbal, act_mode);
 

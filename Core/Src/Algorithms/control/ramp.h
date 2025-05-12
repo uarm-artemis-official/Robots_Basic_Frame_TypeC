@@ -18,6 +18,10 @@
 #ifndef __RAMP_H__
 #define __RAMP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef RAMP_H_GLOBAL
   #define RAMP_H_EXTERN
 #else
@@ -29,5 +33,9 @@
 
 void  ramp_init(ramp_t *ramp, int32_t scale);
 float ramp_calculate(ramp_t *ramp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __RAMP_H__
