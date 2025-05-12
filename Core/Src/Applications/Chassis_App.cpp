@@ -422,8 +422,8 @@ void chassis_get_rc_info(Chassis_t *chassis_hdlr, int16_t *channels) {
 
 	if (new_message == pdTRUE) {
 		// TODO: Add input validation for modes and channels.
-		BoardMode_t board_mode = rc_info.modes[0];
-		BoardActMode_t act_mode = rc_info.modes[1];
+		BoardMode_t board_mode = static_cast<BoardMode_t>(rc_info.modes[0]);
+		BoardActMode_t act_mode = static_cast<BoardActMode_t>(rc_info.modes[1]);
 
 		chassis_hdlr->chassis_mode = board_mode;
 		chassis_hdlr->chassis_act_mode = act_mode;

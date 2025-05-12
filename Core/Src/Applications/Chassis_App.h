@@ -11,6 +11,10 @@
 #ifndef __CHASSIS_APP_H__
 #define __CHASSIS_APP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "apps_types.h"
 
 /* functions declaration here */
@@ -36,5 +40,9 @@ void chassis_power_limit_referee(Chassis_t* chassis_hdlr);
 void chassis_power_limit_local(Chassis_t* chassis_hdlr, uint16_t local_power_limit);
 void select_chassis_speed(Chassis_t* chassis_hdlr, uint8_t level);
 //void chassis_manual_gear_set(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SRC_APPLICATIONS_CHASSIS_APP_H_ */
