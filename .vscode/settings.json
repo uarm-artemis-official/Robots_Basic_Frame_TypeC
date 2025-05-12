@@ -57,6 +57,11 @@
         "dwt.h": "c",
         "tim.h": "c",
         "main.h": "c",
-        "queue_m.h": "c"
-    }
+        "queue_m.h": "c",
+        "shoot_app.h": "c",
+        "cstdint": "cpp"
+    },
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_fallbackStyle": "none",
+    "editor.formatOnSave": true
 }

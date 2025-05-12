@@ -11,6 +11,14 @@
 #ifndef __PC_UART_APP_H__
 #define __PC_UART_APP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void PC_UART_Func();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_ */

@@ -19,22 +19,22 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
-#include "task.h"
-#include "main.h"
 #include "cmsis_os.h"
+#include "main.h"
+#include "task.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Chassis_App.h"
-#include "Gimbal_App.h"
-#include "Shoot_App.h"
-#include "Control_App.h"
-#include "Timer_App.h"
 #include "Comm_App.h"
+#include "Control_App.h"
+#include "Gimbal_App.h"
 #include "IMU_App.h"
-#include "WatchDog_App.h"
 #include "PC_UART_App.h"
 #include "Referee_App.h"
+#include "Shoot_App.h"
+#include "Timer_App.h"
+#include "WatchDog_App.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,23 +64,26 @@ osThreadId defaultTaskHandle;
 BoardStatus_t get_board_status();
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void const * argument);
+void StartDefaultTask(void const* argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
+void vApplicationGetIdleTaskMemory(StaticTask_t** ppxIdleTaskTCBBuffer,
+                                   StackType_t** ppxIdleTaskStackBuffer,
+                                   uint32_t* pulIdleTaskStackSize);
 
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;
 static StackType_t xIdleStack[configMINIMAL_STACK_SIZE];
 
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )
-{
-  *ppxIdleTaskTCBBuffer = &xIdleTaskTCBBuffer;
-  *ppxIdleTaskStackBuffer = &xIdleStack[0];
-  *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
-  /* place for user code */
+void vApplicationGetIdleTaskMemory(StaticTask_t** ppxIdleTaskTCBBuffer,
+                                   StackType_t** ppxIdleTaskStackBuffer,
+                                   uint32_t* pulIdleTaskStackSize) {
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCBBuffer;
+    *ppxIdleTaskStackBuffer = &xIdleStack[0];
+    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+    /* place for user code */
 }
 /* USER CODE END GET_IDLE_TASK_MEMORY */
 
@@ -90,67 +93,66 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackTy
   * @retval None
   */
 void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
-  board_status = get_board_status();
-  /* USER CODE END Init */
+    /* USER CODE BEGIN Init */
+    board_status = get_board_status();
+    /* USER CODE END Init */
 
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
+    /* USER CODE BEGIN RTOS_MUTEX */
+    /* add mutexes, ... */
+    /* USER CODE END RTOS_MUTEX */
 
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
+    /* USER CODE BEGIN RTOS_SEMAPHORES */
+    /* add semaphores, ... */
+    /* USER CODE END RTOS_SEMAPHORES */
 
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
+    /* USER CODE BEGIN RTOS_TIMERS */
+    /* start timers, add new ones, ... */
+    /* USER CODE END RTOS_TIMERS */
 
-  /* USER CODE BEGIN RTOS_QUEUES */
-//  Ref_Pack_Queue = xQueueCreate(5, MAX_REF_BUFFER_SZIE);
-  /* USER CODE END RTOS_QUEUES */
+    /* USER CODE BEGIN RTOS_QUEUES */
+    //  Ref_Pack_Queue = xQueueCreate(5, MAX_REF_BUFFER_SZIE);
+    /* USER CODE END RTOS_QUEUES */
 
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+    /* Create the thread(s) */
+    /* definition and creation of defaultTask */
+    osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+    defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* USER CODE BEGIN RTOS_THREADS */
-  osThreadDef(TimerTask, Timer_Task_Func, osPriorityHigh, 0, 256);
-  osThreadCreate(osThread(TimerTask), (void*) &board_status);
+    /* USER CODE BEGIN RTOS_THREADS */
+    osThreadDef(TimerTask, Timer_Task_Func, osPriorityHigh, 0, 256);
+    osThreadCreate(osThread(TimerTask), (void*) &board_status);
 
-  osThreadDef(CommTask, Comm_Task_Func, osPriorityHigh, 0, 256);
-  osThreadCreate(osThread(CommTask), (void*) &board_status);
+    osThreadDef(CommTask, Comm_Task_Func, osPriorityHigh, 0, 256);
+    osThreadCreate(osThread(CommTask), (void*) &board_status);
 
-//    osThreadDef(WDGTask, WatchDog_Task_Function, osPriorityHigh, 0, 256);
-//    WDGTaskHandle = osThreadCreate(osThread(WDGTask), (void*) board_status);
-
+    //    osThreadDef(WDGTask, WatchDog_Task_Function, osPriorityHigh, 0, 256);
+    //    WDGTaskHandle = osThreadCreate(osThread(WDGTask), (void*) board_status);
 
     if (board_status == CHASSIS_BOARD) {
-    	  osThreadDef(ChassisTask, Chassis_Task_Func, osPriorityRealtime, 0, 256);
-    	  osThreadCreate(osThread(ChassisTask), NULL);
+        osThreadDef(ChassisTask, Chassis_Task_Func, osPriorityRealtime, 0, 256);
+        osThreadCreate(osThread(ChassisTask), NULL);
 
-    	  osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
-    	  osThreadCreate(osThread(RCTask), NULL);
+        osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
+        osThreadCreate(osThread(RCTask), NULL);
 
-//    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
-//    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
+        //    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
+        //    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
 
     } else if (board_status == GIMBAL_BOARD) {
-    	  osThreadDef(GimbalTask, Gimbal_Task_Function, osPriorityRealtime, 0, 512);
-    	  osThreadCreate(osThread(GimbalTask), NULL);
+        osThreadDef(GimbalTask, Gimbal_Task_Function, osPriorityRealtime, 0,
+                    512);
+        osThreadCreate(osThread(GimbalTask), NULL);
 
-    	  // osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
-    	  // osThreadCreate(osThread(ShootTask), NULL);
+        // osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
+        // osThreadCreate(osThread(ShootTask), NULL);
 
-    	  osThreadDef(IMUTask, IMU_Task_Function, osPriorityHigh, 0, 256);
-    	  osThreadCreate(osThread(IMUTask), NULL);
+        osThreadDef(IMUTask, IMU_Task_Function, osPriorityHigh, 0, 256);
+        osThreadCreate(osThread(IMUTask), NULL);
 
-    	  osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
-    	  osThreadCreate(osThread(PCUARTTask), NULL);
-      }
-  /* USER CODE END RTOS_THREADS */
-
+        osThreadDef(PCUARTTask, PC_UART_Func, osPriorityHigh, 0, 256);
+        osThreadCreate(osThread(PCUARTTask), NULL);
+    }
+    /* USER CODE END RTOS_THREADS */
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -160,15 +162,14 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
-{
-  /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartDefaultTask */
+void StartDefaultTask(void const* argument) {
+    /* USER CODE BEGIN StartDefaultTask */
+    (void) argument;
+    /* Infinite loop */
+    for (;;) {
+        osDelay(1);
+    }
+    /* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/

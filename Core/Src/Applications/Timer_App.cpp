@@ -45,9 +45,11 @@ void Timer_Task_Func(void const * argument){
 			#else
 				config = DJI_CHASSIS;
 			#endif
+			break;
 		}
 		case GIMBAL_BOARD: {
 			config = DJI_GIMBAL;
+			break;
 		}
 		default:
 			ASSERT(0, "Unsupported board status in Timer.");

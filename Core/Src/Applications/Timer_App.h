@@ -14,6 +14,14 @@
 #ifndef SRC_APPLICATIONS_TIMER_APP_H_
 #define SRC_APPLICATIONS_TIMER_APP_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void Timer_Task_Func(void const * argument);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SRC_APPLICATIONS_TIMER_APP_H_ */

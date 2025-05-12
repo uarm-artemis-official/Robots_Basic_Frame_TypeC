@@ -46,8 +46,8 @@ typedef struct {
 // title and body fields will "scroll" horizontally and vertically respectively
 // if they are too long for their display areas.
 typedef struct {
-	char* title;
-	char* body;
+	const char* title;
+	const char* body;
 } Message_t;
 
 int get_line_start_index(char* msg, uint8_t line);

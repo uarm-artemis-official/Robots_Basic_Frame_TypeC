@@ -19,7 +19,7 @@ extern "C" {
 
 #define ASSERT(cond, msg) if (!(cond)) error_handler((msg))
 
-void error_handler(char *msg);
+void error_handler(const char *msg);
 
 #ifdef __cplusplus
 }

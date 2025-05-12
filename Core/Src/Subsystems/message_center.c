@@ -139,10 +139,13 @@ uint8_t pub_message(Topic_Name_t topic, void *data_ptr) {
 }
 
 uint8_t pub_message_from_isr(Topic_Name_t topic, void *data_ptr, uint8_t *will_context_switch) {
+	BaseType_t context_switch, res;
 	Topic_Handle_t* topic_handle = get_topic_handle(topic);
 	if (topic_handle->queue_length == 1) {
-		return xQueueOverwriteFromISR(topic_handle->queue_handle, data_ptr, will_context_switch);
+		res = xQueueOverwriteFromISR(topic_handle->queue_handle, data_ptr, &context_switch);
 	} else {
-		return xQueueSendToBackFromISR(topic_handle->queue_handle, data_ptr, will_context_switch);
+		res = xQueueSendToBackFromISR(topic_handle->queue_handle, data_ptr, &context_switch);
 	}
+	*will_context_switch = (uint8_t) context_switch;
+	return res;
 }
