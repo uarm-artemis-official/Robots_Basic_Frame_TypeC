@@ -18,9 +18,17 @@
 #ifndef __ANGLE_PROCESS_H__
 #define __ANGLE_PROCESS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "attitude_types.h"
 
 /* functions declaration here */
 void atti_math_calc(AhrsSensor_t *ahrs, Attitude_t *atti);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__ANGLE_PROCESS_H__*/

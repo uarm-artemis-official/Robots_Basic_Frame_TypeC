@@ -18,6 +18,11 @@
 #ifndef __AHRS_H__
 #define __AHRS_H__
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "attitude_types.h"
 
 #ifdef AHRS_H_GLOBAL
@@ -33,5 +38,9 @@ void madgwick_ahrs_updateIMU(AhrsSensor_t *sensor, Attitude_t *atti);
 
 void mahony_ahrs_update(AhrsSensor_t *sensor, Attitude_t *atti);
 void mahony_ahrs_updateIMU(AhrsSensor_t *sensor, Attitude_t *atti);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __AHRS_H__

@@ -12,6 +12,11 @@
 
 #ifndef IST8310DRIVER_H
 #define IST8310DRIVER_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "ist8310driver_middleware.h"
 #include "stdint.h"
 
@@ -66,4 +71,9 @@ extern void ist8310_read_over(uint8_t *status_buf, ist8310_real_data_t *ist8310_
   * @retval         none
   */
 extern void ist8310_read_mag(fp32 mag[3]);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

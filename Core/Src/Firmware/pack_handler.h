@@ -13,6 +13,10 @@
 #ifndef __AUTO_AIM_H__
 #define __AUTO_AIM_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -101,5 +105,9 @@ void start_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]);
 void restart_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]);
 
 uint8_t get_data_size(uint8_t header_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__AUTO_AIM_H__*/

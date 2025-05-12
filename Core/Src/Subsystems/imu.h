@@ -1,6 +1,10 @@
 #ifndef __IMU_H
 #define __IMU_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "subsystems_types.h"
 
 void init_imu();
@@ -9,5 +13,9 @@ void get_attitude(Attitude_t *attitude);
 
 void set_imu_offset();
 void set_imu_pwm(uint16_t duty_cycle);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

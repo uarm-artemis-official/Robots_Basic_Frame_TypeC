@@ -11,6 +11,10 @@
 #ifndef __KALMAN_FILTERS_H__
 #define __KALMAN_FILTERS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "uarm_types.h"
 #include "uarm_math.h"
 
@@ -113,5 +117,9 @@ void kf_param_deinit(KalmanFilter_t *kf);
 /*scalar kalman func declares */
 void kalmanCreate(kalman_filter_t *p,float T_Q,float T_R);
 float KalmanFilter(kalman_filter_t* p,float dat);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__KALMAN_FILTERS_H__*/

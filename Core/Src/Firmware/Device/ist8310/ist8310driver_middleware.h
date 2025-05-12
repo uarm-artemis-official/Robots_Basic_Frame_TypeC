@@ -18,6 +18,10 @@
 #ifndef IST8310DRIVER_MIDDLEWARE_H
 #define IST8310DRIVER_MIDDLEWARE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //#include "struct_typedef.h"
 #include "stm32f407xx.h"
 #include "i2c.h"
@@ -155,5 +159,9 @@ extern void ist8310_RST_H(void);
   * @retval         none
   */
 extern void ist8310_RST_L(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

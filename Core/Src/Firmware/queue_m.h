@@ -11,6 +11,11 @@
 #ifndef __QUEUE_M_H__
 #define __QUEUE_M_H__
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "string.h"
 
 #include "stm32f407xx.h"
@@ -37,5 +42,9 @@ typedef struct
 void queueM_init(QueueManage_t *qm);
 void enqueueCanMessage(CAN_TxHeaderTypeDef* header, CanMessage_t *canQueue, QueueManage_t *qm, uint8_t *data);
 void sendNextCanMessage(CAN_HandleTypeDef* hcan, CanMessage_t *canQueue, QueueManage_t *qm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__QUEUE_H__*/
