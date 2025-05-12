@@ -29,7 +29,7 @@ static IMU_Heat_t imu_heating_control;
   * @retval    None
   */
 void IMU_Task_Function(void const* argument) {
-
+    (void) argument;
     /* set task exec period */
     TickType_t xLastWakeTime;
     const TickType_t xFrequency = pdMS_TO_TICKS(IMU_TASK_EXEC_TIME);

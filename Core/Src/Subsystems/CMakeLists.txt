@@ -9,7 +9,7 @@ target_include_directories(SUBSYSTEMS_INCLUDE
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
 
-add_library(DEBUG STATIC debug.c)
+add_library(DEBUG STATIC debug.cpp)
 target_include_directories(DEBUG 
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
@@ -20,7 +20,7 @@ target_link_libraries(DEBUG
 add_library(SUBSYSTEMS::DEBUG ALIAS DEBUG)
 
 
-add_library(IMU STATIC imu.c)
+add_library(IMU STATIC imu.cpp)
 target_link_libraries(IMU
     PUBLIC
         SUBSYSTEMS_INCLUDE
@@ -32,7 +32,7 @@ target_link_libraries(IMU
 add_library(SUBSYSTEMS::IMU ALIAS IMU)
 
 
-add_library(MESSAGE_CENTER message_center.c)
+add_library(MESSAGE_CENTER STATIC message_center.cpp)
 target_link_libraries(MESSAGE_CENTER 
     PUBLIC 
         SUBSYSTEMS_INCLUDE
@@ -41,7 +41,7 @@ target_link_libraries(MESSAGE_CENTER
 add_library(SUBSYSTEMS::MESSAGE_CENTER ALIAS MESSAGE_CENTER)
 
 
-add_library(EVENT_CENTER event_center.c)
+add_library(EVENT_CENTER STATIC event_center.cpp)
 target_link_libraries(EVENT_CENTER 
     PUBLIC 
         SUBSYSTEMS_INCLUDE
@@ -50,7 +50,7 @@ target_link_libraries(EVENT_CENTER
 add_library(SUBSYSTEMS::EVENT_CENTER ALIAS EVENT_CENTER)
 
 
-add_library(MOTORS motors.c)
+add_library(MOTORS STATIC motors.cpp)
 target_link_libraries(MOTORS
     PUBLIC 
         FW::DEVICE::MOTOR_LIB
@@ -60,7 +60,7 @@ target_link_libraries(MOTORS
 add_library(SUBSYSTEMS::MOTORS ALIAS MOTORS)
 
 
-add_library(PC_COMM pc_comm.c)
+add_library(PC_COMM STATIC pc_comm.cpp)
 target_link_libraries(PC_COMM
     PUBLIC
         LIB::UARM_LIB
@@ -69,7 +69,7 @@ target_link_libraries(PC_COMM
 add_library(SUBSYSTEMS::PC_COMM ALIAS PC_COMM)
 
 
-add_library(CAN_COMM STATIC can_comm.c)
+add_library(CAN_COMM STATIC can_comm.cpp)
 target_include_directories(CAN_COMM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(CAN_COMM 
     PUBLIC

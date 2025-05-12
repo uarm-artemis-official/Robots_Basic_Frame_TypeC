@@ -8,12 +8,12 @@
  * @param[in]     nColumns  number of columns in the matrix.
  * @param[in]     pData     points to the matrix data array.
  */
-void arm_mat_init_f32(
-    arm_matrix_instance_f32 *S,
-    uint16_t nRows,
-    uint16_t nColumns,
-    float32_t *pData)
-{
+void arm_mat_init_f32(arm_matrix_instance_f32* S, uint16_t nRows,
+                      uint16_t nColumns, float32_t* pData) {
+    (void) S;
+    (void) nRows;
+    (void) nColumns;
+    (void) pData;
 }
 
 /**
@@ -24,11 +24,12 @@ void arm_mat_init_f32(
  * @return     The function returns either
  * <code>ARM_MATH_SIZE_MISMATCH</code> or <code>ARM_MATH_SUCCESS</code> based on the outcome of size checking.
  */
-arm_status arm_mat_add_f32(
-    const arm_matrix_instance_f32 *pSrcA,
-    const arm_matrix_instance_f32 *pSrcB,
-    arm_matrix_instance_f32 *pDst)
-{
+arm_status arm_mat_add_f32(const arm_matrix_instance_f32* pSrcA,
+                           const arm_matrix_instance_f32* pSrcB,
+                           arm_matrix_instance_f32* pDst) {
+    (void) pSrcA;
+    (void) pSrcB;
+    (void) pDst;
     return ARM_MATH_SUCCESS;
 }
 
@@ -40,11 +41,12 @@ arm_status arm_mat_add_f32(
  * @return     The function returns either
  * <code>ARM_MATH_SIZE_MISMATCH</code> or <code>ARM_MATH_SUCCESS</code> based on the outcome of size checking.
  */
-arm_status arm_mat_sub_f32(
-    const arm_matrix_instance_f32 *pSrcA,
-    const arm_matrix_instance_f32 *pSrcB,
-    arm_matrix_instance_f32 *pDst)
-{
+arm_status arm_mat_sub_f32(const arm_matrix_instance_f32* pSrcA,
+                           const arm_matrix_instance_f32* pSrcB,
+                           arm_matrix_instance_f32* pDst) {
+    (void) pSrcA;
+    (void) pSrcB;
+    (void) pDst;
     return ARM_MATH_SUCCESS;
 }
 
@@ -56,11 +58,12 @@ arm_status arm_mat_sub_f32(
  * @return     The function returns either
  * <code>ARM_MATH_SIZE_MISMATCH</code> or <code>ARM_MATH_SUCCESS</code> based on the outcome of size checking.
  */
-arm_status arm_mat_mult_f32(
-    const arm_matrix_instance_f32 *pSrcA,
-    const arm_matrix_instance_f32 *pSrcB,
-    arm_matrix_instance_f32 *pDst)
-{
+arm_status arm_mat_mult_f32(const arm_matrix_instance_f32* pSrcA,
+                            const arm_matrix_instance_f32* pSrcB,
+                            arm_matrix_instance_f32* pDst) {
+    (void) pSrcA;
+    (void) pSrcB;
+    (void) pDst;
     return ARM_MATH_SUCCESS;
 }
 
@@ -71,10 +74,10 @@ arm_status arm_mat_mult_f32(
  * @return    The function returns either  <code>ARM_MATH_SIZE_MISMATCH</code>
  * or <code>ARM_MATH_SUCCESS</code> based on the outcome of size checking.
  */
-arm_status arm_mat_trans_f32(
-    const arm_matrix_instance_f32 *pSrc,
-    arm_matrix_instance_f32 *pDst)
-{
+arm_status arm_mat_trans_f32(const arm_matrix_instance_f32* pSrc,
+                             arm_matrix_instance_f32* pDst) {
+    (void) pSrc;
+    (void) pDst;
     return ARM_MATH_SUCCESS;
 }
 
@@ -85,9 +88,9 @@ arm_status arm_mat_trans_f32(
  * @return The function returns ARM_MATH_SIZE_MISMATCH, if the dimensions do not match.
  * If the input matrix is singular (does not have an inverse), then the algorithm terminates and returns error status ARM_MATH_SINGULAR.
  */
-arm_status arm_mat_inverse_f32(
-    const arm_matrix_instance_f32 *src,
-    arm_matrix_instance_f32 *dst)
-{
+arm_status arm_mat_inverse_f32(const arm_matrix_instance_f32* src,
+                               arm_matrix_instance_f32* dst) {
+    (void) src;
+    (void) dst;
     return ARM_MATH_SUCCESS;
 }
