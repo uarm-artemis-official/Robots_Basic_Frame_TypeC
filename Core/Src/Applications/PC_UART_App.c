@@ -13,30 +13,21 @@
 
 #include "PC_UART_App.h"
 
+#include "uarm_lib.h"
+#include "uarm_os.h"
+
+#include "imu.h"
+#include "public_defines.h"
+#include "message_center.h"
+#include "pack_handler.h" // TODO: Remove
+#include "pc_comm.h"
+
 
 static uint8_t new_pack_buffer[MAX_PACK_BUFFER_SIZE];
 
 
 void process_flow_control() {
 	// TODO: Implement.
-}
-
-
-BaseType_t uc_check_pack_integrity(uint8_t *pack_bytes, uint8_t pack_size) {
-	// Pack checksum can never be exactly 0, so if any bits
-	// in the checksum are set then a pack was just received.
-	uint8_t checksum_bits = pack_bytes[pack_size - 1] |
-			pack_bytes[pack_size - 2] |
-			pack_bytes[pack_size - 3] |
-			pack_bytes[pack_size - 4];
-	UC_Checksum_t pack_checksum = calculate_checksum(pack_bytes, MAX_PACK_BUFFER_SIZE);
-	uint32_t sent_checksum = *((uint32_t*) pack_bytes + (MAX_PACK_BUFFER_SIZE / 4) - 1);
-
-	if (checksum_bits != 0 && pack_checksum.as_integer == sent_checksum && is_valid_header(pack_bytes)) {
-		return pdTRUE;
-	} else {
-		return pdFALSE;
-	}
 }
 
 
@@ -60,15 +51,15 @@ void PC_UART_Func() {
 	send_pack.wheel_rpm[3] = 0.4f;
 	uc_send_board_data(&send_pack);
 
-	start_receive();
+	start_receive(new_pack_buffer);
 	for (;;) {
 		if (idle_count == 40) {
-			restart_receive();
+			restart_receive(new_pack_buffer);
 			idle_count = 0;
 		}
 
 		while (get_message(UC_PACK_IN, new_pack_buffer, 0) == pdTRUE) {
-			if (uc_check_pack_integrity(new_pack_buffer, MAX_PACK_BUFFER_SIZE) == pdTRUE) {
+			if (uc_check_pack_integrity(new_pack_buffer, MAX_PACK_BUFFER_SIZE) == 0) {
 				switch (new_pack_buffer[0]) {
 					case UC_AUTO_AIM_HEADER:{
 						UC_Auto_Aim_Pack_t aim_pack;

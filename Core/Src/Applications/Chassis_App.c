@@ -15,15 +15,16 @@
 
 #include "uarm_lib.h"
 #include "uarm_math.h"
+#include "uarm_os.h"
+
+#include "apps_defines.h"
 #include "Chassis_App.h"
-#include "apps_config.h"
-#include "cmsis_os.h"
 #include "message_center.h"
 #include "pid.h"
-#include "gpio.h"
+#include "debug.h"
 
 
-static Motor_t chassis_wheels[4];
+static Chassis_Wheel_Control_t chassis_motor_controls[CHASSIS_MAX_WHEELS];
 static Chassis_t chassis;
 static int16_t rc_channels[4];
 
@@ -35,9 +36,9 @@ static int16_t rc_channels[4];
 /* Task execution time (per loop): 1ms */
 void Chassis_Task_Func(void const * argument) {
 	/* task LD indicator */
-	HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
+	set_led_state(RED, ON);
 
-	chasiss_task_init(&chassis);
+	chasiss_task_init(&chassis, chassis_motor_controls);
 
 	/* set task exec period */
 	TickType_t xLastWakeTime;
@@ -49,16 +50,14 @@ void Chassis_Task_Func(void const * argument) {
 	for(;;) {
 		// memcpy(&temp_referee, &referee, sizeof(Referee_t));
 		chassis_get_rc_info(&chassis, rc_channels);
-		chassis_get_wheel_feedback(chassis_wheels);
+		chassis_get_wheel_feedback(chassis_motor_controls);
 		chassis_get_gimbal_rel_angles(&chassis);
 
 		chassis_update_chassis_coord(&chassis, rc_channels);
 		chassis_update_gimbal_coord(&chassis, rc_channels);
 		// chassis_manual_gear_set(&chassis, &rc);
 		chassis_exec_act_mode(&chassis);
-		chassis_calc_wheel_pid_out(&chassis, chassis_wheels);
-
-		chassis_send_wheel_volts(&chassis, chassis_wheels);
+		chassis_calc_wheel_pid_out(&chassis, chassis_motor_controls);
 
 		vTaskDelayUntil(&xLastWakeTime, xFrequency);
 	}
@@ -68,13 +67,11 @@ void Chassis_Task_Func(void const * argument) {
  * @brief     the initialization process of the chassis task,
  * @param[in] chassis: main chassis handler
  * */
-void chasiss_task_init(Chassis_t* chassis_hdlr){
+void chasiss_task_init(Chassis_t* chassis_hdlr, Chassis_Wheel_Control_t controls[4]){
 	/* set pid parameters for chassis motors */
 	for(int i = 0; i < CHASSIS_MAX_WHEELS; i++) {
-		motor_init(&(chassis_wheels[i]), max_out_wheel,  max_I_out_wheel, max_err_wheel, kp_wheel, ki_wheel, kd_wheel,
-					0, 0, 0, 0, 0, 0,//no second loop
-					0);//spd ff gain
-		motor_data_init(&(chassis_wheels[i]));
+		memset(&(controls[i]), 0, sizeof(Chassis_Wheel_Control_t));
+		pid_param_init(&(controls[i].f_pid), max_out_wheel, max_I_out_wheel, max_err_wheel, kp_wheel, ki_wheel, kd_wheel);
 	}
 	pid_param_init(&(chassis_hdlr->f_pid), 8000, 500, 5000, 600, 0.1, 100); // chassis twist pid init
 	/* set initial chassis mode to idle mode or debug mode */
@@ -153,50 +150,31 @@ void mecanum_wheel_calc_speed(Chassis_t *chassis_hdlr){
 }
 
 
-void chassis_calc_wheel_pid_out(Chassis_t *chassis_hdlr, Motor_t *wheels) {
-	wheels[CHASSIS_WHEEL1_INDEX].tx_data = pid_single_loop_control(
-			chassis_hdlr->mec_spd[CHASSIS_WHEEL1_INDEX],
-		&(wheels[CHASSIS_WHEEL1_INDEX].motor_info.f_pid),
-		wheels[CHASSIS_WHEEL1_INDEX].motor_feedback.rx_rpm,
-		CHASSIS_TASK_EXEC_TIME*0.001);
-	wheels[CHASSIS_WHEEL2_INDEX].tx_data = pid_single_loop_control(
-			chassis_hdlr->mec_spd[CHASSIS_WHEEL2_INDEX],
-		&(wheels[CHASSIS_WHEEL2_INDEX].motor_info.f_pid),
-		wheels[CHASSIS_WHEEL2_INDEX].motor_feedback.rx_rpm,
-		CHASSIS_TASK_EXEC_TIME*0.001);
-	wheels[CHASSIS_WHEEL3_INDEX].tx_data = pid_single_loop_control(
-			chassis_hdlr->mec_spd[CHASSIS_WHEEL3_INDEX],
-		&(wheels[CHASSIS_WHEEL3_INDEX].motor_info.f_pid),
-		wheels[CHASSIS_WHEEL3_INDEX].motor_feedback.rx_rpm,
-		CHASSIS_TASK_EXEC_TIME*0.001);
-	wheels[CHASSIS_WHEEL4_INDEX].tx_data = pid_single_loop_control(
-			chassis_hdlr->mec_spd[CHASSIS_WHEEL4_INDEX],
-		&(wheels[CHASSIS_WHEEL4_INDEX].motor_info.f_pid),
-		wheels[CHASSIS_WHEEL4_INDEX].motor_feedback.rx_rpm,
-		CHASSIS_TASK_EXEC_TIME*0.001);
-}
-
-/*
- * @brief 	  Inversely calculate the mecanum wheel speed
- * @param[in] chassis_hdlr:chassis main struct
- * @retval    None
- */
-void chassis_send_wheel_volts(Chassis_t *chassis_hdlr, Motor_t *wheels) {
+void chassis_calc_wheel_pid_out(Chassis_t *chassis_hdlr, Chassis_Wheel_Control_t controls[4]) {
 	mecanum_wheel_calc_speed(chassis_hdlr);
 	/* max +-16834 */
 	for (int i = 0; i < 4; i++) {
 		VAL_LIMIT(chassis_hdlr->mec_spd[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
+		pid_single_loop_control(
+			chassis_hdlr->mec_spd[i],
+			&(controls[i].f_pid),
+			controls[i].feedback.rx_rpm,
+			CHASSIS_TASK_EXEC_TIME*0.001
+		);
 	}
-	MotorSetMessage_t motor_set_message;
-	motor_set_message.motor_can_volts[CHASSIS_WHEEL1_CAN_ID] = wheels[CHASSIS_WHEEL1_INDEX].tx_data;
-	motor_set_message.motor_can_volts[CHASSIS_WHEEL2_CAN_ID] = wheels[CHASSIS_WHEEL2_INDEX].tx_data;
-	motor_set_message.motor_can_volts[CHASSIS_WHEEL3_CAN_ID] = wheels[CHASSIS_WHEEL3_INDEX].tx_data;
-	motor_set_message.motor_can_volts[CHASSIS_WHEEL4_CAN_ID] = wheels[CHASSIS_WHEEL4_INDEX].tx_data;
-	motor_set_message.data_enable = (1 << CHASSIS_WHEEL1_CAN_ID) |
-									(1 << CHASSIS_WHEEL2_CAN_ID) |
-									(1 << CHASSIS_WHEEL3_CAN_ID) |
-									(1 << CHASSIS_WHEEL4_CAN_ID);
-	pub_message(MOTOR_SET, &motor_set_message);
+}
+
+
+void chassis_send_wheel_volts(Chassis_Wheel_Control_t controls[4]) {
+	MotorSetMessage_t set_message;
+	memset(&set_message, 0, sizeof(MotorSetMessage_t));
+
+	for (int i = 0; i < 4; i++) {
+		set_message.motor_can_volts[i] = (int32_t) controls[i].f_pid.total_out;
+		set_message.can_ids[i] = (Motor_CAN_ID_t) controls[i].stdid;
+	}
+
+	pub_message(MOTOR_SET, &set_message);
 }
 
 /*
@@ -454,14 +432,32 @@ void chassis_get_rc_info(Chassis_t *chassis_hdlr, int16_t *channels) {
 }
 
 
-void chassis_get_wheel_feedback(Motor_t *wheels) {
-	Motor_Feedback_t feedback[8];
-	BaseType_t new_motor_read_message = peek_message(MOTOR_READ, feedback, 0);
-	if (new_motor_read_message == pdTRUE) {
-		memcpy(&(wheels[CHASSIS_WHEEL1_INDEX].motor_feedback), &(feedback[CHASSIS_WHEEL1_CAN_ID]), sizeof(Motor_Feedback_t));
-		memcpy(&(wheels[CHASSIS_WHEEL2_INDEX].motor_feedback), &(feedback[CHASSIS_WHEEL2_CAN_ID]), sizeof(Motor_Feedback_t));
-		memcpy(&(wheels[CHASSIS_WHEEL3_INDEX].motor_feedback), &(feedback[CHASSIS_WHEEL3_CAN_ID]), sizeof(Motor_Feedback_t));
-		memcpy(&(wheels[CHASSIS_WHEEL4_INDEX].motor_feedback), &(feedback[CHASSIS_WHEEL4_CAN_ID]), sizeof(Motor_Feedback_t));
+void chassis_get_wheel_feedback(Chassis_Wheel_Control_t controls[4]) {
+	ASSERT(controls != NULL, "Getting chassis wheel feedback for NULL ptr.");
+	MotorReadMessage_t read_message;
+	Motor_CAN_ID_t wheel_can_ids[] = {
+		CHASSIS_WHEEL1,
+		CHASSIS_WHEEL2,
+		CHASSIS_WHEEL3,
+		CHASSIS_WHEEL4
+	};
+
+	uint8_t new_read_message = peek_message(MOTOR_READ, &read_message, 0);
+	if (new_read_message == 0) {
+		for (int i = 0; i < 4; i++) {
+			uint8_t good = 1;
+			for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
+				if (wheel_can_ids[i] == read_message.can_ids[j]) {
+					memcpy(
+						&(controls[i].feedback), 
+						&(read_message.feedback[j]), 
+						sizeof(Motor_Feedback_t));
+					good = 0;
+					break;
+				}
+			}
+			ASSERT(good == 0, "Chassis wheel ID is not provided in MOTOR_READ topic.");
+		}
 	}
 }
 

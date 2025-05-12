@@ -14,10 +14,9 @@
 
 #include "ahrs.h"
 #include "angle_process.h"
-#include "maths.h"
-#include "arm_math.h"
+#include "uarm_math.h"
 #include "attitude_defines.h"
-#include "maths_types.h"
+#include "kalman_filters.h"
 
 /* define internal vars */
 //static AhrsSensor_t temp_ahrs;

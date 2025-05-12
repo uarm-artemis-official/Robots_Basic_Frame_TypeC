@@ -11,11 +11,7 @@
 #ifndef __INC_CRC8_H__
 #define __INC_CRC8_H__
 
-#ifdef GTEST
-	#include "stdint.h"
-#else
-	#include "stm32f407xx.h"
-#endif
+#include "uarm_types.h"
 
 
 #ifndef __FALSE

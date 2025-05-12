@@ -6,10 +6,60 @@ extern "C" {
 #endif
 
 #include "public_defines.h"
+#include "uarm_types.h"
 #include "control_types.h"
-#include "maths_types.h"
+#include "subsystems_types.h"
 #include "attitude_types.h"
-#include "stdint.h"
+
+
+/* =========================================================================
+ * PUBLIC TYPES
+ * ====================================================================== */
+typedef enum{
+	CTRLER_MODE = 1,
+	PC_MODE
+} CtrlMode_t;
+
+typedef enum {
+	PATROL_MODE = 1,
+	DETECTION_MODE,
+	AUTO_AIM_MODE,
+	AUTO_PILOT_MODE,
+	IDLE_MODE,
+	DEBUG_MODE,
+//	PC_MODE
+}BoardMode_t; //only for sentry
+
+
+typedef enum {
+    GIMBAL_CENTER = 1, // relative angle control using encoder, chassis front always facing yaw center
+    GIMBAL_FOLLOW,	   // relative angle control using encoder, chassis always moving along gimbal coordinate but not align center.
+	SELF_GYRO, 		   // relative angle control using encoder, chassis keep spinning while gimbal can move freely
+	INDPET_MODE,	   // chassis ground coordinate, or dummy version of self-gyro mode
+}BoardActMode_t;	   // should be determined by remore controller
+
+
+typedef enum{
+	SHOOT_ONCE = 1,
+	SHOOT_TRIPLE,
+	SHOOT_CONT,
+	SHOOT_RESERVE,
+	SHOOT_CEASE
+}ShootActMode_t;
+
+
+typedef enum {
+    GYRO_MODE = 1,
+    ENCODE_MODE
+} GimbalMotorMode_t;
+
+
+typedef struct {
+	float vx;
+	float vy;
+	float wz;
+} Gimbal_Axis_t; //for remote controller set gimbal dir
+
 
 /* =========================================================================
  * CHASIS TYPES
@@ -66,9 +116,16 @@ typedef struct{
 
 }Chassis_t;
 
+typedef struct {
+	uint32_t stdid;
+	PID_t f_pid; //first pid handler for single-loop control
+	Motor_Feedback_t feedback;
+} Chassis_Wheel_Control_t;
+
 /* =========================================================================
  * GIMBAL TYPES
  * ====================================================================== */
+
 typedef struct Gimbal_t {
 	/* gimbal position related */
 	float yaw_target_angle;
@@ -85,11 +142,6 @@ typedef struct Gimbal_t {
 	int16_t pitch_ecd_center;		//center position of the pitch motor by encoder
 	float yaw_imu_center;
 	float pitch_imu_center;
-
-	PID2_t yaw_f_pid;
-	PID2_t yaw_s_pid;
-	PID2_t pitch_f_pid;
-	PID2_t pitch_s_pid;
 
 	Gimbal_Axis_t axis;
 
@@ -114,7 +166,6 @@ typedef struct Gimbal_t {
 
 	first_order_low_pass_t folp_f_yaw; //first order low pass filter for imu data
 	first_order_low_pass_t folp_f_pitch; //first order low pass filter for imu data;
-	kalman_filter_t kalman_f;// first order gyroscope kalman filter for imu data
 
 	GimbalMotorMode_t gimbal_motor_mode;  //gyro or encoder
 	GimbalMotorMode_t prev_gimbal_motor_mode;  //gyro or encoder
@@ -122,6 +173,15 @@ typedef struct Gimbal_t {
 	BoardActMode_t prev_gimbal_act_mode;
 	BoardMode_t gimbal_mode;			  //idle(safe) or normal
 } Gimbal_t;
+
+typedef struct {
+	uint32_t stdid;
+	PID2_t f_pid;
+	PID2_t s_pid;
+	Motor_Feedback_t feedback;
+} Gimbal_Motor_Control_t;
+
+
 
 
 /* =========================================================================
@@ -160,6 +220,14 @@ typedef struct{
 	ShootLidStatus_t lid_status;
 	ShootActMode_t shoot_act_mode;
 }Shoot_t;
+
+
+/* =========================================================================
+ * IMU TYPES
+ * ====================================================================== */
+typedef struct {
+	PID2_t pid;
+} IMU_Heat_t;
 
 #ifdef __cplusplus
 }

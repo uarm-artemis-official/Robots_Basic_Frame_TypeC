@@ -59,16 +59,15 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
         INTERFACE 
             GTEST)
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms/maths)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Middleware)
     add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms/control)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 
 else() # Debug
     add_executable(${CMAKE_PROJECT_NAME})
 
     add_subdirectory(cmake/stm32cubemx)
     add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Drivers/CMSIS/DSP)
 
     add_library(COMMON_INCLUDES INTERFACE)
     target_link_libraries(COMMON_INCLUDES
@@ -104,7 +103,5 @@ else() # Debug
     target_link_libraries(${CMAKE_PROJECT_NAME}
         BASIC_APPS
         GENERIC_APPS
-        DEVICE_LIBRARIES
-        USER_SOFTWARE_LIBRARIES
         stm32cubemx)
 endif()

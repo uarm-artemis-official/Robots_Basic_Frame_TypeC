@@ -18,13 +18,7 @@
 #ifndef __RC_APP_H__
 #define __RC_APP_H__
 
-#include "stdint.h"
-#include "stm32f4xx_hal.h"
-#include "cmsis_os.h"
-#include "maths.h"
-#include "public_defines.h"
-#include "message_center.h"
-#include "usart.h"
+#include "apps_types.h"
 
 
 /* define general declarations for gimbal task here */
@@ -141,11 +135,6 @@ typedef struct{
 	BoardMode_t     board_mode;
 	BoardActMode_t  board_act_mode;
 }RemoteControl_t;
-
-/* extern global variables here */
-extern UART_HandleTypeDef huart3;
-extern DMA_HandleTypeDef hdma_usart3_rx;
-
 
 /* functions declaration here */
 void RC_Task_Func();

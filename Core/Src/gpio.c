@@ -150,12 +150,4 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	/* Not Implement Button IT Yet,
 	 * may be reserved for gyro calibration */
 }
-
-BoardStatus_t get_board_status(void) {
-	if(HAL_GPIO_ReadPin(Board_Status_GPIO_Port, Board_Status_Pin) == GPIO_PIN_RESET) {
-		return CHASSIS_BOARD;
-	} else {
-		return GIMBAL_BOARD;
-	}
-}
 /* USER CODE END 2 */

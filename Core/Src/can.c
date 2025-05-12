@@ -21,7 +21,6 @@
 #include "can.h"
 
 /* USER CODE BEGIN 0 */
-extern BoardStatus_t board_status;
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;

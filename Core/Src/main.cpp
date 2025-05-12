@@ -95,14 +95,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f407xx.h"
-#include "event_center.h"
-#include "motor.h"
 #include "stdio.h"
+#include "event_center.h"
 #include "dwt.h"
-#include "buzzer.h"
-#include "self_check.h"
 #include "message_center.h"
-#include "Control_App.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -146,12 +142,6 @@ uint8_t ref_rx_frame[256]={0}; //referee temp frame buffer
 //uint8_t rc_rx_buffer[DBUS_BUFFER_LEN]; //rc temporary buffer
 uint16_t chassis_gyro_counter = 0; // used for backup robots without slipring
 uint8_t chassis_gyro_flag = 0;	   // used for backup robots without slipring
-
-extern Motor_t motor_data[MOTOR_COUNT]; //MOTOR_COUNT
-extern Buzzer_t buzzer;
-
-// TODO: Find better way
-BoardStatus_t board_status;
 
 /* USER CODE END 0 */
 
@@ -299,10 +289,7 @@ HAL_StatusTypeDef firmware_and_system_init(void){
 		return HAL_ERROR;
 	}
 	// referee_init(&referee);
-	buzzer_init(&buzzer);
 	dwt_init();
-
-	board_status = get_board_status();
 
 	message_center_init();
 	event_center_init();

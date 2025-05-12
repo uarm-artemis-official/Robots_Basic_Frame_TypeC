@@ -24,7 +24,6 @@
   #define RAMP_H_EXTERN extern
 #endif
 
-#include "stdint.h"
 #include "control_types.h"
 
 

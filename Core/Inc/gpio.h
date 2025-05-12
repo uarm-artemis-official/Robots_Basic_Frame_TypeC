@@ -73,7 +73,6 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-BoardStatus_t get_board_status(void);
 
 /* USER CODE END Prototypes */
 

@@ -10,7 +10,7 @@
 #ifndef __INC_CRC8_C__
 #define __INC_CRC8_C__
 
-#include <crc.h>
+#include "crc.h"
 #include "stddef.h"
 
 //crc8 generator polynomial:G(x)=x8+x5+x4+1

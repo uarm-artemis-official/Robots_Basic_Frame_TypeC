@@ -13,10 +13,20 @@
 #ifndef __COMM_APP_C__
 #define __COMM_APP_C__
 
+#include "string.h"
+
 #include "Comm_App.h"
 
+#include "uarm_os.h"
+#include "uarm_lib.h"
+
+#include "public_defines.h"
+#include "message_center.h"
+#include "can_comm.h"
+#include "debug.h"
+
+
 #define USART_COMM 0
-extern can_comm_rx_t can_comm_rx[TOTAL_COMM_ID];
 
 /* user defined variable */
 /* rx and tx buffer for ensure the transmission accuracy:
@@ -39,12 +49,8 @@ int32_t capture_flag = 0;
 
 //static BoardComm_t chassis_comm;
 //static BoardComm_t gimbal_comm;
-static CanMessage_t canQueue[MAX_QUEUE_SIZE]; // TODO: Get rid of this for FreeRTOS queue or something.
-static QueueManage_t canqm;
 static BoardStatus_t board_status;
 
-
-static void can_transmit_comm_message(CAN_HandleTypeDef *hcan, uint8_t *send_data, uint32_t comm_id);
 
 /**
 * @brief Function implementing the Comm_Task thread. Set for the comm task bw upper and lower boards
@@ -54,11 +60,12 @@ static void can_transmit_comm_message(CAN_HandleTypeDef *hcan, uint8_t *send_dat
 void Comm_Task_Func(void const * argument)
 {
   /* USER CODE BEGIN Comm_Task_Func */
-	board_status = *(BoardStatus_t*) argument;
+	board_status = get_board_status();
 
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = pdMS_TO_TICKS(COMM_TASK_EXEC_TIME);
     xLastWakeTime = xTaskGetTickCount();
+	init_can_comm();
 
 	for(;;){
 		CANCommMessage_t outgoing_message, incoming_message;
@@ -66,7 +73,7 @@ void Comm_Task_Func(void const * argument)
 		BaseType_t new_receive_message = get_message(COMM_IN, &incoming_message, 0);
 
 		if (new_send_message == pdTRUE) {
-			can_transmit_comm_message(&hcan2, outgoing_message.data, outgoing_message.topic_name);
+			can_transmit_comm_message(outgoing_message.data, outgoing_message.topic_name);
 		}
 
 		if (new_receive_message == pdTRUE) {
@@ -144,20 +151,6 @@ void Comm_Task_Func(void const * argument)
 //	queueM_init(&canqm);
 //}
 
-
-static void can_transmit_comm_message(CAN_HandleTypeDef *hcan, uint8_t *send_data, uint32_t comm_id) {
-	//	uint32_t send_mail_box;
-	CAN_TxHeaderTypeDef  comm_tx_message;
-
-	comm_tx_message.IDE = CAN_ID_STD;
-	comm_tx_message.RTR = CAN_RTR_DATA;
-	comm_tx_message.DLC = 0x08;
-	comm_tx_message.StdId = comm_id;
-
-	enqueueCanMessage(&comm_tx_message, canQueue, &canqm, send_data);
-	sendNextCanMessage(hcan, canQueue, &canqm);
-}
-
 /**
 * @brief CAN commnication send data float to int16
 * @param comm: main comm app struct
@@ -182,40 +175,6 @@ void process_rx_data_i16tof(float *output_buffer, int16_t input_data[4], float s
     }
 }
 
-/**
-* @brief CAN commnication sending function, activated for CAN2 comms
-* @param CAN_HandleTypeDef object: hcan pointer refer to a HAL CAN structure
-* 		 int32_t* send_data: The data is ready to be sent
-* 		 uint32_t comm_id：
-* @retval None
-*/
-void can_send_comm_data(CAN_HandleTypeDef* hcan, int16_t* send_data, uint32_t comm_id){
-	uint8_t comm_can_send_data[8];
-//	uint32_t send_mail_box;
-	CAN_TxHeaderTypeDef  comm_tx_message;
-
-	comm_tx_message.IDE = CAN_ID_STD;
-	comm_tx_message.RTR = CAN_RTR_DATA;
-	comm_tx_message.DLC = 0x08;
-	comm_tx_message.StdId = comm_id;
-
-	comm_can_send_data[0] = send_data[0] >> 8;
-	comm_can_send_data[1] = send_data[0];
-	comm_can_send_data[2] = send_data[1] >> 8;
-	comm_can_send_data[3] = send_data[1];
-	comm_can_send_data[4] = send_data[2] >> 8;
-	comm_can_send_data[5] = send_data[2];
-	comm_can_send_data[6] = send_data[3] >> 8;
-	comm_can_send_data[7] = send_data[3];
-
-	/* send to fifo queue*/
-	enqueueCanMessage(&comm_tx_message, canQueue, &canqm, comm_can_send_data);
-
-//	if(HAL_CAN_GetTxMailboxesFreeLevel(hcan)>0){
-		sendNextCanMessage(hcan, canQueue, &canqm);
-//		HAL_CAN_AddTxMessage(hcan, &comm_tx_message, comm_can_send_data, (uint32_t *)CAN_TX_MAILBOX0);
-//	}
-}
 
 /**
 * @brief CAN commnication receiving function, activated for CAN2 comms
@@ -223,16 +182,16 @@ void can_send_comm_data(CAN_HandleTypeDef* hcan, int16_t* send_data, uint32_t co
 * 		 int32_t* send_data: The data is ready to be sent
 * @retval None
 */
-void can_recv_comm_data(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx_buffer)[TOTAL_COMM_ID][4]) {
-	uint8_t comm_temp_rx_buffer[8];
-	for(int i=0;i<TOTAL_COMM_ID;i++){
-		memcpy(comm_temp_rx_buffer, can_comm_rx[i].comm_rx_buffer, data_len);
-		(*rx_buffer)[i][0] = (int16_t)(comm_temp_rx_buffer[0] << 8 | comm_temp_rx_buffer[1]);
-		(*rx_buffer)[i][1] = (int16_t)(comm_temp_rx_buffer[2] << 8 | comm_temp_rx_buffer[3]);
-		(*rx_buffer)[i][2] = (int16_t)(comm_temp_rx_buffer[4] << 8 | comm_temp_rx_buffer[5]);
-		(*rx_buffer)[i][3] = (int16_t)(comm_temp_rx_buffer[6] << 8 | comm_temp_rx_buffer[7]);
-	}
-}
+// void can_recv_comm_data(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx_buffer)[TOTAL_COMM_ID][4]) {
+// 	uint8_t comm_temp_rx_buffer[8];
+// 	for(int i=0;i<TOTAL_COMM_ID;i++){
+// 		memcpy(comm_temp_rx_buffer, can_comm_rx[i].comm_rx_buffer, data_len);
+// 		(*rx_buffer)[i][0] = (int16_t)(comm_temp_rx_buffer[0] << 8 | comm_temp_rx_buffer[1]);
+// 		(*rx_buffer)[i][1] = (int16_t)(comm_temp_rx_buffer[2] << 8 | comm_temp_rx_buffer[3]);
+// 		(*rx_buffer)[i][2] = (int16_t)(comm_temp_rx_buffer[4] << 8 | comm_temp_rx_buffer[5]);
+// 		(*rx_buffer)[i][3] = (int16_t)(comm_temp_rx_buffer[6] << 8 | comm_temp_rx_buffer[7]);
+// 	}
+// }
 /***************************** CAN COMM END ************************************/
 /* Since we have multiple can comm works in the future , there is necessity that apply
  * FIFO Queue management of our CAN2 data pool. This function has been moved to algo*/

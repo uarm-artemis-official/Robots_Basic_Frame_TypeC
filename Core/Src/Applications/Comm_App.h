@@ -12,14 +12,7 @@
 #ifndef __COMM_APP_H__
 #define __COMM_APP_H__
 
-#include "stm32f407xx.h"
-#include "cmsis_os.h"
-#include "public_defines.h"
-#include "tim.h"
-#include "can.h"
-#include "string.h"
-#include "message_center.h"
-#include "queue_m.h"
+#include "apps_types.h"
 
 #define USE_UART_DMA 1
 
@@ -42,7 +35,6 @@
 #define KEY_IDX   	 (KEY_COMM_ID-IDLE_COMM_ID)
 #define PC_EXT_KEY_IDX  (PC_EXT_KEY_ID-IDLE_COMM_ID)
 
-#define MAX_QUEUE_SIZE 5
 
 #define ANGLE_COMM_SCALE_FACTOR (32767.0f / PI - 500.0f) //32767 is the maximum size of int16_t														 // exp: since we need to transmit the float angle(-pi, pi), we need to transfer it														 // to int16_t, and rescale it in the receiver side.
 
@@ -52,24 +44,24 @@
  * */
 
 
-typedef enum {
-	UART_COMM_MODE = 0,
-	CAN_COMM_MODE,
-}CommMode_t;
+// typedef enum {
+// 	UART_COMM_MODE = 0,
+// 	CAN_COMM_MODE,
+// }CommMode_t;
 
-typedef struct{
-	int16_t Not_implement_yet;
-}UartComm_t;
+// typedef struct{
+// 	int16_t Not_implement_yet;
+// }UartComm_t;
 
-typedef struct{
-	uint32_t comm_id;    //refer to sender
-	uint32_t comm_rx_id; //refer to receiver
-	int16_t tx_data[4];
-	int16_t rx_data[TOTAL_COMM_ID][4];
+// typedef struct{
+// 	uint32_t comm_id;    //refer to sender
+// 	uint32_t comm_rx_id; //refer to receiver
+// 	int16_t tx_data[4];
+// 	int16_t rx_data[TOTAL_COMM_ID][4];
 
-	void (*can_send_comm_data)(CAN_HandleTypeDef* hcan, int16_t* send_data, uint32_t tx_id);
-	void (*can_recv_comm_data)(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx_buffer)[TOTAL_COMM_ID][4]);
-}CanComm_t;
+// 	void (*can_send_comm_data)(CAN_HandleTypeDef* hcan, int16_t* send_data, uint32_t tx_id);
+// 	void (*can_recv_comm_data)(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx_buffer)[TOTAL_COMM_ID][4]);
+// }CanComm_t;
 
 /* main comm app struct */
 //typedef struct{
@@ -85,8 +77,6 @@ typedef struct{
 /* User Defined Varibales*/
 
 /* extern global variables*/
-extern UART_HandleTypeDef huart7;
-extern UART_HandleTypeDef huart6;
 
 /* declare function here */
 void Comm_Task_Func(void const * argument);
@@ -94,8 +84,6 @@ void usart_comm_process(void);
 void can_comm_process();
 void can_comm_subscribe_process(void);
 //void can_comm_reset_config(BoardComm_t *comm);
-void can_send_comm_data(CAN_HandleTypeDef* hcan, int16_t* send_data, uint32_t tx_id);
-void can_recv_comm_data(CAN_HandleTypeDef* hcan, uint32_t data_len, int16_t (*rx_buffer)[TOTAL_COMM_ID][4]);
 void process_tx_data_ftoi16(const float* input_data, int16_t* output_data, int length, float scale_factor);
 void process_rx_data_i16tof(float *output_buffer, int16_t input_data[4], float scale_factor);
 

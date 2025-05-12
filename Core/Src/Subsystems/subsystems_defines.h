@@ -1,0 +1,50 @@
+#ifndef __SUBSYSTEMS_DEFINES_H
+#define __SUBSYSTEMS_DEFINES_H
+
+/* =========================================================================
+ * MOTOR DEFINES
+ * ====================================================================== */
+#define MOTOR_COUNT 8 // RM motor 0-7,
+#define LK_MOTOR_COUNT 4
+#define MAX_MOTOR_COUNT 8
+
+#define CAN_RX_ID_START 0x201
+#define MOTOR_3508_STDID 0x200
+#define MOTOR_6020_STDID 0x1FF
+#define MOTOR_2006_STDID 0x1FF
+
+#define CHASSIS_MOTOR_MAX_DELTA 1000
+#define GIMBAL_MOTOR_MAX_DELTA 1000
+#define CHASSIS_MOTOR_PID_MAX_OUT 3500
+#define GIMBAL_MOTOR_PID_MAX_OUT 2000
+#define FRIC_MOTOR_PID_MAX_VALUE 2000
+#define MAG_MOTOR_PID_MAX_VALUE 10000
+
+// These are used for indexing the motor feedback array from MOTOR_READ topic.
+// Formula: (CAN ID) = (Chassis Motor CAN Std. IDs) - CAN_RX_ID_START.
+#define CHASSIS_WHEEL1_CAN_ID 0
+#define CHASSIS_WHEEL2_CAN_ID 1
+#define CHASSIS_WHEEL3_CAN_ID 2
+#define CHASSIS_WHEEL4_CAN_ID 3
+
+// These are used for indexing the motor feedback array from MOTOR_READ topic.
+// Formula: (CAN ID) = (Gimbal Motor CAN Std. IDs) - CAN_RX_ID_START.
+#define SHOOT_LEFT_FRIC_CAN_ID 0
+#define SHOOT_RIGHT_FRIC_CAN_ID 1
+#define SHOOT_LOADER_CAN_ID 6
+#define GIMBAL_YAW_CAN_ID 4
+#define GIMBAL_PITCH_CAN_ID 5
+
+/* =========================================================================
+ * IMU DEFINES
+ * ====================================================================== */
+#define DEFAULT_IMU_TEMP 40
+
+#define BMI088_BOARD_INSTALL_SPIN_MATRIX \
+  {0.0f,  1.0f, 0.0f},                    \
+  {-1.0f, 0.0f, 0.0f},                 \
+  {0.0f,  0.0f, 1.0f}
+
+#define IMU_CALI_FREQ 2 // IMU calibration frequency (ms).
+
+#endif

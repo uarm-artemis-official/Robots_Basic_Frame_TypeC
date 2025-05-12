@@ -21,6 +21,13 @@
 
 #include "Control_App.h"
 
+#include "uarm_lib.h"
+#include "uarm_os.h"
+#include "uarm_math.h"
+
+#include "public_defines.h"
+#include "message_center.h"
+
 /*********************************************************************************
  *  				  <   GENERAL CTRL OPERATION TABLE  >
  *    @note: <- left dialing /->right dialing /A front dialing /V back dialing
@@ -100,7 +107,6 @@ static RemoteControl_t rc;
 static ewma_filter_t ewma_gimbal_yaw, ewma_gimbal_pitch;
 static uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
 static uint32_t rc_errors = 0;
-static uint32_t rc_completes = 0;
 static uint32_t rc_idle_count = 0;
 
 /**

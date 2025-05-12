@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "maths.h"
+#include "uarm_math.h"
 
 
 TEST(MathsCorrectness, AbsLimitBasic) {

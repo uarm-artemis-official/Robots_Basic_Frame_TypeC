@@ -16,8 +16,8 @@
  ***************************************************************************/
 
 #include "math.h"
-#include "maths.h"
-#include "stdint.h"
+
+#include "uarm_math.h"
 #include "ahrs.h"
 #include "attitude_defines.h"
 

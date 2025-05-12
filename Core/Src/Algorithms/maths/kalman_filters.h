@@ -11,7 +11,7 @@
 #ifndef __KALMAN_FILTERS_H__
 #define __KALMAN_FILTERS_H__
 
-#include "uarm_lib.h"
+#include "uarm_types.h"
 #include "uarm_math.h"
 
 #define sys_dim 2 // the dimension of state vector

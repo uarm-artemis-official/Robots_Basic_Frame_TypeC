@@ -1,7 +1,7 @@
 #ifndef __ATTITUDE_RESOLUTION_TYPES_H
 #define __ATTITUDE_RESOLUTION_TYPES_H
 
-#include "stdint.h"
+#include "uarm_types.h"
 
 /* =========================================================================
  * AHRS TYPES
