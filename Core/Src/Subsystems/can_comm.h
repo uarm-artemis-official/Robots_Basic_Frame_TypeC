@@ -10,7 +10,7 @@ extern "C" {
 #define MAX_QUEUE_SIZE 5
 
 void init_can_comm();
-void can_transmit_comm_message(uint8_t *send_data, uint32_t comm_id);
+void can_transmit_comm_message(uint8_t* send_data, uint32_t comm_id);
 
 #ifdef __cplusplus
 }

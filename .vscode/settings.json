@@ -59,7 +59,8 @@
         "main.h": "c",
         "queue_m.h": "c",
         "shoot_app.h": "c",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "stm32f4xx_hal.h": "c"
     },
     "C_Cpp.clang_format_style": "file",
     "C_Cpp.clang_format_fallbackStyle": "none",

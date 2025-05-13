@@ -6,6 +6,7 @@
  */
 
 #include "event_center.h"
+#include "uarm_lib.h"
 
 static EventGroupHandle_t events_group;
 static Sync_group_t sync_groups[NUM_SYNC_GROUPS];

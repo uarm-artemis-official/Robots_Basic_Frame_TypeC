@@ -127,8 +127,6 @@ void ssd1306_send_data(uint8_t* data, size_t size) {
 }
 
 void ssd1306_init() {
-    HAL_Delay(100);  // Wait after power-on
-
     ssd1306_send_command(0xAE);  // Display OFF
 
     ssd1306_send_command(

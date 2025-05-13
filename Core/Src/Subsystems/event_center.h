@@ -14,8 +14,6 @@ extern "C" {
 
 #include "uarm_os.h"
 
-#include "error_handler.h"
-
 // Number of sync events that can occur at the same time.
 // A sync event group has one event group that can allows up to 24 different tasks
 // (listed in Task_Sync_t) to "sync" to one particular event (Sync_Event_t).

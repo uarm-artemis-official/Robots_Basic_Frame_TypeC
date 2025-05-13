@@ -32,9 +32,10 @@
 static Gimbal_t gimbal;
 static int16_t gimbal_channels[2];
 static Gimbal_Motor_Control_t gimbal_motor_control[GIMBAL_MOTOR_COUNT];
+static MessageCenter& message_center = MessageCenter::get_instance();
 
 /* With encoder mode, task execution time (per loop): 1ms */
-void Gimbal_Task_Function(void const* argument) {
+void Gimbal_Task_Function(void const* argument) noexcept {
     (void) argument;
     /* gimbal task LD indicator */
     set_led_state(BLUE, ON);
@@ -119,8 +120,6 @@ void gimbal_task_init(Gimbal_t* gbal, Gimbal_Motor_Control_t controls[2]) {
     gimbal_set_board_mode(gbal, PATROL_MODE);
     gimbal_set_act_mode(gbal, INDPET_MODE);
     gimbal_set_motor_mode(gbal, ENCODE_MODE);
-
-    //	memset(motor_tx_buffer, 999999, 32);
 }
 
 /*
@@ -182,7 +181,8 @@ void gimbal_calibration_reset(Gimbal_t* gbal,
             break;
 
         float headings[2];
-        BaseType_t imu_posting = peek_message(IMU_READINGS, headings, 0);
+        BaseType_t imu_posting =
+            message_center.peek_message(IMU_READINGS, headings, 0);
         if (imu_posting == pdTRUE) {
             gimbal_update_imu_angle(gbal, headings[0], headings[1]);
             avg_headings[0] += gbal->yaw_imu_angle;
@@ -436,7 +436,8 @@ void gimbal_set_modes(Gimbal_t* gbal, uint8_t modes[3]) {
 void gimbal_get_rc_info(Gimbal_t* gbal) {
 #ifndef ENABLE_MANUAL_MODE_SET
     RCInfoMessage_t rc_info;
-    BaseType_t new_rc_info_message = peek_message(RC_INFO, &rc_info, 0);
+    BaseType_t new_rc_info_message =
+        message_center.peek_message(RC_INFO, &rc_info, 0);
     if (new_rc_info_message == pdTRUE) {
         gimbal_set_modes(gbal, rc_info.modes);
         memcpy(gimbal_channels, rc_info.channels, sizeof(int16_t) * 2);
@@ -453,7 +454,8 @@ void gimbal_get_motor_feedback(Gimbal_Motor_Control_t controls[2]) {
     MotorReadMessage_t read_message;
     Motor_CAN_ID_t gimbal_can_ids[] = {GIMBAL_YAW, GIMBAL_PITCH};
 
-    uint8_t new_read_message = peek_message(MOTOR_READ, &read_message, 0);
+    uint8_t new_read_message =
+        message_center.peek_message(MOTOR_READ, &read_message, 0);
     if (new_read_message == 0) {
         for (int i = 0; i < 2; i++) {
             uint8_t good = 1;
@@ -473,7 +475,8 @@ void gimbal_get_motor_feedback(Gimbal_Motor_Control_t controls[2]) {
 
 void gimbal_get_imu_headings(Gimbal_t* gbal) {
     float imu_readings[2];
-    BaseType_t new_imu_message = peek_message(IMU_READINGS, imu_readings, 0);
+    BaseType_t new_imu_message =
+        message_center.peek_message(IMU_READINGS, imu_readings, 0);
 
     if (new_imu_message == pdTRUE) {
         gimbal_update_imu_angle(gbal, imu_readings[0], imu_readings[1]);
@@ -491,7 +494,7 @@ void gimbal_send_rel_angles(Gimbal_t* gbal) {
     memcpy(&(rel_angle_message.data[4]), &(gbal->pitch_rel_angle),
            sizeof(float));
 
-    pub_message(COMM_OUT, &rel_angle_message);
+    message_center.pub_message(COMM_OUT, &rel_angle_message);
 }
 
 void gimbal_update_headings(Gimbal_t* gbal,
@@ -520,7 +523,8 @@ void gimbal_update_targets(Gimbal_t* gbal, int16_t* g_channels) {
         gbal->pitch_target_angle = 0;
     } else if (gbal->gimbal_mode == AUTO_AIM_MODE) {
         float deltas[2];
-        BaseType_t new_pack_response = get_message(AUTO_AIM, deltas, 0);
+        BaseType_t new_pack_response =
+            message_center.get_message(AUTO_AIM, deltas, 0);
         if (new_pack_response == pdTRUE) {
             gbal->yaw_target_angle = gbal->yaw_rel_angle + deltas[0];
             gbal->pitch_target_angle = gbal->pitch_rel_angle + deltas[1];
@@ -639,7 +643,7 @@ void gimbal_send_motor_volts(Gimbal_Motor_Control_t controls[2]) {
         set_message.can_ids[i] = (Motor_CAN_ID_t) controls[i].stdid;
     }
 
-    pub_message(MOTOR_SET, &set_message);
+    message_center.pub_message(MOTOR_SET, &set_message);
 }
 
 #endif /* __GIMBAL_APP_C__ */

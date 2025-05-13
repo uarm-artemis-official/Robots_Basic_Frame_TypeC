@@ -26,6 +26,7 @@
 static Chassis_Wheel_Control_t chassis_motor_controls[CHASSIS_MAX_WHEELS];
 static Chassis_t chassis;
 static int16_t rc_channels[4];
+static MessageCenter& message_center = MessageCenter::get_instance();
 
 /**
 * @brief Function implementing the Chassis_Task thread.
@@ -33,7 +34,7 @@ static int16_t rc_channels[4];
 * @retval None
 */
 /* Task execution time (per loop): 1ms */
-void Chassis_Task_Func(void const* argument) {
+void Chassis_Task_Func(void const* argument) noexcept {
     (void) argument;
     /* task LD indicator */
     set_led_state(RED, ON);
@@ -58,6 +59,7 @@ void Chassis_Task_Func(void const* argument) {
         // chassis_manual_gear_set(&chassis, &rc);
         chassis_exec_act_mode(&chassis);
         chassis_calc_wheel_pid_out(&chassis, chassis_motor_controls);
+        chassis_send_wheel_volts(chassis_motor_controls);
 
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
@@ -75,6 +77,12 @@ void chasiss_task_init(Chassis_t* chassis_hdlr,
         pid_param_init(&(controls[i].f_pid), max_out_wheel, max_I_out_wheel,
                        max_err_wheel, kp_wheel, ki_wheel, kd_wheel);
     }
+
+    controls[0].stdid = CHASSIS_WHEEL1;
+    controls[1].stdid = CHASSIS_WHEEL2;
+    controls[2].stdid = CHASSIS_WHEEL3;
+    controls[3].stdid = CHASSIS_WHEEL4;
+
     pid_param_init(&(chassis_hdlr->f_pid), 8000, 500, 5000, 600, 0.1,
                    100);  // chassis twist pid init
     /* set initial chassis mode to idle mode or debug mode */
@@ -194,7 +202,7 @@ void chassis_send_wheel_volts(Chassis_Wheel_Control_t controls[4]) {
         set_message.can_ids[i] = (Motor_CAN_ID_t) controls[i].stdid;
     }
 
-    pub_message(MOTOR_SET, &set_message);
+    message_center.pub_message(MOTOR_SET, &set_message);
 }
 
 /*
@@ -443,7 +451,7 @@ void chassis_brake(float* vel, float ramp_step, float stop_threshold) {
 void chassis_get_gimbal_rel_angles(Chassis_t* chassis_hdlr) {
     float rel_angles[2];
     BaseType_t new_rel_angle_message =
-        peek_message(GIMBAL_REL_ANGLES, rel_angles, 0);
+        message_center.peek_message(GIMBAL_REL_ANGLES, rel_angles, 0);
     if (new_rel_angle_message == pdTRUE) {
         chassis_hdlr->gimbal_yaw_rel_angle = rel_angles[0];
         chassis_hdlr->gimbal_pitch_rel_angle = rel_angles[1];
@@ -452,7 +460,7 @@ void chassis_get_gimbal_rel_angles(Chassis_t* chassis_hdlr) {
 
 void chassis_get_rc_info(Chassis_t* chassis_hdlr, int16_t* channels) {
     RCInfoMessage_t rc_info;
-    BaseType_t new_message = peek_message(RC_INFO, &rc_info, 0);
+    BaseType_t new_message = message_center.peek_message(RC_INFO, &rc_info, 0);
 
     if (new_message == pdTRUE) {
         // TODO: Add input validation for modes and channels.
@@ -471,8 +479,9 @@ void chassis_get_wheel_feedback(Chassis_Wheel_Control_t controls[4]) {
     Motor_CAN_ID_t wheel_can_ids[] = {CHASSIS_WHEEL1, CHASSIS_WHEEL2,
                                       CHASSIS_WHEEL3, CHASSIS_WHEEL4};
 
-    uint8_t new_read_message = peek_message(MOTOR_READ, &read_message, 0);
-    if (new_read_message == 0) {
+    uint8_t new_read_message =
+        message_center.peek_message(MOTOR_READ, &read_message, 0);
+    if (new_read_message == 1) {
         for (int i = 0; i < 4; i++) {
             uint8_t good = 1;
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
@@ -483,8 +492,6 @@ void chassis_get_wheel_feedback(Chassis_Wheel_Control_t controls[4]) {
                     break;
                 }
             }
-            ASSERT(good == 0,
-                   "Chassis wheel ID is not provided in MOTOR_READ topic.");
         }
     }
 }

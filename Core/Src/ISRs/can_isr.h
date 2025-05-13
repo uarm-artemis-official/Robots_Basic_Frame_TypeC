@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+void init_can_isr();
 
 #ifdef __cplusplus
 }

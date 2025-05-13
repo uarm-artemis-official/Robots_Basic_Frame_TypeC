@@ -103,5 +103,7 @@ else() # Debug
     target_link_libraries(${CMAKE_PROJECT_NAME}
         BASIC_APPS
         GENERIC_APPS
+        ISRS::UART_ISR
+        ISRS::CAN_ISR
         stm32cubemx)
 endif()

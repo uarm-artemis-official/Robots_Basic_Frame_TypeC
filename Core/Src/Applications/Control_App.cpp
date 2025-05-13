@@ -107,13 +107,14 @@ static ewma_filter_t ewma_gimbal_yaw, ewma_gimbal_pitch;
 static uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
 static uint32_t rc_errors = 0;
 static uint32_t rc_idle_count = 0;
+static MessageCenter& message_center = MessageCenter::get_instance();
 
 /**
   * @brief     main remote control task
   * @param[in] None
   * @retval    None
   */
-void RC_Task_Func() {
+void RC_Task_Func() noexcept {
 
     /* set task exec period */
     TickType_t xLastWakeTime;
@@ -134,7 +135,8 @@ void RC_Task_Func() {
             rc_errors = 0;
         }
 
-        BaseType_t new_rc_raw_message = get_message(RC_RAW, rc_rx_buffer, 0);
+        BaseType_t new_rc_raw_message =
+            message_center.get_message(RC_RAW, rc_rx_buffer, 0);
         if (new_rc_raw_message == pdTRUE) {
             rc_process_rx_data(&rc, rc_rx_buffer);
             rc_process_rc_info(&rc);
@@ -421,14 +423,14 @@ void pub_rc_messages(uint8_t modes[3], int16_t channels[4]) {
     RCInfoMessage_t rc_info_message;
     memcpy(&(rc_info_message.modes), modes, sizeof(uint8_t) * 3);
     memcpy(&(rc_info_message.channels), channels, sizeof(int16_t) * 4);
-    pub_message(RC_INFO, &rc_info_message);
+    message_center.pub_message(RC_INFO, &rc_info_message);
 
     // Publish to COMM_OUT (Chassis -> Gimbal).
     CANCommMessage_t comm_message;
     comm_message.topic_name = RC_INFO;
     memcpy(comm_message.data, modes, sizeof(uint8_t) * 3);
     memcpy(&(comm_message.data[4]), channels, sizeof(int16_t) * 2);
-    pub_message(COMM_OUT, &comm_message);
+    message_center.pub_message(COMM_OUT, &comm_message);
 }
 
 /**

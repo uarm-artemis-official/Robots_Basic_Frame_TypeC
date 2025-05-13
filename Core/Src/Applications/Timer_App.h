@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-void Timer_Task_Func(void const * argument);
+void Timer_Task_Func(void const* argument);
 
 #ifdef __cplusplus
 }

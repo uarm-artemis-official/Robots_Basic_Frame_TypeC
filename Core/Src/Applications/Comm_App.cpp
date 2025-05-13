@@ -50,13 +50,14 @@ int32_t capture_flag = 0;
 //static BoardComm_t chassis_comm;
 //static BoardComm_t gimbal_comm;
 static BoardStatus_t board_status;
+static MessageCenter& message_center = MessageCenter::get_instance();
 
 /**
 * @brief Function implementing the Comm_Task thread. Set for the comm task bw upper and lower boards
 * @param argument: Not used
 * @retval None
 */
-void Comm_Task_Func(void const* argument) {
+void Comm_Task_Func(void const* argument) noexcept {
     (void) argument;
     board_status = get_board_status();
 
@@ -68,9 +69,9 @@ void Comm_Task_Func(void const* argument) {
     for (;;) {
         CANCommMessage_t outgoing_message, incoming_message;
         BaseType_t new_send_message =
-            get_message(COMM_OUT, &outgoing_message, 0);
+            message_center.get_message(COMM_OUT, &outgoing_message, 0);
         BaseType_t new_receive_message =
-            get_message(COMM_IN, &incoming_message, 0);
+            message_center.get_message(COMM_IN, &incoming_message, 0);
 
         if (new_send_message == pdTRUE) {
             can_transmit_comm_message(outgoing_message.data,
@@ -86,7 +87,7 @@ void Comm_Task_Func(void const* argument) {
                     float rel_angles[2];
                     memcpy(rel_angles, incoming_message.data,
                            sizeof(float) * 2);
-                    pub_message(GIMBAL_REL_ANGLES, rel_angles);
+                    message_center.pub_message(GIMBAL_REL_ANGLES, rel_angles);
                 } break;
                 case RC_INFO: {
                     RCInfoMessage_t rc_info;
@@ -94,7 +95,7 @@ void Comm_Task_Func(void const* argument) {
                            sizeof(int16_t) * 2);
                     memcpy(rc_info.modes, incoming_message.data,
                            sizeof(uint8_t) * 3);
-                    pub_message(RC_INFO, &rc_info);
+                    message_center.pub_message(RC_INFO, &rc_info);
                 } break;
                 case PLAYER_COMMANDS:
                     // TODO: Implement

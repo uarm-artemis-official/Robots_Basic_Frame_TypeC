@@ -10,6 +10,8 @@
 #ifndef __IMU_APP_C__
 #define __IMU_APP_C__
 
+#include "string.h"
+
 #include "IMU_App.h"
 #include "apps_defines.h"
 
@@ -23,12 +25,13 @@
 
 static IMU_t imu;
 static IMU_Heat_t imu_heating_control;
+static MessageCenter& message_center = MessageCenter::get_instance();
 
 /**
   * @brief     IMU task main entry function
   * @retval    None
   */
-void IMU_Task_Function(void const* argument) {
+void IMU_Task_Function(void const* argument) noexcept {
     (void) argument;
     /* set task exec period */
     TickType_t xLastWakeTime;
@@ -51,7 +54,7 @@ void IMU_Task_Function(void const* argument) {
 
             message_data[0] = attitude.yaw;
             message_data[1] = attitude.pitch;
-            pub_message(IMU_READINGS, message_data);
+            message_center.pub_message(IMU_READINGS, message_data);
         }
 
         vTaskDelayUntil(&xLastWakeTime, xFrequency);

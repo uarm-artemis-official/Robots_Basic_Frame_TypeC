@@ -23,13 +23,14 @@
 #include "public_defines.h"
 
 static uint8_t new_pack_buffer[MAX_PACK_BUFFER_SIZE];
+static MessageCenter& message_center = MessageCenter::get_instance();
 
 void process_flow_control() {
     // TODO: Implement.
 }
 
 static uint32_t idle_count = 0;
-void PC_UART_Func() {
+void PC_UART_Func() noexcept {
     TickType_t xLastWakeTime;
     const TickType_t xFrequency = pdMS_TO_TICKS(PC_UART_TASK_EXEC_TIME);
 
@@ -55,9 +56,10 @@ void PC_UART_Func() {
             idle_count = 0;
         }
 
-        while (get_message(UC_PACK_IN, new_pack_buffer, 0) == pdTRUE) {
-            if (uc_check_pack_integrity(new_pack_buffer,
-                                        MAX_PACK_BUFFER_SIZE) == 0) {
+        while (message_center.get_message(UC_PACK_IN, new_pack_buffer, 0) ==
+               pdTRUE) {
+            if (PCComm::uc_check_pack_integrity(new_pack_buffer,
+                                                MAX_PACK_BUFFER_SIZE) == 0) {
                 switch (new_pack_buffer[0]) {
                     case UC_AUTO_AIM_HEADER: {
                         UC_Auto_Aim_Pack_t aim_pack;
@@ -66,7 +68,7 @@ void PC_UART_Func() {
                         if (aim_pack.target_num > 0) {
                             float deltas[] = {aim_pack.delta_yaw,
                                               aim_pack.delta_pitch};
-                            pub_message(AUTO_AIM, deltas);
+                            message_center.pub_message(AUTO_AIM, deltas);
                         }
                         break;
                     }
