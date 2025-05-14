@@ -23,7 +23,8 @@
 #include "pid.h"
 #include "public_defines.h"
 
-static IMU_t imu;
+static IMU_t imu_app_state;
+static Imu imu_subsystem;
 static IMU_Heat_t imu_heating_control;
 static MessageCenter& message_center = MessageCenter::get_instance();
 
@@ -43,14 +44,14 @@ void IMU_Task_Function(void const* argument) noexcept {
     Attitude_t attitude;
     float message_data[2];
 
-    imu_task_init(&imu, &imu_heating_control);
+    imu_task_init(&imu_app_state, &imu_heating_control);
     /* main imu task begins */
     for (;;) {
-        imu_temp_pid_control(&imu_heating_control);
+        imu_temp_pid_control(&imu_app_state, &imu_heating_control);
         /* read the mpu data */
 
-        if (imu.temp_status == NORMAL) {
-            get_attitude(&attitude);
+        if (imu_app_state.temp_status == NORMAL) {
+            imu_subsystem.get_attitude(&attitude);
 
             message_data[0] = attitude.yaw;
             message_data[1] = attitude.pitch;
@@ -64,18 +65,18 @@ void IMU_Task_Function(void const* argument) noexcept {
 void calibrate_imu(IMU_t* imu, IMU_Heat_t* heat_control) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (imu->temp_status != NORMAL) {
-        imu->temp = get_imu_temp();
-        imu_temp_pid_control(heat_control);
+        imu->temp = imu_subsystem.get_temp();
+        imu_temp_pid_control(imu, heat_control);
         vTaskDelayUntil(&xLastWakeTime, IMU_CALI_FREQ);
     }
-    set_imu_offset();
+    imu_subsystem.set_offset();
 }
 
 void imu_task_init(IMU_t* imu, IMU_Heat_t* heat_control) {
     memset(imu, 0, sizeof(IMU_t));
     memset(heat_control, 0, sizeof(IMU_Heat_t));
 
-    init_imu();
+    imu_subsystem.init();
 
     /* init sensor pid */
     //	pid_param_init(&(imu.tmp_pid), 4000, 1500, 25, 1000, 0.1, 1000);
@@ -114,21 +115,21 @@ void set_imu_temp_status(IMU_t* pimu, IMU_temp_status status) {
   * @param[in]: Not used
   * @retval 0
   */
-int32_t imu_temp_pid_control(IMU_Heat_t* control) {
-    float temp = get_imu_temp();
+int32_t imu_temp_pid_control(IMU_t* imu, IMU_Heat_t* control) {
+    float temp = imu_subsystem.get_temp();
     float temp_threshold = 0.875f;
 
     pid2_single_loop_control(&(control->pid), DEFAULT_IMU_TEMP, temp,
                              IMU_TASK_EXEC_TIME * 0.001f * 100);  // pid control
-    set_imu_pwm(control->pid.total_out);
+    imu_subsystem.set_heat_pwm(control->pid.total_out);
 
     if (DEFAULT_IMU_TEMP - temp_threshold <= temp &&
         temp <= DEFAULT_IMU_TEMP + temp_threshold) {
         set_led_state(RED, OFF);
-        set_imu_temp_status(&imu, NORMAL);
+        set_imu_temp_status(imu, NORMAL);
     } else {
         set_led_state(RED, ON);
-        set_imu_temp_status(&imu, ABNORMAL);
+        set_imu_temp_status(imu, ABNORMAL);
     }
     return 0;
 }

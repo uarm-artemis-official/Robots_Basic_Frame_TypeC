@@ -19,7 +19,7 @@ void Motors::init(Motor_Config_t config) {
             this->motors[1] = Generic_Motor_t {SHOOT_RIGHT_FRIC, 0, DJI};
             this->motors[2] = Generic_Motor_t {GIMBAL_YAW, 0, DJI};
             this->motors[3] = Generic_Motor_t {GIMBAL_PITCH, 0, DJI};
-            this->motors[4] = Generic_Motor_t {SHOOT_LEFT_FRIC, 0, DJI};
+            this->motors[4] = Generic_Motor_t {SHOOT_LOADER, 0, DJI};
             break;
         }
         case DJI_CHASSIS: {

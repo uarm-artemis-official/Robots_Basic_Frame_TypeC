@@ -1,9 +1,10 @@
 #ifndef __MESSAGE_CENTER_H
 #define __MESSAGE_CENTER_H
 
+#include "subsystems_interfaces.h"
 #include "subsystems_types.h"
 
-class MessageCenter {
+class MessageCenter : public IMessageCenter {
    private:
     Topic_Handle_t topic_handles[14] = {
         Topic_Handle_t {MOTOR_SET, sizeof(MotorSetMessage_t), 5, NULL},
@@ -31,13 +32,15 @@ class MessageCenter {
    public:
     static MessageCenter& get_instance();
 
-    void init();
-    uint8_t get_message(Topic_Name_t topic, void* data_ptr, int ticks_to_wait);
-    uint8_t peek_message(Topic_Name_t topic, void* data_ptr, int ticks_to_wait);
-    uint8_t pub_message(Topic_Name_t topic, void* data_ptr);
-    uint8_t pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
-                                 uint8_t* will_context_switch);
-    Topic_Handle_t& get_topic_handle(Topic_Name_t name);
+    virtual void init() override;
+    virtual uint8_t get_message(Topic_Name_t topic, void* data_ptr,
+                                int ticks_to_wait) override;
+    virtual uint8_t peek_message(Topic_Name_t topic, void* data_ptr,
+                                 int ticks_to_wait) override;
+    virtual uint8_t pub_message(Topic_Name_t topic, void* data_ptr) override;
+    virtual uint8_t pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
+                                         uint8_t* will_context_switch) override;
+    virtual Topic_Handle_t& get_topic_handle(Topic_Name_t name) override;
 };
 
 #endif
