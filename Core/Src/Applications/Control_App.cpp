@@ -38,12 +38,12 @@
  *    |  Right Rod  |   <- & ->   | CH0, -&+, Yaw gimbal left&right spin         |
  *    |             |             |           INPDT_MODE: ground left/right spin |
  *    ----------------------------------------------------------------------------
- *    |  Right Rod  |    A & V    | CH1, +&-, Pitch motor's Head down/head up    |
+ *    |  Right Rod  |    A & V    | CH1, -&+, Pitch motor's Head down/head up    |
  *    ----------------------------------------------------------------------------
  *    |  Left  Rod  |   <- & ->   | CH2, -&+, INDPT_MODE: ground left/right move |
  *    |             |             |           Gimbal_follow: left/right spin     |
  *    ----------------------------------------------------------------------------
- *    |  Left  Rod  |    A & V    | CH3, +&-, INDPT_MODE: Ground  for/backward   |
+ *    |  Left  Rod  |    A & V    | CH3, -&+, INDPT_MODE: Ground  for/backward   |
  *    |             |             |           other: Follow yaw's direction      |
  *    ----------------------------------------------------------------------------
  *    |  Right Sw   |     UP      | Shoot Continuously    				         |

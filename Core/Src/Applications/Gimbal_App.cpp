@@ -44,7 +44,7 @@ void Gimbal_Task_Function(void const* argument) noexcept {
     gimbal_task_init(&gimbal, gimbal_motor_control);
 
     /* reset calibration using ramp function */
-    gimbal_calibration_reset(&gimbal, gimbal_motor_control);
+    // gimbal_calibration_reset(&gimbal, gimbal_motor_control);
 
     TickType_t xLastWakeTime;
     const TickType_t xFrequency = pdMS_TO_TICKS(GIMBAL_TASK_EXEC_TIME);

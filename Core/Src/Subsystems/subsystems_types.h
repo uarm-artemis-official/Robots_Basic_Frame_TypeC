@@ -12,7 +12,7 @@
  * ====================================================================== */
 /*
  * @brief Structure for all motors installed
- * @Note  first 4 motors will use 0x200, last 4 motors will use 0x1FF
+ * @Note  first 4 motors will use 0x200
  * 		    motor_data[0]: chassis 	3508
  * 			motor_data[1]: chassis 	3508
  *			motor_data[2]: chassis 	3508
@@ -41,6 +41,12 @@ typedef enum {
     // GIMBAL
     GIMBAL_YAW = 0x205,
     GIMBAL_PITCH = 0x206,
+
+    //SWERVE
+    SWERVE_1 = 0x1801,
+    SWERVE_2 = 0x1802,
+    SWERVE_3 = 0x1803,
+    SWERVE_4 = 0x1804,
 } Motor_CAN_ID_t;
 
 typedef enum {
@@ -68,7 +74,7 @@ typedef struct {
 
 /*
  * @brief Structure for all motors installed
- * @Note  first 4 motors will use 0x200, last 4 motors will use 0x1FF
+ * @Note  first 4 motors will use 0x200
  * 		    motor_data[0]: chassis 	3508/shoot fric left  3508
  * 			motor_data[1]: chassis 	3508/shoot fric right 3508
  *			motor_data[2]: chassis 	3508/shoot magazine 3508
