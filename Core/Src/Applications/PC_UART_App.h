@@ -11,14 +11,21 @@
 #ifndef __PC_UART_APP_H__
 #define __PC_UART_APP_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "apps_defines.h"
+#include "apps_interfaces.h"
+#include "apps_types.h"
 
-void PC_UART_Func();
+class PCUARTApp : public RTOSApp<PCUARTApp> {
+   private:
+    uint8_t new_pack_buffer[64];  // TODO: Make same as MAX_PACK_BUFFER_SIZE.
+    IMessageCenter& message_center;
+    uint32_t idle_count = 0;
 
-#ifdef __cplusplus
-}
-#endif
+   public:
+    static constexpr uint32_t LOOP_PERIOD_MS = PC_UART_TASK_EXEC_TIME;
+    PCUARTApp(IMessageCenter& message_center_ref);
+    void init();
+    void loop();
+};
 
 #endif /* SRC_APPLICATIONS_GENERIC_APP_PC_UART_APP_H_ */

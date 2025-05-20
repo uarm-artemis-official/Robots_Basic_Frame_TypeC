@@ -7,8 +7,8 @@
 * All rights reserved.
 *******************************************************************************/
 #include "lk_motor.h"
-#include "motor_defines.h"
 #include <string.h>
+#include "motor_defines.h"
 
 /**
   * @brief     LK motor init
@@ -23,32 +23,33 @@
 
 /**
   * @brief     LK motor send control command
-  * @param[in] hcan : CAN instance for sending the command
   * @param[in] id :   Motor id, usually 0x140 + No. of the motor
   * @param[in] control_cmd : Command to send
   * @param[in] sendValue,
   * @retval    None
   */
-void lk_motor_send(CAN_HandleTypeDef* hcan, uint32_t id, LK_Motor_Command_t control_cmd, int32_t sendValue){
-	CAN_TxHeaderTypeDef  tx_header;
-	uint8_t				 tx_data[8];
+void lk_motor_send(uint32_t id, LK_Motor_Command_t control_cmd,
+                   int32_t sendValue) {
+    CAN_TxHeaderTypeDef tx_header;
+    uint8_t tx_data[8];
 
-	tx_header.StdId = id;
-	tx_header.ExtId = 0x00;
-	tx_header.IDE = CAN_ID_STD;
-	tx_header.RTR = CAN_RTR_DATA;
-	tx_header.DLC = 8;
+    tx_header.StdId = id;
+    tx_header.ExtId = 0x00;
+    tx_header.IDE = CAN_ID_STD;
+    tx_header.RTR = CAN_RTR_DATA;
+    tx_header.DLC = 8;
 
-	tx_data[0] = control_cmd;
-	tx_data[1] = 0x00;
-	tx_data[2] = 0x00;
-	tx_data[3] = 0x00;
-	tx_data[4] = *((uint8_t *)&sendValue + 0);
-	tx_data[5] = *((uint8_t *)&sendValue + 1);
-	tx_data[6] = *((uint8_t *)&sendValue + 2);
-	tx_data[7] = *((uint8_t *)&sendValue + 3);
+    tx_data[0] = control_cmd;
+    tx_data[1] = 0x00;
+    tx_data[2] = 0x00;
+    tx_data[3] = 0x00;
+    tx_data[4] = *((uint8_t*) &sendValue + 0);
+    tx_data[5] = *((uint8_t*) &sendValue + 1);
+    tx_data[6] = *((uint8_t*) &sendValue + 2);
+    tx_data[7] = *((uint8_t*) &sendValue + 3);
 
-	HAL_CAN_AddTxMessage(hcan, &tx_header, tx_data, (uint32_t*)CAN_TX_MAILBOX1);
+    HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,
+                         (uint32_t*) CAN_TX_MAILBOX1);
 }
 
 /**
@@ -56,9 +57,34 @@ void lk_motor_send(CAN_HandleTypeDef* hcan, uint32_t id, LK_Motor_Command_t cont
   * @param[in] can1/can2 type header
   * @retval    None
   */
-void lk_motor_parse_feedback(const uint8_t *rx_buffer, Motor_Feedback_t *motor_feedback) {
-	motor_feedback->rx_angle   = (int16_t)(rx_buffer[7] << 8 | rx_buffer[6]);
-	motor_feedback->rx_rpm	   = (int16_t)(rx_buffer[5] << 8 | rx_buffer[4]);
-	motor_feedback->rx_current = (int16_t)(rx_buffer[3] << 8 | rx_buffer[2]);
-	motor_feedback->rx_temp	   = (int16_t)(rx_buffer[1]);
+void lk_motor_parse_feedback(const uint8_t* rx_buffer,
+                             Motor_Feedback_t* motor_feedback) {
+    motor_feedback->rx_angle = (int16_t) (rx_buffer[7] << 8 | rx_buffer[6]);
+    motor_feedback->rx_rpm = (int16_t) (rx_buffer[5] << 8 | rx_buffer[4]);
+    motor_feedback->rx_current = (int16_t) (rx_buffer[3] << 8 | rx_buffer[2]);
+    motor_feedback->rx_temp = (int16_t) (rx_buffer[1]);
+}
+
+void lk_motor_send_angle_control(uint32_t id, uint16_t max_speed,
+                                 uint32_t angle) {
+    CAN_TxHeaderTypeDef tx_header;
+    uint8_t tx_data[8];
+
+    tx_header.StdId = id;
+    tx_header.ExtId = 0x00;
+    tx_header.IDE = CAN_ID_STD;
+    tx_header.RTR = CAN_RTR_DATA;
+    tx_header.DLC = 8;
+
+    tx_data[0] = LK_CMD_ML_ANGLE_WITH_SPEED;
+    tx_data[1] = 0x00;
+    tx_data[2] = *((uint8_t*) (&max_speed) + 0);
+    tx_data[3] = *((uint8_t*) (&max_speed) + 1);
+    tx_data[4] = *((uint8_t*) (&angle) + 0);
+    tx_data[5] = *((uint8_t*) (&angle) + 1);
+    tx_data[6] = *((uint8_t*) (&angle) + 2);
+    tx_data[7] = *((uint8_t*) (&angle) + 3);
+
+    HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,
+                         (uint32_t*) CAN_TX_MAILBOX1);
 }

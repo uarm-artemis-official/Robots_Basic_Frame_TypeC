@@ -13,100 +13,72 @@
 #ifndef __COMM_APP_C__
 #define __COMM_APP_C__
 
-#include "string.h"
-
 #include "Comm_App.h"
-
-#include "uarm_lib.h"
-#include "uarm_os.h"
-
+#include "apps_defines.h"
 #include "can_comm.h"
 #include "debug.h"
 #include "message_center.h"
 #include "public_defines.h"
+#include "string.h"
+#include "uarm_lib.h"
+#include "uarm_os.h"
 
-#define USART_COMM 0
+CommApp::CommApp(IMessageCenter& message_center_ref, IDebug& debug_ref,
+                 ICanComm& can_comm_ref)
+    : message_center(message_center_ref),
+      debug(debug_ref),
+      can_comm(can_comm_ref) {}
 
-/* user defined variable */
-/* rx and tx buffer for ensure the transmission accuracy:
- * rel angle    1
-   rcontroller  2
-   pc info      3
-   key		    4
-   referee      5
- * */
-float can_rx_scale_buffer[TOTAL_COMM_ID][4] = {
-    0};  //or use malloc. Since it has infinite live period, they are same.
-/* rx and tx buffer for ensure the transmission accuracy:
- * rel angle    1
-   rcontroller  2
-   pc info      3
-   key		    4
-   referee      5
- * */
-float can_tx_scale_buffer[TOTAL_COMM_ID][4] = {0};
-int32_t capture_flag = 0;
-
-//static BoardComm_t chassis_comm;
-//static BoardComm_t gimbal_comm;
-static BoardStatus_t board_status;
-static MessageCenter& message_center = MessageCenter::get_instance();
-
-/**
-* @brief Function implementing the Comm_Task thread. Set for the comm task bw upper and lower boards
-* @param argument: Not used
-* @retval None
-*/
-void Comm_Task_Func(void const* argument) noexcept {
-    (void) argument;
-    board_status = get_board_status();
-
-    TickType_t xLastWakeTime;
-    const TickType_t xFrequency = pdMS_TO_TICKS(COMM_TASK_EXEC_TIME);
-    xLastWakeTime = xTaskGetTickCount();
-    init_can_comm();
-
-    for (;;) {
-        CANCommMessage_t outgoing_message, incoming_message;
-        BaseType_t new_send_message =
-            message_center.get_message(COMM_OUT, &outgoing_message, 0);
-        BaseType_t new_receive_message =
-            message_center.get_message(COMM_IN, &incoming_message, 0);
-
-        if (new_send_message == pdTRUE) {
-            can_transmit_comm_message(outgoing_message.data,
-                                      outgoing_message.topic_name);
-        }
-
-        if (new_receive_message == pdTRUE) {
-            switch (incoming_message.topic_name) {
-                case REF_INFO:
-                    // TODO: Implement
-                    break;
-                case GIMBAL_REL_ANGLES: {
-                    float rel_angles[2];
-                    memcpy(rel_angles, incoming_message.data,
-                           sizeof(float) * 2);
-                    message_center.pub_message(GIMBAL_REL_ANGLES, rel_angles);
-                } break;
-                case RC_INFO: {
-                    RCInfoMessage_t rc_info;
-                    memcpy(rc_info.channels, &(incoming_message.data[4]),
-                           sizeof(int16_t) * 2);
-                    memcpy(rc_info.modes, incoming_message.data,
-                           sizeof(uint8_t) * 3);
-                    message_center.pub_message(RC_INFO, &rc_info);
-                } break;
-                case PLAYER_COMMANDS:
-                    // TODO: Implement
-                    break;
-                default:
-                    break;
-            }
-        }
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    }
+void CommApp::init() {
+    board_status = debug.get_board_status();
 }
+
+void CommApp::loop() {
+    CANCommMessage_t outgoing_message, incoming_message;
+    BaseType_t new_send_message =
+        message_center.get_message(COMM_OUT, &outgoing_message, 0);
+    BaseType_t new_receive_message =
+        message_center.get_message(COMM_IN, &incoming_message, 0);
+
+    if (new_send_message == pdTRUE) {
+        can_comm.can_transmit_comm_message(outgoing_message.data,
+                                           outgoing_message.topic_name);
+    }
+
+    if (new_receive_message == pdTRUE) {
+        switch (incoming_message.topic_name) {
+            case REF_INFO:
+                // TODO: Implement
+                break;
+            case GIMBAL_REL_ANGLES: {
+                float rel_angles[2];
+                memcpy(rel_angles, incoming_message.data, sizeof(float) * 2);
+                message_center.pub_message(GIMBAL_REL_ANGLES, rel_angles);
+            } break;
+            case RC_INFO: {
+                RCInfoMessage_t rc_info;
+                memcpy(rc_info.channels, &(incoming_message.data[4]),
+                       sizeof(int16_t) * 2);
+                memcpy(rc_info.modes, incoming_message.data,
+                       sizeof(uint8_t) * 3);
+                message_center.pub_message(RC_INFO, &rc_info);
+            } break;
+            case PLAYER_COMMANDS:
+                // TODO: Implement
+                break;
+            default:
+                break;
+        }
+    }
+};
+
+// TickType_t xLastWakeTime;
+// const TickType_t xFrequency = pdMS_TO_TICKS(COMM_TASK_EXEC_TIME);
+// xLastWakeTime = xTaskGetTickCount();
+
+// for (;;) {
+//     vTaskDelayUntil(&xLastWakeTime, xFrequency);
+// }
 /***************************** CAN COMM BEGAIN ************************************/
 /**
 * @brief CAN commnication message subscription
@@ -160,12 +132,12 @@ void Comm_Task_Func(void const* argument) noexcept {
 * 		 scale_factor: corresponding scale_factor
 */
 // TODO: Look into better float to int16_t conversion.
-void process_tx_data_ftoi16(const float* input_data, int16_t* output_data,
-                            int length, float scale_factor) {
-    for (int i = 0; i < length; i++) {
-        output_data[i] = (int16_t) (input_data[i] * scale_factor);
-    }
-}
+// void process_tx_data_ftoi16(const float* input_data, int16_t* output_data,
+//                             int length, float scale_factor) {
+//     for (int i = 0; i < length; i++) {
+//         output_data[i] = (int16_t) (input_data[i] * scale_factor);
+//     }
+// }
 
 /**
 * @brief CAN commnication recving data int16 to float
@@ -173,12 +145,12 @@ void process_tx_data_ftoi16(const float* input_data, int16_t* output_data,
 * 		 scale_factor: corresponding scale_factor
 */
 // TODO: Look into better int16_t to float conversion.
-void process_rx_data_i16tof(float* output_buffer, int16_t input_data[4],
-                            float scale_factor) {
-    for (int i = 0; i < 4; i++) {
-        output_buffer[i] = ((float) input_data[i]) / scale_factor;
-    }
-}
+// void process_rx_data_i16tof(float* output_buffer, int16_t input_data[4],
+//                             float scale_factor) {
+//     for (int i = 0; i < 4; i++) {
+//         output_buffer[i] = ((float) input_data[i]) / scale_factor;
+//     }
+// }
 
 /**
 * @brief CAN commnication receiving function, activated for CAN2 comms
@@ -217,7 +189,7 @@ void process_rx_data_i16tof(float* output_buffer, int16_t input_data[4],
 //		}
 //	}
 //}
-#ifndef USE_UART_DMA
+#ifdef USE_UART_DMA
 static uint8_t temp_buffer[PACKLEN + 1];
 /**
 * @brief uart global interrupt function

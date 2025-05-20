@@ -32,15 +32,15 @@ class MessageCenter : public IMessageCenter {
    public:
     static MessageCenter& get_instance();
 
-    virtual void init() override;
-    virtual uint8_t get_message(Topic_Name_t topic, void* data_ptr,
-                                int ticks_to_wait) override;
-    virtual uint8_t peek_message(Topic_Name_t topic, void* data_ptr,
-                                 int ticks_to_wait) override;
-    virtual uint8_t pub_message(Topic_Name_t topic, void* data_ptr) override;
-    virtual uint8_t pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
-                                         uint8_t* will_context_switch) override;
-    virtual Topic_Handle_t& get_topic_handle(Topic_Name_t name) override;
+    void init() override;
+    uint8_t get_message(Topic_Name_t topic, void* data_ptr,
+                        int ticks_to_wait) override;
+    uint8_t peek_message(Topic_Name_t topic, void* data_ptr,
+                         int ticks_to_wait) override;
+    uint8_t pub_message(Topic_Name_t topic, void* data_ptr) override;
+    uint8_t pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
+                                 uint8_t* will_context_switch) override;
+    Topic_Handle_t& get_topic_handle(Topic_Name_t name) override;
 };
 
 #endif

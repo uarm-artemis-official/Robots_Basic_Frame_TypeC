@@ -10,11 +10,8 @@
 #ifndef __IMU_APP_C__
 #define __IMU_APP_C__
 
-#include "string.h"
-
 #include "IMU_App.h"
 #include "apps_defines.h"
-
 #include "buzzer.h"
 #include "debug.h"
 #include "event_center.h"
@@ -22,76 +19,60 @@
 #include "message_center.h"
 #include "pid.h"
 #include "public_defines.h"
+#include "string.h"
 
-static IMU_t imu_app_state;
-static Imu imu_subsystem;
-static IMU_Heat_t imu_heating_control;
-static MessageCenter& message_center = MessageCenter::get_instance();
+IMUApp::IMUApp(IMessageCenter& message_center_ref,
+               IEventCenter& event_center_ref, IImu& imu_ref, IDebug& debug_ref)
+    : message_center(message_center_ref),
+      event_center(event_center_ref),
+      imu(imu_ref),
+      debug(debug_ref) {}
 
-/**
-  * @brief     IMU task main entry function
-  * @retval    None
-  */
-void IMU_Task_Function(void const* argument) noexcept {
-    (void) argument;
-    /* set task exec period */
-    TickType_t xLastWakeTime;
-    const TickType_t xFrequency = pdMS_TO_TICKS(IMU_TASK_EXEC_TIME);
+void IMUApp::init() {
+    memset(&imu_app_state, 0, sizeof(IMU_t));
+    memset(&imu_heating_control, 0, sizeof(IMU_Heat_t));
+    memset(&attitude, 0, sizeof(Attitude_t));
+    memset(message_data, 0, sizeof(float) * 2);
 
-    /* init the task ticks */
-    xLastWakeTime = xTaskGetTickCount();
-
-    Attitude_t attitude;
-    float message_data[2];
-
-    imu_task_init(&imu_app_state, &imu_heating_control);
-    /* main imu task begins */
-    for (;;) {
-        imu_temp_pid_control(&imu_app_state, &imu_heating_control);
-        /* read the mpu data */
-
-        if (imu_app_state.temp_status == NORMAL) {
-            imu_subsystem.get_attitude(&attitude);
-
-            message_data[0] = attitude.yaw;
-            message_data[1] = attitude.pitch;
-            message_center.pub_message(IMU_READINGS, message_data);
-        }
-
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    }
-}
-
-void calibrate_imu(IMU_t* imu, IMU_Heat_t* heat_control) {
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    while (imu->temp_status != NORMAL) {
-        imu->temp = imu_subsystem.get_temp();
-        imu_temp_pid_control(imu, heat_control);
-        vTaskDelayUntil(&xLastWakeTime, IMU_CALI_FREQ);
-    }
-    imu_subsystem.set_offset();
-}
-
-void imu_task_init(IMU_t* imu, IMU_Heat_t* heat_control) {
-    memset(imu, 0, sizeof(IMU_t));
-    memset(heat_control, 0, sizeof(IMU_Heat_t));
-
-    imu_subsystem.init();
+    imu.init();
 
     /* init sensor pid */
     //	pid_param_init(&(imu.tmp_pid), 4000, 1500, 25, 1000, 0.1, 1000);
-    pid2_init(&(heat_control->pid), 1200, 220, 0, 1, 1, 0, 4000);
-    set_imu_temp_status(imu, ABNORMAL);
-    imu->imu_mode = GA_MODE;  // forbid ist8310
-    if (imu->imu_mode == GA_MODE) {
+    pid2_init(&(imu_heating_control.pid), 1200, 220, 0, 1, 1, 0, 4000);
+    set_imu_temp_status(ABNORMAL);
+    imu_app_state.imu_mode = GA_MODE;  // forbid ist8310
+    if (imu_app_state.imu_mode == GA_MODE) {
         // no use ist8310
-        imu->ahrs_sensor.mx = 0.0f;
-        imu->ahrs_sensor.my = 0.0f;
-        imu->ahrs_sensor.mz = 0.0f;
+        imu_app_state.ahrs_sensor.mx = 0.0f;
+        imu_app_state.ahrs_sensor.my = 0.0f;
+        imu_app_state.ahrs_sensor.mz = 0.0f;
     }
     //	imu.sample_time = DWT_Get();
-    imu->temp = 0.0;
-    calibrate_imu(imu, heat_control);
+    imu_app_state.temp = 0.0;
+    calibrate_imu();
+}
+
+void IMUApp::loop() {
+    imu_temp_pid_control();
+    /* read the mpu data */
+
+    if (imu_app_state.temp_status == NORMAL) {
+        imu.get_attitude(&attitude);
+
+        message_data[0] = attitude.yaw;
+        message_data[1] = attitude.pitch;
+        message_center.pub_message(IMU_READINGS, message_data);
+    }
+}
+
+void IMUApp::calibrate_imu() {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    while (imu_app_state.temp_status != NORMAL) {
+        imu_app_state.temp = imu.get_temp();
+        imu_temp_pid_control();
+        vTaskDelayUntil(&xLastWakeTime, IMU_CALI_FREQ);
+    }
+    imu.set_offset();
 }
 
 /**
@@ -100,13 +81,13 @@ void imu_task_init(IMU_t* imu, IMU_Heat_t* heat_control) {
   * @param[in] status: IMU_temp_status enum variable
   * @retval    None
   */
-void set_imu_temp_status(IMU_t* pimu, IMU_temp_status status) {
-    pimu->temp_status = status;
+void IMUApp::set_imu_temp_status(IMU_temp_status status) {
+    imu_app_state.temp_status = status;
 
-    if (pimu->temp_status == NORMAL) {
-        emit_events(IMU_READY);
+    if (imu_app_state.temp_status == NORMAL) {
+        event_center.emit_events(IMU_READY);
     } else {
-        clear_events(IMU_READY);
+        event_center.clear_events(IMU_READY);
     }
 }
 
@@ -115,21 +96,22 @@ void set_imu_temp_status(IMU_t* pimu, IMU_temp_status status) {
   * @param[in]: Not used
   * @retval 0
   */
-int32_t imu_temp_pid_control(IMU_t* imu, IMU_Heat_t* control) {
-    float temp = imu_subsystem.get_temp();
+int32_t IMUApp::imu_temp_pid_control() {
+    imu_app_state.temp = imu.get_temp();
     float temp_threshold = 0.875f;
 
-    pid2_single_loop_control(&(control->pid), DEFAULT_IMU_TEMP, temp,
+    pid2_single_loop_control(&(imu_heating_control.pid), DEFAULT_IMU_TEMP,
+                             imu_app_state.temp,
                              IMU_TASK_EXEC_TIME * 0.001f * 100);  // pid control
-    imu_subsystem.set_heat_pwm(control->pid.total_out);
+    imu.set_heat_pwm(imu_heating_control.pid.total_out);
 
-    if (DEFAULT_IMU_TEMP - temp_threshold <= temp &&
-        temp <= DEFAULT_IMU_TEMP + temp_threshold) {
-        set_led_state(RED, OFF);
-        set_imu_temp_status(imu, NORMAL);
+    if (DEFAULT_IMU_TEMP - temp_threshold <= imu_app_state.temp &&
+        imu_app_state.temp <= DEFAULT_IMU_TEMP + temp_threshold) {
+        debug.set_led_state(RED, OFF);
+        set_imu_temp_status(NORMAL);
     } else {
-        set_led_state(RED, ON);
-        set_imu_temp_status(imu, ABNORMAL);
+        debug.set_led_state(RED, ON);
+        set_imu_temp_status(ABNORMAL);
     }
     return 0;
 }

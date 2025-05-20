@@ -138,7 +138,7 @@ typedef struct {
 } RemoteControl_t;
 
 /* functions declaration here */
-void RC_Task_Func();
+void RC_Task_Func(const void* argument);
 void rc_task_init(RemoteControl_t* rc_hdlr);
 void rc_process_rx_data(RemoteControl_t* rc_hdlr, uint8_t* rc_rx_buffer);
 void rc_reset(RemoteControl_t* rc_hdlr);

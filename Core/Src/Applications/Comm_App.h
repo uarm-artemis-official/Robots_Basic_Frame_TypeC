@@ -12,36 +12,9 @@
 #ifndef __COMM_APP_H__
 #define __COMM_APP_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include "apps_defines.h"
+#include "apps_interfaces.h"
 #include "apps_types.h"
-
-#define USE_UART_DMA 1
-
-/* Define used can id */
-//higher id, lower priority
-//FIXME: adjust the priority
-#define IDLE_COMM_ID 0x300
-#define ANGLE_COMM_ID 0x301
-#define RC_COMM_ID 0x302
-#define PC_COMM_ID 0x303
-#define KEY_COMM_ID 0x304
-#define REF_COMM_ID 0x305
-#define PC_EXT_KEY_ID 0x306
-#define TOTAL_COMM_ID 7
-
-#define ANGLE_IDX (ANGLE_COMM_ID - IDLE_COMM_ID)
-#define RC_IDX (RC_COMM_ID - IDLE_COMM_ID)
-#define PC_IDX (PC_COMM_ID - IDLE_COMM_ID)
-#define REF_IDX (REF_COMM_ID - IDLE_COMM_ID)
-#define KEY_IDX (KEY_COMM_ID - IDLE_COMM_ID)
-#define PC_EXT_KEY_IDX (PC_EXT_KEY_ID - IDLE_COMM_ID)
-
-#define ANGLE_COMM_SCALE_FACTOR \
-    (32767.0f / PI -            \
-     500.0f)  //32767 is the maximum size of int16_t														 // exp: since we need to transmit the float angle(-pi, pi), we need to transfer it														 // to int16_t, and rescale it in the receiver side.
 
 /*
  * @brief Communication app main handler
@@ -77,23 +50,19 @@ extern "C" {
 //	CommMessageSublist_t sub_list;
 //}BoardComm_t;
 
-/* User Defined Varibales*/
+class CommApp : public RTOSApp<CommApp> {
+   private:
+    IMessageCenter& message_center;
+    IDebug& debug;
+    ICanComm& can_comm;
+    BoardStatus_t board_status;
 
-/* extern global variables*/
+   public:
+    static constexpr const uint32_t LOOP_PERIOD_MS = COMM_TASK_EXEC_TIME;
 
-/* declare function here */
-void Comm_Task_Func(void const* argument);
-void usart_comm_process(void);
-void can_comm_process();
-void can_comm_subscribe_process(void);
-//void can_comm_reset_config(BoardComm_t *comm);
-void process_tx_data_ftoi16(const float* input_data, int16_t* output_data,
-                            int length, float scale_factor);
-void process_rx_data_i16tof(float* output_buffer, int16_t input_data[4],
-                            float scale_factor);
-
-#ifdef __cplusplus
-}
-#endif
+    CommApp(IMessageCenter& message_center, IDebug& debug, ICanComm& can_comm);
+    void loop();
+    void init();
+};
 
 #endif /*__COMM_APP_H__*/

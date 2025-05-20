@@ -9,6 +9,7 @@ void MessageCenter::init() {
             topic_handles[i].queue_handle = xQueueCreate(
                 topic_handles[i].queue_length, topic_handles[i].item_size);
         }
+        initialized = true;
     } else {
         ASSERT(false, "Attempt to initialize initialized message center.");
     }
@@ -52,6 +53,8 @@ uint8_t MessageCenter::pub_message(Topic_Name_t topic, void* data_ptr) {
 
 uint8_t MessageCenter::pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
                                             uint8_t* will_context_switch) {
+    if (!initialized)
+        return 0;
     BaseType_t context_switch, res;
     Topic_Handle_t& topic_handle = get_topic_handle(topic);
     if (topic_handle.queue_length == 1) {

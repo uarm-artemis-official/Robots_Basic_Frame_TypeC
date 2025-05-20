@@ -34,4 +34,28 @@ class IImu {
     virtual void ahrs_update(AhrsSensor_t* sensor, bool read_mag) = 0;
 };
 
+class IEventCenter {
+   public:
+    virtual void init() = 0;
+    virtual UARM_Events_t wait_events(UARM_Events_t wait_events,
+                                      uint32_t timeout) = 0;
+    virtual void emit_events(UARM_Events_t new_events) = 0;
+    virtual void clear_events(UARM_Events_t clear_events) = 0;
+    virtual bool sync_tasks(Sync_Event_t sync_event, UARM_Events_t set_task,
+                            uint32_t timeout) = 0;
+};
+
+class IDebug {
+   public:
+    virtual BoardStatus_t get_board_status(void) = 0;
+    virtual void set_led_state(Board_LED_t led, Board_LED_State_t state) = 0;
+};
+
+class ICanComm {
+   public:
+    virtual void init() = 0;
+    virtual void can_transmit_comm_message(uint8_t send_data[8],
+                                           uint32_t comm_id) = 0;
+};
+
 #endif

@@ -4,7 +4,7 @@
 /* =========================================================================
  * MOTOR DEFINES
  * ====================================================================== */
-#define MOTOR_COUNT 8 // RM motor 0-7,
+#define MOTOR_COUNT 8  // RM motor 0-7,
 #define LK_MOTOR_COUNT 4
 #define MAX_MOTOR_COUNT 8
 
@@ -41,10 +41,21 @@
 #define DEFAULT_IMU_TEMP 40
 
 #define BMI088_BOARD_INSTALL_SPIN_MATRIX \
-  {0.0f,  1.0f, 0.0f},                    \
-  {-1.0f, 0.0f, 0.0f},                 \
-  {0.0f,  0.0f, 1.0f}
+    {0.0f, 1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}
 
-#define IMU_CALI_FREQ 2 // IMU calibration frequency (ms).
+#define IMU_CALI_FREQ 2  // IMU calibration frequency (ms).
+
+/* =========================================================================
+ * EVENT CENTER DEFINES
+ * ====================================================================== */
+// Number of sync events that can occur at the same time.
+// A sync event group has one event group that can allows up to 24 different tasks
+// (listed in Task_Sync_t) to "sync" to one particular event (Sync_Event_t).
+#define NUM_SYNC_GROUPS 5
+
+/* =========================================================================
+ * CAN COMM DEFINES
+ * ====================================================================== */
+#define CAN_COMM_QUEUE_SIZE 5
 
 #endif

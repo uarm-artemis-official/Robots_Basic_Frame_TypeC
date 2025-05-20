@@ -11,21 +11,34 @@
 #ifndef __SRC_IMU_APP_H__
 #define __SRC_IMU_APP_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include "apps_defines.h"
+#include "apps_interfaces.h"
 #include "apps_types.h"
 
-void IMU_Task_Function(void const* argument);
-void imu_task_init(IMU_t* imu, IMU_Heat_t* heat_control);
-void calibrate_imu(IMU_t* imu, IMU_Heat_t* heat_control);
-int32_t imu_temp_pid_control(IMU_t* imu, IMU_Heat_t* control);
+class IMUApp : public RTOSApp<IMUApp> {
+   private:
+    IImu& imu;
+    IMessageCenter& message_center;
+    IEventCenter& event_center;
+    IDebug& debug;
 
-void set_imu_temp_status(IMU_t* pimu, IMU_temp_status status);
+    IMU_t imu_app_state;
+    IMU_Heat_t imu_heating_control;
+    Attitude_t attitude;
+    float message_data[2];
 
-#ifdef __cplusplus
-}
-#endif
+   public:
+    static constexpr uint32_t LOOP_PERIOD_MS = IMU_TASK_EXEC_TIME;
+
+    IMUApp(IMessageCenter& message_center_ref, IEventCenter& event_center_ref,
+           IImu& imu_ref, IDebug& debug_ref);
+    void init();
+    void loop();
+
+    void calibrate_imu();
+    int32_t imu_temp_pid_control();
+
+    void set_imu_temp_status(IMU_temp_status status);
+};
 
 #endif /*__SRC_IMU_APP_H__*/

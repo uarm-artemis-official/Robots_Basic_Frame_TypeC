@@ -30,7 +30,14 @@ void Motors::init(Motor_Config_t config) {
             break;
         }
         case SWERVE: {
-            // TODO
+            this->motors[0] = Generic_Motor_t {CHASSIS_WHEEL1, 0, DJI};
+            this->motors[1] = Generic_Motor_t {CHASSIS_WHEEL2, 0, DJI};
+            this->motors[2] = Generic_Motor_t {CHASSIS_WHEEL3, 0, DJI};
+            this->motors[3] = Generic_Motor_t {CHASSIS_WHEEL4, 0, DJI};
+            this->motors[4] = Generic_Motor_t {SWERVE_STEER_MOTOR1, 0, LK};
+            this->motors[5] = Generic_Motor_t {SWERVE_STEER_MOTOR2, 0, LK};
+            this->motors[6] = Generic_Motor_t {SWERVE_STEER_MOTOR3, 0, LK};
+            this->motors[7] = Generic_Motor_t {SWERVE_STEER_MOTOR4, 0, LK};
             break;
         }
         default:
@@ -44,7 +51,7 @@ void Motors::parse_feedback(uint32_t stdid, uint8_t data[8],
                             Motor_Feedback_t* feedback) {
     if (0x200 < stdid && stdid < 0x212) {
         dji_motor_parse_feedback(data, feedback);
-    } else if (0 < stdid && stdid < 0x140) {  // TODO: Change to valid limits
+    } else if (0x140 < stdid && stdid < 0x161) {
         lk_motor_parse_feedback(data, feedback);
     } else {
         ASSERT(0,
@@ -74,7 +81,15 @@ void Motors::send_motor_voltage() {
                            this->motors[3].tx_data);
             break;
         case SWERVE:
-            // TODO
+            dji_motor_send((int32_t) M3508, this->motors[0].tx_data,
+                           this->motors[1].tx_data, this->motors[2].tx_data,
+                           this->motors[3].tx_data);
+
+            for (size_t i = 4; i < 8; i++) {
+                lk_motor_send_angle_control(motors[i].feedback_id, 1000,
+                                            motors[i].tx_data);
+            }
+
             break;
         default:
             ASSERT(0, "Attempt to send for an unknown motors configuration.");

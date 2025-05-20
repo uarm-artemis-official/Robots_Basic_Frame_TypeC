@@ -4,7 +4,7 @@
 
 #include "gpio.h"
 
-BoardStatus_t get_board_status(void) {
+BoardStatus_t Debug::get_board_status(void) {
     if (HAL_GPIO_ReadPin(Board_Status_GPIO_Port, Board_Status_Pin) ==
         GPIO_PIN_RESET) {
         return CHASSIS_BOARD;
@@ -13,7 +13,7 @@ BoardStatus_t get_board_status(void) {
     }
 }
 
-void set_led_state(Board_LED_t led, Board_LED_State_t state) {
+void Debug::set_led_state(Board_LED_t led, Board_LED_State_t state) {
     uint16_t port, pin_state;
     switch (led) {
         case BLUE:

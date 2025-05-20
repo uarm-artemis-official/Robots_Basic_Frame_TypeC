@@ -94,14 +94,29 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "FreeRTOS.h"
+#include "can_comm.h"
 #include "can_isr.h"
 #include "debug.h"
 #include "dwt.h"
 #include "event_center.h"
+#include "imu.h"
 #include "message_center.h"
+#include "motors.h"
 #include "stdio.h"
 #include "stm32f407xx.h"
 #include "uart_isr.h"
+
+#include "Chassis_App.h"
+#include "Comm_App.h"
+#include "Control_App.h"
+#include "Gimbal_App.h"
+#include "IMU_App.h"
+#include "PC_UART_App.h"
+#include "Referee_App.h"
+#include "Shoot_App.h"
+#include "Timer_App.h"
+#include "WatchDog_App.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -128,6 +143,7 @@
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
+void StartDefaultTask(void const* argument);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -146,6 +162,18 @@ uint8_t ref_rx_frame[256] = {0};       //referee temp frame buffer
 uint16_t chassis_gyro_counter = 0;  // used for backup robots without slipring
 uint8_t chassis_gyro_flag = 0;      // used for backup robots without slipring
 
+static MessageCenter& message_center = MessageCenter::get_instance();
+static EventCenter event_center;
+static Debug debug;
+static CanComm can_comm;
+static Motors motors;
+static Imu imu;
+static CommApp comm_app(message_center, debug, can_comm);
+static TimerApp timer_app(motors, message_center, debug);
+static PCUARTApp pc_uart_app(message_center);
+static IMUApp imu_app(message_center, event_center, imu, debug);
+static GimbalApp gimbal_app(message_center, event_center, debug);
+static ChassisApp chassis_app(message_center, debug);
 /* USER CODE END 0 */
 
 /**
@@ -169,7 +197,11 @@ int main(void) {
     SystemClock_Config();
 
     /* USER CODE BEGIN SysInit */
-
+    taskENTER_CRITICAL();
+    message_center.init();
+    can_comm.init();
+    event_center.init();
+    taskEXIT_CRITICAL();
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
@@ -204,10 +236,59 @@ int main(void) {
                           GPIO_PIN_SET);  // turn on the green led
     }
 
-    /* USER CODE END 2 */
+    BoardStatus_t board_status = debug.get_board_status();
 
     /* Call init function for freertos objects (in cmsis_os2.c) */
-    MX_FREERTOS_Init();
+    osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+    osThreadCreate(osThread(defaultTask), NULL);
+
+    /* USER CODE BEGIN RTOS_THREADS */
+    osThreadDef(
+        TimerTask, [](const void* arg) { timer_app.run(arg); }, osPriorityHigh,
+        0, 256);
+    osThreadCreate(osThread(TimerTask), NULL);
+
+    osThreadDef(
+        CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
+        256);
+    osThreadCreate(osThread(CommTask), NULL);
+
+    //    osThreadDef(WDGTask, WatchDog_Task_Function, osPriorityHigh, 0, 256);
+    //    WDGTaskHandle = osThreadCreate(osThread(WDGTask), (void*) board_status);
+
+    if (board_status == CHASSIS_BOARD) {
+        osThreadDef(
+            ChassisTask, [](const void* arg) { comm_app.run(arg); },
+            osPriorityRealtime, 0, 256);
+        osThreadCreate(osThread(ChassisTask), NULL);
+
+        osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
+        osThreadCreate(osThread(RCTask), NULL);
+
+        //    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
+        //    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
+
+    } else if (board_status == GIMBAL_BOARD) {
+        osThreadDef(
+            GimbalTask, [](const void* arg) { comm_app.run(arg); },
+            osPriorityRealtime, 0, 512);
+        osThreadCreate(osThread(GimbalTask), NULL);
+
+        // osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
+        // osThreadCreate(osThread(ShootTask), NULL);
+
+        osThreadDef(
+            IMUTask, [](const void* arg) { imu_app.run(arg); }, osPriorityHigh,
+            0, 256);
+        osThreadCreate(osThread(IMUTask), NULL);
+
+        osThreadDef(
+            PCUARTTask, [](const void* arg) { pc_uart_app.run(arg); },
+            osPriorityHigh, 0, 256);
+        osThreadCreate(osThread(PCUARTTask), NULL);
+    }
+
+    /* USER CODE END 2 */
 
     /* Start scheduler */
     osKernelStart();
@@ -292,11 +373,10 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     // referee_init(&referee);
     dwt_init();
 
-    MessageCenter::get_instance().init();
-    event_center_init();
+    // TODO: Init event_center.
 
     UART_Config_t config;
-    if (get_board_status() == CHASSIS_BOARD) {
+    if (debug.get_board_status() == CHASSIS_BOARD) {
         config = CHASSIS;
     } else {
         config = GIMBAL;
@@ -333,6 +413,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
     /* USER CODE BEGIN Callback 1 */
 
     /* USER CODE END Callback 1 */
+}
+
+void StartDefaultTask(void const* argument) {
+    /* USER CODE BEGIN StartDefaultTask */
+    (void) argument;
+    /* Infinite loop */
+    for (;;) {
+        osDelay(1);
+    }
+    /* USER CODE END StartDefaultTask */
+}
+
+void Comm_App_Func(const void* argument) {
+    (void) argument;
+    TickType_t xLastWakeTime;
+    const TickType_t xFrequency = pdMS_TO_TICKS(COMM_TASK_EXEC_TIME);
+    xLastWakeTime = xTaskGetTickCount();
+    comm_app.init();
+
+    for (;;) {
+        comm_app.loop();
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    }
 }
 
 /* USER CODE END 4 */

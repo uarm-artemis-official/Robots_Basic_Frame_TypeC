@@ -27,11 +27,17 @@
   */
 
 typedef enum {
-    // CHASSIS
+    // DJI CHASSIS
     CHASSIS_WHEEL1 = 0x201,
     CHASSIS_WHEEL2 = 0x202,
     CHASSIS_WHEEL3 = 0x203,
     CHASSIS_WHEEL4 = 0x204,
+
+    // SWERVE
+    SWERVE_STEER_MOTOR1 = 0x141,
+    SWERVE_STEER_MOTOR2 = 0x142,
+    SWERVE_STEER_MOTOR3 = 0x143,
+    SWERVE_STEER_MOTOR4 = 0x144,
 
     // SHOOT
     SHOOT_LEFT_FRIC = 0x201,
@@ -56,6 +62,7 @@ typedef enum {
 } Motor_Brand_t;
 
 typedef struct {
+    // feedback_id is the same as stdid used to send commands to LK motors.
     uint32_t feedback_id;
     int32_t tx_data;
     Motor_Brand_t brand;
@@ -163,7 +170,6 @@ typedef struct {
 /* =========================================================================
  * DEBUG TYPES
  * ====================================================================== */
-
 typedef enum { GIMBAL_BOARD = 1, CHASSIS_BOARD = 2 } BoardStatus_t;
 
 typedef enum {
@@ -176,5 +182,31 @@ typedef enum {
     ON,
     OFF,
 } Board_LED_State_t;
+
+/* =========================================================================
+ * EVENT CENTER TYPES
+ * ====================================================================== */
+// There is a maximum of 24 bits for our configuration for one event group.
+// The other 8 bits are reserved for other use.
+typedef enum Event_t { IMU_READY = 1 << 0 } Event_t;
+
+typedef uint32_t UARM_Events_t;
+
+typedef enum Task_Sync_t {
+    TS_CHASSIS = 1 << 1,
+    TS_GIMBAL = 1 << 2,
+    TS_SHOOT = 1 << 3,
+    TS_COMM = 1 << 4,
+    TS_CONTROL = 1 << 5,
+    TS_IMU = 1 << 6,
+    TS_PC_UART = 1 << 7,
+    TS_REFEREE = 1 << 8,
+    TS_TIMER = 1 << 9,
+    TS_WATCHDOG = 1 << 10,
+} Task_Sync_t;
+
+typedef enum Sync_Event_t {
+    None,
+} Sync_Event_t;
 
 #endif

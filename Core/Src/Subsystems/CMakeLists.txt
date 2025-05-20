@@ -73,6 +73,7 @@ add_library(CAN_COMM STATIC can_comm.cpp)
 target_include_directories(CAN_COMM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(CAN_COMM 
     PUBLIC
+        SUBSYSTEMS_INCLUDE
         LIB::UARM_LIB
         LIB::UARM_OS
         FW::QUEUE_M)

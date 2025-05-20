@@ -19,13 +19,12 @@
 #define __RC_APP_C__
 
 #include "Control_App.h"
-
+#include "apps_defines.h"
+#include "message_center.h"
+#include "public_defines.h"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 #include "uarm_os.h"
-
-#include "message_center.h"
-#include "public_defines.h"
 
 /*********************************************************************************
  *  				  <   GENERAL CTRL OPERATION TABLE  >
@@ -114,7 +113,8 @@ static MessageCenter& message_center = MessageCenter::get_instance();
   * @param[in] None
   * @retval    None
   */
-void RC_Task_Func() noexcept {
+void RC_Task_Func(const void* argument) {
+    (void) argument;
 
     /* set task exec period */
     TickType_t xLastWakeTime;

@@ -12,7 +12,7 @@
 *******************************************************************************/
 
 #include "Timer_App.h"
-
+#include "apps_defines.h"
 #include "apps_types.h"
 #include "debug.h"
 #include "message_center.h"
@@ -28,17 +28,16 @@
 * @retval None
 */
 
-static Motors system_motors;
-static MotorSetMessage_t motor_tx_message;
-static MessageCenter& message_center = MessageCenter::get_instance();
+TimerApp::TimerApp(IMotors& system_motors_ref,
+                   IMessageCenter& message_center_ref, IDebug& debug_ref)
+    : system_motors(system_motors_ref),
+      message_center(message_center_ref),
+      debug(debug_ref) {
+    memset(&motor_tx_message, 0, sizeof(MotorSetMessage_t));
+}
 
-void Timer_Task_Func(void const* argument) {
-    (void) argument;
-    /* set task exec period */
-    const TickType_t xFrequency = pdMS_TO_TICKS(TIMER_TASK_EXEC_TIME);
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-
-    BoardStatus_t status = get_board_status();
+void TimerApp::init() {
+    BoardStatus_t status = debug.get_board_status();
     Motor_Config_t config;
     switch (status) {
         case CHASSIS_BOARD: {
@@ -56,28 +55,26 @@ void Timer_Task_Func(void const* argument) {
         default:
             ASSERT(0, "Unsupported board status in Timer.");
     }
-
     system_motors.init(config);
+}
 
-    for (;;) {
-        uint8_t received_new_message =
-            message_center.get_message(MOTOR_SET, &motor_tx_message, 0);
-        if (received_new_message == 1) {
-            for (int i = 0; i < MAX_MOTOR_COUNT; i++) {
-                if (motor_tx_message.can_ids[i] == 0)
-                    break;
-                if (-30000 <= motor_tx_message.motor_can_volts[i] &&
-                    motor_tx_message.motor_can_volts[i] <= 30000) {
-                    system_motors.set_motor_voltage(
-                        motor_tx_message.can_ids[i],
-                        motor_tx_message.motor_can_volts[i]);
-                }
+void TimerApp::loop() {
+    uint8_t received_new_message =
+        message_center.get_message(MOTOR_SET, &motor_tx_message, 0);
+    if (received_new_message == 1) {
+        for (int i = 0; i < MAX_MOTOR_COUNT; i++) {
+            if (motor_tx_message.can_ids[i] == 0)
+                break;
+            if (-30000 <= motor_tx_message.motor_can_volts[i] &&
+                motor_tx_message.motor_can_volts[i] <= 30000) {
+                system_motors.set_motor_voltage(
+                    motor_tx_message.can_ids[i],
+                    motor_tx_message.motor_can_volts[i]);
             }
         }
-        /* CAN data  */
+    }
+    /* CAN data  */
+    if (board_status != GIMBAL_BOARD) {
         system_motors.send_motor_voltage();
-
-        /* delay until wake time */
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }

@@ -9,6 +9,11 @@
 
 #include "tim.h"
 
+static Imu& getInstance() {
+    static Imu imu;
+    return imu;
+}
+
 void Imu::init() {
     BMI088_init();
     ist8310_init();
@@ -16,6 +21,7 @@ void Imu::init() {
 }
 
 float Imu::get_temp() {
+    BMI088_Read(gyro, accel, &temperature);
     return temperature;
 }
 

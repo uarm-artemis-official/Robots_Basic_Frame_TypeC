@@ -3,7 +3,10 @@ target_include_directories(APPS_INCLUDE
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${ALGORITHMS_PATH}/control
-        ${ALGORITHMS_PATH}/attitude)
+        ${ALGORITHMS_PATH}/attitude
+        ${SUBSYSTEMS_PATH}
+        ${LIB_PATH}
+        ${FIRMWARE_PATH}/Device/motors)
 
 # Add Shoot_App.c back again later
 add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp)
