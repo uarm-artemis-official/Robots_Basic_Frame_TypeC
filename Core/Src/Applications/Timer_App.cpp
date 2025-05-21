@@ -27,6 +27,8 @@
 * @param  Not used
 * @retval None
 */
+#define SWERVE_CHASSIS
+#define SWERVE_CALIBRATE
 
 TimerApp::TimerApp(IMotors& system_motors_ref,
                    IMessageCenter& message_center_ref, IDebug& debug_ref)
@@ -42,7 +44,11 @@ void TimerApp::init() {
     switch (status) {
         case CHASSIS_BOARD: {
 #ifdef SWERVE_CHASSIS
+#ifdef SWERVE_CALIBRATE
+            config = SWERVE_ZERO;
+#else
             config = SWERVE;
+#endif
 #else
             config = DJI_CHASSIS;
 #endif

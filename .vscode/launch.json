@@ -15,18 +15,23 @@
             "servertype": "stlink",
             "device": "STM32F407IGHx", //MCU used
             "interface": "swd",
-            "serialNumber": "",        //Set ST-Link ID if you use multiple at the same time
+            "serialNumber": "", //Set ST-Link ID if you use multiple at the same time
             "runToEntryPoint": "main",
             "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F407.svd",
-            "v1": false,               //Change it depending on ST Link version
+            "v1": false, //Change it depending on ST Link version
             "serverpath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
-            "stm32cubeprogrammer":"${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
-            "stlinkPath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",   
+            "stm32cubeprogrammer": "${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
+            "stlinkPath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
             "armToolchainPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin",
-            "gdbPath":"${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",            
+            "gdbPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
             "serverArgs": [
-                "-m","0",
+                "-m",
+                "0",
             ],
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 4
+            }
             //"preLaunchTask": "Build + Flash"
             /* If you use external loader, add additional arguments */
             //"serverArgs": ["--extload", "path/to/ext/loader.stldr"],
@@ -42,17 +47,18 @@
             "servertype": "stlink",
             "device": "STM32F407IGHx", //MCU used
             "interface": "swd",
-            "serialNumber": "",        //Set ST-Link ID if you use multiple at the same time
+            "serialNumber": "", //Set ST-Link ID if you use multiple at the same time
             "runToEntryPoint": "main",
             "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F407.svd",
-            "v1": false,               //Change it depending on ST Link version
+            "v1": false, //Change it depending on ST Link version
             "serverpath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
-            "stm32cubeprogrammer":"${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
-            "stlinkPath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",   
+            "stm32cubeprogrammer": "${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
+            "stlinkPath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
             "armToolchainPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin",
-            "gdbPath":"${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",            
+            "gdbPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
             "serverArgs": [
-                "-m","0",
+                "-m",
+                "0",
             ],
             /* If you use external loader, add additional arguments */
             //"serverArgs": ["--extload", "path/to/ext/loader.stldr"],
@@ -69,9 +75,9 @@
                 "dap.cfg"
             ],
             "serverArgs": [
-                "-s","${env:SCRIPTS_PATH}",
+                "-s",
+                "${env:SCRIPTS_PATH}",
                 "-d3"
-
             ],
             "device": "STM32F407IGHx",
             "runToEntryPoint": "main",

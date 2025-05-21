@@ -18,13 +18,16 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 # Define the build type
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "DJI")
 endif()
 
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Test)
     include("cmake/mingw64-gcc.cmake") # toolchain file
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Swerve")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Swerve)
+    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
 else()
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
@@ -63,7 +66,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms/control)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 
-else() # Debug
+else() # DJI/Swerve
     add_executable(${CMAKE_PROJECT_NAME})
 
     add_subdirectory(cmake/stm32cubemx)

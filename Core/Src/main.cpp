@@ -258,7 +258,7 @@ int main(void) {
 
     if (board_status == CHASSIS_BOARD) {
         osThreadDef(
-            ChassisTask, [](const void* arg) { comm_app.run(arg); },
+            ChassisTask, [](const void* arg) { chassis_app.run(arg); },
             osPriorityRealtime, 0, 256);
         osThreadCreate(osThread(ChassisTask), NULL);
 
@@ -270,7 +270,7 @@ int main(void) {
 
     } else if (board_status == GIMBAL_BOARD) {
         osThreadDef(
-            GimbalTask, [](const void* arg) { comm_app.run(arg); },
+            GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
             osPriorityRealtime, 0, 512);
         osThreadCreate(osThread(GimbalTask), NULL);
 

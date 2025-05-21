@@ -65,8 +65,7 @@ void lk_motor_parse_feedback(const uint8_t* rx_buffer,
     motor_feedback->rx_temp = (int16_t) (rx_buffer[1]);
 }
 
-void lk_motor_send_angle_control(uint32_t id, uint16_t max_speed,
-                                 uint32_t angle) {
+void lk_motor_send_multi_loop(uint32_t id, uint16_t max_speed, uint32_t angle) {
     CAN_TxHeaderTypeDef tx_header;
     uint8_t tx_data[8];
 
@@ -78,6 +77,30 @@ void lk_motor_send_angle_control(uint32_t id, uint16_t max_speed,
 
     tx_data[0] = LK_CMD_ML_ANGLE_WITH_SPEED;
     tx_data[1] = 0x00;
+    tx_data[2] = *((uint8_t*) (&max_speed) + 0);
+    tx_data[3] = *((uint8_t*) (&max_speed) + 1);
+    tx_data[4] = *((uint8_t*) (&angle) + 0);
+    tx_data[5] = *((uint8_t*) (&angle) + 1);
+    tx_data[6] = *((uint8_t*) (&angle) + 2);
+    tx_data[7] = *((uint8_t*) (&angle) + 3);
+
+    HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,
+                         (uint32_t*) CAN_TX_MAILBOX1);
+}
+
+void lk_motor_send_single_loop(uint32_t id, uint8_t spin_direction,
+                               uint16_t max_speed, uint32_t angle) {
+    CAN_TxHeaderTypeDef tx_header;
+    uint8_t tx_data[8];
+
+    tx_header.StdId = id;
+    tx_header.ExtId = 0x00;
+    tx_header.IDE = CAN_ID_STD;
+    tx_header.RTR = CAN_RTR_DATA;
+    tx_header.DLC = 8;
+
+    tx_data[0] = LK_CMD_SL_ANGLE_WITH_SPEED;
+    tx_data[1] = spin_direction;
     tx_data[2] = *((uint8_t*) (&max_speed) + 0);
     tx_data[3] = *((uint8_t*) (&max_speed) + 1);
     tx_data[4] = *((uint8_t*) (&angle) + 0);

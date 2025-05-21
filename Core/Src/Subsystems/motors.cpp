@@ -29,6 +29,7 @@ void Motors::init(Motor_Config_t config) {
             this->motors[3] = Generic_Motor_t {CHASSIS_WHEEL4, 0, DJI};
             break;
         }
+        case SWERVE_ZERO:
         case SWERVE: {
             this->motors[0] = Generic_Motor_t {CHASSIS_WHEEL1, 0, DJI};
             this->motors[1] = Generic_Motor_t {CHASSIS_WHEEL2, 0, DJI};
@@ -86,10 +87,15 @@ void Motors::send_motor_voltage() {
                            this->motors[3].tx_data);
 
             for (size_t i = 4; i < 8; i++) {
-                lk_motor_send_angle_control(motors[i].feedback_id, 1000,
-                                            motors[i].tx_data);
+                uint8_t spin_direction = motors[i].tx_data >= 0 ? 0x01 : 0x00;
+                uint16_t max_speed = (motors[i].tx_data & 0x0fff0000) >> 16;
+                uint32_t angle = motors[i].tx_data & 0xffff;
+                lk_motor_send_single_loop(motors[i].feedback_id, spin_direction,
+                                          max_speed, angle);
             }
 
+            break;
+        case SWERVE_ZERO:
             break;
         default:
             ASSERT(0, "Attempt to send for an unknown motors configuration.");

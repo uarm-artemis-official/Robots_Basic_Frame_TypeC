@@ -8,6 +8,8 @@ target_include_directories(APPS_INCLUDE
         ${LIB_PATH}
         ${FIRMWARE_PATH}/Device/motors)
 
+add_library(CHASSIS_DRIVES STATIC Omni_Drive.cpp Swerve_Drive.cpp)
+
 # Add Shoot_App.c back again later
 add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp)
 target_include_directories(BASIC_APPS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

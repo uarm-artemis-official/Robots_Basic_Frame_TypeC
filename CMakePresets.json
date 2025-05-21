@@ -4,38 +4,25 @@
         {
             "name": "default",
             "hidden": true,
-            "generator": "MinGW Makefiles",
+            "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake",
             "cacheVariables": {}
         },
         {
-            "name": "Debug",
+            "name": "DJI",
             "inherits": "default",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_BUILD_TYPE": "DJI",
                 "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
         },
         {
-            "name": "RelWithDebInfo",
+            "name": "Swerve",
             "inherits": "default",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
-        },
-        {
-            "name": "Release",
-            "inherits": "default",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "MinSizeRel",
-            "inherits": "default",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "MinSizeRel"
+                "CMAKE_BUILD_TYPE": "Swerve",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
         },
         {
@@ -51,20 +38,12 @@
     ],
     "buildPresets": [
         {
-            "name": "Debug",
-            "configurePreset": "Debug"
+            "name": "DJI",
+            "configurePreset": "DJI"
         },
         {
-            "name": "RelWithDebInfo",
-            "configurePreset": "RelWithDebInfo"
-        },
-        {
-            "name": "Release",
-            "configurePreset": "Release"
-        },
-        {
-            "name": "MinSizeRel",
-            "configurePreset": "MinSizeRel"
+            "name": "Swerve",
+            "configurePreset": "Swerve"
         },
         {
             "name": "GTest",

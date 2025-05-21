@@ -12,7 +12,7 @@
  * ====================================================================== */
 /*
  * @brief Structure for all motors installed
- * @Note  first 4 motors will use 0x200, last 4 motors will use 0x1FF
+ * @Note  first 4 motors will use 0x200
  * 		    motor_data[0]: chassis 	3508
  * 			motor_data[1]: chassis 	3508
  *			motor_data[2]: chassis 	3508
@@ -52,6 +52,7 @@ typedef enum {
 typedef enum {
     DJI_CHASSIS,
     SWERVE,
+    SWERVE_ZERO,
     DJI_GIMBAL,
     MOTORS_NONE,
 } Motor_Config_t;
@@ -75,7 +76,7 @@ typedef struct {
 
 /*
  * @brief Structure for all motors installed
- * @Note  first 4 motors will use 0x200, last 4 motors will use 0x1FF
+ * @Note  first 4 motors will use 0x200
  * 		    motor_data[0]: chassis 	3508/shoot fric left  3508
  * 			motor_data[1]: chassis 	3508/shoot fric right 3508
  *			motor_data[2]: chassis 	3508/shoot magazine 3508

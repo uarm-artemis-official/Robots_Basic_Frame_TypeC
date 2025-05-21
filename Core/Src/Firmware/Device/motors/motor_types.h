@@ -22,6 +22,7 @@ typedef enum {
     LK_CMD_ML_ANGLE = 0xA3,
     LK_CMD_ML_ANGLE_WITH_SPEED = 0xA4,
     // Multiple Loop Speed Control, -2048 ~ 2048
+    LK_CMD_SL_ANGLE_WITH_SPEED = 0xA6,
     LK_CMD_INCREMENTAL_ANGLE = 0xA7
 } LK_Motor_Command_t;
 
@@ -29,6 +30,7 @@ typedef enum {
     GM6020 = 0x1FF,
     M3508 = 0x200,
     M2006 = 0x1FF,
+    MG4005E = 0x140,
 } Motor_Tx_Stdid_t;
 
 typedef struct {
