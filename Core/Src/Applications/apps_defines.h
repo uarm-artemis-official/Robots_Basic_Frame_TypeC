@@ -18,9 +18,10 @@
  * CHASSIS DEFINES 
  * ====================================================================== */
 /* define general declarations for gimbal task here */
-#define CHASSIS_WHEEL_X_LENGTH 0.50f    //m
-#define CHASSIS_WHEEL_Y_LENGTH 0.30f    //m
-#define CHASSIS_MOTOR_DEC_RATIO 19.0f;  //motor deduction ratio 19:1
+#define CHASSIS_WHEEL_X_LENGTH (0.40f)          // meters
+#define CHASSIS_WHEEL_Y_LENGTH (0.35f)          // meters
+#define CHASSIS_OMNI_WHEEL_RADIUS (0.076f)      // meters
+#define CHASSIS_MOTOR_DEC_RATIO (1.0f / 19.0f)  // motor deduction ratio 19:1
 #define CHASSIS_SLEF_GYRO_ANG_VEL 80
 #define CHASSIS_MAX_SPEED 16834
 

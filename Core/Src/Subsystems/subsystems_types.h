@@ -57,10 +57,7 @@ typedef enum {
     MOTORS_NONE,
 } Motor_Config_t;
 
-typedef enum {
-    DJI,
-    LK,
-} Motor_Brand_t;
+typedef enum { DJI, LK, UNKNOWN_MOTOR } Motor_Brand_t;
 
 typedef struct {
     // feedback_id is the same as stdid used to send commands to LK motors.
@@ -164,7 +161,7 @@ typedef struct {
 } MotorSetMessage_t;
 
 typedef struct {
-    Motor_Feedback_t feedback[MAX_MOTOR_COUNT];
+    uint8_t feedback[MAX_MOTOR_COUNT][8];
     Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
 } MotorReadMessage_t;
 

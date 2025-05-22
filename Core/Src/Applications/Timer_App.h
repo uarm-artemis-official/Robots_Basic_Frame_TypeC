@@ -14,12 +14,16 @@
 #ifndef SRC_APPLICATIONS_TIMER_APP_H_
 #define SRC_APPLICATIONS_TIMER_APP_H_
 
+#include <array>
 #include "apps_defines.h"
 #include "apps_interfaces.h"
 #include "apps_types.h"
 
 class TimerApp : public RTOSApp<TimerApp> {
    private:
+    const std::array<Motor_CAN_ID_t, 4> swerve_ids = {
+        SWERVE_STEER_MOTOR1, SWERVE_STEER_MOTOR2, SWERVE_STEER_MOTOR3,
+        SWERVE_STEER_MOTOR4};
     IMotors& system_motors;
     IMessageCenter& message_center;
     IDebug& debug;

@@ -48,16 +48,26 @@ void Motors::init(Motor_Config_t config) {
     }
 }
 
-void Motors::parse_feedback(uint32_t stdid, uint8_t data[8],
-                            Motor_Feedback_t* feedback) {
+void Motors::parse_feedback(uint32_t stdid, uint8_t data[8], void* feedback) {
     if (0x200 < stdid && stdid < 0x212) {
-        dji_motor_parse_feedback(data, feedback);
-    } else if (0x140 < stdid && stdid < 0x161) {
+        dji_motor_parse_feedback(data,
+                                 static_cast<Motor_Feedback_t*>(feedback));
+    } else if (0x140 < stdid && stdid < 0x173) {
         lk_motor_parse_feedback(data, feedback);
     } else {
         ASSERT(0,
                "subsystems::motors cannot parse feedback for data with "
                "unsupported stdid");
+    }
+}
+
+Motor_Brand_t Motors::get_motor_brand(uint32_t stdid) {
+    if (stdid >= 0x141 && stdid <= 0x172) {
+        return LK;
+    } else if (stdid >= 0x201 && stdid <= 0x208) {
+        return DJI;
+    } else {
+        return UNKNOWN_MOTOR;
     }
 }
 
@@ -87,8 +97,10 @@ void Motors::send_motor_voltage() {
                            this->motors[3].tx_data);
 
             for (size_t i = 4; i < 8; i++) {
-                uint8_t spin_direction = motors[i].tx_data >= 0 ? 0x01 : 0x00;
-                uint16_t max_speed = (motors[i].tx_data & 0x0fff0000) >> 16;
+                uint8_t spin_direction = motors[i].tx_data >> 31;
+                uint16_t max_speed =
+                    (static_cast<uint32_t>(motors[i].tx_data) & 0x0fff0000) >>
+                    16;
                 uint32_t angle = motors[i].tx_data & 0xffff;
                 lk_motor_send_single_loop(motors[i].feedback_id, spin_direction,
                                           max_speed, angle);
@@ -99,5 +111,17 @@ void Motors::send_motor_voltage() {
             break;
         default:
             ASSERT(0, "Attempt to send for an unknown motors configuration.");
+    }
+}
+
+void Motors::request_feedback(Motor_CAN_ID_t can_id) {
+    switch (config) {
+        case SWERVE_ZERO:
+        case SWERVE:
+            if (Motors::get_motor_brand(can_id) == LK)
+                lk_motor_send(can_id, LK_MOTOR_READ_SL_FB, 0);
+            break;
+        default:
+            return;
     }
 }

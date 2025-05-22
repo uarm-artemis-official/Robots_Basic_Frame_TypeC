@@ -21,6 +21,7 @@ class IMotors {
     virtual void init(Motor_Config_t config) = 0;
     virtual void set_motor_voltage(Motor_CAN_ID_t can_id, int32_t output) = 0;
     virtual void send_motor_voltage() = 0;
+    virtual void request_feedback(Motor_CAN_ID_t can_id) = 0;
 };
 
 class IImu {

@@ -16,6 +16,7 @@
 #include "debug.h"
 #include "event_center.h"
 #include "message_center.h"
+#include "motors.h"
 #include "pid.h"
 #include "public_defines.h"
 #include "ramp.h"
@@ -70,10 +71,6 @@ void GimbalApp::calibrate() {
 }
 
 void GimbalApp::after_calibrate() {
-    const int num_samples = 10;
-    int count = 0;
-    float avg_headings[2];
-
     EventBits_t res = 0;
     while ((res & IMU_READY) != IMU_READY) {
         res = event_center.wait_events(IMU_READY, 100000);
@@ -251,13 +248,11 @@ void GimbalApp::get_motor_feedback() {
         message_center.peek_message(MOTOR_READ, &read_message, 0);
     if (new_read_message == 1) {
         for (int i = 0; i < 2; i++) {
-            uint8_t good = 1;
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
                 if (gimbal_can_ids[i] == read_message.can_ids[j]) {
-                    memcpy(&(motor_controls[i].feedback),
-                           &(read_message.feedback[j]),
-                           sizeof(Motor_Feedback_t));
-                    good = 0;
+                    Motors::parse_feedback(gimbal_can_ids[i],
+                                           read_message.feedback[i],
+                                           &(motor_controls[i].feedback));
                     break;
                 }
             }

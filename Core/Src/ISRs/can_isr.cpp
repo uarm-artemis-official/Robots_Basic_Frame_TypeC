@@ -34,14 +34,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
         (CAN_RI0R_STID & hcan->Instance->sFIFOMailBox[CAN_RX_FIFO0].RIR) >>
         CAN_TI0R_STID_Pos;
     if (hcan == &hcan1) {
-        uint8_t buffer[8];
         uint8_t buffer_index = get_free_buffer(rx_header.StdId);
         if (buffer_index < 8) {
-            HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, buffer);
+            HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header,
+                                 read_message.feedback[buffer_index]);
             read_message.can_ids[buffer_index] =
                 static_cast<Motor_CAN_ID_t>(rx_header.StdId);
-            Motors::parse_feedback(rx_header.StdId, buffer,
-                                   &(read_message.feedback[buffer_index]));
             message_center.pub_message_from_isr(MOTOR_READ, &read_message,
                                                 NULL);
         }

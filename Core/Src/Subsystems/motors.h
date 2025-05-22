@@ -10,13 +10,14 @@ class Motors : public IMotors {
     Generic_Motor_t motors[MAX_MOTOR_COUNT];
     Motor_Config_t config;
 
-    static void parse_feedback(uint32_t stdid, uint8_t data[8],
-                               Motor_Feedback_t* feedback);
+    static void parse_feedback(uint32_t stdid, uint8_t data[8], void* feedback);
+    static Motor_Brand_t get_motor_brand(uint32_t stdid);
 
     Motors();
     void init(Motor_Config_t config) override;
     void set_motor_voltage(Motor_CAN_ID_t can_id, int32_t output) override;
     void send_motor_voltage() override;
+    void request_feedback(Motor_CAN_ID_t can_id) override;
 };
 
 #endif

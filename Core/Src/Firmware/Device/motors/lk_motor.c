@@ -57,12 +57,28 @@ void lk_motor_send(uint32_t id, LK_Motor_Command_t control_cmd,
   * @param[in] can1/can2 type header
   * @retval    None
   */
-void lk_motor_parse_feedback(const uint8_t* rx_buffer,
-                             Motor_Feedback_t* motor_feedback) {
-    motor_feedback->rx_angle = (int16_t) (rx_buffer[7] << 8 | rx_buffer[6]);
-    motor_feedback->rx_rpm = (int16_t) (rx_buffer[5] << 8 | rx_buffer[4]);
-    motor_feedback->rx_current = (int16_t) (rx_buffer[3] << 8 | rx_buffer[2]);
-    motor_feedback->rx_temp = (int16_t) (rx_buffer[1]);
+void lk_motor_parse_feedback(const uint8_t rx_buffer[8], void* fb_ptr) {
+    switch (rx_buffer[0]) {
+        case LK_MOTOR_READ_SL_FB:
+            uint8_t* sl_feedback = (uint8_t*) fb_ptr;
+            sl_feedback[0] = rx_buffer[4];
+            sl_feedback[1] = rx_buffer[5];
+            sl_feedback[2] = rx_buffer[6];
+            sl_feedback[3] = rx_buffer[7];
+            break;
+        case LK_MOTOR_READ_FB_DATA:
+            Motor_Feedback_t* raw_feedback_ptr = (Motor_Feedback_t*) fb_ptr;
+            raw_feedback_ptr->rx_angle =
+                (int16_t) (rx_buffer[7] << 8 | rx_buffer[6]);
+            raw_feedback_ptr->rx_rpm =
+                (int16_t) (rx_buffer[5] << 8 | rx_buffer[4]);
+            raw_feedback_ptr->rx_current =
+                (int16_t) (rx_buffer[3] << 8 | rx_buffer[2]);
+            raw_feedback_ptr->rx_temp = (int16_t) (rx_buffer[1]);
+            break;
+        default:
+            return;
+    }
 }
 
 void lk_motor_send_multi_loop(uint32_t id, uint16_t max_speed, uint32_t angle) {

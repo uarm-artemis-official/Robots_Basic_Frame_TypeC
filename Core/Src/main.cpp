@@ -112,9 +112,11 @@
 #include "Control_App.h"
 #include "Gimbal_App.h"
 #include "IMU_App.h"
+#include "Omni_Drive.h"
 #include "PC_UART_App.h"
 #include "Referee_App.h"
 #include "Shoot_App.h"
+#include "Swerve_Drive.h"
 #include "Timer_App.h"
 #include "WatchDog_App.h"
 /* USER CODE END Includes */
@@ -173,7 +175,8 @@ static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center);
 static IMUApp imu_app(message_center, event_center, imu, debug);
 static GimbalApp gimbal_app(message_center, event_center, debug);
-static ChassisApp chassis_app(message_center, debug);
+static OmniDrive omni_drive(message_center, 0, 0);
+static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 /* USER CODE END 0 */
 
 /**

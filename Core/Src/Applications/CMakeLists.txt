@@ -9,16 +9,22 @@ target_include_directories(APPS_INCLUDE
         ${FIRMWARE_PATH}/Device/motors)
 
 add_library(CHASSIS_DRIVES STATIC Omni_Drive.cpp Swerve_Drive.cpp)
+target_link_libraries(CHASSIS_DRIVES 
+    PUBLIC
+        APPS_INCLUDE
+        LIB::UARM_LIB
+        LIB::UARM_OS
+        LIB::UARM_MATH)
 
 # Add Shoot_App.c back again later
 add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp)
-target_include_directories(BASIC_APPS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(BASIC_APPS
     PUBLIC
         APPS_INCLUDE
         LIB::UARM_LIB
         LIB::UARM_OS
         LIB::UARM_MATH
+        CHASSIS_DRIVES
         SUBSYSTEMS::MESSAGE_CENTER
         SUBSYSTEMS::MOTORS
         ALGORITHMS::ATTITUDE_LIB

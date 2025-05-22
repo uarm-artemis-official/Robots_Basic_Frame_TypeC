@@ -14,6 +14,9 @@
 //#define CHASSIS_POWER_LIMIT
 
 #include "Chassis_App.h"
+#include <type_traits>
+#include "Omni_Drive.h"
+#include "Swerve_Drive.h"
 #include "apps_defines.h"
 #include "debug.h"
 #include "message_center.h"
@@ -23,23 +26,25 @@
 #include "uarm_math.h"
 #include "uarm_os.h"
 
-ChassisApp::ChassisApp(IMessageCenter& message_center_ref, IDebug& debug_ref)
-    : message_center(message_center_ref), debug(debug_ref) {}
+template class ChassisApp<OmniDrive>;
 
-void ChassisApp::init() {
+template <class DriveTrain>
+ChassisApp<DriveTrain>::ChassisApp(DriveTrain& drive_train_ref,
+                                   IMessageCenter& message_center_ref,
+                                   IDebug& debug_ref)
+    : drive_train(drive_train_ref),
+      message_center(message_center_ref),
+      debug(debug_ref) {
+    static_assert(
+        std::is_same<DriveTrain, OmniDrive>::value ||
+            std::is_same<DriveTrain, SwerveDrive>::value,
+        "Attempt to initialize ChassisApp with unsupported DriveTrain.");
+}
+
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::init() {
+    drive_train.init();
     debug.set_led_state(RED, ON);
-
-    for (int i = 0; i < CHASSIS_MAX_WHEELS; i++) {
-        memset(&(motor_controls[i]), 0, sizeof(Chassis_Wheel_Control_t));
-        pid_param_init(&(motor_controls[i].f_pid), max_out_wheel,
-                       max_I_out_wheel, max_err_wheel, kp_wheel, ki_wheel,
-                       kd_wheel);
-    }
-
-    motor_controls[0].stdid = CHASSIS_WHEEL1;
-    motor_controls[1].stdid = CHASSIS_WHEEL2;
-    motor_controls[2].stdid = CHASSIS_WHEEL3;
-    motor_controls[3].stdid = CHASSIS_WHEEL4;
 
     pid_param_init(&(chassis.f_pid), 8000, 500, 5000, 600, 0.1,
                    100);  // chassis twist pid init
@@ -52,7 +57,8 @@ void ChassisApp::init() {
     set_initial_state();
 }
 
-void ChassisApp::set_initial_state() {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::set_initial_state() {
     chassis.vx = 0;
     chassis.vy = 0;
     chassis.wz = 0;
@@ -77,7 +83,8 @@ void ChassisApp::set_initial_state() {
     memset(rc_channels, 0, sizeof(int16_t) * 4);
 }
 
-void ChassisApp::loop() {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::loop() {
     chassis_get_rc_info(rc_channels);
     chassis_get_wheel_feedback();
     chassis_get_gimbal_rel_angles();
@@ -86,230 +93,19 @@ void ChassisApp::loop() {
     chassis_update_gimbal_coord(rc_channels);
     // chassis_manual_gear_set(&chassis, &rc);
     chassis_exec_act_mode();
-    chassis_calc_wheel_pid_out();
-    chassis_send_wheel_volts();
+    drive_train.drive(chassis.vx, chassis.vy, chassis.wz);
 }
 
-/*
- * @brief 	  Inversely kinematics of swerve
- * @param[in] chassis_hdlr:chassis main struct
- * @retval    None
- */
-void ChassisApp::swerve_wheel_decomp() {
-    /* Assume wheels are calibriated to forward position (i.e. forward is 0 degrees)
-     * These calculations will be in degrees for MG4005 since 3600 dps is 360 degrees
-	 *			 
-	 *		 v1  [] ---- [] v2     <Front>		   	 A      __		      0/360 deg
-	 *		      |      |					         | vy  /		 	    O  
-	 *		  	  |	     |                           |     \__>   wz       180  deg  
-	 *		 v4	 [] ---- [] v3     <Rear>              ----> vx  				 
-	 *										
-     Annotations used for velocity vector of robot:
-        V : Translational velocity vector,
-        Vx, Vy : translational velocity vector component along X and Y axis respectively,
-        vx, vy : magnitude of translational velocity component along X and Y axis respectively,
-        Ω : angular (rotational) velocity vector, it is positive in counterclockwise direction,
-        wz : magnitude of angular velocity vector,
-        R : the distance vector from the axis of rotation to swerve module,
-        X : The distance from wheel center of front and rear wheel along X axis,
-        Y : The distance from wheel center of left and right wheel along Y axis.
-
-	Annotations used for swerve module:
-        Vi(i = 1, 2, 3, 4)  : resultant velocity vector,
-        Vit(i = 1, 2, 3, 4) : translational velocity vector,
-        Vir(i = 1, 2, 3, 4) : rotational velocity vector,
-        vi(i = 1, 2, 3, 4)  : resultant velocity,
-        vix(i = 1, 2, 3, 4) : velocity component along X axis,
-        viy(i = 1, 2, 3, 4) : velocity component along Y axis,
-        0i : Angle of azimuth motor
-
-     The general inverse kinematic equation is,
-        Vi = Vit + Vir (1)
-        V1 = V + Ω × R (2)
-        V1x = Vx + (Ω × R)x (3)
-        V1y = Vy + (Ω × R)y (3)
-        V1x = Vx - Ω ∗ X/2 (4)
-        V1y = Vy + Ω ∗ Y/2 (4)
-    
-    For module 1,
-        v1x = vx - wz ∗ X/2 
-        v1y = vy + wz ∗ Y/2 
-        v1 = sqrt((v1x)^2 + (v1y)^2)) 
-        θ1 = atan2(v1y,v1x) * (1800/pi)
-    
-    For module 2,
-        v2x = vx + wz ∗ X/2 
-        v2y = vy + wz ∗ Y/2 
-        v2 = sqrt((v2x)^2 + (v2y)^2)) 
-        θ2 = atan2(v2y,v2x) * (1800/pi)
-
-    For module 3,
-        v3x = vx + wz ∗ X/2 
-        v3y = vy - wz ∗ Y/2 
-        v3 = sqrt((v3x)^2 + (v3y)^2)) 
-        θ3 = atan2(v3y,v3x) * (1800/pi)
-
-    For module 4,
-        v4x = vx - wz ∗ X/2 
-        v4y = vy - wz ∗ Y/2 
-        v4 = sqrt((v4x)^2 + (v4y)^2)) 
-        θ4 = atan2(v4y,v4x) * (1800/pi)
-    */
-    /* Define variables shown above */
-    // float v1x =
-    //     chassis_hdlr->vx - chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v1y =
-    //     chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v2x =
-    //     chassis_hdlr->vx + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v2y =
-    //     chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v3x =
-    //     chassis_hdlr->vx + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v3y =
-    //     chassis_hdlr->vy - chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v4x =
-    //     chassis_hdlr->vx - chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v4y =
-    //     chassis_hdlr->vy - chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-
-    // /* For speed (Vi) control of M3508 */
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL1_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v1x, 2) + pow(v1y, 2))) * CHASSIS_MOTOR_DEC_RATIO;
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL2_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v2x, 2) + pow(v2y, 2))) *
-    //     CHASSIS_MOTOR_DEC_RATIO chassis_hdlr->mec_spd[CHASSIS_WHEEL3_CAN_ID] =
-    //         (int16_t) (sqrt(pow(v3x, 2) + pow(v3y, 2))) *
-    //         CHASSIS_MOTOR_DEC_RATIO;
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL4_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v4x, 2) + pow(v4y, 2))) * CHASSIS_MOTOR_DEC_RATIO;
-    // /* Zero-ing of MG4005 (only needed if motors are not pointing in the "forward" direction)*/
-
-    // /* Set max rotaional speed (Ω) of MG4005 in dps */
-    // chassis_hdlr->swerve_speed[SWERVE_1_CAN_ID] =
-    //     (uint16_t) (9000)
-
-    //     /* For angle (0i) control of MG4005 [-1800,1800] */
-    //     chassis_hdlr->swerve_angle[SWERVE_1_CAN_ID] =
-    //         (uint32_t) (atan2(v1y, v1x) *
-    //                     (1800 /
-    //                      pi)) if chassis_hdlr->swerve_angle[SWERVE_1_CAN_ID]
-}
-
-int32_t pack_lk_motor_message(bool spin_cw, uint16_t max_speed,
-                              uint32_t angle) {
-    ASSERT(angle < 40000, "LK angle cannot be greater than 36000");
-    int32_t motor_message_value = 0;
-    motor_message_value |= (((uint32_t) max_speed) & 0x0fff) << 16;
-    motor_message_value |= angle & 0xffff;
-
-    if (spin_cw) {
-        motor_message_value *= -1;
-    }
-    return motor_message_value;
-}
-
-/*
- * @brief 	  Inversely calculate the mecanum wheel speed
- * @param[in] chassis_hdlr:chassis main struct
- * @retval    None
- */
-void ChassisApp::mecanum_wheel_calc_speed() {
-    /* Assume we install the mecanum wheels as O type (also have X type), right hand define positive dir
-	 *			 x length
-	 *		 v1  \\ -- //  v2     <Front>		   	 A      __			wheels define:
-	 *		      |    |		y length			 | vy  /		 	 		  ___
-	 *		  	  |	   |                             |     \__>   wz    \\ ->    | \ |
-	 *		 v4	 // -- \\  v3     <Rear>             -----> vx  				 | \ |
-	 *																			 |___|
-	 *		--	vector([vx, vy, wz]) --
-	 *	v1	=  [ vx,  vy,   wz] * (rx + ry) * motor_gearbox_ratio ->rad/s
-	 *	v2  =  [-vx,  vy,  -wz] * (rx + ry) * motor_gearbox_ratio
-	 *	v3  =  [ vx,  vy,  -wz] * (rx + ry) * motor_gearbox_ratio
-	 * 	v4  =  [-vx,  vy,   wz] * (rx + ry) * motor_gearbox_ratio
-	 *
-	 * */
-    /* X type installation */
-    chassis.mec_spd[CHASSIS_WHEEL1_CAN_ID] =
-        (int16_t) (chassis.vx + chassis.vy +
-                   chassis.wz *
-                       (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH) *
-                       0.5) *
-        CHASSIS_MOTOR_DEC_RATIO;
-    chassis.mec_spd
-        [CHASSIS_WHEEL2_CAN_ID] = /* We will put a negative infront of the eq. as motor install is flipped*/
-        (int16_t) -(-chassis.vx + chassis.vy -
-                    chassis.wz *
-                        (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH) *
-                        0.5) *
-        CHASSIS_MOTOR_DEC_RATIO;
-    chassis.mec_spd
-        [CHASSIS_WHEEL3_CAN_ID] = /* We will put a negative infront of the eq. as motor install is flipped*/
-        (int16_t) -(chassis.vx + chassis.vy -
-                    chassis.wz *
-                        (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH) *
-                        0.5) *
-        CHASSIS_MOTOR_DEC_RATIO;
-    chassis.mec_spd[CHASSIS_WHEEL4_CAN_ID] =
-        (int16_t) (-chassis.vx + chassis.vy +
-                   chassis.wz *
-                       (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH) *
-                       0.5) *
-        CHASSIS_MOTOR_DEC_RATIO;
-
-    /* may apply super super capacity gain here */
-    /* may apply level up gain and power limit here when we have referee system feedback */
-}
-
-void ChassisApp::chassis_calc_wheel_pid_out() {
-    mecanum_wheel_calc_speed();
-    /* max +-16834 */
-    for (int i = 0; i < 4; i++) {
-        VAL_LIMIT(chassis.mec_spd[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
-        pid_single_loop_control(chassis.mec_spd[i], &(motor_controls[i].f_pid),
-                                motor_controls[i].feedback.rx_rpm,
-                                CHASSIS_TASK_EXEC_TIME * 0.001);
-    }
-}
-
-void ChassisApp::send_swerve_angle_commands() {
-    Motor_CAN_ID_t angle_can_ids[] = {
-        SWERVE_STEER_MOTOR1,
-        SWERVE_STEER_MOTOR2,
-        SWERVE_STEER_MOTOR3,
-        SWERVE_STEER_MOTOR4,
-    };
-    MotorSetMessage_t set_message;
-    memset(&set_message, 0, sizeof(MotorSetMessage_t));
-
-    for (int i = 0; i < 4; i++) {
-        set_message.motor_can_volts[i] = ChassisApp::pack_lk_motor_message(
-            true, chassis.swerve_spd[i], chassis.swerve_angle[i]);
-        set_message.can_ids[i] = angle_can_ids[i];
-    }
-
-    message_center.pub_message(MOTOR_SET, &set_message);
-}
-
-void ChassisApp::chassis_send_wheel_volts() {
-    MotorSetMessage_t set_message;
-    memset(&set_message, 0, sizeof(MotorSetMessage_t));
-
-    for (int i = 0; i < 4; i++) {
-        set_message.motor_can_volts[i] =
-            (int32_t) motor_controls[i].f_pid.total_out;
-        set_message.can_ids[i] = (Motor_CAN_ID_t) motor_controls[i].stdid;
-    }
-
-    message_center.pub_message(MOTOR_SET, &set_message);
-}
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::send_swerve_angle_commands() {}
 
 /*
  * @brief 	  Update chassis gimbal axis data through rc
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
-void ChassisApp::chassis_update_gimbal_coord(int16_t* channels) {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::chassis_update_gimbal_coord(int16_t* channels) {
     /* controller data is not required to be filtered */
     chassis.gimbal_axis.vx = channels[2];  // apply vx data here
     chassis.gimbal_axis.vy = channels[3];  // apply vy data here
@@ -386,7 +182,8 @@ void ChassisApp::chassis_update_gimbal_coord(int16_t* channels) {
  * @param[in] chassis_hdlr:chassis main struct
  * @retval    None
  */
-void ChassisApp::chassis_update_chassis_coord(int16_t* channels) {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::chassis_update_chassis_coord(int16_t channels[4]) {
     /*chassis coordinates only for debugging purpose, thus no pc control processing*/
     chassis.vx = channels[2];  // apply vx data here
     chassis.vy = channels[3];  // apply vy data here
@@ -450,7 +247,8 @@ void ChassisApp::chassis_update_chassis_coord(int16_t* channels) {
  */
 //FIXME: Didn't consider the acceleration. Acceleration can help us better explicit the buffer energy.
 //		 But with more critical strict on power management.
-void ChassisApp::chassis_exec_act_mode() {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::chassis_exec_act_mode() {
     if (chassis.chassis_mode == IDLE_MODE) {
         chassis.vx = 0;
         chassis.vy = 0;
@@ -528,8 +326,9 @@ void ChassisApp::chassis_exec_act_mode() {
 /*
  * @brief brake the chassis slowly to avoid instant power overlimt
  */
-void ChassisApp::chassis_brake(float* vel, float ramp_step,
-                               float stop_threshold) {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::chassis_brake(float* vel, float ramp_step,
+                                           float stop_threshold) {
     if (*vel > 0)           // both release -> brake
         *vel -= ramp_step;  //brake need to be quicker
     else if (*vel < 0)
@@ -538,7 +337,8 @@ void ChassisApp::chassis_brake(float* vel, float ramp_step,
         *vel = 0;
 }
 
-void ChassisApp::chassis_get_gimbal_rel_angles() {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::chassis_get_gimbal_rel_angles() {
     float rel_angles[2];
     BaseType_t new_rel_angle_message =
         message_center.peek_message(GIMBAL_REL_ANGLES, rel_angles, 0);
@@ -548,7 +348,8 @@ void ChassisApp::chassis_get_gimbal_rel_angles() {
     }
 }
 
-void ChassisApp::chassis_get_rc_info(int16_t* channels) {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::chassis_get_rc_info(int16_t* channels) {
     RCInfoMessage_t rc_info;
     BaseType_t new_message = message_center.peek_message(RC_INFO, &rc_info, 0);
 
@@ -563,28 +364,8 @@ void ChassisApp::chassis_get_rc_info(int16_t* channels) {
     }
 }
 
-void ChassisApp::chassis_get_wheel_feedback() {
-    MotorReadMessage_t read_message;
-    Motor_CAN_ID_t wheel_can_ids[] = {CHASSIS_WHEEL1, CHASSIS_WHEEL2,
-                                      CHASSIS_WHEEL3, CHASSIS_WHEEL4};
-
-    uint8_t new_read_message =
-        message_center.peek_message(MOTOR_READ, &read_message, 0);
-    if (new_read_message == 1) {
-        for (int i = 0; i < 4; i++) {
-            uint8_t good = 1;
-            for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
-                if (wheel_can_ids[i] == read_message.can_ids[j]) {
-                    memcpy(&(motor_controls[i].feedback),
-                           &(read_message.feedback[j]),
-                           sizeof(Motor_Feedback_t));
-                    good = 0;
-                    break;
-                }
-            }
-        }
-    }
-}
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::chassis_get_wheel_feedback() {}
 
 /* define rc used count vars */
 //int8_t chassis_pc_mode_toggle = 1; // encoder mode
@@ -721,7 +502,8 @@ void ChassisApp::chassis_get_wheel_feedback() {
 //	}
 //}
 
-void ChassisApp::select_chassis_speed(uint8_t level) {
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::select_chassis_speed(uint8_t level) {
     chassis.prev_robot_level = level;
     switch (level) {
         case 1:

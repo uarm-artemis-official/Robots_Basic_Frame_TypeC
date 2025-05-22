@@ -16,7 +16,7 @@ class ExtendedRTOSApp {
         //  - void after_calibrate()
         //  - bool exit_loop_prepare_cond()
         //  - void loop_prepare()
-        //  - after_loop_prepare()
+        //  - void after_loop_prepare()
         //  - void loop()
 
         (void) argument;
@@ -64,6 +64,32 @@ class RTOSApp : public ExtendedRTOSApp<Derived> {
     bool exit_loop_prepare_cond() { return true; }
     void loop_prepare() {}
     void after_loop_prepare() {}
+};
+
+template <class Derived>
+class ChassisDrive {
+   public:
+    void init() {
+        Derived* derived = static_cast<Derived*>(this);
+        derived->init_impl();
+    }
+
+    void drive(float vx, float vy, float wz) {
+        Derived* derived = static_cast<Derived*>(this);
+        derived->get_motor_feedback();
+        derived->calc_motor_outputs(vx, vy, wz);
+        derived->send_motor_messages();
+    }
+
+    float get_power_consumption() {
+        Derived* derived = static_cast<Derived*>(this);
+        return derived->calc_power_consumption();
+    }
+
+    void set_max_power(float new_max_power) {
+        Derived* derived = static_cast<Derived*>(this);
+        derived->set_max_power_impl();
+    }
 };
 
 #endif

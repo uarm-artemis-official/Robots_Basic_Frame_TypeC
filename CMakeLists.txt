@@ -16,6 +16,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
+
+set(INPUT_)
+
 # Define the build type
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "DJI")
@@ -28,6 +31,13 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Swerve")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Swerve)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS")
+    set(CMAKE_CXX_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "DJI")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_DJI)
+    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_DJI "-O0 -g3")
+    set(CMAKE_CXX_FLAGS_DJI "-O0 -g3")
 else()
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file

@@ -27,8 +27,6 @@
 * @param  Not used
 * @retval None
 */
-#define SWERVE_CHASSIS
-#define SWERVE_CALIBRATE
 
 TimerApp::TimerApp(IMotors& system_motors_ref,
                    IMessageCenter& message_center_ref, IDebug& debug_ref)
@@ -79,6 +77,11 @@ void TimerApp::loop() {
             }
         }
     }
+
+    for (size_t i = 0; i < swerve_ids.size(); i++) {
+        system_motors.request_feedback(swerve_ids.at(i));
+    }
+
     /* CAN data  */
     if (board_status != GIMBAL_BOARD) {
         system_motors.send_motor_voltage();

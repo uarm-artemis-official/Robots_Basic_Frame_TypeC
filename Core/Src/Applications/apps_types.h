@@ -103,11 +103,24 @@ typedef struct {
 
 } Chassis_t;
 
+/* =========================================================================
+ * OMNI DRIVE TYPES
+ * ====================================================================== */
 typedef struct {
     uint32_t stdid;
     PID_t f_pid;  //first pid handler for single-loop control
     Motor_Feedback_t feedback;
 } Chassis_Wheel_Control_t;
+
+/* =========================================================================
+ * SWERVE DRIVE TYPES
+ * ====================================================================== */
+typedef struct {
+    uint32_t stdid;
+    PID_t f_pid;  //first pid handler for single-loop control
+    Motor_Feedback_t feedback;
+    uint32_t angle;
+} Swerve_Wheel_Control_t;
 
 /* =========================================================================
  * GIMBAL TYPES

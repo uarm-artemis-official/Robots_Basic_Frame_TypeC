@@ -17,9 +17,9 @@
 
 class IMUApp : public RTOSApp<IMUApp> {
    private:
-    IImu& imu;
     IMessageCenter& message_center;
     IEventCenter& event_center;
+    IImu& imu;
     IDebug& debug;
 
     IMU_t imu_app_state;

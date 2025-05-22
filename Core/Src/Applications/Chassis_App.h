@@ -15,28 +15,26 @@
 #include "apps_interfaces.h"
 #include "apps_types.h"
 
-class ChassisApp : public RTOSApp<ChassisApp> {
+template <class DriveTrain>
+class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
    private:
+    ChassisDrive<DriveTrain>& drive_train;
     IMessageCenter& message_center;
     IDebug& debug;
 
     Chassis_t chassis;
-    Chassis_Wheel_Control_t motor_controls[CHASSIS_MAX_WHEELS];
     int16_t rc_channels[4];
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = CHASSIS_TASK_EXEC_TIME;
-    static int32_t pack_lk_motor_message(bool spin_cw, uint16_t max_speed,
-                                         uint32_t angle);
 
-    ChassisApp(IMessageCenter& message_center_ref, IDebug& debug_ref);
+    ChassisApp(DriveTrain& drive_train_ref, IMessageCenter& message_center_ref,
+               IDebug& debug_ref);
     void init();
     void set_initial_state();
 
     void loop();
 
-    void mecanum_wheel_calc_speed();
-    void swerve_wheel_decomp();
     void send_swerve_angle_commands();
 
     void chassis_update_chassis_coord(int16_t* channels);
@@ -44,12 +42,9 @@ class ChassisApp : public RTOSApp<ChassisApp> {
     void chassis_brake(float* vel, float ramp_step, float stop_threshold);
     void chassis_exec_act_mode();
 
-    void chassis_calc_wheel_pid_out();
     void chassis_get_rc_info(int16_t* channels);
     void chassis_get_wheel_feedback();
     void chassis_get_gimbal_rel_angles();
-
-    void chassis_send_wheel_volts();
 
     /* power limit */
     //void get_chassis_ref_power_stat(Chassis_t* chassis_hdlr, Referee_t *ref);

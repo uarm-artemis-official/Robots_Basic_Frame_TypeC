@@ -12,6 +12,10 @@ typedef enum {
 
     // Read feedback from motor [temp, torque current, speed, encoder pos]
     LK_MOTOR_READ_FB_DATA = 0x9C,
+
+    // Read single loop feedback from motor (angle between [0, 360) in 0.01 degree steps).
+    LK_MOTOR_READ_SL_FB = 0x94,
+
     // Reset the zero point of the motor (use sparingly to avoid ROM damage)
     LK_MOTOR_RESET_ZEROS = 0x19,
     // Similar to KL_MOTOR_RESET_ZEROS, requires testing
