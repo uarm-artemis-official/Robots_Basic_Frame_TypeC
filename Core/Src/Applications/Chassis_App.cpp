@@ -27,6 +27,7 @@
 #include "uarm_os.h"
 
 template class ChassisApp<OmniDrive>;
+template class ChassisApp<SwerveDrive>;
 
 template <class DriveTrain>
 ChassisApp<DriveTrain>::ChassisApp(DriveTrain& drive_train_ref,

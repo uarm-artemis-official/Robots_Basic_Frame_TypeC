@@ -175,8 +175,14 @@ static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center);
 static IMUApp imu_app(message_center, event_center, imu, debug);
 static GimbalApp gimbal_app(message_center, event_center, debug);
+
+#ifdef SWERVE_CHASSIS
+static SwerveDrive swerve_drive(message_center, 0);
+static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
+#else
 static OmniDrive omni_drive(message_center, 0, 0);
 static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
+#endif
 /* USER CODE END 0 */
 
 /**
