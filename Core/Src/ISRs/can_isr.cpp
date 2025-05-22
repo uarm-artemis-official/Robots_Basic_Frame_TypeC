@@ -35,7 +35,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
         CAN_TI0R_STID_Pos;
     if (hcan == &hcan1) {
         uint8_t buffer_index = get_free_buffer(rx_header.StdId);
-        if (buffer_index < 8) {
+        if (buffer_index < MAX_MOTOR_COUNT) {
             HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header,
                                  read_message.feedback[buffer_index]);
             read_message.can_ids[buffer_index] =

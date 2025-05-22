@@ -8,16 +8,13 @@
 class OmniDrive : public ChassisDrive<OmniDrive> {
    private:
     Chassis_Wheel_Control_t motor_controls[CHASSIS_MAX_WHEELS];
-    int16_t wheel_speed[4];
+    int16_t wheel_rpm[4];
     IMessageCenter& message_center;
     float width, length, max_power;
 
    public:
     OmniDrive(IMessageCenter& message_center_ref, float chassis_width,
-              float chassis_length)
-        : message_center(message_center_ref),
-          width(chassis_width),
-          length(chassis_length) {}
+              float chassis_length);
 
     void init_impl();
 

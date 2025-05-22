@@ -186,9 +186,17 @@ void ChassisApp<DriveTrain>::chassis_update_gimbal_coord(int16_t* channels) {
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::chassis_update_chassis_coord(int16_t channels[4]) {
     /*chassis coordinates only for debugging purpose, thus no pc control processing*/
-    chassis.vx = channels[2];  // apply vx data here
-    chassis.vy = channels[3];  // apply vy data here
-    chassis.wz = channels[0];
+    // chassis.vx = channels[2];  // apply vx data here
+    // chassis.vy = channels[3];  // apply vy data here
+    // chassis.wz = channels[0];
+
+    chassis.vx =
+        in_out_map(channels[2], -660, 660, -MAX_TRANSLATION, MAX_TRANSLATION);
+    chassis.vy =
+        in_out_map(channels[3], -660, 660, -MAX_TRANSLATION, MAX_TRANSLATION);
+    chassis.wz =
+        in_out_map(channels[0], -660, 660, -MAX_ROTATION, MAX_ROTATION);
+
     //	else if(rc_hdlr->control_mode == PC_MODE){
     //		/* x axis process */
     //		if(rc_hdlr->pc.key.W.status == PRESSED && rc_hdlr->pc.key.S.status == PRESSED)
@@ -306,7 +314,6 @@ void ChassisApp<DriveTrain>::chassis_exec_act_mode() {
 //	}
 //	select_chassis_speed(chassis_hdlr, cur_robot_level);
 #endif
-#ifndef REF_CHASSIS_DEBUG
     VAL_LIMIT(chassis.vx, -chassis.max_vx, chassis.max_vx);
     VAL_LIMIT(chassis.vy, -chassis.max_vy, chassis.max_vy);
     if (chassis.chassis_act_mode != GIMBAL_CENTER)
@@ -314,11 +321,7 @@ void ChassisApp<DriveTrain>::chassis_exec_act_mode() {
         VAL_LIMIT(chassis.wz, -chassis.max_wz, chassis.max_wz);
     else
         VAL_LIMIT(chassis.wz, -1.5 * chassis.max_wz, 1.5 * chassis.max_wz);
-#else
-    VAL_LIMIT(chassis.vx, -temp_max_vx, temp_max_vx);
-    VAL_LIMIT(chassis.vy, -temp_max_vy, temp_max_vy);
-    VAL_LIMIT(chassis.wz, -temp_max_wz, temp_max_wz);
-#endif
+
     if (fabs(chassis.wz) < 50.0f)
         /* PID dead zone risk management */
         chassis.wz = 0;

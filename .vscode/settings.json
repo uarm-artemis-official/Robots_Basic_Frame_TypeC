@@ -1,5 +1,5 @@
 {
-    "cortex-debug.variableUseNaturalFormat": false,
+    "cortex-debug.variableUseNaturalFormat": true,
     "files.associations": {
         "public_defines.h": "c",
         "stdint.h": "c",

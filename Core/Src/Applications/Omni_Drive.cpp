@@ -1,11 +1,18 @@
 #include "Omni_Drive.h"
 #include <cstring>
+#include "message_center.h"
 #include "motors.h"
 #include "pid.h"
 #include "public_defines.h"
 
+OmniDrive::OmniDrive(IMessageCenter& message_center_ref, float chassis_width,
+                     float chassis_length)
+    : message_center(message_center_ref),
+      width(chassis_width),
+      length(chassis_length) {}
+
 void OmniDrive::init_impl() {
-    wheel_speed[4] = {0};
+    wheel_rpm[4] = {0};
 
     for (int i = 0; i < CHASSIS_MAX_WHEELS; i++) {
         std::memset(&(motor_controls[i]), 0, sizeof(Chassis_Wheel_Control_t));
@@ -68,33 +75,37 @@ void OmniDrive::calc_target_motor_speeds(float vx, float vy, float wz) {
     /* may apply super super capacity gain here */
     /* may apply level up gain and power limit here when we have referee system feedback */
 
-    wheel_speed[CHASSIS_WHEEL1_CAN_ID] = static_cast<int16_t>(
+    wheel_rpm[CHASSIS_WHEEL1_CAN_ID] = static_cast<int16_t>(
         (vx + vy +
          wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH) * 0.5) *
-        (1 / CHASSIS_OMNI_WHEEL_RADIUS) * CHASSIS_MOTOR_DEC_RATIO);
-    wheel_speed
+        (1 / CHASSIS_OMNI_WHEEL_RADIUS) * CHASSIS_MOTOR_DEC_RATIO / (2 * PI) *
+        60);
+    wheel_rpm
         [CHASSIS_WHEEL2_CAN_ID] = /* We will put a negative infront of the eq. as motor install is flipped*/
         static_cast<int16_t>(
             -((-vx + vy -
                wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH) * 0.5) *
-              (1 / CHASSIS_OMNI_WHEEL_RADIUS) * CHASSIS_MOTOR_DEC_RATIO));
-    wheel_speed
+              (1 / CHASSIS_OMNI_WHEEL_RADIUS) * CHASSIS_MOTOR_DEC_RATIO) /
+            (2 * PI) * 60);
+    wheel_rpm
         [CHASSIS_WHEEL3_CAN_ID] = /* We will put a negative infront of the eq. as motor install is flipped*/
         static_cast<int16_t>(
             -((vx + vy -
                wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH) * 0.5) *
-              (1 / CHASSIS_OMNI_WHEEL_RADIUS) * CHASSIS_MOTOR_DEC_RATIO));
-    wheel_speed[CHASSIS_WHEEL4_CAN_ID] = static_cast<int16_t>(
+              (1 / CHASSIS_OMNI_WHEEL_RADIUS) * CHASSIS_MOTOR_DEC_RATIO) /
+            (2 * PI) * 60);
+    wheel_rpm[CHASSIS_WHEEL4_CAN_ID] = static_cast<int16_t>(
         (-vx + vy +
          wz * (CHASSIS_WHEEL_X_LENGTH + CHASSIS_WHEEL_Y_LENGTH) * 0.5) *
-        (1 / CHASSIS_OMNI_WHEEL_RADIUS) * CHASSIS_MOTOR_DEC_RATIO);
+        (1 / CHASSIS_OMNI_WHEEL_RADIUS) * CHASSIS_MOTOR_DEC_RATIO / (2 * PI) *
+        60);
 }
 
 void OmniDrive::calc_motor_volts() {
     for (int i = 0; i < 4; i++) {
-        VAL_LIMIT(wheel_speed[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
+        VAL_LIMIT(wheel_rpm[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
         pid_single_loop_control(
-            static_cast<float>(wheel_speed[i]), &(motor_controls[i].f_pid),
+            static_cast<float>(wheel_rpm[i]), &(motor_controls[i].f_pid),
             static_cast<float>(motor_controls[i].feedback.rx_rpm),
             CHASSIS_TASK_EXEC_TIME * 0.001);
     }

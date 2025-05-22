@@ -170,11 +170,6 @@ static Debug debug;
 static CanComm can_comm;
 static Motors motors;
 static Imu imu;
-static CommApp comm_app(message_center, debug, can_comm);
-static TimerApp timer_app(motors, message_center, debug);
-static PCUARTApp pc_uart_app(message_center);
-static IMUApp imu_app(message_center, event_center, imu, debug);
-static GimbalApp gimbal_app(message_center, event_center, debug);
 
 #ifdef SWERVE_CHASSIS
 static SwerveDrive swerve_drive(message_center, 0);
@@ -183,6 +178,12 @@ static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 static OmniDrive omni_drive(message_center, 0, 0);
 static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 #endif
+
+static CommApp comm_app(message_center, debug, can_comm);
+static TimerApp timer_app(motors, message_center, debug);
+static PCUARTApp pc_uart_app(message_center);
+static IMUApp imu_app(message_center, event_center, imu, debug);
+static GimbalApp gimbal_app(message_center, event_center, debug);
 /* USER CODE END 0 */
 
 /**
@@ -206,11 +207,9 @@ int main(void) {
     SystemClock_Config();
 
     /* USER CODE BEGIN SysInit */
-    taskENTER_CRITICAL();
     message_center.init();
     can_comm.init();
     event_center.init();
-    taskEXIT_CRITICAL();
     /* USER CODE END SysInit */
 
     /* Initialize all configured peripherals */
@@ -432,19 +431,6 @@ void StartDefaultTask(void const* argument) {
         osDelay(1);
     }
     /* USER CODE END StartDefaultTask */
-}
-
-void Comm_App_Func(const void* argument) {
-    (void) argument;
-    TickType_t xLastWakeTime;
-    const TickType_t xFrequency = pdMS_TO_TICKS(COMM_TASK_EXEC_TIME);
-    xLastWakeTime = xTaskGetTickCount();
-    comm_app.init();
-
-    for (;;) {
-        comm_app.loop();
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    }
 }
 
 /* USER CODE END 4 */
