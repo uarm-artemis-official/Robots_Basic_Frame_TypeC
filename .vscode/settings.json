@@ -78,7 +78,9 @@
         "xhash": "c",
         "xtree": "c",
         "cstring": "cpp",
-        "lk_motor.h": "c"
+        "lk_motor.h": "c",
+        "core_cm4.h": "c",
+        "fake_arm_math.h": "c"
     },
     "C_Cpp.clang_format_style": "file",
     "C_Cpp.clang_format_fallbackStyle": "none",

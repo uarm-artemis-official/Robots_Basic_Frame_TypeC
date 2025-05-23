@@ -10,10 +10,18 @@
             "cacheVariables": {}
         },
         {
-            "name": "DJI",
+            "name": "Mecanum",
             "inherits": "default",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "DJI",
+                "CMAKE_BUILD_TYPE": "Mecanum",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
+            "name": "Omni",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Omni",
                 "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
         },
@@ -38,8 +46,12 @@
     ],
     "buildPresets": [
         {
-            "name": "DJI",
-            "configurePreset": "DJI"
+            "name": "Omni",
+            "configurePreset": "Omni"
+        },
+        {
+            "name": "Mecanum",
+            "configurePreset": "Mecanum"
         },
         {
             "name": "Swerve",

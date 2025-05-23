@@ -175,7 +175,18 @@ static Imu imu;
 static SwerveDrive swerve_drive(message_center, 0);
 static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 #else
-static OmniDrive omni_drive(message_center, 0, 0);
+
+#ifdef OMNI_CHASSIS
+static constexpr float omni_chassis_width = 0.40f;
+static OmniDrive omni_drive(message_center, omni_chassis_width,
+                            omni_chassis_width);
+#else
+static constexpr float mecanum_chassis_width = 0.41f;
+static constexpr float mecanum_chassis_length = 0.35f;
+static OmniDrive omni_drive(message_center, mecanum_chassis_width,
+                            mecanum_chassis_length);
+#endif
+
 static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 #endif
 

@@ -21,7 +21,7 @@ set(INPUT_)
 
 # Define the build type
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "DJI")
+    set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
 
@@ -33,11 +33,16 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Swerve")
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS")
     set(CMAKE_CXX_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS")
-elseif (${CMAKE_BUILD_TYPE} STREQUAL "DJI")
-    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_DJI)
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Omni")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Omni)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
-    set(CMAKE_C_FLAGS_DJI "-O0 -g3")
-    set(CMAKE_CXX_FLAGS_DJI "-O0 -g3")
+    set(CMAKE_C_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS")
+    set(CMAKE_CXX_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Mecanum")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Mecanum)
+    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS")
+    set(CMAKE_CXX_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS")
 else()
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
@@ -76,7 +81,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms/control)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 
-else() # DJI/Swerve
+else()
     add_executable(${CMAKE_PROJECT_NAME})
 
     add_subdirectory(cmake/stm32cubemx)

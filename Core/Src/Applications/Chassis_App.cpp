@@ -322,7 +322,7 @@ void ChassisApp<DriveTrain>::chassis_exec_act_mode() {
     else
         VAL_LIMIT(chassis.wz, -1.5 * chassis.max_wz, 1.5 * chassis.max_wz);
 
-    if (fabs(chassis.wz) < 50.0f)
+    if (fabs(chassis.wz) < 0.05f)
         /* PID dead zone risk management */
         chassis.wz = 0;
 }
