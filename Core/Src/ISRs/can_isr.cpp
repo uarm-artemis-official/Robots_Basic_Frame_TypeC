@@ -50,6 +50,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
         HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header,
                              incoming_message.data);
         // TODO: Store messages in RTOS queue and implement API for accessing messages.
-        // pub_message_from_isr(COMM_IN, &incoming_message, NULL);
+        message_center.pub_message_from_isr(COMM_IN, &incoming_message, NULL);
     }
 }

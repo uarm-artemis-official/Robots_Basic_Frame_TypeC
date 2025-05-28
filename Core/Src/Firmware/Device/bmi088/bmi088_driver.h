@@ -8,7 +8,6 @@
 * All rights reserved.
 *******************************************************************************/
 
-
 #ifndef __BMI088_DRIVER_H__
 #define __BMI088_DRIVER_H__
 
@@ -16,9 +15,9 @@
 extern "C" {
 #endif
 
-#include "stdint.h"
-#include "bmi088_reg.h"
 #include "bmi088_middleware.h"
+#include "bmi088_reg.h"
+#include "stdint.h"
 
 /* public defines of IMU */
 #define BMI088_TEMP_FACTOR 0.125f
@@ -48,29 +47,24 @@ extern "C" {
 //#define BMI088_GYRO_RANGE_250
 //#define BMI088_GYRO_RANGE_125
 
+#define BMI088_ACCEL_3G_SEN 0.000091552734375f
+#define BMI088_ACCEL_6G_SEN 0.00018310546875f
+#define BMI088_ACCEL_12G_SEN 0.0003662109375f
+#define BMI088_ACCEL_24G_SEN 0.000732421875f
 
-#define BMI088_ACCEL_3G_SEN 0.0008974358974f
-#define BMI088_ACCEL_6G_SEN 0.00179443359375f
-#define BMI088_ACCEL_12G_SEN 0.0035888671875f
-#define BMI088_ACCEL_24G_SEN 0.007177734375f
+#define BMI088_GYRO_2000_SEN 0.06103515625f
+#define BMI088_GYRO_1000_SEN 0.030517578125f
+#define BMI088_GYRO_500_SEN 0.0152587890625f
+#define BMI088_GYRO_250_SEN 0.00762939453125f
+#define BMI088_GYRO_125_SEN 0.00381469726563f
 
-#define BMI088_GYRO_2000_SEN 0.00106526443603169529841533860381f
-#define BMI088_GYRO_1000_SEN 0.00053263221801584764920766930190693f
-#define BMI088_GYRO_500_SEN 0.00026631610900792382460383465095346f
-#define BMI088_GYRO_250_SEN 0.00013315805450396191230191732547673f
-#define BMI088_GYRO_125_SEN 0.000066579027251980956150958662738366f
+#define DEGREES_TO_RADIANS 0.0174532925199f
 
+// TODO: Change when moving locations
+// Edmonton gravity conversion
+#define G_TO_METERS_PER_SECOND 9.8115861
 
-//typedef struct BMI088_RAW_DATA
-//{
-//    uint8_t status;
-//    int16_t accel[3];
-//    int16_t temp;
-//    int16_t gyro[3];
-//}bmi088_raw_data_t;
-
-typedef struct BMI088_REAL_DATA
-{
+typedef struct BMI088_REAL_DATA {
     uint8_t status;
     float accel[3];
     float temp;
@@ -78,8 +72,7 @@ typedef struct BMI088_REAL_DATA
     float time;
 } bmi088_real_data_t;
 
-enum
-{
+enum {
     BMI088_NO_ERROR = 0x00,
     BMI088_ACC_PWR_CTRL_ERROR = 0x01,
     BMI088_ACC_PWR_CONF_ERROR = 0x02,
@@ -108,10 +101,10 @@ uint8_t bmi088_accel_self_test(void);
 uint8_t bmi088_gyro_self_test(void);
 void BMI088_read_gyro_who_am_i(void);
 uint8_t BMI088_read_accel_who_am_i(void);
-void BMI088_accel_read(uint8_t *rx_buf, float accel[3], float *time);
-void BMI088_gyro_read(uint8_t *rx_buf, float gyro[3]);
-void BMI088_temperature_read(uint8_t *rx_buf, float *temperate);
-void BMI088_Read(float gyro[3], float accel[3], float *temperate);
+void BMI088_accel_read(uint8_t* rx_buf, float accel[3], float* time);
+void BMI088_gyro_read(uint8_t* rx_buf, float gyro[3]);
+void BMI088_temperature_read(uint8_t* rx_buf, float* temperate);
+void BMI088_Read(float gyro[3], float accel[3], float* temperate);
 float get_BMI088_temperature(void);
 void get_BMI088_gyro(int16_t gyro[3]);
 void get_BMI088_accel(float accel[3]);

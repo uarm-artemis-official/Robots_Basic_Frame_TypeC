@@ -9,12 +9,9 @@
 
 #include "tim.h"
 
-static Imu& getInstance() {
-    static Imu imu;
-    return imu;
-}
-
 void Imu::init() {
+    memset(gyro_offset, 0, sizeof(float) * 3);
+    memset(accel_offset, 0, sizeof(float) * 3);
     BMI088_init();
     ist8310_init();
     set_cali_slove();
@@ -29,7 +26,8 @@ void Imu::get_attitude(Attitude_t* attitude) {
     AhrsSensor_t sensor;
     float temp;
     ahrs_update(&sensor, false);
-    madgwick_ahrs_update(&sensor, attitude);
+    madgwick_ahrs_updateIMU(&sensor, attitude);
+    // madgwick_ahrs_update(&sensor, attitude);
 }
 
 void Imu::ahrs_update(AhrsSensor_t* sensor, bool read_mag) {
@@ -71,22 +69,12 @@ void Imu::set_offset() {
         gyro_offset[0] += gyro[0];
         gyro_offset[1] += gyro[1];
         gyro_offset[2] += gyro[2];
-
-        accel_offset[0] += accel[0];
-        accel_offset[1] += accel[1];
-        accel_offset[2] += accel[2];
-
-        /* delay a given period */
-        osDelay(3);  //3
+        osDelay(3);
     }
 
     gyro_offset[0] = gyro_offset[0] / cali_times;
     gyro_offset[1] = gyro_offset[1] / cali_times;
     gyro_offset[2] = gyro_offset[2] / cali_times;
-
-    accel_offset[0] += accel_offset[0] / cali_times;
-    accel_offset[1] += accel_offset[1] / cali_times;
-    accel_offset[2] += accel_offset[2] / cali_times;
 }
 
 void Imu::set_cali_slove() {

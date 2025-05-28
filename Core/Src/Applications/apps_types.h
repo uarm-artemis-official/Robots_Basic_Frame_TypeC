@@ -227,7 +227,7 @@ typedef struct {
  * IMU TYPES
  * ====================================================================== */
 typedef struct {
-    PID2_t pid;
+    Prescaled_PID2_t pid;
 } IMU_Heat_t;
 
 #endif

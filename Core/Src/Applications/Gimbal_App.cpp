@@ -40,6 +40,53 @@ void GimbalApp::init() {
     set_motor_mode(ENCODE_MODE);
 }
 
+void GimbalApp::set_initial_state() {
+    memset(motor_controls, 0, sizeof(Gimbal_Motor_Control_t) * 2);
+    motor_controls[GIMBAL_YAW_MOTOR_INDEX].stdid = GIMBAL_YAW;
+    motor_controls[GIMBAL_PITCH_MOTOR_INDEX].stdid = GIMBAL_PITCH;
+    pid2_init(&(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid), kp_angle_yaw,
+              ki_angle_yaw, kd_angle_yaw, beta_angle_yaw, yeta_angle_yaw,
+              -max_out_angle_yaw, max_out_angle_yaw);
+    pid2_init(&(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid), kp_spd_yaw,
+              ki_spd_yaw, kd_spd_yaw, beta_spd_yaw, yeta_spd_yaw,
+              -max_out_spd_yaw, max_out_spd_yaw);
+    pid2_init(&(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid), kp_angle_pitch,
+              ki_angle_pitch, kd_angle_pitch, beta_angle_pitch,
+              yeta_angle_pitch, -max_out_angle_pitch, max_out_angle_pitch);
+    pid2_init(&(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].s_pid), kp_spd_pitch,
+              ki_spd_pitch, kd_spd_pitch, beta_spd_pitch, yeta_spd_pitch,
+              -max_out_spd_pitch, max_out_spd_pitch);
+
+    // Initialize non-zero Gimbal_t fields.
+    memset(&gimbal, 0, sizeof(Gimbal_t));
+    gimbal.yaw_ecd_center =
+        YAW_ECD_CENTER;  // center position of the yaw motor - encoder
+    gimbal.pitch_ecd_center = PITCH_ECD_CENTER;
+
+    init_folp_filter(&(gimbal.folp_f_yaw), 0.90f);
+    init_folp_filter(&(gimbal.folp_f_pitch), 0.99f);
+
+    init_ewma_filter(&(gimbal.ewma_f_x), 0.8f);         //0.65 for older client
+    init_ewma_filter(&(gimbal.ewma_f_y), 0.8f);         //0.6 for older client
+    init_ewma_filter(&(gimbal.ewma_f_aim_yaw), 0.95f);  //0.65 for older client
+    init_ewma_filter(&(gimbal.ewma_f_aim_pitch), 0.95f);  //0.6 for older client
+
+    //	init_swm_filter(&gbal->swm_f_x, 20);// window size 50
+    //	init_swm_filter(&gbal->swm_f_y, 20);
+
+    gimbal.prev_gimbal_motor_mode = ENCODE_MODE;
+
+    ramp_init(&(gimbal.yaw_ramp), 1500);  //1.5s init
+    ramp_init(&(gimbal.pitch_ramp), 1500);
+
+    // Center gimbal
+    gimbal.yaw_target_angle = 0;
+    gimbal.pitch_target_angle = 0;
+
+    get_motor_feedback();
+    update_headings();
+}
+
 bool GimbalApp::exit_calibrate_cond() {
     return fabs(gimbal.yaw_rel_angle) < (2.0f * DEGREE2RAD);
 }
@@ -125,56 +172,6 @@ void GimbalApp::loop() {
     send_rel_angles();
 }
 
-void GimbalApp::set_initial_state() {
-    memset(motor_controls, 0, sizeof(Gimbal_Motor_Control_t) * 2);
-    motor_controls[GIMBAL_YAW_MOTOR_INDEX].stdid = GIMBAL_YAW;
-    motor_controls[GIMBAL_PITCH_MOTOR_INDEX].stdid = GIMBAL_PITCH;
-    pid2_init(&(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid), kp_angle_yaw,
-              ki_angle_yaw, kd_angle_yaw, beta_angle_yaw, yeta_angle_yaw,
-              -max_out_angle_yaw, max_out_angle_yaw);
-    pid2_init(&(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid), kp_spd_yaw,
-              ki_spd_yaw, kd_spd_yaw, beta_spd_yaw, yeta_spd_yaw,
-              -max_out_spd_yaw, max_out_spd_yaw);
-    pid2_init(&(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid), kp_angle_pitch,
-              ki_angle_pitch, kd_angle_pitch, beta_angle_pitch,
-              yeta_angle_pitch, -max_out_angle_pitch, max_out_angle_pitch);
-    pid2_init(&(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].s_pid), kp_spd_pitch,
-              ki_spd_pitch, kd_spd_pitch, beta_spd_pitch, yeta_spd_pitch,
-              -max_out_spd_pitch, max_out_spd_pitch);
-
-    // Initialize non-zero Gimbal_t fields.
-    memset(&gimbal, 0, sizeof(Gimbal_t));
-    gimbal.yaw_ecd_center =
-        YAW_ECD_CENTER;  // center position of the yaw motor - encoder
-    gimbal.pitch_ecd_center = PITCH_ECD_CENTER;
-
-    init_folp_filter(&(gimbal.folp_f_yaw), 0.90f);
-    init_folp_filter(&(gimbal.folp_f_pitch), 0.99f);
-
-    init_ewma_filter(&(gimbal.ewma_f_x), 0.8f);         //0.65 for older client
-    init_ewma_filter(&(gimbal.ewma_f_y), 0.8f);         //0.6 for older client
-    init_ewma_filter(&(gimbal.ewma_f_aim_yaw), 0.95f);  //0.65 for older client
-    init_ewma_filter(&(gimbal.ewma_f_aim_pitch), 0.95f);  //0.6 for older client
-
-    //	init_swm_filter(&gbal->swm_f_x, 20);// window size 50
-    //	init_swm_filter(&gbal->swm_f_y, 20);
-
-    memset(&(gimbal.ahrs_sensor), 0, sizeof(AhrsSensor_t));
-    memset(&(gimbal.euler_angle), 0, sizeof(Attitude_t));
-
-    gimbal.prev_gimbal_motor_mode = ENCODE_MODE;
-
-    ramp_init(&(gimbal.yaw_ramp), 1500);  //1.5s init
-    ramp_init(&(gimbal.pitch_ramp), 1500);
-
-    // Center gimbal
-    gimbal.yaw_target_angle = 0;
-    gimbal.pitch_target_angle = 0;
-
-    get_motor_feedback();
-    update_headings();
-}
-
 /*
  * @brief     set the gimbal board work mode:
  * 				patrol | detected armor | Auto_Poilt | IDLE(no action) | Debug(remote control)
@@ -251,7 +248,7 @@ void GimbalApp::get_motor_feedback() {
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
                 if (gimbal_can_ids[i] == read_message.can_ids[j]) {
                     Motors::parse_feedback(gimbal_can_ids[i],
-                                           read_message.feedback[i],
+                                           read_message.feedback[j],
                                            &(motor_controls[i].feedback));
                     break;
                 }

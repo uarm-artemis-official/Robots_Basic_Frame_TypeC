@@ -29,6 +29,9 @@ class IMUApp : public RTOSApp<IMUApp> {
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = IMU_TASK_EXEC_TIME;
+    static constexpr float TARGET_IMU_TEMP = 40.0f;
+    static constexpr float NORMAL_TEMP_THRESHOLD = 1.0f;
+    static constexpr float IMU_RESET_THRESHOLD = 7.0f;
 
     IMUApp(IMessageCenter& message_center_ref, IEventCenter& event_center_ref,
            IImu& imu_ref, IDebug& debug_ref);

@@ -80,7 +80,9 @@
         "cstring": "cpp",
         "lk_motor.h": "c",
         "core_cm4.h": "c",
-        "fake_arm_math.h": "c"
+        "fake_arm_math.h": "c",
+        "attitude_defines.h": "c",
+        "bmi088_driver.h": "c"
     },
     "C_Cpp.clang_format_style": "file",
     "C_Cpp.clang_format_fallbackStyle": "none",

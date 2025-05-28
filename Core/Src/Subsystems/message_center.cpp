@@ -34,6 +34,8 @@ uint8_t MessageCenter::get_message(Topic_Name_t topic, void* data_ptr,
                                    int ticks_to_wait) {
     ASSERT(data_ptr != NULL,
            "Cannot get message from message_center for NULL pointer.");
+    if (!initialized)
+        return 0;
     Topic_Handle_t& topic_handle = get_topic_handle(topic);
     return xQueueReceive(topic_handle.queue_handle, data_ptr, ticks_to_wait);
 }
@@ -42,6 +44,8 @@ uint8_t MessageCenter::peek_message(Topic_Name_t topic, void* data_ptr,
                                     int ticks_to_wait) {
     ASSERT(data_ptr != NULL,
            "Cannot peek message from message_center for NULL pointer.");
+    if (!initialized)
+        return 0;
     Topic_Handle_t& topic_handle = get_topic_handle(topic);
     return xQueuePeek(topic_handle.queue_handle, data_ptr, ticks_to_wait);
 }
@@ -49,6 +53,8 @@ uint8_t MessageCenter::peek_message(Topic_Name_t topic, void* data_ptr,
 uint8_t MessageCenter::pub_message(Topic_Name_t topic, void* data_ptr) {
     ASSERT(data_ptr != NULL,
            "Cannot publish NULL data pointer to message_center.");
+    if (!initialized)
+        return 0;
     Topic_Handle_t& topic_handle = get_topic_handle(topic);
     if (topic_handle.queue_length == 1) {
         return xQueueOverwrite(topic_handle.queue_handle, data_ptr);

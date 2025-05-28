@@ -8,7 +8,6 @@ class Imu : public IImu {
    private:
     float temperature;
     float gyro_offset[3], accel_offset[3];
-    float gyro_cali_offset[3], accel_cali_offset[3];
     float gyro[3], accel[3], mag[3];
 
    public:
