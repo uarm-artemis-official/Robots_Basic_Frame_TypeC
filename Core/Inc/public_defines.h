@@ -120,20 +120,20 @@
 #define max_err_spd_yaw 5000
 #define kf_spd_yaw 0
 
-#define kp_angle_pitch 0
-#define ki_angle_pitch 0
+#define kp_angle_pitch 300
+#define ki_angle_pitch 30
 #define kd_angle_pitch 0
 #define beta_angle_pitch 1
-#define yeta_angle_pitch 1
+#define yeta_angle_pitch 0
 #define max_out_angle_pitch 1000
 #define max_I_out_angle_pitch 0
 #define max_err_angle_pitch 100  //2.0f*PI
 
-#define kp_spd_pitch 0
+#define kp_spd_pitch 180
 #define ki_spd_pitch 0
 #define kd_spd_pitch 0
 #define beta_spd_pitch 1
-#define yeta_spd_pitch 1
+#define yeta_spd_pitch 0
 #define max_out_spd_pitch 30000
 #define max_I_out_spd_pitch 3000
 #define max_err_spd_pitch 5000

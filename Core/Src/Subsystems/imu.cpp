@@ -9,6 +9,9 @@
 
 #include "tim.h"
 
+static uint8_t result = 0;
+static uint8_t read_reg = 0x00;
+
 void Imu::init() {
     memset(gyro_offset, 0, sizeof(float) * 3);
     memset(accel_offset, 0, sizeof(float) * 3);
@@ -24,13 +27,15 @@ float Imu::get_temp() {
 
 void Imu::get_attitude(Attitude_t* attitude) {
     AhrsSensor_t sensor;
-    float temp;
     ahrs_update(&sensor, false);
+    sensor.ax *= -1;
+    sensor.ay *= -1;
     madgwick_ahrs_updateIMU(&sensor, attitude);
     // madgwick_ahrs_update(&sensor, attitude);
 }
 
 void Imu::ahrs_update(AhrsSensor_t* sensor, bool read_mag) {
+    BMI088_ACCEL_Read_Single_Reg(read_reg, result);
     set_cali_slove();
 
     /* Access the mag */

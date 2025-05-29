@@ -8,7 +8,7 @@
 #define CHASSIS_TASK_EXEC_TIME 5
 #define GIMBAL_TASK_EXEC_TIME 5
 #define SHOOT_TASK_EXEC_TIME 5
-#define IMU_TASK_EXEC_TIME 1
+#define IMU_TASK_EXEC_TIME 2
 #define TIMER_TASK_EXEC_TIME 1
 #define COMM_TASK_EXEC_TIME 2
 #define RC_TASK_EXEC_TIME 2
@@ -46,8 +46,7 @@
 #define MODE_DEBUG 1
 //#define ENABLE_MANUAL_MODE_SET
 
-#define PITCH_ECD_CENTER \
-    4750  //manually measured data: number increase, head down
+#define PITCH_ECD_CENTER 2035
 #define PITCH_ECD_DELTA 1364  //60/180*4096
 #define PITCH_GEAR_RATIO 1    // The ratio of the gear box of the pitch motor
 #define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO)

@@ -42,7 +42,7 @@ void IMUApp::init() {
 
     // TODO: Change prescalar to 1280 or higher and find new pid values.
     // Rationale: temperature data is only updated every 1.28 seconds.
-    prescaled_pid2_init(&(imu_heating_control.pid), 1000, 800, 80, 260, 1, 0, 0,
+    prescaled_pid2_init(&(imu_heating_control.pid), 500, 800, 80, 260, 1, 0, 0,
                         4000);
     set_imu_temp_status(ABNORMAL);
     imu_app_state.imu_mode = GA_MODE;  // forbid ist8310

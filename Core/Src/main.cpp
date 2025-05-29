@@ -278,7 +278,7 @@ int main(void) {
     if (board_status == CHASSIS_BOARD) {
         osThreadDef(
             ChassisTask, [](const void* arg) { chassis_app.run(arg); },
-            osPriorityRealtime, 0, 256);
+			osPriorityHigh, 0, 256);
         osThreadCreate(osThread(ChassisTask), NULL);
 
         osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
@@ -290,14 +290,14 @@ int main(void) {
     } else if (board_status == GIMBAL_BOARD) {
         osThreadDef(
             GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
-            osPriorityRealtime, 0, 512);
+			osPriorityHigh, 0, 512);
         osThreadCreate(osThread(GimbalTask), NULL);
 
         // osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
         // osThreadCreate(osThread(ShootTask), NULL);
 
         osThreadDef(
-            IMUTask, [](const void* arg) { imu_app.run(arg); }, osPriorityHigh,
+            IMUTask, [](const void* arg) { imu_app.run(arg); }, osPriorityRealtime,
             0, 256);
         osThreadCreate(osThread(IMUTask), NULL);
 

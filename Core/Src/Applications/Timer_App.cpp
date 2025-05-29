@@ -82,8 +82,5 @@ void TimerApp::loop() {
         system_motors.request_feedback(swerve_ids.at(i));
     }
 
-    /* CAN data  */
-    if (board_status != GIMBAL_BOARD) {
-        system_motors.send_motor_voltage();
-    }
+    system_motors.send_motor_voltage();
 }

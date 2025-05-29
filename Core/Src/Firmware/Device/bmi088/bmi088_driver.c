@@ -433,13 +433,16 @@ void BMI088_Read(float gyro[3], float accel[3], float* temperature) {
     BMI088_ACCEL_Read_Muli_Reg(BMI088_ACCEL_XOUT_L, buf, 6);
 
     bmi088_raw_temp = (int16_t) ((buf[1]) << 8) | buf[0];
-    accel[0] = bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND;
+    accel[0] =
+        bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND_SQUARED;
     accel_x = bmi088_raw_temp;
     bmi088_raw_temp = (int16_t) ((buf[3]) << 8) | buf[2];
-    accel[1] = bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND;
+    accel[1] =
+        bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND_SQUARED;
     accel_y = bmi088_raw_temp;
     bmi088_raw_temp = (int16_t) ((buf[5]) << 8) | buf[4];
-    accel[2] = bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND;
+    accel[2] =
+        bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND_SQUARED;
     accel_z = bmi088_raw_temp;
 
     BMI088_GYRO_Read_Muli_Reg(BMI088_GYRO_CHIP_ID, buf, 8);

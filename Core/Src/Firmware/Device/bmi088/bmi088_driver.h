@@ -62,7 +62,7 @@ extern "C" {
 
 // TODO: Change when moving locations
 // Edmonton gravity conversion
-#define G_TO_METERS_PER_SECOND 9.8115861
+#define G_TO_METERS_PER_SECOND_SQUARED 9.8115861
 
 typedef struct BMI088_REAL_DATA {
     uint8_t status;
@@ -108,6 +108,15 @@ void BMI088_Read(float gyro[3], float accel[3], float* temperate);
 float get_BMI088_temperature(void);
 void get_BMI088_gyro(int16_t gyro[3]);
 void get_BMI088_accel(float accel[3]);
+
+#define BMI088_ACCEL_Read_Single_Reg(reg, data) \
+    {                                           \
+        BMI088_ACCEL_NS_L();                    \
+        BMI088_Read_Write_Byte((reg) | 0x80);   \
+        BMI088_Read_Write_Byte(0x55);           \
+        (data) = BMI088_Read_Write_Byte(0x55);  \
+        BMI088_ACCEL_NS_H();                    \
+    }
 
 #ifdef __cplusplus
 }
