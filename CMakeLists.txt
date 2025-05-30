@@ -31,18 +31,18 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Swerve")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Swerve)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
-    set(CMAKE_C_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS")
-    set(CMAKE_CXX_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS")
+    set(CMAKE_C_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS -DSWERVE_GIMBAL")
+    set(CMAKE_CXX_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS -DSWERVE_GIMBAL")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Omni")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Omni)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
-    set(CMAKE_C_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS")
-    set(CMAKE_CXX_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS")
+    set(CMAKE_C_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS -DOMNI_GIMBAL")
+    set(CMAKE_CXX_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS -DOMNI_GIMBAL")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Mecanum")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Mecanum)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
-    set(CMAKE_C_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS")
-    set(CMAKE_CXX_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS")
+    set(CMAKE_C_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS -DMECANUM_GIMBAL")
+    set(CMAKE_CXX_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS -DMECANUM_GIMBAL")
 else()
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
@@ -77,8 +77,8 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
         INTERFACE 
             GTEST)
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Middleware)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms/control)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Lib)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 
 else()

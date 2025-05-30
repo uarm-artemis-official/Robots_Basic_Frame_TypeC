@@ -35,7 +35,7 @@
         },
         {
             "name": "GTest",
-            "generator": "MinGW Makefiles",
+            "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "GTest",
