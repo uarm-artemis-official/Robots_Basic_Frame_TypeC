@@ -42,23 +42,29 @@
 /* =========================================================================
  * GIMBAL DEFINES
  * ====================================================================== */
-//#define GIMBAL_MOTOR_DEBUG 1
-#define MODE_DEBUG 1
-//#define ENABLE_MANUAL_MODE_SET
-
+#ifdef MECANUM_GIMBAL
+#define YAW_ECD_CENTER 3350
 #define PITCH_ECD_CENTER 2035
+#elif OMNI_GIMBAL
+#define YAW_ECD_CENTER 1025
+#define PITCH_ECD_CENTER 4800
+#elif SWERVE_GIMBAL
+#define YAW_ECD_CENTER 0
+#define PITCH_ECD_CENTER 0
+#else
+#define YAW_ECD_CENTER 0
+#define PITCH_ECD_CENTER 0
+#endif
+
 #define PITCH_ECD_DELTA 1364  //60/180*4096
 #define PITCH_GEAR_RATIO 1    // The ratio of the gear box of the pitch motor
 #define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO)
 
-#define YAW_ECD_CENTER 3350
 #define YAW_GEAR_RATIO 1.0f  //if install a gear, calc the gear ratio here
 #define YAW_POSITIVE_DIR \
     -1  //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would \
         //posiibly is turned to negative value, we need to calibrate the correct direction    \
         //of this changed output for speed controller
-#define GIMBAL_INIT_TIME_MS 1000  // init delay duration in mili-second
-#define GIMBAL_JUMP_THRESHOLD 5.6f
 
 #define GIMBAL_YAW_MOTOR_INDEX 0
 #define GIMBAL_PITCH_MOTOR_INDEX 1
@@ -133,3 +139,8 @@
      500.0f)  //32767 is the maximum size of int16_t														 // exp: since we need to transmit the float angle(-pi, pi), we need to transfer it														 // to int16_t, and rescale it in the receiver side.
 
 #endif
+
+/* =========================================================================
+ * TIMER DEFINES
+ * ====================================================================== */
+// #define DISABLE_MOTOR_SEND

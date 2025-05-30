@@ -571,16 +571,16 @@ void GimbalApp::update_targets(int16_t* g_channels) {
  */
 float gimbal_target_yaw_rpm = -10.f;
 void GimbalApp::cmd_exec() {
-    // float yaw_diff = GimbalApp::calc_rel_angle(gimbal.yaw_target_angle,
-    //                                            gimbal.yaw_rel_angle);
+    float yaw_diff = GimbalApp::calc_rel_angle(gimbal.yaw_target_angle,
+                                               gimbal.yaw_rel_angle);
     float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_target_angle,
                                                  gimbal.pitch_rel_angle);
 
-    // pid2_dual_loop_control(
-    //     &(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid),
-    //     &(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid), 0, yaw_diff,
-    //     motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm,
-    //     GIMBAL_TASK_EXEC_TIME * 0.001, GIMBAL_TASK_EXEC_TIME * 0.001);
+    pid2_dual_loop_control(
+        &(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid),
+        &(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid), 0, yaw_diff,
+        motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm,
+        GIMBAL_TASK_EXEC_TIME * 0.001, GIMBAL_TASK_EXEC_TIME * 0.001);
 
     pid2_dual_loop_control(
         &(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid),
@@ -592,7 +592,7 @@ void GimbalApp::cmd_exec() {
     //     &(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid), gimbal_target_yaw_rpm,
     //     motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm,
     //     GIMBAL_TASK_EXEC_TIME * 0.001f);
-    motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid.total_out = 0;
+    // motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid.total_out = 0;
 }
 
 void GimbalApp::send_motor_volts() {

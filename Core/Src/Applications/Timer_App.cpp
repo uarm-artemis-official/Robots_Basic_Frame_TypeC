@@ -82,5 +82,7 @@ void TimerApp::loop() {
         system_motors.request_feedback(swerve_ids.at(i));
     }
 
+#ifndef DISABLE_MOTOR_SEND
     system_motors.send_motor_voltage();
+#endif
 }
