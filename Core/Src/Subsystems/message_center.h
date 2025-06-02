@@ -6,7 +6,8 @@
 
 class MessageCenter : public IMessageCenter {
    private:
-    Topic_Handle_t topic_handles[14] = {
+    // TODO: replace with std::array.
+    Topic_Handle_t topic_handles[15] = {
         Topic_Handle_t {MOTOR_SET, sizeof(MotorSetMessage_t), 5, NULL},
         Topic_Handle_t {MOTOR_READ, sizeof(MotorReadMessage_t), 1, NULL},
         Topic_Handle_t {RC_INFO, sizeof(RCInfoMessage_t), 1, NULL},
@@ -24,7 +25,9 @@ class MessageCenter : public IMessageCenter {
         Topic_Handle_t {PLAYER_COMMANDS, 0, 1, NULL},
         Topic_Handle_t {REFEREE_INFO, sizeof(uint8_t) * 2, 1, NULL},
         Topic_Handle_t {RC_RAW, sizeof(uint8_t) * 18, 5, NULL},
+
         Topic_Handle_t {UC_PACK_IN, sizeof(uint8_t) * 64, 10, NULL},
+        Topic_Handle_t {UC_PACK_OUT, sizeof(uint8_t) * 196, 10, NULL},
         Topic_Handle_t {AUTO_AIM, sizeof(float) * 2, 1, NULL},
     };
     bool initialized = false;

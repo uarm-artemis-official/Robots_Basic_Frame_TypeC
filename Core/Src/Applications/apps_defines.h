@@ -61,10 +61,6 @@
 #define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO)
 
 #define YAW_GEAR_RATIO 1.0f  //if install a gear, calc the gear ratio here
-#define YAW_POSITIVE_DIR \
-    -1  //since we map the ecd (0,8192) to (-pi,pi), the output of first pid controller would \
-        //posiibly is turned to negative value, we need to calibrate the correct direction    \
-        //of this changed output for speed controller
 
 #define GIMBAL_YAW_MOTOR_INDEX 0
 #define GIMBAL_PITCH_MOTOR_INDEX 1
@@ -90,9 +86,11 @@
 #define MIN_PWM_ON_TIME 1000
 
 #define SERVO_PWM_CLOSE_LID 366  //clockwise 120 degree
-#define SERVO_PWM_OPEN_LID \
-    170  //counter-clockwise 120 degree \
-         //for 90 degree, turn open lid value sto 110
+
+/* counter-clockwise 120 degree for 90 degree, turn open lid value sto 110
+*/
+#define SERVO_PWM_OPEN_LID 170
+
 /* 2305 can value*/
 #define LEVEL_ONE_PWM 300
 

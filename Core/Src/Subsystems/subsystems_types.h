@@ -119,6 +119,7 @@ typedef enum Topic_Name_t {
     RC_RAW,
     REFEREE_INFO,
     UC_PACK_IN,
+    UC_PACK_OUT,
     AUTO_AIM,
     UART_OUT,
 

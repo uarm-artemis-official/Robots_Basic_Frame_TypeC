@@ -9,12 +9,12 @@
 
 #include "tim.h"
 
+Imu::Imu(uint32_t sampling_rate_, float beta_)
+    : madgewick(sampling_rate_, beta_) {}
+
 void Imu::init() {
-    memset(gyro_offset, 0, sizeof(float) * 3);
-    memset(accel_offset, 0, sizeof(float) * 3);
     BMI088_init();
     ist8310_init();
-    set_cali_slove();
 }
 
 float Imu::get_temp() {
@@ -22,69 +22,60 @@ float Imu::get_temp() {
     return temperature;
 }
 
-void Imu::get_attitude(Attitude_t* attitude) {
+void Imu::get_attitude(Attitude_t& attitude) {
+    constexpr bool use_magnetometer = true;
     AhrsSensor_t sensor;
-    ahrs_update(&sensor, false);
-    madgwick_ahrs_updateIMU(&sensor, attitude);
-    // madgwick_ahrs_update(&sensor, attitude);
+
+    gather_sensor_data(sensor, use_magnetometer);
+    madgewick.calc_marg(sensor.ax, sensor.ay, sensor.az, sensor.wx, sensor.wy,
+                        sensor.wz, sensor.mx, sensor.my, sensor.mz);
+    madgewick.get_attitude(attitude);
 }
 
-void Imu::ahrs_update(AhrsSensor_t* sensor, bool read_mag) {
+void Imu::get_sensor_data(AhrsSensor_t& sensor) {
+    sensor.ax = accel[0];
+    sensor.ay = accel[1];
+    sensor.az = accel[2];
+
+    sensor.wx = gyro[0];
+    sensor.wy = gyro[1];
+    sensor.wz = gyro[2];
+
+    sensor.mx = mag[0];
+    sensor.my = mag[1];
+    sensor.mz = mag[2];
+}
+
+void Imu::gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) {
     taskENTER_CRITICAL();
-    set_cali_slove();
-
-    /* Access the mag */
-
-    sensor->ax = accel[0];
-    sensor->ay = accel[1];
-    sensor->az = accel[2];
-
-    sensor->wx = gyro[0];
-    sensor->wy = gyro[1];
-    sensor->wz = gyro[2];
-
-    if (read_mag) {
-        ist8310_read_mag(mag);
-        sensor->mx = mag[0];
-        sensor->my = mag[1];
-        sensor->mz = mag[2];
-    } else {
-        sensor->mx = 0;
-        sensor->my = 0;
-        sensor->mz = 0;
-    }
-
-    //    AHRS_update(ins_quat, period_ms / 1000.0f, gyro, accel, mag);
-    //    get_angle(ins_quat, ins_angle, ins_angle + 1, ins_angle + 2);
-    //    sensor->yaw = ins_angle[0];
-    //    sensor->pitch = ins_angle[1];
-    //    sensor->roll = ins_angle[2];
-    taskEXIT_CRITICAL();
-}
-
-void Imu::set_offset() {
-    int cali_times = 100;
-
-    for (int i = 0; i < cali_times; i++) {
-        BMI088_Read(gyro, accel, &temperature);
-        gyro_offset[0] += gyro[0];
-        gyro_offset[1] += gyro[1];
-        gyro_offset[2] += gyro[2];
-        osDelay(3);
-    }
-
-    gyro_offset[0] = gyro_offset[0] / cali_times;
-    gyro_offset[1] = gyro_offset[1] / cali_times;
-    gyro_offset[2] = gyro_offset[2] / cali_times;
-}
-
-void Imu::set_cali_slove() {
     bmi088_real_data_t bmi088_raw_data;
     BMI088_Read(bmi088_raw_data.gyro, bmi088_raw_data.accel, &temperature);
 
-    for (uint8_t i = 0; i < 3; i++) {
-        gyro[i] = bmi088_raw_data.gyro[i] - gyro_offset[i];
-        accel[i] = bmi088_raw_data.accel[i] - accel_offset[i];
+    Imu::adjust_data(accel, bmi088_raw_data.accel, accel_bias, accel_scale);
+    Imu::adjust_data(gyro, bmi088_raw_data.gyro, gyro_bias, gyro_scale);
+
+    if (read_mag) {
+        ist8310_read_mag(mag);
+    } else {
+        mag[0] = 0.0f;
+        mag[1] = 0.0f;
+        mag[2] = 0.0f;
+    }
+
+    get_sensor_data(sensor);
+    taskEXIT_CRITICAL();
+}
+
+void Imu::adjust_data(float output[3], float data[3], const float bias[3],
+                      const float scale[3][3]) {
+    float tmp[3];
+    for (int i = 0; i < 3; i++) {
+        tmp[i] = data[i] - bias[i];
+    }
+
+    for (int i = 0; i < 3; i++) {
+        output[i] =
+            scale[i][0] * tmp[0] + scale[i][1] * tmp[1] + scale[i][2] * tmp[2];
     }
 }
 

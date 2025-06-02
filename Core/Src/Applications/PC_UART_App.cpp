@@ -26,17 +26,17 @@ void PCUARTApp::init() {
 }
 
 void PCUARTApp::loop() {
-    UC_Board_Data_Pack_t send_pack;
-    pack_init(&send_pack, get_data_size(UC_BOARD_DATA_HEADER));
-    send_pack.robot_color = 2;
-    send_pack.pitch = 1.111f;
-    send_pack.yaw = 2.222f;
-    send_pack.accel_x = 0.999f;
-    send_pack.accel_y = 0.888f;
-    send_pack.wheel_rpm[0] = 0.1f;
-    send_pack.wheel_rpm[1] = 0.2f;
-    send_pack.wheel_rpm[2] = 0.3f;
-    send_pack.wheel_rpm[3] = 0.4f;
+    // UC_Board_Data_Pack_t send_pack;
+    // pack_init(&send_pack, get_data_size(UC_BOARD_DATA_HEADER));
+    // send_pack.robot_color = 2;
+    // send_pack.pitch = 1.111f;
+    // send_pack.yaw = 2.222f;
+    // send_pack.accel_x = 0.999f;
+    // send_pack.accel_y = 0.888f;
+    // send_pack.wheel_rpm[0] = 0.1f;
+    // send_pack.wheel_rpm[1] = 0.2f;
+    // send_pack.wheel_rpm[2] = 0.3f;
+    // send_pack.wheel_rpm[3] = 0.4f;
 
     if (idle_count == 40) {
         restart_receive(new_pack_buffer);
@@ -75,6 +75,11 @@ void PCUARTApp::loop() {
     // IMU Transmission
     // TODO: Send chassis x and y acceleration, robot color, and wheel RPMs.
     // This requires enabling IMU task for chassis and modifying Comm task.
-    send_pack.pitch += 0.1;
-    uc_send_board_data(&send_pack);
+    // send_pack.pitch += 0.1;
+    // uc_send_board_data(&send_pack);
+
+    uint8_t out_buffer[196];
+    while (message_center.get_message(UC_PACK_OUT, out_buffer, 0) == pdTRUE) {
+        PCComm::send_bytes(out_buffer, 196);
+    }
 }

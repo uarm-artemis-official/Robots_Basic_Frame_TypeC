@@ -169,7 +169,7 @@ static EventCenter event_center;
 static Debug debug;
 static CanComm can_comm;
 static Motors motors;
-static Imu imu;
+static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4);
 
 #ifdef SWERVE_CHASSIS
 static SwerveDrive swerve_drive(message_center, 0);
@@ -278,7 +278,7 @@ int main(void) {
     if (board_status == CHASSIS_BOARD) {
         osThreadDef(
             ChassisTask, [](const void* arg) { chassis_app.run(arg); },
-			osPriorityHigh, 0, 256);
+            osPriorityHigh, 0, 256);
         osThreadCreate(osThread(ChassisTask), NULL);
 
         osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
@@ -290,15 +290,15 @@ int main(void) {
     } else if (board_status == GIMBAL_BOARD) {
         osThreadDef(
             GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
-			osPriorityHigh, 0, 512);
+            osPriorityHigh, 0, 512);
         osThreadCreate(osThread(GimbalTask), NULL);
 
         // osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
         // osThreadCreate(osThread(ShootTask), NULL);
 
         osThreadDef(
-            IMUTask, [](const void* arg) { imu_app.run(arg); }, osPriorityRealtime,
-            0, 256);
+            IMUTask, [](const void* arg) { imu_app.run(arg); },
+            osPriorityRealtime, 0, 256);
         osThreadCreate(osThread(IMUTask), NULL);
 
         osThreadDef(

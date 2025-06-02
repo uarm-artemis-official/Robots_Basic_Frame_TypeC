@@ -57,21 +57,31 @@ void IMUApp::loop() {
     imu_temp_pid_control();
 
     if (imu_app_state.temp_status == NORMAL) {
-        imu.get_attitude(&attitude);
+        imu.get_attitude(attitude);
 
         message_data[0] = attitude.yaw;
         message_data[1] = attitude.roll;
         message_center.pub_message(IMU_READINGS, message_data);
+
+        // Sending raw sensor data for calibration.
+        imu.get_sensor_data(sensor_data);
+        uint8_t uc_out_buffer[196];
+        memset(uc_out_buffer, 0, sizeof(uint8_t) * 196);
+        uc_out_buffer[0] = 143;
+        memcpy(uc_out_buffer + 4, &sensor_data, sizeof(AhrsSensor_t));
+        message_center.pub_message(UC_PACK_OUT, uc_out_buffer);
     }
 }
 
 void IMUApp::calibrate_imu() {
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    while (imu_app_state.temp_status != NORMAL) {
+    float prev_temp = 0;
+    while (!(39.75 <= prev_temp && prev_temp <= 40.25 &&
+             39.75 <= imu_app_state.temp && imu_app_state.temp <= 40.25)) {
+        prev_temp = imu_app_state.temp;
         imu_temp_pid_control();
         vTaskDelayUntil(&xLastWakeTime, IMU_TASK_EXEC_TIME);
     }
-    imu.set_offset();
 }
 
 /**

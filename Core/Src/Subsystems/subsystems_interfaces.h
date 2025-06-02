@@ -28,11 +28,10 @@ class IImu {
    public:
     virtual void init() = 0;
     virtual float get_temp() = 0;
-    virtual void get_attitude(Attitude_t* attitude) = 0;
-    virtual void set_offset() = 0;
+    virtual void get_attitude(Attitude_t& attitude) = 0;
+    virtual void get_sensor_data(AhrsSensor_t& sensor) = 0;
     virtual void set_heat_pwm(uint16_t duty_cycle) = 0;
-    virtual void set_cali_slove() = 0;
-    virtual void ahrs_update(AhrsSensor_t* sensor, bool read_mag) = 0;
+    virtual void gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) = 0;
 };
 
 class IEventCenter {

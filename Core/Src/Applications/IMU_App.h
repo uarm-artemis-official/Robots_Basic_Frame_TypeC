@@ -25,6 +25,7 @@ class IMUApp : public RTOSApp<IMUApp> {
     IMU_t imu_app_state;
     IMU_Heat_t imu_heating_control;
     Attitude_t attitude;
+    AhrsSensor_t sensor_data;
     float message_data[2];
 
    public:

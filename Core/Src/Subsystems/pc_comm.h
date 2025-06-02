@@ -11,6 +11,7 @@ class PCComm {
    public:
     static uint8_t uc_check_pack_integrity(uint8_t* pack_bytes,
                                            uint8_t pack_size);
+    static void send_bytes(uint8_t* bytes, uint32_t size);
 };
 
 #ifdef __cplusplus

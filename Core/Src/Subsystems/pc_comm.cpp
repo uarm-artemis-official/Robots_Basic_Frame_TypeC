@@ -21,3 +21,7 @@ uint8_t PCComm::uc_check_pack_integrity(uint8_t* pack_bytes,
         return 1;
     }
 }
+
+void PCComm::send_bytes(uint8_t* bytes, uint32_t size) {
+    uc_send_bytes(bytes, size);
+}
