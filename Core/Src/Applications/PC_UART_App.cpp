@@ -7,10 +7,6 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-
-#ifndef __PC_UART_APP_C__
-#define __PC_UART_APP_C__
-
 #include "PC_UART_App.h"
 #include "apps_defines.h"
 #include "message_center.h"
@@ -82,5 +78,3 @@ void PCUARTApp::loop() {
     send_pack.pitch += 0.1;
     uc_send_board_data(&send_pack);
 }
-
-#endif

@@ -11,11 +11,6 @@ class Imu : public IImu {
     float gyro[3], accel[3], mag[3];
 
    public:
-    static constexpr const float gyro_scale_factor[3][3] = {
-        BMI088_BOARD_INSTALL_SPIN_MATRIX};
-    static constexpr const float accel_scale_factor[3][3] = {
-        BMI088_BOARD_INSTALL_SPIN_MATRIX};
-
     void init() override;
     float get_temp() override;
     void get_attitude(Attitude_t* attitude) override;

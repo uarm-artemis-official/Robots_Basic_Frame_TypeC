@@ -58,6 +58,7 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 enable_language(C CXX ASM)
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
+    include(CTest)
     include(FetchContent)
     FetchContent_Declare(
         googletest

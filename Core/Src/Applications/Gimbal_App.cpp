@@ -7,9 +7,6 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#ifndef __GIMBAL_APP_C__
-#define __GIMBAL_APP_C__
-
 #include "Gimbal_App.h"
 #include <string.h>
 #include "apps_defines.h"
@@ -64,7 +61,7 @@ void GimbalApp::set_initial_state() {
     gimbal.pitch_ecd_center = PITCH_ECD_CENTER;
 
     init_folp_filter(&(gimbal.folp_f_yaw), 0.90f);
-    init_folp_filter(&(gimbal.folp_f_pitch), 0.99f);
+    init_folp_filter(&(gimbal.folp_f_pitch), 0.90f);
 
     init_ewma_filter(&(gimbal.ewma_f_x), 0.8f);         //0.65 for older client
     init_ewma_filter(&(gimbal.ewma_f_y), 0.8f);         //0.6 for older client
@@ -143,9 +140,8 @@ void GimbalApp::loop_prepare() {
 void GimbalApp::after_loop_prepare() {
     gimbal.yaw_imu_center =
         imu_calibration.yaw_samples_cumsum / imu_calibration.sample_count;
-    //  TODO: Uncomment after implementing pitch centering.
-    // gimbal.pitch_imu_center =
-    //     imu_calibration.pitch_samples_cumsum / imu_calibration.sample_count;
+    gimbal.pitch_imu_center =
+        imu_calibration.pitch_samples_cumsum / imu_calibration.sample_count;
 }
 
 /**
@@ -260,21 +256,6 @@ void GimbalApp::get_motor_feedback() {
 }
 
 /******************  MODE SELECTION FUNCTIONS BELOW ********************/
-//void gimbal_get_raw_mpu_data(Gimbal_t *gbal, IMU_t *imu_hldr){
-//	memcpy(&(gbal->ahrs_sensor), &(imu_hldr->ahrs_sensor), sizeof(AhrsSensor_t));
-//}
-//
-///*
-// * @brief     Copy the gyroscope data from imu and calculate quaternion
-// * 			  and euler's angle through attitude-breakdown algorithms.
-// * @param[in] gimbal: main gimbal handler
-// * */
-//void gimbal_get_euler_angle(Gimbal_t *gbal){
-//	gimbal_get_raw_mpu_data(gbal, &imu); // copy data to avoid mem leaks
-////	atti_math_calc(&gbal->ahrs_sensor, &gbal->euler_angle); //complementary filter parsed angle
-////	mahony_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));	//mahony algo
-//	madgwick_ahrs_update(&(gbal->ahrs_sensor), &(gbal->euler_angle));  //madgwick algo
-//}
 
 /*
  * @brief     Copy the gyroscope data from imu and calculate quaternion
@@ -282,15 +263,9 @@ void GimbalApp::get_motor_feedback() {
  * @param[in] gbal: main gimbal handler
  * */
 void GimbalApp::update_imu_angle(float yaw, float pitch) {
-
-    /* get timestamp */
-    // uint32_t DWTcnt = dwt_getCnt_us();  // systemclock_core 168MHz ->usec
-    //	 uint32_t delta_t = min(DWTcnt - gbal->euler_angle.timestamp, 3000);
-
-    /* filter the yaw angle data to handle shift */
-    gimbal.euler_angle.yaw =
+    gimbal.yaw_imu_angle =
         first_order_low_pass_filter(&(gimbal.folp_f_yaw), yaw);
-    gimbal.euler_angle.pitch =
+    gimbal.pitch_imu_angle =
         first_order_low_pass_filter(&(gimbal.folp_f_pitch), pitch);
 }
 /*
@@ -376,7 +351,11 @@ void GimbalApp::update_ecd_angles() {
     int16_t yaw_ecd_rel_angle = GimbalApp::calc_ecd_rel_angle(
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_angle,
         gimbal.yaw_ecd_center);
-    int16_t pitch_ecd_rel_angle = GimbalApp::calc_ecd_rel_angle(
+
+    // Negated pitch angle due to mounting of GM6020 on left side.
+    // Left-side mounting flips rotation sign convention (i.e. CCW is negative).
+    // Negating pitch restores regular sign convention.
+    int16_t pitch_ecd_rel_angle = -GimbalApp::calc_ecd_rel_angle(
         motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_angle,
         gimbal.pitch_ecd_center);
 
@@ -421,11 +400,6 @@ void GimbalApp::set_limited_angle(float new_yaw_target_angle,
                                   float new_pitch_target_angle) {
     gimbal.yaw_target_angle = new_yaw_target_angle;
     gimbal.pitch_target_angle = new_pitch_target_angle;
-    /* only set limit for yaw where is no slipring */
-    //	VAL_LIMIT(gbal->yaw_tar_angle,
-    //				   -PI,
-    //				    PI);
-    /* set the limit for pitch */
     VAL_LIMIT(gimbal.pitch_target_angle, -PITCH_GYRO_DELTA, PITCH_GYRO_DELTA);
 }
 
@@ -455,10 +429,10 @@ void GimbalApp::send_rel_angles() {
 
 void GimbalApp::update_headings() {
     if (gimbal.gimbal_motor_mode == GYRO_MODE) {
-        gimbal.yaw_imu_angle = GimbalApp::calc_rel_angle(
-            gimbal.yaw_imu_center, gimbal.euler_angle.yaw);
+        gimbal.yaw_imu_angle = GimbalApp::calc_rel_angle(gimbal.yaw_imu_center,
+                                                         gimbal.yaw_imu_angle);
         gimbal.pitch_imu_angle = GimbalApp::calc_rel_angle(
-            gimbal.pitch_imu_center, gimbal.euler_angle.pitch);
+            gimbal.pitch_imu_center, gimbal.pitch_imu_angle);
 
         gimbal.yaw_rel_angle = gimbal.yaw_imu_angle;
         gimbal.pitch_rel_angle = gimbal.pitch_imu_angle;
@@ -506,16 +480,6 @@ void GimbalApp::update_targets(int16_t* g_channels) {
 
     set_limited_angle(gimbal.yaw_target_angle, gimbal.pitch_target_angle);
 }
-
-//float gimbal_calc_dual_pid_out(PID2_t *f_pid, PID2_t *s_pid, float f_cur_val, s_cur_val) {
-//	return pid2_dual_loop_control(f_pid,
-//			s_pid,
-//			0,
-//			f_cur_val,
-//			s_cur_val,
-//			GIMBAL_TASK_EXEC_TIME * 0.001,
-//			GIMBAL_TASK_EXEC_TIME * 0.001);
-//}
 
 /******************************** For Comms Above **************************************/
 /******************************** For Auto Aiming Below ********************************/
@@ -573,8 +537,12 @@ float gimbal_target_yaw_rpm = -10.f;
 void GimbalApp::cmd_exec() {
     float yaw_diff = GimbalApp::calc_rel_angle(gimbal.yaw_target_angle,
                                                gimbal.yaw_rel_angle);
-    float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_target_angle,
-                                                 gimbal.pitch_rel_angle);
+
+    // Inverted relative angle calculation (i.e. find target relative to angle instead of reverse)
+    // due to mounting of GM6020 on left side of gimbal instead of right side. The left side has
+    // opposite rotation sign convention (i.e. rotating CCW is negative) than right side.
+    float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_rel_angle,
+                                                 gimbal.pitch_target_angle);
 
     pid2_dual_loop_control(
         &(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid),
@@ -607,5 +575,3 @@ void GimbalApp::send_motor_volts() {
 
     message_center.pub_message(MOTOR_SET, &set_message);
 }
-
-#endif /* __GIMBAL_APP_C__ */

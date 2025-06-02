@@ -424,10 +424,10 @@ void BMI088_gyro_read(uint8_t* rx_buf, float gyro[3]) {
     gyro[2] = bmi088_raw_temp * BMI088_GYRO_SEN;
 }
 
-int16_t gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
-
+static int16_t gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
+static uint8_t gyro_read_status = 100;
 void BMI088_Read(float gyro[3], float accel[3], float* temperature) {
-    uint8_t buf[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    uint8_t buf[6] = {0, 0, 0, 0, 0, 0};
     int16_t bmi088_raw_temp;
 
     BMI088_ACCEL_Read_Muli_Reg(BMI088_ACCEL_XOUT_L, buf, 6);
@@ -435,28 +435,42 @@ void BMI088_Read(float gyro[3], float accel[3], float* temperature) {
     bmi088_raw_temp = (int16_t) ((buf[1]) << 8) | buf[0];
     accel[0] =
         bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND_SQUARED;
-    accel_x = bmi088_raw_temp;
     bmi088_raw_temp = (int16_t) ((buf[3]) << 8) | buf[2];
     accel[1] =
         bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND_SQUARED;
-    accel_y = bmi088_raw_temp;
     bmi088_raw_temp = (int16_t) ((buf[5]) << 8) | buf[4];
     accel[2] =
         bmi088_raw_temp * BMI088_ACCEL_SEN * G_TO_METERS_PER_SECOND_SQUARED;
-    accel_z = bmi088_raw_temp;
 
-    BMI088_GYRO_Read_Muli_Reg(BMI088_GYRO_CHIP_ID, buf, 8);
-    if (buf[0] == BMI088_GYRO_CHIP_ID_VALUE) {
-        bmi088_raw_temp = (int16_t) ((buf[3]) << 8) | buf[2];
-        gyro[0] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
-        gyro_x = bmi088_raw_temp;
-        bmi088_raw_temp = (int16_t) ((buf[5]) << 8) | buf[4];
-        gyro[1] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
-        gyro_y = bmi088_raw_temp;
-        bmi088_raw_temp = (int16_t) ((buf[7]) << 8) | buf[6];
-        gyro[2] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
-        gyro_z = bmi088_raw_temp;
-    }
+    // BMI088_GYRO_Read_Muli_Reg(BMI088_GYRO_X_L, buf, 6);
+    // if (buf[0] == BMI088_GYRO_CHIP_ID_VALUE) {
+    // bmi088_raw_temp = (int16_t) ((buf[1]) << 8) | buf[0];
+    // gyro[0] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
+    // gyro_x = bmi088_raw_temp;
+    // bmi088_raw_temp = (int16_t) ((buf[3]) << 8) | buf[2];
+    // gyro[1] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
+    // gyro_y = bmi088_raw_temp;
+    // bmi088_raw_temp = (int16_t) ((buf[5]) << 8) | buf[4];
+    // gyro[2] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
+    // gyro_z = bmi088_raw_temp;
+    // }
+    uint8_t gyro_tx[7] = {
+        (BMI088_GYRO_X_L | 0x80), 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t gyro_rx[7];
+
+    BMI088_GYRO_NS_L();
+    uint8_t status = BMI088_Gyro_RW_Byte(gyro_rx, gyro_tx, 7);
+    BMI088_GYRO_NS_H();
+
+    gyro_read_status = status;
+
+    bmi088_raw_temp = (int16_t) ((gyro_rx[2] << 8) | gyro_rx[1]);
+    gyro[0] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
+    bmi088_raw_temp = (int16_t) ((gyro_rx[4] << 8) | gyro_rx[3]);
+    gyro[1] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
+    bmi088_raw_temp = (int16_t) ((gyro_rx[6] << 8) | gyro_rx[5]);
+    gyro[2] = bmi088_raw_temp * BMI088_GYRO_SEN * DEGREES_TO_RADIANS;
+
     BMI088_ACCEL_Read_Muli_Reg(BMI088_TEMP_M, buf, 2);
 
     bmi088_raw_temp = (int16_t) ((buf[0] << 3) | (buf[1] >> 5));

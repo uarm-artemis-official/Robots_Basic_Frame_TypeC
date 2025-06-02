@@ -7,10 +7,6 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#ifndef __CHASSIS_APP_C__
-#define __CHASSIS_APP_C__
-
-#define WITH_SLIPRING
 //#define CHASSIS_POWER_LIMIT
 
 #include "Chassis_App.h"
@@ -677,5 +673,3 @@ void get_chassis_ref_power_stat(Chassis_t* chassis_hdlr, Referee_t* ref) {
 #endif
 
 /* only for sentry begin */
-
-#endif /*__CHASSIS_APP__*/

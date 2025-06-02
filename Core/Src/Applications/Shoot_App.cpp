@@ -7,10 +7,6 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-
-#ifndef __SHOOT_APP_C__
-#define __SHOOT_APP_C__
-
 #include "Shoot_App.h"
 #include "apps_defines.h"
 
@@ -548,9 +544,3 @@ void shoot_detect_mag_status(Shoot_t* sht) {
         }
     }
 }
-
-#ifdef SHOOT_HEAT_LIMIT
-/* deploy shoot heat managment here based on the referee system */
-#endif
-
-#endif /* __SHOOT_APP_C__*/

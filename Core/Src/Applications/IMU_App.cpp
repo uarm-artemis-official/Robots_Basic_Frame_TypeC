@@ -7,8 +7,6 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#ifndef __IMU_APP_C__
-#define __IMU_APP_C__
 
 #include "IMU_App.h"
 #include "apps_defines.h"
@@ -62,7 +60,7 @@ void IMUApp::loop() {
         imu.get_attitude(&attitude);
 
         message_data[0] = attitude.yaw;
-        message_data[1] = attitude.pitch;
+        message_data[1] = attitude.roll;
         message_center.pub_message(IMU_READINGS, message_data);
     }
 }
@@ -132,5 +130,3 @@ int32_t IMUApp::imu_temp_pid_control() {
 
     return 0;
 }
-
-#endif

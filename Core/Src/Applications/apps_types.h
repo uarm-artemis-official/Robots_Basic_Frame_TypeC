@@ -152,7 +152,6 @@ typedef struct Gimbal_t {
     ramp_t yaw_ramp;           // yaw ramp for calibration process
     ramp_t pitch_ramp;         // pitch ramp for calibration process
     AhrsSensor_t ahrs_sensor;  // copy the sensor data from imu
-    Attitude_t euler_angle;    // quaternion to euler's angle
 
     /* filters */
     /* pc control filters */

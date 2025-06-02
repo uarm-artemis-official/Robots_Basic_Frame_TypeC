@@ -9,9 +9,6 @@
 
 #include "tim.h"
 
-static uint8_t result = 0;
-static uint8_t read_reg = 0x00;
-
 void Imu::init() {
     memset(gyro_offset, 0, sizeof(float) * 3);
     memset(accel_offset, 0, sizeof(float) * 3);
@@ -28,14 +25,12 @@ float Imu::get_temp() {
 void Imu::get_attitude(Attitude_t* attitude) {
     AhrsSensor_t sensor;
     ahrs_update(&sensor, false);
-    sensor.ax *= -1;
-    sensor.ay *= -1;
     madgwick_ahrs_updateIMU(&sensor, attitude);
     // madgwick_ahrs_update(&sensor, attitude);
 }
 
 void Imu::ahrs_update(AhrsSensor_t* sensor, bool read_mag) {
-    BMI088_ACCEL_Read_Single_Reg(read_reg, result);
+    taskENTER_CRITICAL();
     set_cali_slove();
 
     /* Access the mag */
@@ -64,6 +59,7 @@ void Imu::ahrs_update(AhrsSensor_t* sensor, bool read_mag) {
     //    sensor->yaw = ins_angle[0];
     //    sensor->pitch = ins_angle[1];
     //    sensor->roll = ins_angle[2];
+    taskEXIT_CRITICAL();
 }
 
 void Imu::set_offset() {
@@ -85,15 +81,10 @@ void Imu::set_offset() {
 void Imu::set_cali_slove() {
     bmi088_real_data_t bmi088_raw_data;
     BMI088_Read(bmi088_raw_data.gyro, bmi088_raw_data.accel, &temperature);
+
     for (uint8_t i = 0; i < 3; i++) {
-        gyro[i] = bmi088_raw_data.gyro[0] * Imu::gyro_scale_factor[i][0] +
-                  bmi088_raw_data.gyro[1] * Imu::gyro_scale_factor[i][1] +
-                  bmi088_raw_data.gyro[2] * Imu::gyro_scale_factor[i][2] -
-                  gyro_offset[i];
-        accel[i] = bmi088_raw_data.accel[0] * Imu::accel_scale_factor[i][0] +
-                   bmi088_raw_data.accel[1] * Imu::accel_scale_factor[i][1] +
-                   bmi088_raw_data.accel[2] * Imu::accel_scale_factor[i][2] -
-                   accel_offset[i];
+        gyro[i] = bmi088_raw_data.gyro[i] - gyro_offset[i];
+        accel[i] = bmi088_raw_data.accel[i] - accel_offset[i];
     }
 }
 

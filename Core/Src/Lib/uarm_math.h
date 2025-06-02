@@ -35,6 +35,7 @@ void softmax(float* x, int len);
 void abs_limit(float* a, float ABS_MAX);
 float in_out_map(float input, float in_min, float in_max, float out_min,
                  float out_max);
+float fast_inv_sqrt(float x);
 
 /* generic filters */
 void init_folp_filter(first_order_low_pass_t* folp, float a);

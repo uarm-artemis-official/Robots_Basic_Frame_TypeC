@@ -18,7 +18,7 @@
  * MADGWICK DEFINES 
  * ====================================================================== */
 #define sampleFreq 500.0f  // sample frequency in Hz
-#define betaDef 0.1f       // 2 * proportional gain 0.1
+#define betaDef 0.5f       // 2 * proportional gain 0.1
 
 /* =========================================================================
  * MAHONY DEFINES 

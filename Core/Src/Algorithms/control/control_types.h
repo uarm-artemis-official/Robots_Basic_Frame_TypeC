@@ -70,6 +70,33 @@ typedef struct {
     float total_out;
 } PID2_t;
 
+typedef struct {
+    float k_p;
+    float k_i;
+    float k_d;
+    float beta;
+    float gamma;
+
+    float plant_value;
+    float setpoint;
+
+    float p_error;
+    float i_error;
+    float d_error;
+    float prev_d_error;
+
+    float p_out;
+    float i_out;
+    float d_out;
+
+    float max_out;
+    float min_out;
+
+    float prev_total_out;
+    float total_out;
+
+} PID3_t;
+
 // Allows for control loops of different frequencies.
 // e.g. IMU_App runs at 1000 Hz but its temperature control runs at 100 Hz.
 typedef struct {

@@ -7,8 +7,8 @@ target_link_libraries(PID_TEST
         GTest::gtest_main
         ALGORITHMS::CONTROL_LIB)
 
-add_executable(UARM_LIBRARIES_TEST maths_test.cpp)
-target_link_libraries(UARM_LIBRARIES_TEST 
+add_executable(UARM_MATH_TEST uarm_math_test.cpp)
+target_link_libraries(UARM_MATH_TEST 
     PRIVATE 
         GTest::gtest_main
         LIB::UARM_MATH)
@@ -17,4 +17,4 @@ target_link_libraries(UARM_LIBRARIES_TEST
 include(GoogleTest)
 gtest_discover_tests(FIRST_TEST)
 gtest_discover_tests(PID_TEST)
-gtest_discover_tests(UARM_LIBRARIES_TEST)
+gtest_discover_tests(UARM_MATH_TEST)

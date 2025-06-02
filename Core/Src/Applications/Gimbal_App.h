@@ -66,22 +66,16 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     void get_imu_headings();
 
     void safe_mode_switch();
-    void get_euler_angle();
     void update_imu_angle(float yaw, float pitch);
-    void update_ecd_euler_angle(float yaw_target_angle,
-                                float pitch_target_angle);
     void update_ecd_angles();
-    void update_truns(float halfc);
     void set_angle(float target_angle);
     void set_limited_angle(float yaw_target_angle, float pitch_target_angle);
     void set_spd(int16_t yaw_target_spd);
     void cmd_exec();
-    void update_rel_turns(int jump_threshold);
     void send_rel_angles();
     void calc_rel_targets(float delta_yaw, float delta_pitch);
     void calc_channels_to_angles(const int16_t g_channels[2], float deltas[2]);
     // void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, UC_Auto_Aim_Pack_t *pack);
-    float calc_dual_pid_out(PID2_t* f_pid, PID2_t* s_pid, float f_cur_val);
     void send_motor_volts();
 
     void update_headings();

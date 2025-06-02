@@ -9,10 +9,6 @@
 * All rights reserved.
 ******************************************************************************
 */
-
-#ifndef __COMM_APP_C__
-#define __COMM_APP_C__
-
 #include "Comm_App.h"
 #include "apps_defines.h"
 #include "can_comm.h"
@@ -304,5 +300,3 @@ void can_comm_process_nosub(void) {
 /* The UART comm between boards are being on hold since ethe CAN comm can be more
  * reliable and fast, and we will use UART DMA to save cpu's arithmetic power */
 /********************************  COMM END  ************************************/
-
-#endif /*__COMM_TASK_C__*/
