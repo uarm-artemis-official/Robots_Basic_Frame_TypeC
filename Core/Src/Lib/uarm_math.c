@@ -35,6 +35,16 @@ double exp_sum(double* array, int length) {
     return sum;
 }
 
+float value_limit(float x, float min_x, float max_x) {
+    if (x < min_x) {
+        return min_x;
+    } else if (x > max_x) {
+        return max_x;
+    } else {
+        return x;
+    }
+}
+
 /**
   * @brief     softmax implementation
   * @param[in] input array with raw data

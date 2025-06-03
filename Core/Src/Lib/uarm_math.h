@@ -37,6 +37,8 @@ float in_out_map(float input, float in_min, float in_max, float out_min,
                  float out_max);
 float fast_inv_sqrt(float x);
 
+float value_limit(float x, float min_x, float max_x);
+
 /* generic filters */
 void init_folp_filter(first_order_low_pass_t* folp, float a);
 float first_order_low_pass_filter(first_order_low_pass_t* folp, float data);

@@ -30,6 +30,7 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
     static constexpr uint32_t LOOP_PERIOD_MS = CHASSIS_TASK_EXEC_TIME;
     static constexpr float MAX_TRANSLATION = 2;  // in m/s
     static constexpr float MAX_ROTATION = PI;    // rad/s
+    static constexpr float GYRO_SPEED = PI;
 
     ChassisApp(DriveTrain& drive_train_ref, IMessageCenter& message_center_ref,
                IDebug& debug_ref);
@@ -38,15 +39,11 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
 
     void loop();
 
-    void send_swerve_angle_commands();
-
-    void chassis_update_chassis_coord(int16_t* channels);
-    void chassis_update_gimbal_coord(int16_t* channels);
+    void update_movement_commands();
+    void calc_movement_vectors();
     void chassis_brake(float* vel, float ramp_step, float stop_threshold);
-    void chassis_exec_act_mode();
 
     void chassis_get_rc_info(int16_t* channels);
-    void chassis_get_wheel_feedback();
     void chassis_get_gimbal_rel_angles();
 
     /* power limit */

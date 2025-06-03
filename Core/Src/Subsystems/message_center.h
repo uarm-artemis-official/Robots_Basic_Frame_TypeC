@@ -4,6 +4,7 @@
 #include "subsystems_interfaces.h"
 #include "subsystems_types.h"
 
+// TODO: Add timestamp or something for users to differentiate messages.
 class MessageCenter : public IMessageCenter {
    private:
     // TODO: replace with std::array.
@@ -36,6 +37,8 @@ class MessageCenter : public IMessageCenter {
     static MessageCenter& get_instance();
 
     void init() override;
+
+    // TODO: Replace return values with bools?
     uint8_t get_message(Topic_Name_t topic, void* data_ptr,
                         int ticks_to_wait) override;
     uint8_t peek_message(Topic_Name_t topic, void* data_ptr,

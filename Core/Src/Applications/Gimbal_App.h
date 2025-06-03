@@ -38,6 +38,10 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = GIMBAL_TASK_EXEC_TIME;
+
+    // Software limits on pitch targets to prevent pitch from hitting mechanical hard stops.
+    static constexpr float PITCH_LOWER_LIMIT = -0.1;
+    static constexpr float PITCH_UPPER_LIMIT = 0.4;
     static float calc_rel_angle(float angle1, float angle2);
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
@@ -45,6 +49,7 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
               IDebug& debug_ref);
     void init();
     void set_initial_state();
+    void wait_for_motors();
 
     bool exit_calibrate_cond();
     void calibrate();

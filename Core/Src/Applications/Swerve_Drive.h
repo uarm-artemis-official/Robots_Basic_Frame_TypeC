@@ -11,6 +11,7 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     IMessageCenter& message_center;
     uint32_t width;
     float target_wheel_angles[4];
+    uint8_t target_wheel_rotation[4];
     int16_t target_wheel_speeds[4];
     std::array<Swerve_Wheel_Control_t, 8> swerve_motors;
 

@@ -53,13 +53,21 @@
 
 /* motor pid param */
 // TODO: Move PID parameters into separate header file.
+
+// Chassis spin pid
+#define KP_CHASSIS_SPIN 1
+#define KI_CHASSIS_SPIN 0
+#define KD_CHASSIS_SPIN 0
+#define BETA_CHASSIS_SPIN 1
+#define YETA_CHASSIS_SPIN 0
+
 /* wheels 3508 single loop control */
-#define kp_wheel 3.656
-#define ki_wheel 8.657
-#define kd_wheel 0.035
-// #define kp_wheel 5
-// #define ki_wheel 0
-// #define kd_wheel 0
+#define kp_wheel 5
+#define ki_wheel 0
+#define kd_wheel 0
+#define beta_wheel 1
+#define yeta_wheel 0
+
 #define max_out_wheel 5000  // not tuned yet
 #define max_I_out_wheel 0
 #define max_err_wheel 5000

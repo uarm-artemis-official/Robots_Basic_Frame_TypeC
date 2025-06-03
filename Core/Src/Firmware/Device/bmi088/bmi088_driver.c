@@ -534,7 +534,6 @@ void get_BMI088_accel(float accel[3]) {
     accel[2] = accel_raw_temp * BMI088_ACCEL_SEN;
 }
 
-#if defined(BMI088_USE_SPI)
 static void BMI088_Write_Single_Reg(uint8_t reg, uint8_t data) {
     BMI088_Read_Write_Byte(reg);
     BMI088_Read_Write_Byte(data);
@@ -554,8 +553,5 @@ static void BMI088_Read_Muli_Reg(uint8_t reg, uint8_t* buf, uint8_t len) {
         len--;
     }
 }
-#elif defined(BMI088_USE_IIC)
-
-#endif
 
 #endif

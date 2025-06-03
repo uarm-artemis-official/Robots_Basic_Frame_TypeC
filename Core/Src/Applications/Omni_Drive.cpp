@@ -18,9 +18,8 @@ void OmniDrive::init_impl() {
 
     for (int i = 0; i < CHASSIS_MAX_WHEELS; i++) {
         std::memset(&(motor_controls[i]), 0, sizeof(Chassis_Wheel_Control_t));
-        pid_param_init(&(motor_controls[i].f_pid), max_out_wheel,
-                       max_I_out_wheel, max_err_wheel, kp_wheel, ki_wheel,
-                       kd_wheel);
+        pid2_init(motor_controls[i].f_pid, kp_wheel, ki_wheel, kd_wheel,
+                  beta_wheel, yeta_wheel, -max_out_wheel, max_out_wheel);
     }
 
     motor_controls[0].stdid = CHASSIS_WHEEL1;
@@ -95,10 +94,10 @@ void OmniDrive::calc_motor_volts() {
     constexpr float RADS_TO_RPM = 60 / (2 * PI);
     for (int i = 0; i < 4; i++) {
         VAL_LIMIT(motor_angluar_vel[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
-        pid_single_loop_control(
+        pid2_single_loop_control(
+            motor_controls[i].f_pid,
             static_cast<float>(motor_angluar_vel[i] * RADS_TO_RPM *
                                CHASSIS_MOTOR_DEC_RATIO),
-            &(motor_controls[i].f_pid),
             static_cast<float>(motor_controls[i].feedback.rx_rpm),
             CHASSIS_TASK_EXEC_TIME * 0.001);
     }

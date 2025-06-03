@@ -3,7 +3,8 @@
 
 #include "uarm_os.h"
 
-// TODO: Implement CRTP for app that has init, calibrate, and loop stages.
+// TODO: Add startup events for apps so certain apps will start after certain events.
+// e.g. Chassis and Gimbal Apps only start when motors are detected to be online.
 template <class Derived>
 class ExtendedRTOSApp {
    public:

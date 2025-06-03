@@ -68,39 +68,46 @@ typedef struct {
 } ChassisPowerStat_t;
 
 typedef struct {
-    float vx;  //x axis velocity
-    float vy;  //y axis velocity
-    float wz;  //w axis angular velocity
+    /**
+     * Inverse kinematic outputs.
+     * 2 velocities (m/s) and 1 angular velocity (rad/s).
+     * x-y-z axes follows right-hand rule with right-front-up (robot reference frame).
+     * Origin is ideally at robot's center of mass.
+     * i.e. positive x-axis = robot's right, and positive y-axis = robot's front.
+     */
+    float vx;
+    float vy;
+    float wz;
     float max_vx;
     float max_vy;
     float max_wz;
 
+    /**
+     * Translation variables used for calculating Inverse Kinematics.
+     * These are velocity components pointing parallel and perpendicular to the movement
+     * vector created by the gimbal. These are directly manipulated through controller
+     * inputs and transformed into vx, and vy for chassis movement.
+     */
+    float v_parallel;
+    float v_perp;
+
+    /** 
+     * Gimbal yaw in radians [-pi, pi] received over CAN2 from gimbal board to chassis board.
+     * This is used calculating chassis inverse kinematics for moving relative to gimbal.
+     * Yaw angle is CCW positive and relative to front of the robot.
+     * e.g. 0 = front, -pi/2 = right, and pi/2 = left
+    */
     float gimbal_yaw_rel_angle;
-    float gimbal_yaw_abs_angle;
 
-    float gimbal_pitch_rel_angle;
-    float gimbal_pitch_abs_angle;
-
-    uint8_t pc_target_value;
-
-    PID_t f_pid;  //for Chassis twist(in Gimbal_Center mode)
-    int16_t mec_spd[4];
-    int16_t swerve_spd
-        [4];  // 0 Forward Left, 1 Forward Right, 2 Backward Right, 3 Backward Left (clockwise)
-    float swerve_angle
-        [4];  // 0 Forward Left, 1 Forward Right, 2 Backward Right, 3 Backward Left (clockwise)
-    Gimbal_Axis_t gimbal_axis;
+    PID2_t spin_pid;  //for Chassis twist(in Gimbal_Center mode)
 
     uint16_t chassis_gear;
-    uint8_t prev_robot_level;
-    uint8_t cur_robot_level;
     ChassisPowerStat_t ref_power_stat;
     ChassisPowerStat_t local_power_stat;
 
     BoardMode_t chassis_mode;  //chassis mode selection
     BoardActMode_t chassis_act_mode;
     ChassisGearMode_t chassis_gear_mode;
-
 } Chassis_t;
 
 /* =========================================================================
@@ -108,7 +115,7 @@ typedef struct {
  * ====================================================================== */
 typedef struct {
     uint32_t stdid;
-    PID_t f_pid;  //first pid handler for single-loop control
+    PID2_t f_pid;  //first pid handler for single-loop control
     Motor_Feedback_t feedback;
 } Chassis_Wheel_Control_t;
 
@@ -117,7 +124,7 @@ typedef struct {
  * ====================================================================== */
 typedef struct {
     uint32_t stdid;
-    PID_t f_pid;  //first pid handler for single-loop control
+    PID2_t f_pid;  //first pid handler for single-loop control
     Motor_Feedback_t feedback;
     uint32_t angle;
 } Swerve_Wheel_Control_t;

@@ -1,13 +1,10 @@
 #include "imu.h"
-#include "subsystems_defines.h"
-
 #include "ahrs.h"
 #include "bmi088_driver.h"
 #include "ist8310driver.h"
+#include "subsystems_defines.h"
 #include "uarm_lib.h"
 #include "uarm_os.h"
-
-#include "tim.h"
 
 Imu::Imu(uint32_t sampling_rate_, float beta_)
     : madgewick(sampling_rate_, beta_) {}
@@ -80,5 +77,7 @@ void Imu::adjust_data(float output[3], float data[3], const float bias[3],
 }
 
 void Imu::set_heat_pwm(uint16_t pwm) {
-    __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, pwm);
+    ASSERT(pwm <= 4000,
+           "Duty cycle cannot be set greater than timer 10's counter.");
+    BMI088_Set_PWM_Duty_Cycle(pwm);
 }

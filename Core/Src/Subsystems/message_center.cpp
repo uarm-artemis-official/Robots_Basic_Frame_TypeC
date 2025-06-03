@@ -30,6 +30,7 @@ Topic_Handle_t& MessageCenter::get_topic_handle(Topic_Name_t name) {
     ASSERT(false, "Cannot find topic by topic name in message center.");
 }
 
+// TODO: Support NULL data_ptr? Or add function to check if a topic has message.
 uint8_t MessageCenter::get_message(Topic_Name_t topic, void* data_ptr,
                                    int ticks_to_wait) {
     ASSERT(data_ptr != NULL,

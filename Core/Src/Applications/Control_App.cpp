@@ -104,7 +104,6 @@
 static RemoteControl_t rc;
 static ewma_filter_t ewma_gimbal_yaw, ewma_gimbal_pitch;
 static uint8_t rc_rx_buffer[DBUS_BUFFER_LEN];
-static uint32_t rc_errors = 0;
 static uint32_t rc_idle_count = 0;
 static MessageCenter& message_center = MessageCenter::get_instance();
 
@@ -127,12 +126,10 @@ void RC_Task_Func(const void* argument) {
     xLastWakeTime = xTaskGetTickCount();
 
     for (;;) {
-        if (rc_idle_count >= 2000 || rc_errors >= 500) {
+        if (rc_idle_count >= 500) {
             uint8_t safe_modes[] = {IDLE_MODE, INDPET_MODE, SHOOT_CEASE};
             int16_t channels[4] = {0};
             pub_rc_messages(safe_modes, channels);
-            rc_idle_count = 0;
-            rc_errors = 0;
         }
 
         BaseType_t new_rc_raw_message =

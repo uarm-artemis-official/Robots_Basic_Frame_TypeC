@@ -15,7 +15,7 @@ class Imu : public IImu {
     const float accel_scale[3][3] = {{1.004290, 0.002457, 0.000033},
                                      {0.002457, 1.002675, 0.002101},
                                      {0.000033, 0.002101, 0.994819}};
-    const float gyro_bias[3] = {0.0, 0.0, 0.0};
+    const float gyro_bias[3] = {0.00127898, 0.00048873, 0.00255299};
     const float gyro_scale[3][3] = {
         {1.0, 0, 0},
         {0.0, 1.0, 0},

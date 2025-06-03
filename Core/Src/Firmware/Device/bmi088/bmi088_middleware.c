@@ -76,4 +76,8 @@ uint8_t BMI088_Gyro_RW_Byte(uint8_t* rx, uint8_t* tx, uint8_t size) {
     return (HAL_SPI_TransmitReceive(&hspi1, tx, rx, size, 1000) == HAL_OK);
 }
 
+void BMI088_Set_PWM_Duty_Cycle(uint16_t on_duration) {
+    __HAL_TIM_SET_COMPARE(&htim10, TIM_CHANNEL_1, on_duration);
+}
+
 #endif

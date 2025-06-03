@@ -24,7 +24,6 @@ void SwerveDrive::init_impl() {
     swerve_motors[5].stdid = SWERVE_STEER_MOTOR2;
     swerve_motors[6].stdid = SWERVE_STEER_MOTOR3;
     swerve_motors[7].stdid = SWERVE_STEER_MOTOR4;
-
     // TODO: init PID_t structs for drive wheels.
 }
 
