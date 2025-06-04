@@ -97,7 +97,7 @@ void Madgewick_Filter::calc_marg(float ax, float ay, float az, float gx,
 
     // Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
     if ((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f)) {
-        calc_imu(gx, gy, gz, ax, ay, az);
+        calc_imu(ax, ay, az, gx, gy, gz);
         return;
     }
 

@@ -219,7 +219,8 @@ void GimbalApp::set_modes(uint8_t modes[3]) {
 
     gimbal.prev_gimbal_motor_mode = gimbal.gimbal_motor_mode;
     if (gimbal.gimbal_act_mode == SELF_GYRO ||
-        gimbal.gimbal_act_mode == GIMBAL_FOLLOW) {
+        gimbal.gimbal_act_mode == GIMBAL_FOLLOW ||
+        gimbal.gimbal_act_mode == GIMBAL_CENTER) {
         set_motor_mode(GYRO_MODE);
     } else {
         set_motor_mode(ENCODE_MODE);

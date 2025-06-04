@@ -20,7 +20,7 @@ float Imu::get_temp() {
 }
 
 void Imu::get_attitude(Attitude_t& attitude) {
-    constexpr bool use_magnetometer = true;
+    constexpr bool use_magnetometer = false;
     AhrsSensor_t sensor;
 
     gather_sensor_data(sensor, use_magnetometer);
