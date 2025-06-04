@@ -33,7 +33,7 @@ target_link_libraries(BASIC_APPS
 add_library(GENERIC_APPS 
     STATIC 
         Comm_App.cpp
-        Control_App.cpp
+        RC_App.cpp
         IMU_App.cpp
         PC_UART_App.cpp
         Referee_App.c
@@ -53,4 +53,5 @@ target_link_libraries(GENERIC_APPS
         SUBSYSTEMS::PC_COMM
         SUBSYSTEMS::IMU
         SUBSYSTEMS::DEBUG
+        SUBSYSTEMS::RC_COMM
         ALGORITHMS::COMMS_LIB)

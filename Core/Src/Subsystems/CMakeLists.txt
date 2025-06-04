@@ -6,6 +6,9 @@ target_include_directories(SUBSYSTEMS_INCLUDE
         ${FIRMWARE_PATH}/Device/bmi088
         ${FIRMWARE_PATH}/Device/ist8310
         ${ALGORITHMS_PATH}/attitude)
+target_link_libraries(SUBSYSTEMS_INCLUDE
+    INTERFACE
+        LIB::UARM_INCLUDE)
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
 
@@ -78,3 +81,11 @@ target_link_libraries(CAN_COMM
         LIB::UARM_OS
         FW::QUEUE_M)
 add_library(SUBSYSTEMS::CAN_COMM ALIAS CAN_COMM)
+
+
+add_library(RC_COMM STATIC rc_comm.cpp)
+target_include_directories(RC_COMM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(RC_COMM
+    PUBLIC
+        SUBSYSTEMS_INCLUDE)
+add_library(SUBSYSTEMS::RC_COMM ALIAS RC_COMM)

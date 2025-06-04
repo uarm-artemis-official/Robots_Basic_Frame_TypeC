@@ -236,4 +236,17 @@ typedef struct {
     Prescaled_PID2_t pid;
 } IMU_Heat_t;
 
+/* =========================================================================
+ * RC TYPES
+ * ====================================================================== */
+typedef struct {
+    /* controll mode selection */
+    rc_comm::Controller ctrl;
+    rc_comm::PC pc;
+    CtrlMode_t control_mode;
+
+    /* status update */
+    BoardMode_t board_mode;
+    BoardActMode_t board_act_mode;
+} RemoteControl_t;
 #endif

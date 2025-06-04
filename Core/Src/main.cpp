@@ -109,11 +109,11 @@
 
 #include "Chassis_App.h"
 #include "Comm_App.h"
-#include "Control_App.h"
 #include "Gimbal_App.h"
 #include "IMU_App.h"
 #include "Omni_Drive.h"
 #include "PC_UART_App.h"
+#include "RC_App.hpp"
 #include "Referee_App.h"
 #include "Shoot_App.h"
 #include "Swerve_Drive.h"
@@ -190,6 +190,7 @@ static OmniDrive omni_drive(message_center, mecanum_chassis_width,
 static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 #endif
 
+static RCApp rc_app(message_center);
 static CommApp comm_app(message_center, debug, can_comm);
 static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center);
@@ -281,7 +282,9 @@ int main(void) {
             osPriorityHigh, 0, 256);
         osThreadCreate(osThread(ChassisTask), NULL);
 
-        osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
+        osThreadDef(
+            RCTask, [](const void* arg) { rc_app.run(arg); }, osPriorityHigh, 0,
+            384);
         osThreadCreate(osThread(RCTask), NULL);
 
         //    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
