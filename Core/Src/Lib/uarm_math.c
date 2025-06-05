@@ -124,6 +124,16 @@ float fast_inv_sqrt(float x) {
     return y;
 }
 
+/**
+  * @brief Rotate domain to align with arbitary zero
+  * @param theta Input angle from the atan2 function [-180,180]
+  * @param pos Relative zero
+  * @retval    1/Sqrt(x)
+  */
+float realign(float theta, float pos) {
+    return fmodf(theta + pos + 360, 360);
+}
+
 /******************************************************************************
 * @func groups    : filters
 * @brief          : Some filters for data process and normailzation

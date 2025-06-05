@@ -167,6 +167,9 @@ static Motors motors;
 static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4);
 
 #ifdef SWERVE_CHASSIS
+static constexpr float swerve_chassis_width = 0.352728f;
+static SwerveDrive swerve_drive(message_center, swerve_chassis_width,
+                                swerve_chassis_width);
 static SwerveDrive swerve_drive(message_center, 0);
 static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 #else

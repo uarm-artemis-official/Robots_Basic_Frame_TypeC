@@ -1,7 +1,12 @@
 #include "Swerve_Drive.h"
 #include <cstring>
+#include <numbers>
+#include "message_center.h"
 #include "motors.h"
+#include "pid.h"
+#include "public_defines.h"
 #include "uarm_lib.h"
+#include "uarm_math.h"
 
 SwerveDrive::SwerveDrive(IMessageCenter& message_center_ref,
                          uint32_t chassis_width)
@@ -72,96 +77,60 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
 	 *		  	  |	     |                           |     \__>   wz       180  deg  
 	 *		 v4	 [] ---- [] v3     <Rear>              ----> vx  				 
 	 *										
-     Annotations used for velocity vector of robot:
-        V : Translational velocity vector,
-        Vx, Vy : translational velocity vector component along X and Y axis respectively,
-        vx, vy : magnitude of translational velocity component along X and Y axis respectively,
-        Ω : angular (rotational) velocity vector, it is positive in counterclockwise direction,
-        wz : magnitude of angular velocity vector,
-        R : the distance vector from the axis of rotation to swerve module,
-        X : The distance from wheel center of front and rear wheel along X axis,
-        Y : The distance from wheel center of left and right wheel along Y axis.
+    /* Define variables */
+    float A = vx - wz * (width * 0.5);
+    float B = vx + wz * (width * 0.5);
+    float C = vy - wz * (width * 0.5);
+    float D = vy + wz * (width * 0.5);
+    float theta1 = atan2(B, D) * 180 / pi;
+    float theta2 = atan2(B, C) * 180 / pi;
+    float theta3 = atan2(A, C) * 180 / pi;
+    float theta4 = atan2(A, D) * 180 / pi;
 
-	Annotations used for swerve module:
-        Vi(i = 1, 2, 3, 4)  : resultant velocity vector,
-        Vit(i = 1, 2, 3, 4) : translational velocity vector,
-        Vir(i = 1, 2, 3, 4) : rotational velocity vector,
-        vi(i = 1, 2, 3, 4)  : resultant velocity,
-        vix(i = 1, 2, 3, 4) : velocity component along X axis,
-        viy(i = 1, 2, 3, 4) : velocity component along Y axis,
-        0i : Angle of azimuth motor
+    /* Zero position of MG4005 (only needed if motor zero are not pointing in the "forward" direction) */
+    float zero1 = 330;
+    float zero2 = 166.5;
+    float zero3 = 312.5;
+    float zero4 = 195.5;
 
-     The general inverse kinematic equation is,
-        Vi = Vit + Vir (1)
-        V1 = V + Ω × R (2)
-        V1x = Vx + (Ω × R)x (3)
-        V1y = Vy + (Ω × R)y (3)
-        V1x = Vx - Ω ∗ X/2 (4)
-        V1y = Vy + Ω ∗ Y/2 (4)
-    
-    For module 1,
-        v1x = vx - wz ∗ X/2 
-        v1y = vy + wz ∗ Y/2 
-        v1 = sqrt((v1x)^2 + (v1y)^2)) 
-        θ1 = atan2(v1y,v1x) * (1800/pi)
-    
-    For module 2,
-        v2x = vx + wz ∗ X/2 
-        v2y = vy + wz ∗ Y/2 
-        v2 = sqrt((v2x)^2 + (v2y)^2)) 
-        θ2 = atan2(v2y,v2x) * (1800/pi)
+    /* Realign domain with relative zero of MG4005 (we now multiply by 10 to convert to dps) */
+    float pos1 = realign(theta1, zero1) * 10;
+    float pos2 = realign(theta2, zero2) * 10;
+    float pos3 = realign(theta3, zero3) * 10;
+    float pos4 = realign(theta4, zero4) * 10;
 
-    For module 3,
-        v3x = vx + wz ∗ X/2 
-        v3y = vy - wz ∗ Y/2 
-        v3 = sqrt((v3x)^2 + (v3y)^2)) 
-        θ3 = atan2(v3y,v3x) * (1800/pi)
+    /* For speed (Vi) control of M3508 */
+    target_wheel_speeds[CHASSIS_WHEEL1_CAN_ID] =
+        static_cast<int16_t>(sqrt(pow(B, 2) + pow(D, 2)));
+    target_wheel_speeds[CHASSIS_WHEEL2_CAN_ID] =
+        static_cast<int16_t>(sqrt(pow(B, 2) + pow(C, 2)));
+    target_wheel_speeds[CHASSIS_WHEEL3_CAN_ID] =
+        static_cast<int16_t>(sqrt(pow(A, 2) + pow(C, 2)));
+    target_wheel_speeds[CHASSIS_WHEEL4_CAN_ID] =
+        static_cast<int16_t>(sqrt(pow(A, 2) + pow(D, 2)));
 
-    For module 4,
-        v4x = vx - wz ∗ X/2 
-        v4y = vy - wz ∗ Y/2 
-        v4 = sqrt((v4x)^2 + (v4y)^2)) 
-        θ4 = atan2(v4y,v4x) * (1800/pi)
-    */
-    /* Define variables shown above */
-    // float v1x =
-    //     chassis_hdlr->vx - chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v1y =
-    //     chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v2x =
-    //     chassis_hdlr->vx + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v2y =
-    //     chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v3x =
-    //     chassis_hdlr->vx + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v3y =
-    //     chassis_hdlr->vy - chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v4x =
-    //     chassis_hdlr->vx - chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v4y =
-    //     chassis_hdlr->vy - chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
+    /* Set max rotaional speed (Ω) of MG4005 in dps */
+    max_speed[SWERVE_STEER_MOTOR1] = static_cast<uint16_t>(9000);
+    max_speed[SWERVE_STEER_MOTOR2] = static_cast<uint16_t>(9000);
+    max_speed[SWERVE_STEER_MOTOR3] = static_cast<uint16_t>(9000);
+    max_speed[SWERVE_STEER_MOTOR4] = static_cast<uint16_t>(9000);
 
-    // /* For speed (Vi) control of M3508 */
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL1_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v1x, 2) + pow(v1y, 2))) * CHASSIS_MOTOR_DEC_RATIO;
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL2_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v2x, 2) + pow(v2y, 2))) *
-    //     CHASSIS_MOTOR_DEC_RATIO chassis_hdlr->mec_spd[CHASSIS_WHEEL3_CAN_ID] =
-    //         (int16_t) (sqrt(pow(v3x, 2) + pow(v3y, 2))) *
-    //         CHASSIS_MOTOR_DEC_RATIO;
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL4_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v4x, 2) + pow(v4y, 2))) * CHASSIS_MOTOR_DEC_RATIO;
-    // /* Zero-ing of MG4005 (only needed if motors are not pointing in the "forward" direction)*/
+    /* For angle (0i) control of MG4005 */
+    if (swerve_motors[1].angle - pos1)
+        >= 0 {}
+    else {}
 
-    // /* Set max rotaional speed (Ω) of MG4005 in dps */
-    // chassis_hdlr->swerve_speed[SWERVE_1_CAN_ID] =
-    //     (uint16_t) (9000)
+    if (swerve_motors[2].angle - pos2)
+        >= 0 {}
+    else {}
 
-    //     /* For angle (0i) control of MG4005 [-1800,1800] */
-    //     chassis_hdlr->swerve_angle[SWERVE_1_CAN_ID] =
-    //         (uint32_t) (atan2(v1y, v1x) *
-    //                     (1800 /
-    //                      pi)) if chassis_hdlr->swerve_angle[SWERVE_1_CAN_ID]
+    if (swerve_motors[3].angle - pos3)
+        >= 0 {}
+    else {}
+
+    if (swerve_motors[4].angle - pos4)
+        >= 0 {}
+    else {}
 }
 
 void SwerveDrive::send_motor_messages() {
