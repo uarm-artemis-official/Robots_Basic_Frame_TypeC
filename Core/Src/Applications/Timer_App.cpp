@@ -76,7 +76,7 @@ void TimerApp::loop() {
     }
 
     for (size_t i = 0; i < swerve_ids.size(); i++) {
-        system_motors.request_feedback(swerve_ids.at(i));
+        // system_motors.request_feedback(swerve_ids.at(i));
     }
 
 #ifndef DISABLE_MOTOR_SEND

@@ -115,10 +115,10 @@ void lk_motor_send_single_loop(uint32_t id, uint8_t spin_direction,
     tx_header.RTR = CAN_RTR_DATA;
     tx_header.DLC = 8;
 
-    tx_data[0] = LK_CMD_SL_ANGLE_WITH_SPEED;
+    tx_data[0] = LK_CMD_SL_ANGLE_WITH_SPEED1;
     tx_data[1] = spin_direction;
-    tx_data[2] = *((uint8_t*) (&max_speed) + 0);
-    tx_data[3] = *((uint8_t*) (&max_speed) + 1);
+    tx_data[2] = 0;
+    tx_data[3] = 0;
     tx_data[4] = *((uint8_t*) (&angle) + 0);
     tx_data[5] = *((uint8_t*) (&angle) + 1);
     tx_data[6] = *((uint8_t*) (&angle) + 2);

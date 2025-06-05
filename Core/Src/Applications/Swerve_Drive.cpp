@@ -96,10 +96,10 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     float zero4 = 195.5;
 
     /* Realign domain with relative zero of MG4005 (we now multiply by 10 to convert to dps) */
-    float pos1 = realign(theta1, zero1) * 10;
-    float pos2 = realign(theta2, zero2) * 10;
-    float pos3 = realign(theta3, zero3) * 10;
-    float pos4 = realign(theta4, zero4) * 10;
+    float pos1 = realign(theta1, zero1) * 100;
+    float pos2 = realign(theta2, zero2) * 100;
+    float pos3 = realign(theta3, zero3) * 100;
+    float pos4 = realign(theta4, zero4) * 100;
 
     /* For speed (Vi) control of M3508 */
     drive_target_rpm[OUTPUT1_INDEX] =
@@ -112,10 +112,10 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
         static_cast<int16_t>(sqrt(pow(A, 2) + pow(D, 2)));
 
     /* Set max rotaional speed (Ω) of MG4005 in dps */
-    steer_max_speed[OUTPUT1_INDEX] = static_cast<uint16_t>(9000);
-    steer_max_speed[OUTPUT2_INDEX] = static_cast<uint16_t>(9000);
-    steer_max_speed[OUTPUT3_INDEX] = static_cast<uint16_t>(9000);
-    steer_max_speed[OUTPUT4_INDEX] = static_cast<uint16_t>(9000);
+    steer_max_speed[OUTPUT1_INDEX] = static_cast<uint16_t>(900);
+    steer_max_speed[OUTPUT2_INDEX] = static_cast<uint16_t>(900);
+    steer_max_speed[OUTPUT3_INDEX] = static_cast<uint16_t>(900);
+    steer_max_speed[OUTPUT4_INDEX] = static_cast<uint16_t>(900);
 
     /* For angle (0i) control of MG4005 */
     steer_ccw[OUTPUT1_INDEX] =
@@ -131,6 +131,10 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     steer_target_angle[OUTPUT2_INDEX] = pos2;
     steer_target_angle[OUTPUT3_INDEX] = pos3;
     steer_target_angle[OUTPUT4_INDEX] = pos4;
+    // steer_target_angle[OUTPUT1_INDEX] += 10;
+    // steer_target_angle[OUTPUT2_INDEX] = 0;
+    // steer_target_angle[OUTPUT3_INDEX] = 0;
+    // steer_target_angle[OUTPUT4_INDEX] = 0;
 }
 
 void SwerveDrive::send_motor_messages() {
@@ -155,7 +159,7 @@ void SwerveDrive::send_motor_messages() {
 
 int32_t SwerveDrive::pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                            uint32_t angle) {
-    ASSERT(angle <= 36000, "LK angle cannot be greater than 36000");
+    // ASSERT(angle <= 36000, "LK angle cannot be greater than 36000");
     ASSERT(max_speed <= 16383,
            "Max speeds higher than 16383 are not supported");
     int32_t motor_message_value = 0;
