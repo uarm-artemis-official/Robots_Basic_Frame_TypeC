@@ -104,10 +104,8 @@ void Motors::send_motor_voltage() {
                            this->motors[3].tx_data);
 
             for (size_t i = 4; i < 8; i++) {
-                uint8_t spin_direction = motors[i].tx_data >> 31;
-                uint16_t max_speed =
-                    (static_cast<uint32_t>(motors[i].tx_data) & 0x0fff0000) >>
-                    16;
+                uint8_t spin_direction = (motors[i].tx_data & 0x40000000) >> 30;
+                uint16_t max_speed = (motors[i].tx_data & 0x3fff0000) >> 16;
                 uint32_t angle = motors[i].tx_data & 0xffff;
                 lk_motor_send_single_loop(motors[i].feedback_id, spin_direction,
                                           max_speed, angle);
