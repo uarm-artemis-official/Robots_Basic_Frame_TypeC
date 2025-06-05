@@ -225,12 +225,14 @@ void RCApp::map_switches_to_modes(BoardMode_t& board_mode,
 
 void RCApp::pub_rc_messages(uint8_t modes[3], int16_t channels[4]) {
     RCInfoMessage_t rc_info_message;
+    memset(&rc_info_message, 0, sizeof(RCInfoMessage_t));
     memcpy(&(rc_info_message.modes), modes, sizeof(uint8_t) * 3);
     memcpy(&(rc_info_message.channels), channels, sizeof(int16_t) * 4);
     message_center.pub_message(RC_INFO, &rc_info_message);
 
     // Publish to COMM_OUT (Chassis -> Gimbal).
     CANCommMessage_t comm_message;
+    memset(&comm_message, 0, sizeof(CANCommMessage_t));
     comm_message.topic_name = RC_INFO;
     memcpy(comm_message.data, modes, sizeof(uint8_t) * 3);
     memcpy(&(comm_message.data[4]), channels, sizeof(int16_t) * 2);

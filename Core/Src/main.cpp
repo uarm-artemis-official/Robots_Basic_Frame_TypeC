@@ -95,6 +95,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "FreeRTOS.h"
+#include "ammo_lid.hpp"
 #include "can_comm.h"
 #include "can_isr.h"
 #include "debug.h"
@@ -115,7 +116,7 @@
 #include "PC_UART_App.h"
 #include "RC_App.hpp"
 #include "Referee_App.h"
-// #include "Shoot_App.h"
+#include "Shoot_App.h"
 #include "Swerve_Drive.h"
 #include "Timer_App.h"
 #include "WatchDog_App.h"
@@ -165,12 +166,11 @@ static Debug debug;
 static CanComm can_comm;
 static Motors motors;
 static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4);
+static AmmoLid ammo_lid;
 
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
-static SwerveDrive swerve_drive(message_center, swerve_chassis_width,
-                                swerve_chassis_width);
-static SwerveDrive swerve_drive(message_center, 0);
+static SwerveDrive swerve_drive(message_center, swerve_chassis_width);
 static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 #else
 
@@ -194,6 +194,7 @@ static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center);
 static IMUApp imu_app(message_center, event_center, imu, debug);
 static GimbalApp gimbal_app(message_center, event_center, debug);
+static shoot_app::ShootApp shoot_app_task(message_center, ammo_lid, 10);
 /* USER CODE END 0 */
 
 /**
@@ -294,8 +295,10 @@ int main(void) {
             osPriorityHigh, 0, 512);
         osThreadCreate(osThread(GimbalTask), NULL);
 
-        // osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
-        // osThreadCreate(osThread(ShootTask), NULL);
+        osThreadDef(
+            ShootTask, [](const void* arg) { shoot_app_task.run(arg); },
+            osPriorityHigh, 0, 256);
+        osThreadCreate(osThread(ShootTask), NULL);
 
         osThreadDef(
             IMUTask, [](const void* arg) { imu_app.run(arg); },

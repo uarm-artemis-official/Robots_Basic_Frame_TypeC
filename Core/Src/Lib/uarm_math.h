@@ -36,6 +36,7 @@ void abs_limit(float* a, float ABS_MAX);
 float in_out_map(float input, float in_min, float in_max, float out_min,
                  float out_max);
 float fast_inv_sqrt(float x);
+float realign(float theta, float pos);
 
 float value_limit(float x, float min_x, float max_x);
 

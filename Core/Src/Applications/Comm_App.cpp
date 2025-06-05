@@ -53,6 +53,7 @@ void CommApp::loop() {
             } break;
             case RC_INFO: {
                 RCInfoMessage_t rc_info;
+                memset(&rc_info, 0, sizeof(RCInfoMessage_t));
                 memcpy(rc_info.channels, &(incoming_message.data[4]),
                        sizeof(int16_t) * 2);
                 memcpy(rc_info.modes, incoming_message.data,

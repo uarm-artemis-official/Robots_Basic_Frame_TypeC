@@ -11,7 +11,6 @@ class AmmoLid : public IAmmoLid {
     EAmmoLidStatus lid_status;
 
    public:
-    AmmoLid();
     void init() override;
     void set_lid_status(EAmmoLidStatus new_status) override;
 };

@@ -32,12 +32,7 @@ typedef enum {
     INDPET_MODE,  // chassis ground coordinate, or dummy version of self-gyro mode
 } BoardActMode_t;  // should be determined by remore controller
 
-typedef enum {
-    SHOOT_ONCE = 1,
-    SHOOT_CONT,
-    SHOOT_RESERVE,
-    SHOOT_CEASE
-} ShootActMode_t;
+typedef enum { SHOOT_CONT, SHOOT_CEASE } ShootActMode_t;
 
 typedef enum { GYRO_MODE = 1, ENCODE_MODE } GimbalMotorMode_t;
 
@@ -205,13 +200,7 @@ typedef struct {
 
 namespace shoot_app {
     struct Shoot {
-        float mag_tar_spd;
-        float
-            mag_tar_angle;  //target relative angle refered to cur_abs_position
-        float mag_cur_angle;  //current actual relative angle ahs been reached
-        float mag_pre_ecd_angle;
-        int16_t mag_center_offset;
-
+        float loader_target_rpm;
         int32_t flywheel_target_rpm;
 
         EAmmoLidStatus lid_status;
@@ -220,7 +209,6 @@ namespace shoot_app {
 
     struct LoaderControl {
         Motor_CAN_ID_t stdid;
-        PID2_t angle_pid;
         PID2_t speed_pid;
         Motor_Feedback_t feedback;
     };

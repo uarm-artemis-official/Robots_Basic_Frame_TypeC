@@ -24,12 +24,14 @@ namespace shoot_app {
         Shoot shoot;
         LoaderControl loader_control;
         FlyWheelControl flywheel_controls[2];
+        const float loader_rpm;
 
        public:
         static constexpr uint32_t LOOP_PERIOD_MS = SHOOT_TASK_EXEC_TIME;
         static constexpr float FLYWHEEL_TARGET_RPM = 10.0;
 
-        ShootApp(IMessageCenter& message_center_ref, IAmmoLid& ammo_lid_ref);
+        ShootApp(IMessageCenter& message_center_ref, IAmmoLid& ammo_lid_ref,
+                 float loader_rpm_);
 
         void init();
         void loop();

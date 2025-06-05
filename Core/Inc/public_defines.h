@@ -151,37 +151,30 @@
 
 /* shoot 3508/2006  mag dual loop/3508 fric single loop control */
 //2006 mag settings
-#define kp_angle_mag_2006 0
-#define ki_angle_mag_2006 0
-#define kd_angle_mag_2006 0
-#define beta_angle_mag_2006 1
-#define yeta_angle_mag_2006 0
-#define min_out_angle_mag_2006 0
-#define max_out_angle_mag_2006 10000
-
-#define kp_spd_mag_2006 0
+#define kp_spd_mag_2006 5
 #define ki_spd_mag_2006 0
 #define kd_spd_mag_2006 0
 #define beta_spd_mag_2006 1
 #define yeta_spd_mag_2006 0
-#define min_out_spd_mag_2006 -10000
-#define max_out_spd_mag_2006 9999
+#define min_out_spd_mag_2006 -1000
+#define max_out_spd_mag_2006 1000
+// #define min_out_spd_mag_2006 -10000
+// #define max_out_spd_mag_2006 10000
 
 //3508 mag settings, not tuned yet
-#define kp_angle_mag_3508 1000
-#define ki_angle_mag_3508 0
-#define kd_angle_mag_3508 0
-#define max_out_angle_mag_3508 5000  // not tuned yet
-#define max_I_out_angle_mag_3508 0
-#define max_err_angle_mag_3508 PI * 19  // mag gear ratio=19
+// #define kp_angle_mag_3508 5
+// #define ki_angle_mag_3508 0
+// #define kd_angle_mag_3508 0
+// #define max_out_angle_mag_3508 5000  // not tuned yet
+// #define max_I_out_angle_mag_3508 0
+// #define max_err_angle_mag_3508 PI * 19  // mag gear ratio=19
 
-#define kp_spd_mag_3508 2.5
-#define ki_spd_mag_3508 0.01
-#define kd_spd_mag_3508 0
-#define max_out_spd_mag_3508 9999  // not tuned yet
-#define max_I_out_spd_mag_3508 500
-#define max_err_spd_mag_3508 5000
-#define kf_spd_mag_3508 100
+// #define kp_spd_mag_3508 2.5
+// #define ki_spd_mag_3508 0.01
+// #define kd_spd_mag_3508 0
+// #define max_out_spd_mag_3508 9999  // not tuned yet
+// #define max_I_out_spd_mag_3508 500
+// #define max_err_spd_mag_3508 5000
 
 //fric 3508 motor settings, single loop, not tuned yet
 #define kp_spd_fric 20
@@ -189,12 +182,9 @@
 #define kd_spd_fric 0.1
 #define beta_spd_fric 1
 #define yeta_spd_fric 0
-#define min_out_spd_fric 15000  // not tuned yet
-#define max_out_spd_fric 15000  // not tuned yet
-
-//fric 2305 PWM settings, open loop
-#define fric_min_pwm_speed 1000
-#define fric_max_pwm_speed 2000
+#define min_out_spd_fric -1000
+#define max_out_spd_fric 1000
+// #define max_out_spd_fric 15000
 
 /******* referee system limit defines *******/
 /* chassis power - power focused */

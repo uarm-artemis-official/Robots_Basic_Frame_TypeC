@@ -9,7 +9,7 @@
 #include "uarm_math.h"
 
 SwerveDrive::SwerveDrive(IMessageCenter& message_center_ref,
-                         uint32_t chassis_width)
+                         float chassis_width)
     : message_center(message_center_ref), width(chassis_width) {}
 
 void SwerveDrive::init_impl() {
@@ -21,14 +21,14 @@ void SwerveDrive::init_impl() {
         swerve_motors[i].angle = 0;
     }
 
-    swerve_motors[0].stdid = CHASSIS_WHEEL1;
-    swerve_motors[1].stdid = CHASSIS_WHEEL2;
-    swerve_motors[2].stdid = CHASSIS_WHEEL3;
-    swerve_motors[3].stdid = CHASSIS_WHEEL4;
-    swerve_motors[4].stdid = SWERVE_STEER_MOTOR1;
-    swerve_motors[5].stdid = SWERVE_STEER_MOTOR2;
-    swerve_motors[6].stdid = SWERVE_STEER_MOTOR3;
-    swerve_motors[7].stdid = SWERVE_STEER_MOTOR4;
+    swerve_motors[DRIVE_MOTOR1_INDEX].stdid = CHASSIS_WHEEL1;
+    swerve_motors[DRIVE_MOTOR2_INDEX].stdid = CHASSIS_WHEEL2;
+    swerve_motors[DRIVE_MOTOR3_INDEX].stdid = CHASSIS_WHEEL3;
+    swerve_motors[DRIVE_MOTOR4_INDEX].stdid = CHASSIS_WHEEL4;
+    swerve_motors[STEER_MOTOR1_INDEX].stdid = SWERVE_STEER_MOTOR1;
+    swerve_motors[STEER_MOTOR2_INDEX].stdid = SWERVE_STEER_MOTOR2;
+    swerve_motors[STEER_MOTOR3_INDEX].stdid = SWERVE_STEER_MOTOR3;
+    swerve_motors[STEER_MOTOR4_INDEX].stdid = SWERVE_STEER_MOTOR4;
     // TODO: init PID_t structs for drive wheels.
 }
 
@@ -82,10 +82,10 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     float B = vx + wz * (width * 0.5);
     float C = vy - wz * (width * 0.5);
     float D = vy + wz * (width * 0.5);
-    float theta1 = atan2(B, D) * 180 / pi;
-    float theta2 = atan2(B, C) * 180 / pi;
-    float theta3 = atan2(A, C) * 180 / pi;
-    float theta4 = atan2(A, D) * 180 / pi;
+    float theta1 = atan2(B, D) * 180 / PI;
+    float theta2 = atan2(B, C) * 180 / PI;
+    float theta3 = atan2(A, C) * 180 / PI;
+    float theta4 = atan2(A, D) * 180 / PI;
 
     /* Zero position of MG4005 (only needed if motor zero are not pointing in the "forward" direction) */
     float zero1 = 330;
@@ -110,27 +110,20 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
         static_cast<int16_t>(sqrt(pow(A, 2) + pow(D, 2)));
 
     /* Set max rotaional speed (Ω) of MG4005 in dps */
-    max_speed[SWERVE_STEER_MOTOR1] = static_cast<uint16_t>(9000);
-    max_speed[SWERVE_STEER_MOTOR2] = static_cast<uint16_t>(9000);
-    max_speed[SWERVE_STEER_MOTOR3] = static_cast<uint16_t>(9000);
-    max_speed[SWERVE_STEER_MOTOR4] = static_cast<uint16_t>(9000);
+    steer_max_speed[OUTPUT1_INDEX] = static_cast<uint16_t>(9000);
+    steer_max_speed[OUTPUT2_INDEX] = static_cast<uint16_t>(9000);
+    steer_max_speed[OUTPUT3_INDEX] = static_cast<uint16_t>(9000);
+    steer_max_speed[OUTPUT4_INDEX] = static_cast<uint16_t>(9000);
 
     /* For angle (0i) control of MG4005 */
-    if (swerve_motors[1].angle - pos1)
-        >= 0 {}
-    else {}
-
-    if (swerve_motors[2].angle - pos2)
-        >= 0 {}
-    else {}
-
-    if (swerve_motors[3].angle - pos3)
-        >= 0 {}
-    else {}
-
-    if (swerve_motors[4].angle - pos4)
-        >= 0 {}
-    else {}
+    steer_ccw[OUTPUT1_INDEX] =
+        swerve_motors[STEER_MOTOR1_INDEX].angle - pos1 < 0;
+    steer_ccw[OUTPUT2_INDEX] =
+        swerve_motors[STEER_MOTOR2_INDEX].angle - pos2 < 0;
+    steer_ccw[OUTPUT3_INDEX] =
+        swerve_motors[STEER_MOTOR3_INDEX].angle - pos3 < 0;
+    steer_ccw[OUTPUT4_INDEX] =
+        swerve_motors[STEER_MOTOR4_INDEX].angle - pos4 < 0;
 }
 
 void SwerveDrive::send_motor_messages() {
@@ -144,7 +137,7 @@ void SwerveDrive::send_motor_messages() {
 
     for (int i = 0; i < 4; i++) {
         set_message.motor_can_volts[i] = SwerveDrive::pack_lk_motor_message(
-            true, target_wheel_speeds[i], target_wheel_angles[i]);
+            steer_ccw[i], target_wheel_speeds[i], target_wheel_angles[i]);
         set_message.can_ids[i] = angle_can_ids[i];
     }
 

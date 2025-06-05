@@ -8,19 +8,36 @@
 
 class SwerveDrive : public ChassisDrive<SwerveDrive> {
    private:
+    static constexpr size_t DRIVE_MOTOR1_INDEX = 0;
+    static constexpr size_t DRIVE_MOTOR2_INDEX = 1;
+    static constexpr size_t DRIVE_MOTOR3_INDEX = 2;
+    static constexpr size_t DRIVE_MOTOR4_INDEX = 3;
+    static constexpr size_t STEER_MOTOR1_INDEX = 4;
+    static constexpr size_t STEER_MOTOR2_INDEX = 5;
+    static constexpr size_t STEER_MOTOR3_INDEX = 6;
+    static constexpr size_t STEER_MOTOR4_INDEX = 7;
+
+    static constexpr size_t OUTPUT1_INDEX = 0;
+    static constexpr size_t OUTPUT2_INDEX = 0;
+    static constexpr size_t OUTPUT3_INDEX = 0;
+    static constexpr size_t OUTPUT4_INDEX = 0;
+
     IMessageCenter& message_center;
-    uint32_t width;
+    const float width;
+
+    std::array<Swerve_Wheel_Control_t, 8> swerve_motors;
+
     float target_wheel_angles[4];
     uint8_t target_wheel_rotation[4];
     int16_t target_wheel_speeds[4];
-    std::array<Swerve_Wheel_Control_t, 8> swerve_motors;
+    uint16_t steer_max_speed[4];
+    bool steer_ccw[4];
 
    public:
     static int32_t pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                          uint32_t angle);
 
-    SwerveDrive(IMessageCenter& message_center_ref, float chassis_width,
-                float chassis_length);
+    SwerveDrive(IMessageCenter& message_center_ref, float chassis_width);
 
     void init_impl();
     void get_motor_feedback();

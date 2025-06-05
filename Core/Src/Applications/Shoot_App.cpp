@@ -21,20 +21,20 @@
 
 namespace shoot_app {
     constexpr size_t LEFT_FLYWHEEL_INDEX = 0;
-    constexpr size_t RIGHT_FLYWHEEL_INDEX = 0;
+    constexpr size_t RIGHT_FLYWHEEL_INDEX = 1;
 
     ShootApp::ShootApp(IMessageCenter& message_center_ref,
-                       IAmmoLid& ammo_lid_ref)
-        : message_center(message_center_ref), ammo_lid(ammo_lid_ref) {}
+                       IAmmoLid& ammo_lid_ref, float loader_rpm_)
+        : message_center(message_center_ref),
+          ammo_lid(ammo_lid_ref),
+          loader_rpm(loader_rpm_) {}
 
     void ShootApp::init() {
         ammo_lid.init();
 
         loader_control.stdid = SHOOT_LOADER;
-        pid2_init(loader_control.angle_pid, kp_angle_mag_2006,
-                  ki_angle_mag_2006, kd_angle_mag_2006, beta_angle_mag_2006,
-                  yeta_angle_mag_2006, min_out_angle_mag_2006,
-                  max_out_angle_mag_2006);
+
+        // TODO: Add configuration for hero loader.
         pid2_init(loader_control.speed_pid, kp_spd_mag_2006, ki_spd_mag_2006,
                   kd_spd_mag_2006, beta_spd_mag_2006, yeta_spd_mag_2006,
                   min_out_spd_mag_2006, max_out_spd_mag_2006);
@@ -103,7 +103,7 @@ namespace shoot_app {
                     if (read_message.can_ids[j] == feedbacks[i].first) {
                         Motors::parse_feedback(feedbacks[i].first,
                                                read_message.feedback[j],
-                                               &(feedbacks[i].second));
+                                               feedbacks[i].second);
                         break;
                     }
                 }
@@ -115,8 +115,44 @@ namespace shoot_app {
         shoot.shoot_act_mode = new_mode;
     }
 
+    void ShootApp::calc_targets() {
+        switch (shoot.shoot_act_mode) {
+            case SHOOT_CEASE:
+                shoot.flywheel_target_rpm = 0;
+                break;
+            case SHOOT_CONT:
+                shoot.flywheel_target_rpm = FLYWHEEL_TARGET_RPM;
+                shoot.loader_target_rpm = loader_rpm;
+                break;
+            default:
+                shoot.flywheel_target_rpm = 0;
+                shoot.loader_target_rpm = 0;
+        }
+    }
+
+    void ShootApp::calc_motor_outputs() {
+        // TODO: Loader calculations.
+
+        pid2_single_loop_control(
+            flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid,
+            -shoot.flywheel_target_rpm,
+            flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback.rx_rpm,
+            LOOP_PERIOD_MS * 0.001);
+
+        pid2_single_loop_control(
+            flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
+            shoot.flywheel_target_rpm,
+            flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
+            LOOP_PERIOD_MS * 0.001);
+
+        pid2_single_loop_control(
+            loader_control.speed_pid, shoot.loader_target_rpm,
+            loader_control.feedback.rx_rpm, LOOP_PERIOD_MS * 0.001);
+    }
+
     void ShootApp::send_motor_outputs() {
         MotorSetMessage_t motor_set_message;
+        memset(&motor_set_message, 0, sizeof(MotorSetMessage_t));
 
         motor_set_message.motor_can_volts[0] =
             loader_control.speed_pid.total_out;
@@ -133,40 +169,7 @@ namespace shoot_app {
         message_center.pub_message(MOTOR_SET, &motor_set_message);
     }
 
-    void ShootApp::calc_targets() {
-        switch (shoot.shoot_act_mode) {
-            case SHOOT_CEASE:
-                shoot.flywheel_target_rpm = 0;
-                break;
-            case SHOOT_CONT:
-                shoot.flywheel_target_rpm = FLYWHEEL_TARGET_RPM;
-                break;
-            case SHOOT_ONCE:
-                shoot.flywheel_target_rpm = FLYWHEEL_TARGET_RPM;
-                break;
-            default:
-                shoot.flywheel_target_rpm = 0;
-                shoot.mag_tar_spd = 0;
-                shoot.mag_tar_angle = 0;
-        }
-    }
-
-    void ShootApp::calc_motor_outputs() {
-        // TODO: Loader calculations.
-
-        pid2_single_loop_control(
-            flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
-            -FLYWHEEL_TARGET_RPM,
-            flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
-            LOOP_PERIOD_MS * 0.001);
-
-        pid2_single_loop_control(
-            flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
-            FLYWHEEL_TARGET_RPM,
-            flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
-            LOOP_PERIOD_MS * 0.001);
-    }
-
     // TODO: Re-implement reverse/unjamming mechanism.
+    // Possible use torque current feedback to detect jam.
 
 }  // namespace shoot_app
