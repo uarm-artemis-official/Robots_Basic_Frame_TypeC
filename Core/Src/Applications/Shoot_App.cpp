@@ -119,6 +119,7 @@ namespace shoot_app {
         switch (shoot.shoot_act_mode) {
             case SHOOT_CEASE:
                 shoot.flywheel_target_rpm = 0;
+                shoot.loader_target_rpm = 0;
                 break;
             case SHOOT_CONT:
                 shoot.flywheel_target_rpm = FLYWHEEL_TARGET_RPM;

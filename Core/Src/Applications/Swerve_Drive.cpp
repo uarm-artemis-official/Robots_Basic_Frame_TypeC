@@ -13,8 +13,10 @@ SwerveDrive::SwerveDrive(IMessageCenter& message_center_ref,
     : message_center(message_center_ref), width(chassis_width) {}
 
 void SwerveDrive::init_impl() {
-    std::memset(target_wheel_angles, 0, sizeof(float) * 4);
-    std::memset(target_wheel_speeds, 0, sizeof(int16_t) * 4);
+    std::memset(steer_target_angle, 0, sizeof(float) * 4);
+    std::memset(steer_max_speed, 0, sizeof(uint16_t) * 4);
+    std::memset(steer_ccw, 0, sizeof(bool) * 4);
+    std::memset(drive_target_rpm, 0, sizeof(int16_t) * 4);
 
     for (size_t i = 0; i < swerve_motors.size(); i++) {
         std::memset(&(swerve_motors[i].feedback), 0, sizeof(Motor_Feedback_t));
@@ -100,13 +102,13 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     float pos4 = realign(theta4, zero4) * 10;
 
     /* For speed (Vi) control of M3508 */
-    target_wheel_speeds[CHASSIS_WHEEL1_CAN_ID] =
+    drive_target_rpm[OUTPUT1_INDEX] =
         static_cast<int16_t>(sqrt(pow(B, 2) + pow(D, 2)));
-    target_wheel_speeds[CHASSIS_WHEEL2_CAN_ID] =
+    drive_target_rpm[OUTPUT2_INDEX] =
         static_cast<int16_t>(sqrt(pow(B, 2) + pow(C, 2)));
-    target_wheel_speeds[CHASSIS_WHEEL3_CAN_ID] =
+    drive_target_rpm[OUTPUT3_INDEX] =
         static_cast<int16_t>(sqrt(pow(A, 2) + pow(C, 2)));
-    target_wheel_speeds[CHASSIS_WHEEL4_CAN_ID] =
+    drive_target_rpm[OUTPUT4_INDEX] =
         static_cast<int16_t>(sqrt(pow(A, 2) + pow(D, 2)));
 
     /* Set max rotaional speed (Ω) of MG4005 in dps */
@@ -124,6 +126,11 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
         swerve_motors[STEER_MOTOR3_INDEX].angle - pos3 < 0;
     steer_ccw[OUTPUT4_INDEX] =
         swerve_motors[STEER_MOTOR4_INDEX].angle - pos4 < 0;
+
+    steer_target_angle[OUTPUT1_INDEX] = pos1;
+    steer_target_angle[OUTPUT2_INDEX] = pos2;
+    steer_target_angle[OUTPUT3_INDEX] = pos3;
+    steer_target_angle[OUTPUT4_INDEX] = pos4;
 }
 
 void SwerveDrive::send_motor_messages() {
@@ -137,7 +144,7 @@ void SwerveDrive::send_motor_messages() {
 
     for (int i = 0; i < 4; i++) {
         set_message.motor_can_volts[i] = SwerveDrive::pack_lk_motor_message(
-            steer_ccw[i], target_wheel_speeds[i], target_wheel_angles[i]);
+            steer_ccw[i], steer_max_speed[i], steer_target_angle[i]);
         set_message.can_ids[i] = angle_can_ids[i];
     }
 

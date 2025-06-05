@@ -563,5 +563,5 @@ void GimbalApp::send_motor_volts() {
         set_message.can_ids[i] = (Motor_CAN_ID_t) motor_controls[i].stdid;
     }
 
-    message_center.pub_message(MOTOR_SET, &set_message);
+    // message_center.pub_message(MOTOR_SET, &set_message);
 }

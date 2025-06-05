@@ -27,11 +27,11 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
 
     std::array<Swerve_Wheel_Control_t, 8> swerve_motors;
 
-    float target_wheel_angles[4];
-    uint8_t target_wheel_rotation[4];
-    int16_t target_wheel_speeds[4];
+    float steer_target_angle[4];
     uint16_t steer_max_speed[4];
     bool steer_ccw[4];
+
+    int16_t drive_target_rpm[4];
 
    public:
     static int32_t pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
