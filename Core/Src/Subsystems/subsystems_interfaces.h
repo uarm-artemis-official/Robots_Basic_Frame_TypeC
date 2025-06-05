@@ -58,4 +58,10 @@ class ICanComm {
                                            uint32_t comm_id) = 0;
 };
 
+class IAmmoLid {
+   public:
+    virtual void init() = 0;
+    virtual void set_lid_status(EAmmoLidStatus new_status) = 0;
+};
+
 #endif

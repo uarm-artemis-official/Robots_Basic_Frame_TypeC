@@ -1,3 +1,5 @@
+
+// TODO: Rename to apps_types.hpp
 #ifndef __APP_TYPES_H
 #define __APP_TYPES_H
 
@@ -32,7 +34,6 @@ typedef enum {
 
 typedef enum {
     SHOOT_ONCE = 1,
-    SHOOT_TRIPLE,
     SHOOT_CONT,
     SHOOT_RESERVE,
     SHOOT_CEASE
@@ -201,33 +202,36 @@ typedef struct {
 /**
   * @brief  shoot task main struct
   */
-typedef enum { OPEN = 0, CLOSE } ShootLidStatus_t;
 
-typedef struct {
-    float mag_tar_spd;
-    float mag_tar_angle;  //target relative angle refered to cur_abs_position
-    float mag_cur_angle;  //current actual relative angle ahs been reached
-    float mag_pre_ecd_angle;
-    int16_t mag_center_offset;
-    int32_t mag_turns_counter;
-    int16_t mag_zero_offset;
-    uint8_t prev_angle_reset;
+namespace shoot_app {
+    struct Shoot {
+        float mag_tar_spd;
+        float
+            mag_tar_angle;  //target relative angle refered to cur_abs_position
+        float mag_cur_angle;  //current actual relative angle ahs been reached
+        float mag_pre_ecd_angle;
+        int16_t mag_center_offset;
 
-    int32_t fric_tar_spd;
-    uint16_t fric_left_cur_spd;
-    uint16_t fric_right_cur_spd;
-    int32_t fric_can_tar_spd;
-    uint8_t fric_engage_flag;
-    uint32_t fric_counter;
+        int32_t flywheel_target_rpm;
 
-    uint8_t lid_counter;
+        EAmmoLidStatus lid_status;
+        ShootActMode_t shoot_act_mode;
+    };
 
-    Motor_Feedback_t mag_fb;
-    ramp_t fric_left_ramp;
-    ramp_t fric_right_ramp;
-    ShootLidStatus_t lid_status;
-    ShootActMode_t shoot_act_mode;
-} Shoot_t;
+    struct LoaderControl {
+        Motor_CAN_ID_t stdid;
+        PID2_t angle_pid;
+        PID2_t speed_pid;
+        Motor_Feedback_t feedback;
+    };
+
+    struct FlyWheelControl {
+        Motor_CAN_ID_t stdid;
+        PID2_t speed_pid;
+        Motor_Feedback_t feedback;
+    };
+
+}  // namespace shoot_app
 
 /* =========================================================================
  * IMU TYPES

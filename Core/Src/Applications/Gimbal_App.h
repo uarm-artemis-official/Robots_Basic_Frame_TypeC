@@ -42,6 +42,7 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     // Software limits on pitch targets to prevent pitch from hitting mechanical hard stops.
     static constexpr float PITCH_LOWER_LIMIT = -0.1;
     static constexpr float PITCH_UPPER_LIMIT = 0.4;
+
     static float calc_rel_angle(float angle1, float angle2);
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
@@ -73,9 +74,7 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     void safe_mode_switch();
     void update_imu_angle(float yaw, float pitch);
     void update_ecd_angles();
-    void set_angle(float target_angle);
     void set_limited_angle(float yaw_target_angle, float pitch_target_angle);
-    void set_spd(int16_t yaw_target_spd);
     void cmd_exec();
     void send_rel_angles();
     void calc_rel_targets(float delta_yaw, float delta_pitch);

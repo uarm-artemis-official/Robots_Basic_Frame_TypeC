@@ -87,7 +87,8 @@
         "ios": "cpp",
         "gpio.h": "c",
         "bmi088_middleware.h": "c",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "timers.h": "c"
     },
     "C_Cpp.clang_format_style": "file",
     "C_Cpp.clang_format_fallbackStyle": "none",

@@ -89,3 +89,13 @@ target_link_libraries(RC_COMM
     PUBLIC
         SUBSYSTEMS_INCLUDE)
 add_library(SUBSYSTEMS::RC_COMM ALIAS RC_COMM)
+
+
+add_library(AMMO_LID STATIC ammo_lid.cpp)
+target_include_directories(AMMO_LID PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(AMMO_LID 
+    PUBLIC 
+        SUBSYSTEMS_INCLUDE
+        LIB::UARM_LIB
+        FW::TIMERS_HANDLER)
+add_library(SUBSYSTEMS::AMMO_LID ALIAS AMMO_LID)

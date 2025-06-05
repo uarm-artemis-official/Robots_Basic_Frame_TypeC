@@ -17,7 +17,7 @@ target_link_libraries(CHASSIS_DRIVES
         LIB::UARM_MATH)
 
 # Add Shoot_App.c back again later
-add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp)
+add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp Shoot_App.cpp)
 target_link_libraries(BASIC_APPS
     PUBLIC
         APPS_INCLUDE

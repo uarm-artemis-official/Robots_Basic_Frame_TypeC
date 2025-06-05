@@ -29,3 +29,8 @@ target_link_libraries(QUEUE_M
     PUBLIC 
         COMMON_INCLUDES)
 add_library(FW::QUEUE_M ALIAS QUEUE_M)
+
+add_library(TIMERS_HANDLER STATIC timers_handler.c)
+target_include_directories(TIMERS_HANDLER PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(TIMERS_HANDLER PUBLIC COMMON_INCLUDES)
+add_library(FW::TIMERS_HANDLER ALIAS TIMERS_HANDLER)

@@ -85,12 +85,6 @@
 #define MAX_PWM_ON_TIME 2000
 #define MIN_PWM_ON_TIME 1000
 
-#define SERVO_PWM_CLOSE_LID 366  //clockwise 120 degree
-
-/* counter-clockwise 120 degree for 90 degree, turn open lid value sto 110
-*/
-#define SERVO_PWM_OPEN_LID 170
-
 /* 2305 can value*/
 #define LEVEL_ONE_PWM 300
 
@@ -108,7 +102,6 @@
 
 #define SHOOT_LEFT_FRIC_WHEEL_INDEX 0
 #define SHOOT_RIGHT_FRIC_WHEEL_INDEX 1
-#define SHOOT_LOADER_2006_INDEX 2
 
 /* =========================================================================
  * COMM DEFINES
