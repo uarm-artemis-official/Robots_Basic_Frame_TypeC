@@ -18,7 +18,8 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     static int32_t pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                          uint32_t angle);
 
-    SwerveDrive(IMessageCenter& message_center_ref, uint32_t chassis_width);
+    SwerveDrive(IMessageCenter& message_center_ref, float chassis_width,
+                float chassis_length);
 
     void init_impl();
     void get_motor_feedback();
