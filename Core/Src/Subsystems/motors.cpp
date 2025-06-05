@@ -72,12 +72,19 @@ Motor_Brand_t Motors::get_motor_brand(uint32_t stdid) {
 }
 
 void Motors::set_motor_voltage(Motor_CAN_ID_t can_id, int32_t output) {
-    for (int i = 0; i < MAX_MOTOR_COUNT; i++) {
+    for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
         if (this->motors[i].feedback_id == can_id) {
-            this->motors[i].tx_data = output;
+            if (is_valid_output(i, output)) {
+                this->motors[i].tx_data = output;
+            }
             break;
         }
     }
+}
+
+bool Motors::is_valid_output(size_t motor_index, int32_t new_output) {
+    // TODO: implement
+    return true;
 }
 
 void Motors::send_motor_voltage() {

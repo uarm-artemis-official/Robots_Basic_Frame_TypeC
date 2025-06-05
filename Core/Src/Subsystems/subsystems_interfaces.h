@@ -19,6 +19,7 @@ class IMessageCenter {
 class IMotors {
    public:
     virtual void init(Motor_Config_t config) = 0;
+    virtual bool is_valid_output(size_t motor_index, int32_t new_output) = 0;
     virtual void set_motor_voltage(Motor_CAN_ID_t can_id, int32_t output) = 0;
     virtual void send_motor_voltage() = 0;
     virtual void request_feedback(Motor_CAN_ID_t can_id) = 0;

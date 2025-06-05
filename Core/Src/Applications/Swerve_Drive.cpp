@@ -155,7 +155,7 @@ void SwerveDrive::send_motor_messages() {
 
 int32_t SwerveDrive::pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                            uint32_t angle) {
-    ASSERT(angle < 40000, "LK angle cannot be greater than 36000");
+    ASSERT(angle <= 36000, "LK angle cannot be greater than 36000");
     int32_t motor_message_value = 0;
     motor_message_value |= (((uint32_t) max_speed) & 0x0fff) << 16;
     motor_message_value |= angle & 0xffff;

@@ -69,12 +69,9 @@ void TimerApp::loop() {
         for (int i = 0; i < MAX_MOTOR_COUNT; i++) {
             if (motor_tx_message.can_ids[i] == 0)
                 break;
-            if (-30000 <= motor_tx_message.motor_can_volts[i] &&
-                motor_tx_message.motor_can_volts[i] <= 30000) {
-                system_motors.set_motor_voltage(
-                    motor_tx_message.can_ids[i],
-                    motor_tx_message.motor_can_volts[i]);
-            }
+            system_motors.set_motor_voltage(
+                motor_tx_message.can_ids[i],
+                motor_tx_message.motor_can_volts[i]);
         }
     }
 

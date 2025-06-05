@@ -15,6 +15,7 @@ class Motors : public IMotors {
 
     Motors();
     void init(Motor_Config_t config) override;
+    bool is_valid_output(size_t motor_index, int32_t new_output) override;
     void set_motor_voltage(Motor_CAN_ID_t can_id, int32_t output) override;
     void send_motor_voltage() override;
     void request_feedback(Motor_CAN_ID_t can_id) override;
