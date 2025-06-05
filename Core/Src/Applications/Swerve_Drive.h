@@ -18,9 +18,9 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     static constexpr size_t STEER_MOTOR4_INDEX = 7;
 
     static constexpr size_t OUTPUT1_INDEX = 0;
-    static constexpr size_t OUTPUT2_INDEX = 0;
-    static constexpr size_t OUTPUT3_INDEX = 0;
-    static constexpr size_t OUTPUT4_INDEX = 0;
+    static constexpr size_t OUTPUT2_INDEX = 1;
+    static constexpr size_t OUTPUT3_INDEX = 2;
+    static constexpr size_t OUTPUT4_INDEX = 3;
 
     IMessageCenter& message_center;
     const float width;
