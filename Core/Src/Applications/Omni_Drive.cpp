@@ -3,7 +3,7 @@
 #include "message_center.h"
 #include "motors.h"
 #include "pid.h"
-#include "public_defines.h"
+#include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 
@@ -18,8 +18,14 @@ void OmniDrive::init_impl() {
 
     for (int i = 0; i < CHASSIS_MAX_WHEELS; i++) {
         std::memset(&(motor_controls[i]), 0, sizeof(Chassis_Wheel_Control_t));
-        pid2_init(motor_controls[i].f_pid, kp_wheel, ki_wheel, kd_wheel,
-                  beta_wheel, yeta_wheel, -max_out_wheel, max_out_wheel);
+        pid2_init(motor_controls[i].f_pid,
+                  robot_config::pid_params::KP_OMNI_DRIVE,
+                  robot_config::pid_params::KI_OMNI_DRIVE,
+                  robot_config::pid_params::KD_OMNI_DRIVE,
+                  robot_config::pid_params::BETA_OMNI_DRIVE,
+                  robot_config::pid_params::YETA_OMNI_DRIVE,
+                  robot_config::pid_params::MIN_OUT_OMNI_DRIVE,
+                  robot_config::pid_params::MAX_OUT_OMNI_DRIVE);
     }
 
     motor_controls[0].stdid = CHASSIS_WHEEL1;
@@ -76,17 +82,17 @@ void OmniDrive::calc_target_motor_speeds(float vx, float vy, float wz) {
     /* may apply super super capacity gain here */
     /* may apply level up gain and power limit here when we have referee system feedback */
     constexpr float inverse_wheel_radius = 1 / CHASSIS_OMNI_WHEEL_RADIUS;
-    motor_angluar_vel[CHASSIS_WHEEL1_CAN_ID] = static_cast<int16_t>(
+    motor_angluar_vel[0] = static_cast<int16_t>(
         (vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius);
     motor_angluar_vel
-        [CHASSIS_WHEEL2_CAN_ID] = /* We will put a negative infront of the eq. as motor install is flipped*/
+        [1] = /* We will put a negative infront of the eq. as motor install is flipped*/
         static_cast<int16_t>(
             -((-vx + vy - wz * (width + length) * 0.5) * inverse_wheel_radius));
     motor_angluar_vel
-        [CHASSIS_WHEEL3_CAN_ID] = /* We will put a negative infront of the eq. as motor install is flipped*/
+        [2] = /* We will put a negative infront of the eq. as motor install is flipped*/
         static_cast<int16_t>(
             -((vx + vy - wz * (width + length) * 0.5) * inverse_wheel_radius));
-    motor_angluar_vel[CHASSIS_WHEEL4_CAN_ID] = static_cast<int16_t>(
+    motor_angluar_vel[3] = static_cast<int16_t>(
         (-vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius);
 }
 

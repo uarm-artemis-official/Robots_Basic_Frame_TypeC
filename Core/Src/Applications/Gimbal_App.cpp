@@ -12,8 +12,8 @@
 #include "apps_defines.h"
 #include "motors.h"
 #include "pid.h"
-#include "public_defines.h"
 #include "ramp.h"
+#include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 #include "uarm_os.h"
@@ -50,24 +50,47 @@ void GimbalApp::set_initial_state() {
     memset(motor_controls, 0, sizeof(Gimbal_Motor_Control_t) * 2);
     motor_controls[GIMBAL_YAW_MOTOR_INDEX].stdid = GIMBAL_YAW;
     motor_controls[GIMBAL_PITCH_MOTOR_INDEX].stdid = GIMBAL_PITCH;
-    pid2_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid, kp_angle_yaw,
-              ki_angle_yaw, kd_angle_yaw, beta_angle_yaw, yeta_angle_yaw,
-              -max_out_angle_yaw, max_out_angle_yaw);
-    pid2_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid, kp_spd_yaw,
-              ki_spd_yaw, kd_spd_yaw, beta_spd_yaw, yeta_spd_yaw,
-              -max_out_spd_yaw, max_out_spd_yaw);
-    pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid, kp_angle_pitch,
-              ki_angle_pitch, kd_angle_pitch, beta_angle_pitch,
-              yeta_angle_pitch, -max_out_angle_pitch, max_out_angle_pitch);
-    pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].s_pid, kp_spd_pitch,
-              ki_spd_pitch, kd_spd_pitch, beta_spd_pitch, yeta_spd_pitch,
-              -max_out_spd_pitch, max_out_spd_pitch);
+    pid2_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,
+              robot_config::pid_params::KP_GIMBAL_YAW_ANGLE,
+              robot_config::pid_params::KI_GIMBAL_YAW_ANGLE,
+              robot_config::pid_params::KD_GIMBAL_YAW_ANGLE,
+              robot_config::pid_params::BETA_GIMBAL_YAW_ANGLE,
+              robot_config::pid_params::YETA_GIMBAL_YAW_ANGLE,
+              robot_config::pid_params::MIN_OUT_GIMBAL_YAW_ANGLE,
+              robot_config::pid_params::MAX_OUT_GIMBAL_YAW_ANGLE);
+
+    pid2_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid,
+              robot_config::pid_params::KP_GIMBAL_YAW_SPEED,
+              robot_config::pid_params::KI_GIMBAL_YAW_SPEED,
+              robot_config::pid_params::KD_GIMBAL_YAW_SPEED,
+              robot_config::pid_params::BETA_GIMBAL_YAW_SPEED,
+              robot_config::pid_params::YETA_GIMBAL_YAW_SPEED,
+              robot_config::pid_params::MIN_OUT_GIMBAL_YAW_SPEED,
+              robot_config::pid_params::MAX_OUT_GIMBAL_YAW_SPEED);
+
+    pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid,
+              robot_config::pid_params::KP_GIMBAL_PITCH_ANGLE,
+              robot_config::pid_params::KI_GIMBAL_PITCH_ANGLE,
+              robot_config::pid_params::KD_GIMBAL_PITCH_ANGLE,
+              robot_config::pid_params::BETA_GIMBAL_PITCH_ANGLE,
+              robot_config::pid_params::YETA_GIMBAL_PITCH_ANGLE,
+              robot_config::pid_params::MIN_OUT_GIMBAL_PITCH_ANGLE,
+              robot_config::pid_params::MAX_OUT_GIMBAL_PITCH_ANGLE);
+
+    pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].s_pid,
+              robot_config::pid_params::KP_GIMBAL_PITCH_SPEED,
+              robot_config::pid_params::KI_GIMBAL_PITCH_SPEED,
+              robot_config::pid_params::KD_GIMBAL_PITCH_SPEED,
+              robot_config::pid_params::BETA_GIMBAL_PITCH_SPEED,
+              robot_config::pid_params::YETA_GIMBAL_PITCH_SPEED,
+              robot_config::pid_params::MIN_OUT_GIMBAL_PITCH_SPEED,
+              robot_config::pid_params::MAX_OUT_GIMBAL_PITCH_SPEED);
 
     // Initialize non-zero Gimbal_t fields.
     memset(&gimbal, 0, sizeof(Gimbal_t));
-    gimbal.yaw_ecd_center =
+    gimbal.yaw_ecd_center = robot_config::gimbal_params::
         YAW_ECD_CENTER;  // center position of the yaw motor - encoder
-    gimbal.pitch_ecd_center = PITCH_ECD_CENTER;
+    gimbal.pitch_ecd_center = robot_config::gimbal_params::PITCH_ECD_CENTER;
 
     init_folp_filter(&(gimbal.folp_f_yaw), 0.90f);
     init_folp_filter(&(gimbal.folp_f_pitch), 0.90f);

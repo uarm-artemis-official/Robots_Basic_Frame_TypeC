@@ -12,7 +12,7 @@
 #include "apps_defines.h"
 #include "motors.h"
 #include "pid.h"
-#include "public_defines.h"
+#include "robot_config.hpp"
 
 // static uint8_t shoot_reserve_flag = 0;
 // static uint8_t shoot_reserve_counter = 0;
@@ -35,22 +35,37 @@ namespace shoot_app {
         loader_control.stdid = SHOOT_LOADER;
 
         // TODO: Add configuration for hero loader.
-        pid2_init(loader_control.speed_pid, kp_spd_mag_2006, ki_spd_mag_2006,
-                  kd_spd_mag_2006, beta_spd_mag_2006, yeta_spd_mag_2006,
-                  min_out_spd_mag_2006, max_out_spd_mag_2006);
+        pid2_init(loader_control.speed_pid,
+                  robot_config::pid_params::KP_LOADER_SPEED,
+                  robot_config::pid_params::KI_LOADER_SPEED,
+                  robot_config::pid_params::KD_LOADER_SPEED,
+                  robot_config::pid_params::BETA_LOADER_SPEED,
+                  robot_config::pid_params::YETA_LOADER_SPEED,
+                  robot_config::pid_params::MIN_OUT_LOADER_SPEED,
+                  robot_config::pid_params::MAX_OUT_LOADER_SPEED);
         std::memset(&(loader_control.feedback), 0, sizeof(Motor_Feedback_t));
 
         flywheel_controls[LEFT_FLYWHEEL_INDEX].stdid = SHOOT_LEFT_FRIC;
-        pid2_init(flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid, kp_spd_fric,
-                  ki_spd_fric, kd_spd_fric, beta_spd_fric, yeta_spd_fric,
-                  min_out_spd_fric, max_out_spd_fric);
+        pid2_init(flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid,
+                  robot_config::pid_params::KP_FLYWHEEL_SPEED,
+                  robot_config::pid_params::KI_FLYWHEEL_SPEED,
+                  robot_config::pid_params::KD_FLYWHEEL_SPEED,
+                  robot_config::pid_params::BETA_FLYWHEEL_SPEED,
+                  robot_config::pid_params::YETA_FLYWHEEL_SPEED,
+                  robot_config::pid_params::MIN_OUT_FLYWHEEL_SPEED,
+                  robot_config::pid_params::MAX_OUT_FLYWHEEL_SPEED);
         std::memset(&(flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback), 0,
                     sizeof(Motor_Feedback_t));
 
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].stdid = SHOOT_RIGHT_FRIC;
         pid2_init(flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
-                  kp_spd_fric, ki_spd_fric, kd_spd_fric, beta_spd_fric,
-                  yeta_spd_fric, min_out_spd_fric, max_out_spd_fric);
+                  robot_config::pid_params::KP_FLYWHEEL_SPEED,
+                  robot_config::pid_params::KI_FLYWHEEL_SPEED,
+                  robot_config::pid_params::KD_FLYWHEEL_SPEED,
+                  robot_config::pid_params::BETA_FLYWHEEL_SPEED,
+                  robot_config::pid_params::YETA_FLYWHEEL_SPEED,
+                  robot_config::pid_params::MIN_OUT_FLYWHEEL_SPEED,
+                  robot_config::pid_params::MAX_OUT_FLYWHEEL_SPEED);
         std::memset(&(flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback), 0,
                     sizeof(Motor_Feedback_t));
 

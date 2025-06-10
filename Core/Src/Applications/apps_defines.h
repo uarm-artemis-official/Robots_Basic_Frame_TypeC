@@ -42,20 +42,6 @@
 /* =========================================================================
  * GIMBAL DEFINES
  * ====================================================================== */
-#ifdef MECANUM_GIMBAL
-#define YAW_ECD_CENTER 3350
-#define PITCH_ECD_CENTER 2035
-#elif OMNI_GIMBAL
-#define YAW_ECD_CENTER 1025
-#define PITCH_ECD_CENTER 4800
-#elif SWERVE_GIMBAL
-#define YAW_ECD_CENTER 0
-#define PITCH_ECD_CENTER 0
-#else
-#define YAW_ECD_CENTER 0
-#define PITCH_ECD_CENTER 0
-#endif
-
 #define PITCH_ECD_DELTA 1364  //60/180*4096
 #define PITCH_GEAR_RATIO 1    // The ratio of the gear box of the pitch motor
 #define PITCH_GYRO_DELTA (20.0f * DEGREE2RAD * PITCH_GEAR_RATIO)
@@ -67,6 +53,8 @@
 #define GIMBAL_MOTOR_COUNT 2
 
 #define GIMBAL_IMU_SAMPLES 20
+
+#define CHANNEL_OFFSET_MAX_ABS_VAL 660
 
 /* =========================================================================
  * IMU DEFINES

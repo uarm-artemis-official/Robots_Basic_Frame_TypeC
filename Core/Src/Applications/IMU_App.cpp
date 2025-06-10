@@ -16,7 +16,6 @@
 #include "imu.h"
 #include "message_center.h"
 #include "pid.h"
-#include "public_defines.h"
 #include "string.h"
 #include "uarm_math.h"
 

@@ -12,7 +12,6 @@
 #include "message_center.h"
 #include "pack_handler.h"  // TODO: Remove
 #include "pc_comm.h"
-#include "public_defines.h"
 #include "uarm_lib.h"
 #include "uarm_os.h"
 

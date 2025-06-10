@@ -14,7 +14,6 @@
 #include "can_comm.h"
 #include "debug.h"
 #include "message_center.h"
-#include "public_defines.h"
 #include "string.h"
 #include "uarm_lib.h"
 #include "uarm_os.h"

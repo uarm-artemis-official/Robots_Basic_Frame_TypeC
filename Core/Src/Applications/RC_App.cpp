@@ -22,7 +22,6 @@
 #include <algorithm>
 #include "apps_defines.h"
 #include "message_center.h"
-#include "public_defines.h"
 #include "rc_comm.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"

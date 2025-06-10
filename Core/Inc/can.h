@@ -31,11 +31,10 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "stm32f407xx.h"
 #include "stm32f4xx_hal.h"
-#include "public_defines.h"
 
 typedef struct {
-	uint32_t comm_id;
-	uint8_t comm_rx_buffer[8];
+    uint32_t comm_id;
+    uint8_t comm_rx_buffer[8];
 } can_comm_rx_t;
 /* USER CODE END Includes */
 

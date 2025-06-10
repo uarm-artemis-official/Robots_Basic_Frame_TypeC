@@ -15,7 +15,7 @@
 #include "Swerve_Drive.h"
 #include "apps_defines.h"
 #include "pid.h"
-#include "public_defines.h"
+#include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 #include "uarm_os.h"
@@ -41,8 +41,11 @@ void ChassisApp<DriveTrain>::init() {
     drive_train.init();
     debug.set_led_state(RED, ON);
 
-    pid2_init(chassis.spin_pid, KP_CHASSIS_SPIN, KI_CHASSIS_SPIN,
-              KD_CHASSIS_SPIN, BETA_CHASSIS_SPIN, YETA_CHASSIS_SPIN,
+    pid2_init(chassis.spin_pid, robot_config::pid_params::KP_CHASSIS_SPIN,
+              robot_config::pid_params::KI_CHASSIS_SPIN,
+              robot_config::pid_params::KD_CHASSIS_SPIN,
+              robot_config::pid_params::BETA_CHASSIS_SPIN,
+              robot_config::pid_params::YETA_CHASSIS_SPIN,
               -ChassisApp::MAX_ROTATION, ChassisApp::MAX_ROTATION);
 
     /* set initial chassis mode to idle mode or debug mode */
@@ -84,6 +87,7 @@ void ChassisApp<DriveTrain>::loop() {
 
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::update_movement_commands() {
+    // TODO: Replace 660 with constant describing max rc channel.
     chassis.v_perp = in_out_map(rc_channels[2], -660, 660, -MAX_TRANSLATION,
                                 MAX_TRANSLATION);
     chassis.v_parallel = in_out_map(rc_channels[3], -660, 660, -MAX_TRANSLATION,

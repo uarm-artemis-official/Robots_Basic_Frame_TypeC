@@ -23,7 +23,6 @@ extern "C" {
 #include "stm32f407xx.h"
 #include "stm32f4xx_hal.h"
 
-#include "public_defines.h"
 #include "usart.h"
 
 // PACK DEFINITIONS

@@ -4,6 +4,7 @@
 #include "subsystems_interfaces.h"
 #include "subsystems_types.h"
 
+// TODO: Support setting rbg led to any color.
 class Debug : public IDebug {
    public:
     BoardStatus_t get_board_status(void) override;

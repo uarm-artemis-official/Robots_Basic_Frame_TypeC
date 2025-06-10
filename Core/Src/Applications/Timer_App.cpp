@@ -62,7 +62,6 @@ void TimerApp::init() {
     system_motors.init(config);
 }
 
-static uint32_t counter = 0;
 void TimerApp::loop() {
     uint8_t received_new_message =
         message_center.get_message(MOTOR_SET, &motor_tx_message, 0);

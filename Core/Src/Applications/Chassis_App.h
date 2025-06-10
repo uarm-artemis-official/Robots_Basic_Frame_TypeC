@@ -14,7 +14,6 @@
 #include "apps_defines.h"
 #include "apps_interfaces.h"
 #include "apps_types.h"
-#include "public_defines.h"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
