@@ -39,6 +39,8 @@ float fast_inv_sqrt(float x);
 float realign(float theta, float pos);
 
 float value_limit(float x, float min_x, float max_x);
+float relative_angle(float angle1, float angle2);
+float relative_angle_rad(float angle1, float angle2);
 
 /* generic filters */
 void init_folp_filter(first_order_low_pass_t* folp, float a);

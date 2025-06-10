@@ -101,9 +101,9 @@ namespace shoot_app {
             for (size_t i = 0; i < feedbacks.size(); i++) {
                 for (size_t j = 0; j < MAX_MOTOR_COUNT; j++) {
                     if (read_message.can_ids[j] == feedbacks[i].first) {
-                        Motors::parse_feedback(feedbacks[i].first,
-                                               read_message.feedback[j],
-                                               feedbacks[i].second);
+                        Motors::get_raw_feedback(feedbacks[i].first,
+                                                 read_message.feedback[j],
+                                                 feedbacks[i].second);
                         break;
                     }
                 }

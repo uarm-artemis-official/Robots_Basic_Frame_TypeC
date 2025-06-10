@@ -134,6 +134,32 @@ float realign(float theta, float pos) {
     return fmodf(theta + pos + 360, 360);
 }
 
+/**
+ * @brief Calculates the relative angle of angle2 to angle1
+ * @param angle1 Reference angle (in degrees).
+ * @param angle2 Relative angle (in degrees).
+ * @retval 
+ *
+ * Both angle1 and angle2 must share the same zero position and be
+ * between [0, 360).
+ */
+float relative_angle(float angle1, float angle2) {
+    return fmodf(angle2 - angle1 + 360, 360);
+}
+
+/**
+ * @brief Calculates the relative angle of angle2 to angle1
+ * @param angle1 Reference angle (in radians).
+ * @param angle2 Relative angle (in radians).
+ * @retval 
+ *
+ * Both angle1 and angle2 must share the same zero position and be
+ * between [0, 2PI).
+ */
+float relative_angle_rad(float angle1, float angle2) {
+    return fmodf(angle2 - angle1 + 2 * PI, 2 * PI);
+}
+
 /******************************************************************************
 * @func groups    : filters
 * @brief          : Some filters for data process and normailzation

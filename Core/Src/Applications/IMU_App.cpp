@@ -64,12 +64,12 @@ void IMUApp::loop() {
         message_center.pub_message(IMU_READINGS, message_data);
 
         // Sending raw sensor data for calibration.
-        imu.get_sensor_data(sensor_data);
-        uint8_t uc_out_buffer[196];
-        memset(uc_out_buffer, 0, sizeof(uint8_t) * 196);
-        uc_out_buffer[0] = 143;
-        memcpy(uc_out_buffer + 4, &sensor_data, sizeof(AhrsSensor_t));
-        message_center.pub_message(UC_PACK_OUT, uc_out_buffer);
+        // imu.get_sensor_data(sensor_data);
+        // uint8_t uc_out_buffer[196];
+        // memset(uc_out_buffer, 0, sizeof(uint8_t) * 196);
+        // uc_out_buffer[0] = 143;
+        // memcpy(uc_out_buffer + 4, &sensor_data, sizeof(AhrsSensor_t));
+        // message_center.pub_message(UC_PACK_OUT, uc_out_buffer);
     }
 }
 

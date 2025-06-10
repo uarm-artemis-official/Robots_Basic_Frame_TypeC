@@ -25,7 +25,7 @@
  * 		3. easier for calculating cos/sin functions
  *
  * */
-class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
+class GimbalApp : public RTOSApp<GimbalApp> {
    private:
     Gimbal_t gimbal;
     Gimbal_Imu_Calibration_t imu_calibration;
@@ -42,6 +42,7 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     // Software limits on pitch targets to prevent pitch from hitting mechanical hard stops.
     static constexpr float PITCH_LOWER_LIMIT = -0.1;
     static constexpr float PITCH_UPPER_LIMIT = 0.4;
+    static constexpr uint32_t IMU_CENTER_TARGET_SAMPLES = 100;
 
     static float calc_rel_angle(float angle1, float angle2);
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
@@ -55,35 +56,32 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     bool exit_calibrate_cond();
     void calibrate();
 
-    void after_calibrate();
-    bool exit_loop_prepare_cond();
-    void loop_prepare();
-    void after_loop_prepare();
-
     void loop();
+
+    bool is_imu_calibrated();
 
     void set_modes(uint8_t modes[3]);
     void set_board_mode(BoardMode_t mode);
     void set_act_mode(BoardActMode_t mode);
     void set_motor_mode(GimbalMotorMode_t mode);
+    void safe_mode_switch();
 
     void get_rc_info();
     void get_motor_feedback();
     void get_imu_headings();
 
-    void safe_mode_switch();
+    void calc_channels_to_angles(const int16_t g_channels[2], float deltas[2]);
+    void calc_imu_center();
+
     void update_imu_angle(float yaw, float pitch);
     void update_ecd_angles();
-    void set_limited_angle(float yaw_target_angle, float pitch_target_angle);
-    void cmd_exec();
-    void send_rel_angles();
-    void calc_rel_targets(float delta_yaw, float delta_pitch);
-    void calc_channels_to_angles(const int16_t g_channels[2], float deltas[2]);
-    // void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, UC_Auto_Aim_Pack_t *pack);
-    void send_motor_volts();
-
     void update_headings();
     void update_targets(int16_t* g_channels);
+
+    void cmd_exec();
+
+    void send_motor_volts();
+    void send_rel_angles();
 };
 
 #endif /* __SRC_APPLICATIONS_GIMBAL_APP_H_ */

@@ -12,6 +12,7 @@ Motors::Motors() {
 void Motors::init(Motor_Config_t config) {
     this->config = config;
     memset(this->motors, 0, sizeof(Generic_Motor_t) * MAX_MOTOR_COUNT);
+    memset(prev_swerve_data, 0, sizeof(int32_t) * 4);
 
     switch (config) {
         case DJI_GIMBAL: {
@@ -48,12 +49,12 @@ void Motors::init(Motor_Config_t config) {
     }
 }
 
-void Motors::parse_feedback(uint32_t stdid, uint8_t data[8], void* feedback) {
+void Motors::get_raw_feedback(uint32_t stdid, uint8_t data[8], void* feedback) {
     if (0x200 < stdid && stdid < 0x212) {
-        dji_motor_parse_feedback(data,
-                                 static_cast<Motor_Feedback_t*>(feedback));
+        dji_motor_get_raw_feedback(data,
+                                   static_cast<Motor_Feedback_t*>(feedback));
     } else if (0x140 < stdid && stdid < 0x173) {
-        lk_motor_parse_feedback(data, feedback);
+        lk_motor_get_raw_feedback(data, feedback);
     } else {
         ASSERT(0,
                "subsystems::motors cannot parse feedback for data with "
@@ -83,10 +84,17 @@ void Motors::set_motor_voltage(Motor_CAN_ID_t can_id, int32_t output) {
 }
 
 bool Motors::is_valid_output(size_t motor_index, int32_t new_output) {
-    // TODO: implement
-    return true;
+    switch (motors[motor_index].brand) {
+        case DJI:
+            return -30000 <= new_output && new_output <= 30000;
+        case LK:
+            return true;
+        default:
+            return false;
+    }
 }
 
+static uint32_t counter = 0;
 void Motors::send_motor_voltage() {
     switch (this->config) {
         case DJI_GIMBAL:
@@ -98,23 +106,24 @@ void Motors::send_motor_voltage() {
                            this->motors[1].tx_data, this->motors[2].tx_data,
                            this->motors[3].tx_data);
             break;
-        case SWERVE:
-            dji_motor_send((int32_t) M3508, this->motors[0].tx_data,
-                           this->motors[1].tx_data, this->motors[2].tx_data,
-                           this->motors[3].tx_data);
+        case SWERVE: {
+            __dji_motor_send((int32_t) M3508, motors[0].tx_data,
+                             motors[1].tx_data, motors[2].tx_data,
+                             motors[3].tx_data, 1);
 
-            for (size_t i = 4; i < 8; i++) {
-                uint8_t spin_direction = (motors[i].tx_data & 0x40000000) >> 30;
-                uint16_t max_speed = (motors[i].tx_data & 0x3fff0000) >> 16;
-                uint32_t angle = motors[i].tx_data & 0xffff;
-                lk_motor_send_multi_loop(motors[i].feedback_id, max_speed,
-                                         angle);
-                // lk_motor_send_single_loop(motors[i].feedback_id, spin_direction,
-                //                           max_speed, angle);
-                // lk_motor_send_multi_loop(motors[i].feedback_id, 90, 30000);
+            uint8_t spin_direction =
+                (motors[4 + counter].tx_data & 0x40000000) >> 30;
+            uint16_t max_speed =
+                (motors[4 + counter].tx_data & 0x3fff0000) >> 16;
+            uint32_t angle = (motors[4 + counter].tx_data & 0xffff) * 10;
+            if (angle == 0) {
+                angle = 1;
             }
-
+            lk_motor_send_single_loop(0x141 + counter, spin_direction,
+                                      max_speed, angle);
+            counter = (counter + 1) % 4;
             break;
+        }
         case SWERVE_ZERO:
             break;
         default:

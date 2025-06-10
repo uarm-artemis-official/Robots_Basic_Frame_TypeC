@@ -49,6 +49,14 @@
 //#define TIMER_FRIC_WHEELS_ENABLE
 //#define TUNE_GIMBAL_PID
 
+#define KP_SWERVE_DRIVE 5
+#define KI_SWERVE_DRIVE 0
+#define KD_SWERVE_DRIVE 0
+#define BETA_SWERVE_DRIVE 1
+#define YETA_SWERVE_DRIVE 0
+#define MIN_OUT_SWERVE_DRIVE -2000
+#define MAX_OUT_SWERVE_DRIVE 2000
+
 /* motor pid param */
 // TODO: Move PID parameters into separate header file.
 

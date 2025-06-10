@@ -14,8 +14,6 @@
 #include "Omni_Drive.h"
 #include "Swerve_Drive.h"
 #include "apps_defines.h"
-#include "debug.h"
-#include "message_center.h"
 #include "pid.h"
 #include "public_defines.h"
 #include "uarm_lib.h"
@@ -103,6 +101,12 @@ void ChassisApp<DriveTrain>::update_movement_commands() {
  */
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::calc_movement_vectors() {
+    if (chassis.chassis_mode == IDLE_MODE) {
+        chassis.vx = 0;
+        chassis.vy = 0;
+        return;
+    }
+
     // Inverse kinematics requires gimbal yaw angle needs to be adjusted to principal axis.
     switch (chassis.chassis_act_mode) {
         case INDPET_MODE:

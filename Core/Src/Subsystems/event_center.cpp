@@ -19,6 +19,8 @@ void EventCenter::init() {
     xEventGroupClearBits(events_group, 0xffffff);
 }
 
+// TODO: Make wait_events less esoteric to use (i.e. make rv bool which is true/false)
+// if the wait_events happened.
 UARM_Events_t EventCenter::wait_events(UARM_Events_t wait_events,
                                        uint32_t timeout) {
     return xEventGroupWaitBits(events_group, static_cast<uint32_t>(wait_events),

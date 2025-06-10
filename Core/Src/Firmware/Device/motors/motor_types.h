@@ -45,4 +45,12 @@ typedef struct {
     int16_t rx_temp;
 } Motor_Feedback_t;
 
+typedef struct {
+    int8_t temperature;      // degrees celsius (1 degree resolution)
+    int16_t torque_current;  // -2048 ~ 2048 -> -16.5A ~ 16.5A
+    int16_t speed;           // degrees per second.
+    uint16_t
+        ecd_position;  // 0 ~ 65535 (for 18-bit encoder) maps onto 0 ~ 360 degrees?
+} LK_Motor_Torque_Feedback_t;
+
 #endif

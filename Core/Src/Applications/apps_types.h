@@ -122,8 +122,20 @@ typedef struct {
     uint32_t stdid;
     PID2_t f_pid;  //first pid handler for single-loop control
     Motor_Feedback_t feedback;
+    LK_Motor_Torque_Feedback_t lk_feedback;
     uint32_t angle;
 } Swerve_Wheel_Control_t;
+
+typedef struct {
+    uint32_t stdid;
+    PID2_t f_pid;
+    Motor_Feedback_t feedback;
+} Swerve_Drive_Control_t;
+
+typedef struct {
+    uint32_t stdid;
+    LK_Motor_Torque_Feedback_t lk_feedback;
+} Swerve_Steer_Control_t;
 
 /* =========================================================================
  * GIMBAL TYPES
@@ -143,28 +155,10 @@ typedef struct Gimbal_t {
 
     int16_t yaw_ecd_center;    //center position of the yaw motor by encoder
     int16_t pitch_ecd_center;  //center position of the pitch motor by encoder
+
     float yaw_imu_center;
-    float pitch_imu_center;
-
-    Gimbal_Axis_t axis;
-
-    //	Motor_Feedback_t yaw_ecd_fb;	//yaw feedback data pool
-    //	Motor_Feedback_t pitch_ecd_fb; //pitch feedback data pool
-
-    /* algorithm related */
-    ramp_t yaw_ramp;           // yaw ramp for calibration process
-    ramp_t pitch_ramp;         // pitch ramp for calibration process
-    AhrsSensor_t ahrs_sensor;  // copy the sensor data from imu
-
-    /* filters */
-    /* pc control filters */
-    ewma_filter_t ewma_f_x;  //Exponential mean filtering for yaw
-    ewma_filter_t ewma_f_y;  //Exponential mean filtering for pitch
-    //	sliding_mean_filter_t swm_f_x; //Sliding window mean filter for yaw
-    //	sliding_mean_filter_t swm_f_y; //Sliding window mean filter for pitch
-    /* auto aimming */
-    ewma_filter_t ewma_f_aim_yaw;
-    ewma_filter_t ewma_f_aim_pitch;
+    float yaw_imu_center_cumsum;
+    uint32_t yaw_imu_center_sample_count;
 
     first_order_low_pass_t
         folp_f_yaw;  //first order low pass filter for imu data

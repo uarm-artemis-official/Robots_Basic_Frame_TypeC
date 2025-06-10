@@ -39,9 +39,9 @@ void OmniDrive::get_motor_feedback() {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
                 if (wheel_can_ids[i] == read_message.can_ids[j]) {
-                    Motors::parse_feedback(wheel_can_ids[i],
-                                           read_message.feedback[j],
-                                           &(motor_controls[i].feedback));
+                    Motors::get_raw_feedback(wheel_can_ids[i],
+                                             read_message.feedback[j],
+                                             &(motor_controls[i].feedback));
                     break;
                 }
             }

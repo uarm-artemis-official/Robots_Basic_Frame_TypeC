@@ -170,7 +170,10 @@ static AmmoLid ammo_lid;
 
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
-static SwerveDrive swerve_drive(message_center, swerve_chassis_width);
+static constexpr float swerve_dt =
+    ChassisApp<SwerveDrive>::LOOP_PERIOD_MS * 0.001;
+static SwerveDrive swerve_drive(message_center, swerve_chassis_width,
+                                swerve_dt);
 static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 #else
 
@@ -292,7 +295,7 @@ int main(void) {
     } else if (board_status == GIMBAL_BOARD) {
         osThreadDef(
             GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
-            osPriorityHigh, 0, 512);
+            osPriorityRealtime, 0, 512);
         osThreadCreate(osThread(GimbalTask), NULL);
 
         osThreadDef(
@@ -405,7 +408,13 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
         config = GIMBAL;
     }
     init_uart_isr(config);
-    init_can_isr();
+
+#ifdef SWERVE_CHASSIS
+    constexpr CAN_ISR_Config can_config = CAN_ISR_Config::SWERVE;
+#else
+    constexpr CAN_ISR_Config can_config = CAN_ISR_Config::NORMAL;
+#endif
+    init_can_isr(can_config);
 
     return HAL_OK;
 }

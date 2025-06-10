@@ -1,5 +1,5 @@
 {
-    "cortex-debug.variableUseNaturalFormat": false,
+    "cortex-debug.variableUseNaturalFormat": true,
     "files.associations": {
         "public_defines.h": "c",
         "stdint.h": "c",
@@ -88,7 +88,12 @@
         "gpio.h": "c",
         "bmi088_middleware.h": "c",
         "type_traits": "cpp",
-        "timers.h": "c"
+        "timers.h": "c",
+        "algorithm": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp",
+        "numbers": "cpp",
+        "iterator": "cpp"
     },
     "C_Cpp.clang_format_style": "file",
     "C_Cpp.clang_format_fallbackStyle": "none",

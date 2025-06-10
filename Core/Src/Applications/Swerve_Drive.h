@@ -8,36 +8,34 @@
 
 class SwerveDrive : public ChassisDrive<SwerveDrive> {
    private:
-    static constexpr size_t DRIVE_MOTOR1_INDEX = 0;
-    static constexpr size_t DRIVE_MOTOR2_INDEX = 1;
-    static constexpr size_t DRIVE_MOTOR3_INDEX = 2;
-    static constexpr size_t DRIVE_MOTOR4_INDEX = 3;
-    static constexpr size_t STEER_MOTOR1_INDEX = 4;
-    static constexpr size_t STEER_MOTOR2_INDEX = 5;
-    static constexpr size_t STEER_MOTOR3_INDEX = 6;
-    static constexpr size_t STEER_MOTOR4_INDEX = 7;
-
-    static constexpr size_t OUTPUT1_INDEX = 0;
-    static constexpr size_t OUTPUT2_INDEX = 1;
-    static constexpr size_t OUTPUT3_INDEX = 2;
-    static constexpr size_t OUTPUT4_INDEX = 3;
+    static constexpr size_t NUM_STEER_MOTORS = 4;
+    static constexpr size_t NUM_DRIVE_MOTORS = 4;
 
     IMessageCenter& message_center;
     const float width;
+    const float dt;
 
-    std::array<Swerve_Wheel_Control_t, 8> swerve_motors;
+    std::array<Swerve_Drive_Control_t, NUM_DRIVE_MOTORS> drive_motors;
+    std::array<Swerve_Steer_Control_t, NUM_STEER_MOTORS> steer_motors;
 
-    float steer_target_angle[4];
-    uint16_t steer_max_speed[4];
-    bool steer_ccw[4];
+    std::array<float, NUM_STEER_MOTORS> steer_curr_angle;
+    std::array<int16_t, NUM_STEER_MOTORS> steer_curr_speed;
+    std::array<float, NUM_STEER_MOTORS> steer_cw_mag;
+    std::array<float, NUM_STEER_MOTORS> steer_ccw_mag;
+    std::array<float, NUM_STEER_MOTORS> steer_target_angle;
+    std::array<float, NUM_DRIVE_MOTORS> drive_target_speed;
 
-    int16_t drive_target_rpm[4];
+    std::array<uint16_t, NUM_STEER_MOTORS> steer_max_speed;
+    std::array<bool, NUM_STEER_MOTORS> steer_ccw;
+    std::array<float, NUM_STEER_MOTORS> steer_output_angle;
+    std::array<int32_t, NUM_DRIVE_MOTORS> drive_output;
 
    public:
     static int32_t pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                          uint32_t angle);
 
-    SwerveDrive(IMessageCenter& message_center_ref, float chassis_width);
+    explicit SwerveDrive(IMessageCenter& message_center_ref, float width_,
+                         float dt_);
 
     void init_impl();
     void get_motor_feedback();

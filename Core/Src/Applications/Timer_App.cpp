@@ -62,22 +62,21 @@ void TimerApp::init() {
     system_motors.init(config);
 }
 
+static uint32_t counter = 0;
 void TimerApp::loop() {
     uint8_t received_new_message =
         message_center.get_message(MOTOR_SET, &motor_tx_message, 0);
     if (received_new_message == 1) {
         for (int i = 0; i < MAX_MOTOR_COUNT; i++) {
-            if (motor_tx_message.can_ids[i] == 0)
-                break;
-            system_motors.set_motor_voltage(
-                motor_tx_message.can_ids[i],
-                motor_tx_message.motor_can_volts[i]);
+            if (motor_tx_message.can_ids[i] != 0) {
+                system_motors.set_motor_voltage(
+                    motor_tx_message.can_ids[i],
+                    motor_tx_message.motor_can_volts[i]);
+            }
         }
     }
 
-    for (size_t i = 0; i < swerve_ids.size(); i++) {
-        // system_motors.request_feedback(swerve_ids.at(i));
-    }
+    // system_motors.request_feedback(swerve_ids.at(i));
 
 #ifndef DISABLE_MOTOR_SEND
     system_motors.send_motor_voltage();

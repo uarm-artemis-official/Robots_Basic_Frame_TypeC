@@ -6,11 +6,16 @@
 #include "subsystems_types.h"
 
 class Motors : public IMotors {
+   private:
+    uint32_t counter = 0;
+
    public:
+    int32_t prev_swerve_data[4];
     Generic_Motor_t motors[MAX_MOTOR_COUNT];
     Motor_Config_t config;
 
-    static void parse_feedback(uint32_t stdid, uint8_t data[8], void* feedback);
+    static void get_raw_feedback(uint32_t stdid, uint8_t data[8],
+                                 void* feedback);
     static Motor_Brand_t get_motor_brand(uint32_t stdid);
 
     Motors();
