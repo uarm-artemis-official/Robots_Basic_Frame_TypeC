@@ -25,7 +25,7 @@
  * 		3. easier for calculating cos/sin functions
  *
  * */
-class GimbalApp : public RTOSApp<GimbalApp> {
+class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
    private:
     Gimbal_t gimbal;
     Gimbal_Imu_Calibration_t imu_calibration;

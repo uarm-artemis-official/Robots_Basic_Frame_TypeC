@@ -98,6 +98,7 @@ typedef enum {
 
 typedef struct {
     float temp;
+    float prev_temp;
     uint32_t sample_time;
 
     IMU_temp_status temp_status;

@@ -122,5 +122,14 @@ else()
         GENERIC_APPS
         ISRS::UART_ISR
         ISRS::CAN_ISR
+        SUBSYSTEMS::DEBUG
+        SUBSYSTEMS::RC_COMM
+        SUBSYSTEMS::AMMO_LID
+        SUBSYSTEMS::PC_COMM
+        SUBSYSTEMS::CAN_COMM
+        SUBSYSTEMS::MOTORS
+        SUBSYSTEMS::MESSAGE_CENTER
+        SUBSYSTEMS::EVENT_CENTER
+        SUBSYSTEMS::IMU
         stm32cubemx)
 endif()

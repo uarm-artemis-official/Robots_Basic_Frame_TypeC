@@ -46,7 +46,18 @@ void IMUApp::init() {
         imu_app_state.ahrs_sensor.mz = 0.0f;
     }
     imu_app_state.temp = 0.0;
-    calibrate_imu();
+    imu_app_state.prev_temp = 0.0;
+}
+
+void IMUApp::calibrate() {
+    imu_app_state.prev_temp = imu_app_state.temp;
+    imu_temp_pid_control();
+}
+
+bool IMUApp::exit_calibrate_cond() {
+    return 39.75 <= imu_app_state.prev_temp &&
+           imu_app_state.prev_temp <= 40.25 && 39.75 <= imu_app_state.temp &&
+           imu_app_state.temp <= 40.25;
 }
 
 void IMUApp::loop() {
@@ -66,17 +77,6 @@ void IMUApp::loop() {
         // uc_out_buffer[0] = 143;
         // memcpy(uc_out_buffer + 4, &sensor_data, sizeof(AhrsSensor_t));
         // message_center.pub_message(UC_PACK_OUT, uc_out_buffer);
-    }
-}
-
-void IMUApp::calibrate_imu() {
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    float prev_temp = 0;
-    while (!(39.75 <= prev_temp && prev_temp <= 40.25 &&
-             39.75 <= imu_app_state.temp && imu_app_state.temp <= 40.25)) {
-        prev_temp = imu_app_state.temp;
-        imu_temp_pid_control();
-        vTaskDelayUntil(&xLastWakeTime, IMU_TASK_EXEC_TIME);
     }
 }
 

@@ -36,17 +36,6 @@ class ExtendedRTOSApp {
             vTaskDelayUntil(&xLastWakeTime, xFrequency);
         }
 
-        derived->after_calibrate();
-        for (;;) {
-            if (derived->exit_loop_prepare_cond()) {
-                break;
-            } else {
-                derived->loop_prepare();
-            }
-            vTaskDelayUntil(&xLastWakeTime, xFrequency);
-        }
-        derived->after_loop_prepare();
-
         for (;;) {
             derived->loop();
             vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -59,12 +48,6 @@ class RTOSApp : public ExtendedRTOSApp<Derived> {
    public:
     void calibrate() {}
     bool exit_calibrate_cond() { return true; }
-
-    void after_calibrate() {}
-
-    bool exit_loop_prepare_cond() { return true; }
-    void loop_prepare() {}
-    void after_loop_prepare() {}
 };
 
 template <class Derived>
