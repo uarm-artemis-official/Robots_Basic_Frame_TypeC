@@ -8,8 +8,8 @@
 * All rights reserved.
 *******************************************************************************/
 #include "PC_UART_App.h"
+#include <cstring>
 #include "apps_defines.h"
-#include "message_center.h"
 #include "pack_handler.h"  // TODO: Remove
 #include "pc_comm.h"
 #include "uarm_lib.h"
@@ -38,7 +38,7 @@ void PCUARTApp::loop() {
     // send_pack.wheel_rpm[3] = 0.4f;
 
     if (idle_count == 40) {
-        restart_receive(new_pack_buffer);
+        // restart_receive(new_pack_buffer);
         idle_count = 0;
     }
 
@@ -49,11 +49,13 @@ void PCUARTApp::loop() {
             switch (new_pack_buffer[0]) {
                 case UC_AUTO_AIM_HEADER: {
                     UC_Auto_Aim_Pack_t aim_pack;
-                    memcpy(&aim_pack, new_pack_buffer + PACK_HEADER_SIZE,
-                           get_data_size(new_pack_buffer[0]));
+                    std::memcpy(&aim_pack, new_pack_buffer + PACK_HEADER_SIZE,
+                                get_data_size(new_pack_buffer[0]));
                     if (aim_pack.target_num > 0) {
                         float deltas[] = {aim_pack.delta_yaw,
                                           aim_pack.delta_pitch};
+                        recent_deltas[0] = aim_pack.delta_yaw;
+                        recent_deltas[1] = aim_pack.delta_pitch;
                         message_center.pub_message(AUTO_AIM, deltas);
                     }
                     break;

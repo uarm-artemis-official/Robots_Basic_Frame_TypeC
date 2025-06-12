@@ -78,10 +78,8 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
         INTERFACE 
             GTEST)
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Lib)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
-
 else()
     add_executable(${CMAKE_PROJECT_NAME})
 

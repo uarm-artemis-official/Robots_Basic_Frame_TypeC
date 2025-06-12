@@ -25,17 +25,18 @@
 class RCApp : public RTOSApp<RCApp> {
    private:
     IMessageCenter& message_center;
+    IRCComm& rc_comm;
 
     // TODO: remove and replace with rc_rx_buffer.
     uint8_t tmp_rx_buffer[18];
-    rc_comm::Buffer rc_rx_buffer;
+    Buffer rc_rx_buffer;
     RemoteControl_t rc;
     uint32_t rc_idle_count = 0;
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = RC_TASK_EXEC_TIME;
 
-    explicit RCApp(IMessageCenter& message_center_ref);
+    explicit RCApp(IMessageCenter& message_center_ref, IRCComm& rc_comm_ref);
 
     void init();
     void loop();

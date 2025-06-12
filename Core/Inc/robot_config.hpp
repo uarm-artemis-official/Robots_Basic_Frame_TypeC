@@ -20,7 +20,12 @@ namespace robot_config {
 #endif
 
 #ifdef SWERVE_GIMBAL
-        // static_assert(false, "Uncalibrated Gimbal encoder centers.");
+        static_assert(false, "Uncalibrated Gimbal encoder centers.");
+        constexpr int16_t YAW_ECD_CENTER = 0;
+        constexpr int16_t PITCH_ECD_CENTER = 0;
+#endif
+
+#ifdef GTEST
         constexpr int16_t YAW_ECD_CENTER = 0;
         constexpr int16_t PITCH_ECD_CENTER = 0;
 #endif

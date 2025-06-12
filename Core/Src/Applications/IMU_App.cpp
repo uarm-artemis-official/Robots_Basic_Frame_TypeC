@@ -10,14 +10,11 @@
 
 #include "IMU_App.h"
 #include "apps_defines.h"
-#include "buzzer.h"
-#include "debug.h"
-#include "event_center.h"
-#include "imu.h"
-#include "message_center.h"
 #include "pid.h"
 #include "string.h"
+#include "uarm_lib.h"
 #include "uarm_math.h"
+#include "uarm_os.h"
 
 IMUApp::IMUApp(IMessageCenter& message_center_ref,
                IEventCenter& event_center_ref, IImu& imu_ref, IDebug& debug_ref)

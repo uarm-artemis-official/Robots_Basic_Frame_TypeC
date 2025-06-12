@@ -27,7 +27,7 @@ class MessageCenter : public IMessageCenter {
         Topic_Handle_t {REFEREE_INFO, sizeof(uint8_t) * 2, 1, NULL},
         Topic_Handle_t {RC_RAW, sizeof(uint8_t) * 18, 5, NULL},
 
-        Topic_Handle_t {UC_PACK_IN, sizeof(uint8_t) * 64, 10, NULL},
+        Topic_Handle_t {UC_PACK_IN, sizeof(uint8_t) * 64, 1, NULL},
         Topic_Handle_t {UC_PACK_OUT, sizeof(uint8_t) * 196, 10, NULL},
         Topic_Handle_t {AUTO_AIM, sizeof(float) * 2, 1, NULL},
     };

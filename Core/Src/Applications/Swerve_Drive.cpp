@@ -4,16 +4,18 @@
 #include <iterator>
 #include <numbers>
 #include "apps_defines.h"
-#include "message_center.h"
 #include "motors.h"
 #include "pid.h"
 #include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 
-SwerveDrive::SwerveDrive(IMessageCenter& message_center_ref, float width_,
-                         float dt_)
-    : message_center(message_center_ref), width(width_), dt(dt_) {}
+SwerveDrive::SwerveDrive(IMessageCenter& message_center_ref,
+                         IMotors& motors_ref, float width_, float dt_)
+    : message_center(message_center_ref),
+      motors(motors_ref),
+      width(width_),
+      dt(dt_) {}
 
 void SwerveDrive::init_impl() {
     steer_curr_angle = {0};
@@ -72,18 +74,18 @@ void SwerveDrive::get_motor_feedback() {
         for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
             for (size_t j = 0; j < steer_motors.size(); j++) {
                 if (steer_motors[j].stdid == read_message.can_ids[i]) {
-                    Motors::get_raw_feedback(steer_motors.at(j).stdid,
-                                             read_message.feedback[i],
-                                             &(steer_motors.at(j).lk_feedback));
+                    motors.get_raw_feedback(steer_motors.at(j).stdid,
+                                            read_message.feedback[i],
+                                            &(steer_motors.at(j).lk_feedback));
                     break;
                 }
             }
 
             for (size_t j = 0; j < drive_motors.size(); j++) {
                 if (drive_motors.at(j).stdid == read_message.can_ids[i]) {
-                    Motors::get_raw_feedback(drive_motors.at(j).stdid,
-                                             read_message.feedback[i],
-                                             &(drive_motors.at(j).feedback));
+                    motors.get_raw_feedback(drive_motors.at(j).stdid,
+                                            read_message.feedback[i],
+                                            &(drive_motors.at(j).feedback));
                     break;
                 }
             }

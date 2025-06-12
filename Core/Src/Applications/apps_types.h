@@ -192,28 +192,25 @@ typedef struct {
   * @brief  shoot task main struct
   */
 
-namespace shoot_app {
-    struct Shoot {
-        float loader_target_rpm;
-        int32_t flywheel_target_rpm;
+struct Shoot {
+    float loader_target_rpm;
+    int32_t flywheel_target_rpm;
 
-        EAmmoLidStatus lid_status;
-        ShootActMode_t shoot_act_mode;
-    };
+    EAmmoLidStatus lid_status;
+    ShootActMode_t shoot_act_mode;
+};
 
-    struct LoaderControl {
-        Motor_CAN_ID_t stdid;
-        PID2_t speed_pid;
-        Motor_Feedback_t feedback;
-    };
+struct LoaderControl {
+    Motor_CAN_ID_t stdid;
+    PID2_t speed_pid;
+    Motor_Feedback_t feedback;
+};
 
-    struct FlyWheelControl {
-        Motor_CAN_ID_t stdid;
-        PID2_t speed_pid;
-        Motor_Feedback_t feedback;
-    };
-
-}  // namespace shoot_app
+struct FlyWheelControl {
+    Motor_CAN_ID_t stdid;
+    PID2_t speed_pid;
+    Motor_Feedback_t feedback;
+};
 
 /* =========================================================================
  * IMU TYPES
@@ -227,8 +224,8 @@ typedef struct {
  * ====================================================================== */
 typedef struct {
     /* controll mode selection */
-    rc_comm::Controller ctrl;
-    rc_comm::PC pc;
+    Controller ctrl;
+    PC pc;
     CtrlMode_t control_mode;
 
     /* status update */

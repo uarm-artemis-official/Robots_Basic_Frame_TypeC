@@ -11,9 +11,6 @@
 */
 #include "Comm_App.h"
 #include "apps_defines.h"
-#include "can_comm.h"
-#include "debug.h"
-#include "message_center.h"
 #include "string.h"
 #include "uarm_lib.h"
 #include "uarm_os.h"

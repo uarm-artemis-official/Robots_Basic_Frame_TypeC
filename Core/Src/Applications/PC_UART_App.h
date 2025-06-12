@@ -20,6 +20,7 @@ class PCUARTApp : public RTOSApp<PCUARTApp> {
     uint8_t new_pack_buffer[64];  // TODO: Make same as MAX_PACK_BUFFER_SIZE.
     IMessageCenter& message_center;
     uint32_t idle_count = 0;
+    float recent_deltas[2];
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = PC_UART_TASK_EXEC_TIME;

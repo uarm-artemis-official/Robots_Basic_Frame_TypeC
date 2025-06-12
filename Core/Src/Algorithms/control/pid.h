@@ -55,6 +55,10 @@ float pid2_calculate(PID2_t& pid, float sp, float pv, float dt);
 float pid2_single_loop_control(PID2_t& pid, float sp, float pv, float dt);
 float pid2_dual_loop_control(PID2_t& f_pid, PID2_t& s_pid, float sp, float f_pv,
                              float s_pv, float f_dt, float s_dt);
+float pid2_triple_loop_control(PID2_t& outer_pid, PID2_t& middle_pid,
+                               PID2_t& inner_pid, float sp, float outer_pv,
+                               float middle_pv, float inner_pv, float outer_dt,
+                               float middle_dt, float inner_dt);
 
 void prescaled_pid2_init(Prescaled_PID2_t* prescaled, uint32_t prescalar,
                          float k_p, float k_i, float k_d, float beta,

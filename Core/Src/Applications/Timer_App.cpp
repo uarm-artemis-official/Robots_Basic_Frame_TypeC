@@ -12,12 +12,9 @@
 *******************************************************************************/
 
 #include "Timer_App.h"
+#include <cstring>
 #include "apps_defines.h"
 #include "apps_types.h"
-#include "debug.h"
-#include "message_center.h"
-#include "motors.h"
-#include "public_defines.h"
 #include "uarm_lib.h"
 #include "uarm_os.h"
 

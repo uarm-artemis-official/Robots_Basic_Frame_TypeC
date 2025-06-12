@@ -180,6 +180,16 @@ float pid2_dual_loop_control(PID2_t& f_pid, PID2_t& s_pid, float sp, float f_pv,
     return pid2_calculate(s_pid, f_out, s_pv, s_dt);
 }
 
+float pid2_triple_loop_control(PID2_t& outer_pid, PID2_t& middle_pid,
+                               PID2_t& inner_pid, float sp, float outer_pv,
+                               float middle_pv, float inner_pv, float outer_dt,
+                               float middle_dt, float inner_dt) {
+    float outer_out = pid2_calculate(outer_pid, sp, outer_pv, outer_dt);
+    float middle_out =
+        pid2_calculate(middle_pid, outer_out, middle_pv, middle_dt);
+    return pid2_calculate(inner_pid, middle_out, inner_pv, inner_dt);
+}
+
 void prescaled_pid2_init(Prescaled_PID2_t* prescaled, uint32_t prescalar,
                          float k_p, float k_i, float k_d, float beta,
                          float yeta, float min_out, float max_out) {

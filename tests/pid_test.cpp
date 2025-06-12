@@ -1,8 +1,7 @@
-#include <gtest/gtest.h>
 #include "pid.h"
+#include <gtest/gtest.h>
 
-TEST(PidCorrectness, PidInitBasic)
-{
+TEST(PidCorrectness, PidInitBasic) {
     PID_t pid;
     pid_param_init(&pid, 1000, 100.f, 10.f, 1.f, 2.f, 3.f);
     EXPECT_FLOAT_EQ(pid.kp, 1.f);
@@ -23,10 +22,9 @@ TEST(PidCorrectness, PidInitBasic)
     EXPECT_FLOAT_EQ(pid.total_out, 0.f);
 }
 
-TEST(PidCorrectness, Pid2InitBasic)
-{
+TEST(PidCorrectness, Pid2InitBasic) {
     PID2_t pid2;
-    pid2_init(&pid2, 0.f, 1.f, 2.f, 3.f, 4.f, 0.f, 100.f);
+    pid2_init(pid2, 0.f, 1.f, 2.f, 3.f, 4.f, 0.f, 100.f);
     EXPECT_FLOAT_EQ(pid2.k_p, 0.f);
     EXPECT_FLOAT_EQ(pid2.k_i, 1.f);
     EXPECT_FLOAT_EQ(pid2.k_d, 2.f);
@@ -54,12 +52,16 @@ TEST(PidCorrectness, Pid2InitBasic)
 
 TEST(PidFuzz, PidInitInvalidMaxes) {
     PID_t pid;
-    EXPECT_DEATH(pid_param_init(&pid, -10.f, 100.f, 50.f, 1.f, 2.f, 3.f), "") << "max_out cannot be negative.";
-    EXPECT_DEATH(pid_param_init(&pid, 10.f, -100.f, 50.f, 1.f, 2.f, 3.f), "") << "max_i_out cannot be negative.";
-    EXPECT_DEATH(pid_param_init(&pid, 10.f, 100.f, -50.f, 1.f, 2.f, 3.f), "") << "max_err cannot be negative.";
+    EXPECT_DEATH(pid_param_init(&pid, -10.f, 100.f, 50.f, 1.f, 2.f, 3.f), "")
+        << "max_out cannot be negative.";
+    EXPECT_DEATH(pid_param_init(&pid, 10.f, -100.f, 50.f, 1.f, 2.f, 3.f), "")
+        << "max_i_out cannot be negative.";
+    EXPECT_DEATH(pid_param_init(&pid, 10.f, 100.f, -50.f, 1.f, 2.f, 3.f), "")
+        << "max_err cannot be negative.";
 }
 
 TEST(PidFuzz, Pid2InitInvalidMaxes) {
     PID2_t pid2;
-    EXPECT_DEATH(pid2_init(&pid2, 1.f, 2.f, 3.f, 4.f, 5.f, 100.f, -10.f), "") << "min_out cannot be greater than max_out.";
+    EXPECT_DEATH(pid2_init(pid2, 1.f, 2.f, 3.f, 4.f, 5.f, 100.f, -10.f), "")
+        << "min_out cannot be greater than max_out.";
 }

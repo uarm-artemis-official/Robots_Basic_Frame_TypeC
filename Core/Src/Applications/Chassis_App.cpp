@@ -10,6 +10,7 @@
 //#define CHASSIS_POWER_LIMIT
 
 #include "Chassis_App.h"
+#include <cstring>
 #include <type_traits>
 #include "Omni_Drive.h"
 #include "Swerve_Drive.h"
@@ -70,8 +71,8 @@ void ChassisApp<DriveTrain>::set_initial_state() {
 
     chassis.gimbal_yaw_rel_angle = 0;
 
-    memset(&(chassis.ref_power_stat), 0, sizeof(ChassisPowerStat_t));
-    memset(rc_channels, 0, sizeof(int16_t) * 4);
+    std::memset(&(chassis.ref_power_stat), 0, sizeof(ChassisPowerStat_t));
+    std::memset(rc_channels, 0, sizeof(int16_t) * 4);
 }
 
 template <class DriveTrain>
@@ -108,6 +109,7 @@ void ChassisApp<DriveTrain>::calc_movement_vectors() {
     if (chassis.chassis_mode == IDLE_MODE) {
         chassis.vx = 0;
         chassis.vy = 0;
+        chassis.wz = 0;
         return;
     }
 
@@ -180,7 +182,7 @@ void ChassisApp<DriveTrain>::chassis_get_rc_info(int16_t* channels) {
 
         chassis.chassis_mode = board_mode;
         chassis.chassis_act_mode = act_mode;
-        memcpy(channels, &(rc_info.channels), sizeof(int16_t) * 4);
+        std::memcpy(channels, &(rc_info.channels), sizeof(int16_t) * 4);
     }
 }
 

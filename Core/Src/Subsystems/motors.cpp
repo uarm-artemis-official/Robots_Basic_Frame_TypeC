@@ -42,6 +42,8 @@ void Motors::init(Motor_Config_t config) {
             this->motors[7] = Generic_Motor_t {SWERVE_STEER_MOTOR4, 0, LK};
             break;
         }
+        case MOTORS_NONE:
+            break;
         default:
             ASSERT(0,
                    "Attempt to configure subsystems::motors to unknown "
@@ -72,7 +74,7 @@ Motor_Brand_t Motors::get_motor_brand(uint32_t stdid) {
     }
 }
 
-void Motors::set_motor_voltage(Motor_CAN_ID_t can_id, int32_t output) {
+void Motors::set_motor_voltage(uint32_t can_id, int32_t output) {
     for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
         if (this->motors[i].feedback_id == can_id) {
             if (is_valid_output(i, output)) {
@@ -98,13 +100,15 @@ static uint32_t counter = 0;
 void Motors::send_motor_voltage() {
     switch (this->config) {
         case DJI_GIMBAL:
-            dji_motor_send((int32_t) GM6020, this->motors[2].tx_data,
-                           this->motors[3].tx_data, this->motors[4].tx_data, 0);
+            dji_motor_send_voltage((int32_t) GM6020, this->motors[2].tx_data,
+                                   this->motors[3].tx_data,
+                                   this->motors[4].tx_data, 0);
             break;
         case DJI_CHASSIS:
-            dji_motor_send((int32_t) M3508, this->motors[0].tx_data,
-                           this->motors[1].tx_data, this->motors[2].tx_data,
-                           this->motors[3].tx_data);
+            dji_motor_send_voltage((int32_t) M3508, this->motors[0].tx_data,
+                                   this->motors[1].tx_data,
+                                   this->motors[2].tx_data,
+                                   this->motors[3].tx_data);
             break;
         case SWERVE: {
             __dji_motor_send((int32_t) M3508, motors[0].tx_data,

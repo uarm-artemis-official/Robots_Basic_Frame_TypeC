@@ -35,6 +35,7 @@ class GimbalApp : public RTOSApp<GimbalApp> {
     IMessageCenter& message_center;
     IEventCenter& event_center;
     IDebug& debug;
+    IMotors& motors;
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = GIMBAL_TASK_EXEC_TIME;
@@ -48,7 +49,7 @@ class GimbalApp : public RTOSApp<GimbalApp> {
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
     GimbalApp(IMessageCenter& message_center_ref, IEventCenter& event_center,
-              IDebug& debug_ref);
+              IDebug& debug_ref, IMotors& motors_ref);
     void init();
     void set_initial_state();
     void wait_for_motors();

@@ -11,7 +11,7 @@ target_link_libraries(SUBSYSTEMS_INCLUDE
         LIB::UARM_INCLUDE)
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
-
+if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest")
 add_library(DEBUG STATIC debug.cpp)
 target_include_directories(DEBUG 
     PUBLIC
@@ -99,3 +99,4 @@ target_link_libraries(AMMO_LID
         LIB::UARM_LIB
         FW::TIMERS_HANDLER)
 add_library(SUBSYSTEMS::AMMO_LID ALIAS AMMO_LID)
+endif()

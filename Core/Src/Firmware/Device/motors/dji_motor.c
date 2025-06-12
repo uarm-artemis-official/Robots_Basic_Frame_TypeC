@@ -47,7 +47,11 @@ void __dji_motor_send(int32_t id, int32_t d1, int32_t d2, int32_t d3,
     }
 }
 
-void dji_motor_send(int32_t id, int32_t d1, int32_t d2, int32_t d3,
-                    int32_t d4) {
-    __dji_motor_send(id, d1, d2, d3, d4, 0);
+void dji_motor_send_voltage(int32_t id, int32_t v1, int32_t v2, int32_t v3,
+                            int32_t v4) {
+    __dji_motor_send(id, v1, v2, v3, v4, 0);
+}
+
+void dji_motor_send_current(int32_t i1, int32_t i2, int32_t i3, int32_t i4) {
+    __dji_motor_send(0x1FE, i1, i2, i3, i4, 0);
 }

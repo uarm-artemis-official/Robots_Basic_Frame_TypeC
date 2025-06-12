@@ -12,6 +12,7 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     static constexpr size_t NUM_DRIVE_MOTORS = 4;
 
     IMessageCenter& message_center;
+    IMotors& motors;
     const float width;
     const float dt;
 
@@ -34,8 +35,8 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     static int32_t pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                          uint32_t angle);
 
-    explicit SwerveDrive(IMessageCenter& message_center_ref, float width_,
-                         float dt_);
+    explicit SwerveDrive(IMessageCenter& message_center_ref,
+                         IMotors& motors_ref, float width_, float dt_);
 
     void init_impl();
     void get_motor_feedback();

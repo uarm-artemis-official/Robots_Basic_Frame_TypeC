@@ -15,36 +15,35 @@
 #include "apps_interfaces.h"
 #include "apps_types.h"
 
-namespace shoot_app {
-    class ShootApp : public RTOSApp<ShootApp> {
-       private:
-        IMessageCenter& message_center;
-        IAmmoLid& ammo_lid;
+class ShootApp : public RTOSApp<ShootApp> {
+   private:
+    IMessageCenter& message_center;
+    IAmmoLid& ammo_lid;
+    IMotors& motors;
 
-        Shoot shoot;
-        LoaderControl loader_control;
-        FlyWheelControl flywheel_controls[2];
-        const float loader_rpm;
+    Shoot shoot;
+    LoaderControl loader_control;
+    FlyWheelControl flywheel_controls[2];
+    const float loader_rpm;
 
-       public:
-        static constexpr uint32_t LOOP_PERIOD_MS = SHOOT_TASK_EXEC_TIME;
-        static constexpr float FLYWHEEL_TARGET_RPM = 10.0;
+   public:
+    static constexpr uint32_t LOOP_PERIOD_MS = SHOOT_TASK_EXEC_TIME;
+    static constexpr float FLYWHEEL_TARGET_RPM = 10.0;
 
-        ShootApp(IMessageCenter& message_center_ref, IAmmoLid& ammo_lid_ref,
-                 float loader_rpm_);
+    ShootApp(IMessageCenter& message_center_ref, IAmmoLid& ammo_lid_ref,
+             IMotors& motors_ref, float loader_rpm_);
 
-        void init();
-        void loop();
+    void init();
+    void loop();
 
-        void get_rc_info();
-        void get_motor_feedback();
+    void get_rc_info();
+    void get_motor_feedback();
 
-        void calc_targets();
-        void calc_motor_outputs();
-        void send_motor_outputs();
+    void calc_targets();
+    void calc_motor_outputs();
+    void send_motor_outputs();
 
-        void set_shoot_mode(ShootActMode_t new_mode);
-    };
-}  // namespace shoot_app
+    void set_shoot_mode(ShootActMode_t new_mode);
+};
 
 #endif /* __SHOOT_APP_H__ */

@@ -104,6 +104,7 @@
 #include "imu.h"
 #include "message_center.h"
 #include "motors.h"
+#include "rc_comm.hpp"
 #include "stdio.h"
 #include "stm32f407xx.h"
 #include "uart_isr.h"
@@ -165,8 +166,10 @@ static EventCenter event_center;
 static Debug debug;
 static CanComm can_comm;
 static Motors motors;
+static Motors no_init_motors;
 static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4);
 static AmmoLid ammo_lid;
+static RCComm rc_comm;
 
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
@@ -184,20 +187,21 @@ static OmniDrive omni_drive(message_center, omni_chassis_width,
 #else
 static constexpr float mecanum_chassis_width = 0.41f;
 static constexpr float mecanum_chassis_length = 0.35f;
-static OmniDrive omni_drive(message_center, mecanum_chassis_width,
-                            mecanum_chassis_length);
+static OmniDrive omni_drive(message_center, no_init_motors,
+                            mecanum_chassis_width, mecanum_chassis_length);
 #endif
 
 static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 #endif
 
-static RCApp rc_app(message_center);
+static RCApp rc_app(message_center, rc_comm);
 static CommApp comm_app(message_center, debug, can_comm);
 static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center);
 static IMUApp imu_app(message_center, event_center, imu, debug);
-static GimbalApp gimbal_app(message_center, event_center, debug);
-static shoot_app::ShootApp shoot_app_task(message_center, ammo_lid, 10);
+static GimbalApp gimbal_app(message_center, event_center, debug,
+                            no_init_motors);
+static ShootApp shoot_app_task(message_center, ammo_lid, no_init_motors, 10);
 /* USER CODE END 0 */
 
 /**

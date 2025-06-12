@@ -1,15 +1,14 @@
 #include "Omni_Drive.h"
 #include <cstring>
-#include "message_center.h"
-#include "motors.h"
 #include "pid.h"
 #include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 
-OmniDrive::OmniDrive(IMessageCenter& message_center_ref, float chassis_width,
-                     float chassis_length)
+OmniDrive::OmniDrive(IMessageCenter& message_center_ref, IMotors& motors_ref,
+                     float chassis_width, float chassis_length)
     : message_center(message_center_ref),
+      motors(motors_ref),
       width(chassis_width),
       length(chassis_length) {}
 
@@ -45,9 +44,9 @@ void OmniDrive::get_motor_feedback() {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
                 if (wheel_can_ids[i] == read_message.can_ids[j]) {
-                    Motors::get_raw_feedback(wheel_can_ids[i],
-                                             read_message.feedback[j],
-                                             &(motor_controls[i].feedback));
+                    motors.get_raw_feedback(wheel_can_ids[i],
+                                            read_message.feedback[j],
+                                            &(motor_controls[i].feedback));
                     break;
                 }
             }

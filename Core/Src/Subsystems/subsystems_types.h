@@ -130,6 +130,11 @@ typedef enum Topic_Name_t {
     GIMBAL_REL_ANGLES,
 } Topic_Name_t;
 
+// TODO: Find better solution to defining a testable QueueHandle_t.
+#ifdef GTEST
+typedef uint8_t* QueueHandle_t;
+#endif
+
 typedef struct Topic_Handle_t {
     Topic_Name_t name;
     uint8_t item_size;
@@ -214,98 +219,96 @@ typedef enum Sync_Event_t {
 /* =========================================================================
  * RC COMM TYPES
  * ====================================================================== */
-namespace rc_comm {
-    constexpr uint32_t DBUS_BUFFER_LENGTH = 18;
-    constexpr uint16_t CHANNEL_CENTER = 1024;
-    constexpr uint16_t MOUSE_MAX_SPEED = 15000;
-    constexpr uint16_t MAX_CHANNEL_VALUE = 660;
+constexpr uint32_t DBUS_BUFFER_LENGTH = 18;
+constexpr uint16_t CHANNEL_CENTER = 1024;
+constexpr uint16_t MOUSE_MAX_SPEED = 15000;
+constexpr uint16_t MAX_CHANNEL_VALUE = 660;
 
-    using Buffer = std::array<uint8_t, DBUS_BUFFER_LENGTH>;
+using Buffer = std::array<uint8_t, DBUS_BUFFER_LENGTH>;
 
-    enum class EKeyStatus {
-        RELEASED = 0,        // key released
-        RELEASED_TO_PRESS,   // key just pressed, rising edge
-        PRESSED_TO_RELEASE,  // key just released, falling edge
-        PRESSED              // key pressed
-    };
+enum class EKeyStatus {
+    RELEASED = 0,        // key released
+    RELEASED_TO_PRESS,   // key just pressed, rising edge
+    PRESSED_TO_RELEASE,  // key just released, falling edge
+    PRESSED              // key pressed
+};
 
-    enum class ESwitchState {
-        UNKNOWN = 0,
-        UP = 1,
-        MID = 3,
-        DOWN = 2,
-    };
+enum class ESwitchState {
+    UNKNOWN = 0,
+    UP = 1,
+    MID = 3,
+    DOWN = 2,
+};
 
-    enum class EKeyBitIndex {
-        W = 0x01 << 0,  // Also used for mouse clicks.
-        S = 0x01 << 1,
-        A = 0x01 << 2,
-        D = 0x01 << 3,
-        SHIFT = 0x01 << 4,
-        CTRL = 0x01 << 5,
-        Q = 0x01 << 6,
-        E = 0x01 << 7,
-        R = 0x01 << 8,
-        F = 0x01 << 9,
-        G = 0x01 << 10,
-        Z = 0x01 << 11,
-        X = 0x01 << 12,
-        C = 0x01 << 13,
-        V = 0x01 << 14,
-        B = 0x01 << 15,
-    };
+enum class EKeyBitIndex {
+    W = 0x01 << 0,  // Also used for mouse clicks.
+    S = 0x01 << 1,
+    A = 0x01 << 2,
+    D = 0x01 << 3,
+    SHIFT = 0x01 << 4,
+    CTRL = 0x01 << 5,
+    Q = 0x01 << 6,
+    E = 0x01 << 7,
+    R = 0x01 << 8,
+    F = 0x01 << 9,
+    G = 0x01 << 10,
+    Z = 0x01 << 11,
+    X = 0x01 << 12,
+    C = 0x01 << 13,
+    V = 0x01 << 14,
+    B = 0x01 << 15,
+};
 
-    struct Controller {
-        int16_t ch0;
-        int16_t ch1;
-        int16_t ch2;
-        int16_t ch3;
-        ESwitchState s1;
-        ESwitchState s2;
-        int16_t wheel;
-    };
+struct Controller {
+    int16_t ch0;
+    int16_t ch1;
+    int16_t ch2;
+    int16_t ch3;
+    ESwitchState s1;
+    ESwitchState s2;
+    int16_t wheel;
+};
 
-    /* pc mode */
-    struct KeyObject {
-        EKeyStatus status;
-        EKeyStatus pre_status;
-        uint8_t status_count;
-    };
+/* pc mode */
+struct KeyObject {
+    EKeyStatus status;
+    EKeyStatus pre_status;
+    uint8_t status_count;
+};
 
-    struct Keyboard {
-        KeyObject W;
-        KeyObject A;
-        KeyObject S;
-        KeyObject D;
-        KeyObject Q;
-        KeyObject E;
-        KeyObject R;
-        KeyObject V;
-        KeyObject Ctrl;
-        KeyObject F;
-        KeyObject Shift;
-        KeyObject G;
-        KeyObject C;
-        KeyObject B;
+struct Keyboard {
+    KeyObject W;
+    KeyObject A;
+    KeyObject S;
+    KeyObject D;
+    KeyObject Q;
+    KeyObject E;
+    KeyObject R;
+    KeyObject V;
+    KeyObject Ctrl;
+    KeyObject F;
+    KeyObject Shift;
+    KeyObject G;
+    KeyObject C;
+    KeyObject B;
 
-        uint16_t key_buffer;  // used to grab current key info
-    };
+    uint16_t key_buffer;  // used to grab current key info
+};
 
-    struct Mouse {
-        int16_t x;
-        int16_t y;
-        int16_t z;
-        uint8_t click_l;
-        uint8_t click_r;
-        KeyObject left_click;
-        KeyObject right_click;
-    };
+struct Mouse {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+    uint8_t click_l;
+    uint8_t click_r;
+    KeyObject left_click;
+    KeyObject right_click;
+};
 
-    struct PC {
-        Mouse mouse;
-        Keyboard keyboard;
-    };
-}  // namespace rc_comm
+struct PC {
+    Mouse mouse;
+    Keyboard keyboard;
+};
 
 /* =========================================================================
  * AMMO LID TYPES

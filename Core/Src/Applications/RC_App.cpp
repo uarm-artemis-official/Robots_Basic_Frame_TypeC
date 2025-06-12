@@ -20,9 +20,8 @@
 
 #include "RC_App.hpp"
 #include <algorithm>
+#include <cstring>
 #include "apps_defines.h"
-#include "message_center.h"
-#include "rc_comm.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 #include "uarm_os.h"
@@ -100,16 +99,16 @@
  *    Note: Shift need to be combined with any of WASD keys.
  *
  *********************************************************************************/
-RCApp::RCApp(IMessageCenter& message_center_ref)
-    : message_center(message_center_ref) {}
+RCApp::RCApp(IMessageCenter& message_center_ref, IRCComm& rc_comm_ref)
+    : message_center(message_center_ref), rc_comm(rc_comm_ref) {}
 
 void RCApp::init() {
     memset(&tmp_rx_buffer, 0, sizeof(uint8_t) * 18);
     rc_idle_count = 0;
 
-    rc_comm::buffer_init(rc_rx_buffer);
-    rc_comm::controller_init(rc.ctrl);
-    rc_comm::pc_init(rc.pc);
+    rc_comm.buffer_init(rc_rx_buffer);
+    rc_comm.controller_init(rc.ctrl);
+    rc_comm.pc_init(rc.pc);
 
     rc.control_mode = CTRLER_MODE;
     rc.board_mode = IDLE_MODE;
@@ -151,18 +150,17 @@ void RCApp::loop() {
 }
 
 void RCApp::parse_raw_rc() {
-    rc_comm::parse_switches(rc_rx_buffer, rc.ctrl.s1, rc.ctrl.s2);
-    if (rc.ctrl.s1 == rc_comm::ESwitchState::MID &&
-        rc.ctrl.s2 == rc_comm::ESwitchState::DOWN) {
+    rc_comm.parse_switches(rc_rx_buffer, rc.ctrl.s1, rc.ctrl.s2);
+    if (rc.ctrl.s1 == ESwitchState::MID && rc.ctrl.s2 == ESwitchState::DOWN) {
         rc.control_mode = PC_MODE;
     } else {
         rc.control_mode = CTRLER_MODE;
     }
 
     if (rc.control_mode == PC_MODE) {
-        rc_comm::parse_pc(rc_rx_buffer, rc.pc);
+        rc_comm.parse_pc(rc_rx_buffer, rc.pc);
     } else {
-        rc_comm::parse_controller(rc_rx_buffer, rc.ctrl);
+        rc_comm.parse_controller(rc_rx_buffer, rc.ctrl);
     }
 }
 
@@ -170,48 +168,47 @@ void RCApp::map_switches_to_modes(BoardMode_t& board_mode,
                                   BoardActMode_t& act_mode,
                                   ShootActMode_t& shoot_mode) {
 
-    if (rc.ctrl.s1 == rc_comm::ESwitchState::DOWN &&
-        rc.ctrl.s2 == rc_comm::ESwitchState::DOWN) {
+    if (rc.ctrl.s1 == ESwitchState::DOWN && rc.ctrl.s2 == ESwitchState::DOWN) {
         board_mode = PATROL_MODE;
         act_mode = INDPET_MODE;
         shoot_mode = SHOOT_CEASE;
-    } else if (rc.ctrl.s1 == rc_comm::ESwitchState::DOWN &&
-               rc.ctrl.s2 == rc_comm::ESwitchState::MID) {
+    } else if (rc.ctrl.s1 == ESwitchState::DOWN &&
+               rc.ctrl.s2 == ESwitchState::MID) {
         board_mode = PATROL_MODE;
         act_mode = GIMBAL_FOLLOW;
         shoot_mode = SHOOT_CEASE;
-    } else if (rc.ctrl.s1 == rc_comm::ESwitchState::DOWN &&
-               rc.ctrl.s2 == rc_comm::ESwitchState::UP) {
+    } else if (rc.ctrl.s1 == ESwitchState::DOWN &&
+               rc.ctrl.s2 == ESwitchState::UP) {
         board_mode = PATROL_MODE;
         act_mode = GIMBAL_FOLLOW;
         shoot_mode = SHOOT_CONT;
-    } else if (rc.ctrl.s1 == rc_comm::ESwitchState::MID &&
-               rc.ctrl.s2 == rc_comm::ESwitchState::DOWN) {
+    } else if (rc.ctrl.s1 == ESwitchState::MID &&
+               rc.ctrl.s2 == ESwitchState::DOWN) {
         board_mode = AUTO_AIM_MODE;
         act_mode = INDPET_MODE;
         shoot_mode = SHOOT_CEASE;
-    } else if (rc.ctrl.s1 == rc_comm::ESwitchState::MID &&
-               rc.ctrl.s2 == rc_comm::ESwitchState::MID) {
+    } else if (rc.ctrl.s1 == ESwitchState::MID &&
+               rc.ctrl.s2 == ESwitchState::MID) {
         board_mode = IDLE_MODE;
         act_mode = INDPET_MODE;
         shoot_mode = SHOOT_CEASE;
-    } else if (rc.ctrl.s1 == rc_comm::ESwitchState::MID &&
-               rc.ctrl.s2 == rc_comm::ESwitchState::UP) {
+    } else if (rc.ctrl.s1 == ESwitchState::MID &&
+               rc.ctrl.s2 == ESwitchState::UP) {
         board_mode = IDLE_MODE;
         act_mode = INDPET_MODE;
         shoot_mode = SHOOT_CONT;
-    } else if (rc.ctrl.s1 == rc_comm::ESwitchState::UP &&
-               rc.ctrl.s2 == rc_comm::ESwitchState::DOWN) {
+    } else if (rc.ctrl.s1 == ESwitchState::UP &&
+               rc.ctrl.s2 == ESwitchState::DOWN) {
         board_mode = PATROL_MODE;
         act_mode = SELF_GYRO;
         shoot_mode = SHOOT_CEASE;
-    } else if (rc.ctrl.s1 == rc_comm::ESwitchState::UP &&
-               rc.ctrl.s2 == rc_comm::ESwitchState::MID) {
+    } else if (rc.ctrl.s1 == ESwitchState::UP &&
+               rc.ctrl.s2 == ESwitchState::MID) {
         board_mode = PATROL_MODE;
         act_mode = GIMBAL_CENTER;
         shoot_mode = SHOOT_CEASE;
-    } else if (rc.ctrl.s1 == rc_comm::ESwitchState::UP &&
-               rc.ctrl.s2 == rc_comm::ESwitchState::UP) {
+    } else if (rc.ctrl.s1 == ESwitchState::UP &&
+               rc.ctrl.s2 == ESwitchState::UP) {
         board_mode = PATROL_MODE;
         act_mode = GIMBAL_CENTER;
         shoot_mode = SHOOT_CONT;

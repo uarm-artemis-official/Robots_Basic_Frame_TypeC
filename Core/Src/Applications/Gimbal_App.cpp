@@ -19,10 +19,12 @@
 #include "uarm_os.h"
 
 GimbalApp::GimbalApp(IMessageCenter& message_center_ref,
-                     IEventCenter& event_center_ref, IDebug& debug_ref)
+                     IEventCenter& event_center_ref, IDebug& debug_ref,
+                     IMotors& motors_ref)
     : message_center(message_center_ref),
       event_center(event_center_ref),
-      debug(debug_ref) {}
+      debug(debug_ref),
+      motors(motors_ref) {}
 
 void GimbalApp::init() {
     debug.set_led_state(BLUE, ON);
@@ -88,8 +90,7 @@ void GimbalApp::set_initial_state() {
 
     // Initialize non-zero Gimbal_t fields.
     memset(&gimbal, 0, sizeof(Gimbal_t));
-    gimbal.yaw_ecd_center = robot_config::gimbal_params::
-        YAW_ECD_CENTER;  // center position of the yaw motor - encoder
+    gimbal.yaw_ecd_center = robot_config::gimbal_params::YAW_ECD_CENTER;
     gimbal.pitch_ecd_center = robot_config::gimbal_params::PITCH_ECD_CENTER;
 
     init_folp_filter(&(gimbal.folp_f_yaw), 0.90f);
@@ -131,12 +132,6 @@ void GimbalApp::calibrate() {
     send_motor_volts();
 }
 
-/**
- * Assumptions before entering loop:
- *  - IMU is active and posting attitude to IMU_READINGS topic.
- *  - Gimbal is calibrated and centered at relative 0.
- *  - Gimbal IMU centers for yaw and pitch are set.
- */
 void GimbalApp::loop() {
     get_rc_info();
     get_motor_feedback();
@@ -239,9 +234,9 @@ void GimbalApp::get_motor_feedback() {
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
                 if (gimbal_can_ids[i] == read_message.can_ids[j]) {
-                    Motors::get_raw_feedback(gimbal_can_ids[i],
-                                             read_message.feedback[j],
-                                             &(motor_controls[i].feedback));
+                    motors.get_raw_feedback(gimbal_can_ids[i],
+                                            read_message.feedback[j],
+                                            &(motor_controls[i].feedback));
                     break;
                 }
             }
