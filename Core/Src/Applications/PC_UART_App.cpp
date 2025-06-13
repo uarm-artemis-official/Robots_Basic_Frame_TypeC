@@ -79,8 +79,8 @@ void PCUARTApp::loop() {
     // send_pack.pitch += 0.1;
     // uc_send_board_data(&send_pack);
 
-    // uint8_t out_buffer[196];
-    // while (message_center.get_message(UC_PACK_OUT, out_buffer, 0) == pdTRUE) {
-    //     PCComm::send_bytes(out_buffer, 196);
-    // }
+    while (message_center.get_message(UC_PACK_OUT, new_send_buffer, 0) ==
+           pdTRUE) {
+        PCComm::send_bytes(new_send_buffer, 196);
+    }
 }

@@ -18,6 +18,7 @@
 class PCUARTApp : public RTOSApp<PCUARTApp> {
    private:
     uint8_t new_pack_buffer[64];  // TODO: Make same as MAX_PACK_BUFFER_SIZE.
+    uint8_t new_send_buffer[196];
     IMessageCenter& message_center;
     uint32_t idle_count = 0;
     float recent_deltas[2];

@@ -103,6 +103,8 @@ void Motors::send_motor_voltage() {
             dji_motor_send_voltage((int32_t) GM6020, this->motors[2].tx_data,
                                    this->motors[3].tx_data,
                                    this->motors[4].tx_data, 0);
+            dji_motor_send_voltage((int32_t) M3508, this->motors[0].tx_data,
+                                   this->motors[1].tx_data, 0, 0);
             break;
         case DJI_CHASSIS:
             dji_motor_send_voltage((int32_t) M3508, this->motors[0].tx_data,
