@@ -201,7 +201,7 @@ static PCUARTApp pc_uart_app(message_center);
 static IMUApp imu_app(message_center, event_center, imu, debug);
 static GimbalApp gimbal_app(message_center, event_center, debug,
                             no_init_motors);
-static ShootApp shoot_app_task(message_center, ammo_lid, no_init_motors, 10);
+static ShootApp shoot_app(message_center, ammo_lid, no_init_motors, 10);
 /* USER CODE END 0 */
 
 /**
@@ -303,7 +303,7 @@ int main(void) {
         osThreadCreate(osThread(GimbalTask), NULL);
 
         osThreadDef(
-            ShootTask, [](const void* arg) { shoot_app_task.run(arg); },
+            ShootTask, [](const void* arg) { shoot_app.run(arg); },
             osPriorityHigh, 0, 256);
         osThreadCreate(osThread(ShootTask), NULL);
 
