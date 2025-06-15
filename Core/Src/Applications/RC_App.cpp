@@ -13,8 +13,6 @@
  *  thus we need this task to parse the data (bc the data received constantly, do not
  *  handle it with IT.)*/
 
-//FIXME: We don't have any risk management for rc. Need to add a watch dog
-
 #ifndef __RC_APP_C__
 #define __RC_APP_C__
 
