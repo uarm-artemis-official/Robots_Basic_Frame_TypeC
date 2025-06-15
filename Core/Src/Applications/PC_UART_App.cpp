@@ -37,8 +37,8 @@ void PCUARTApp::loop() {
     // send_pack.wheel_rpm[2] = 0.3f;
     // send_pack.wheel_rpm[3] = 0.4f;
 
-    if (idle_count == 40) {
-        // restart_receive(new_pack_buffer);
+    if (idle_count == 200) {
+        restart_receive(new_pack_buffer);
         idle_count = 0;
     }
 

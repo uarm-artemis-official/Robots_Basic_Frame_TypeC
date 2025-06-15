@@ -408,8 +408,6 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     // referee_init(&referee);
     dwt_init();
 
-    // TODO: Init event_center.
-
     UART_Config_t config;
     if (debug.get_board_status() == CHASSIS_BOARD) {
         config = CHASSIS;
