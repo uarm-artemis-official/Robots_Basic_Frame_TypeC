@@ -7,8 +7,8 @@
 // TODO: Add timestamp or something for users to differentiate messages.
 class MessageCenter : public IMessageCenter {
    private:
-    // TODO: replace with std::array.
-    Topic_Handle_t topic_handles[15] = {
+    // TODO: replace with std::array. Hard? cannot use template deduction??
+    Topic_Handle_t topic_handles[17] = {
         Topic_Handle_t {MOTOR_SET, sizeof(MotorSetMessage_t), 5, NULL},
         Topic_Handle_t {MOTOR_READ, sizeof(MotorReadMessage_t), 1, NULL},
         Topic_Handle_t {RC_INFO, sizeof(RCInfoMessage_t), 1, NULL},
@@ -30,6 +30,11 @@ class MessageCenter : public IMessageCenter {
         Topic_Handle_t {UC_PACK_IN, sizeof(uint8_t) * 64, 1, NULL},
         Topic_Handle_t {UC_PACK_OUT, sizeof(uint8_t) * 196, 10, NULL},
         Topic_Handle_t {AUTO_AIM, sizeof(float) * 2, 1, NULL},
+
+        Topic_Handle_t {COMMAND_CHASSIS, sizeof(ChassisCommandMessage_t), 1,
+                        NULL},
+        Topic_Handle_t {COMMAND_GIMBAL, sizeof(GimbalCommandMessage_t), 1,
+                        NULL},
     };
     bool initialized = false;
 

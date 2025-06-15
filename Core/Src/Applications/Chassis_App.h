@@ -14,6 +14,7 @@
 #include "apps_defines.h"
 #include "apps_interfaces.h"
 #include "apps_types.h"
+#include "uarm_math.h"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
@@ -23,7 +24,6 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
     IDebug& debug;
 
     Chassis_t chassis;
-    int16_t rc_channels[4];
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = CHASSIS_TASK_EXEC_TIME;
@@ -38,11 +38,11 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
 
     void loop();
 
-    void update_movement_commands();
     void calc_movement_vectors();
     void chassis_brake(float* vel, float ramp_step, float stop_threshold);
 
-    void chassis_get_rc_info(int16_t* channels);
+    void chassis_get_rc_info();
+    void process_commands();
     void chassis_get_gimbal_rel_angles();
 
     /* power limit */

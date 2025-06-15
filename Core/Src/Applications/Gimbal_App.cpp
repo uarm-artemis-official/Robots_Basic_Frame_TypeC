@@ -103,7 +103,9 @@ void GimbalApp::set_initial_state() {
 
 bool GimbalApp::exit_calibrate_cond() {
     // TODO: Add speed condition (e.g. rpm has to be lower than 5)?
-    return fabs(gimbal.yaw_rel_angle) < (2.0f * DEGREE2RAD);
+    return fabs(gimbal.yaw_rel_angle) <
+           (robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA *
+            DEGREE2RAD);
 }
 
 void GimbalApp::calibrate() {
@@ -143,6 +145,8 @@ void GimbalApp::loop() {
     }
 
     safe_mode_switch();
+    process_commands();
+
     update_headings();
     update_targets(gimbal_channels);
 
@@ -396,6 +400,19 @@ void GimbalApp::get_imu_headings() {
     }
 }
 
+void GimbalApp::process_commands() {
+    GimbalCommandMessage_t gimbal_command;
+    uint8_t new_message =
+        message_center.get_message(COMMAND_GIMBAL, &gimbal_command, 0);
+    if (new_message == pdTRUE) {
+        command_deltas[0] = gimbal_command.yaw;
+        command_deltas[1] = gimbal_command.pitch;
+    } else {
+        command_deltas[0] = 0;
+        command_deltas[1] = 0;
+    }
+}
+
 void GimbalApp::send_rel_angles() {
     CANCommMessage_t rel_angle_message;
     rel_angle_message.topic_name = GIMBAL_REL_ANGLES;
@@ -439,22 +456,19 @@ void GimbalApp::update_targets(int16_t* g_channels) {
                gimbal.gimbal_act_mode == INDPET_MODE) {
         gimbal.yaw_target_angle = 0;
     } else {
-        float deltas[2];
-        calc_channels_to_angles(g_channels, deltas);
-
-        gimbal.yaw_target_angle -= deltas[0];
+        gimbal.yaw_target_angle -= command_deltas[0];
         if (gimbal.yaw_target_angle > PI)
             gimbal.yaw_target_angle -= 2.0f * PI;
         if (gimbal.yaw_target_angle < -PI)
             gimbal.yaw_target_angle += 2.0f * PI;
 
-        gimbal.pitch_target_angle -= deltas[1];
+        gimbal.pitch_target_angle -= command_deltas[1];
     }
 
     // Software limit pitch target range to prevent hitting mechanical hard-stops.
-    gimbal.pitch_target_angle =
-        value_limit(gimbal.pitch_target_angle, GimbalApp::PITCH_LOWER_LIMIT,
-                    GimbalApp::PITCH_UPPER_LIMIT);
+    // gimbal.pitch_target_angle =
+    //     value_limit(gimbal.pitch_target_angle, GimbalApp::PITCH_LOWER_LIMIT,
+    //                 GimbalApp::PITCH_UPPER_LIMIT);
 }
 
 /*

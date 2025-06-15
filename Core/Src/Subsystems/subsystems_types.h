@@ -116,7 +116,6 @@ typedef enum Topic_Name_t {
     COMM_OUT,
     COMM_IN,
     IMU_READINGS,
-    //	IMU_READY,
     REF_INFO,
     PLAYER_COMMANDS,
     RC_INFO,
@@ -126,9 +125,9 @@ typedef enum Topic_Name_t {
     UC_PACK_OUT,
     AUTO_AIM,
     UART_OUT,
-
-    // Gimbal -> Chassis
     GIMBAL_REL_ANGLES,
+    COMMAND_GIMBAL,
+    COMMAND_CHASSIS,
 } Topic_Name_t;
 
 // TODO: Find better solution to defining a testable QueueHandle_t.
@@ -174,6 +173,19 @@ typedef struct {
     uint8_t feedback[MAX_MOTOR_COUNT][8];
     Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
 } MotorReadMessage_t;
+
+typedef struct {
+    float v_perp;
+    float v_parallel;
+    float wz;
+    uint16_t command_bits;  // TODO: Implement and remove RC_INFO.
+} ChassisCommandMessage_t;
+
+typedef struct {
+    float yaw;
+    float pitch;
+    uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
+} GimbalCommandMessage_t;
 
 /* =========================================================================
  * DEBUG TYPES

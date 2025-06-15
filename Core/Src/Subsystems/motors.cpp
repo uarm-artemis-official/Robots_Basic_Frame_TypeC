@@ -96,7 +96,6 @@ bool Motors::is_valid_output(size_t motor_index, int32_t new_output) {
     }
 }
 
-static uint32_t counter = 0;
 void Motors::send_motor_voltage() {
     switch (this->config) {
         case DJI_GIMBAL:

@@ -19,7 +19,10 @@
 #include "RC_App.hpp"
 #include <algorithm>
 #include <cstring>
+#include <limits>
 #include "apps_defines.h"
+#include "quantize.hpp"
+#include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 #include "uarm_os.h"
@@ -114,11 +117,7 @@ void RCApp::init() {
 }
 
 void RCApp::loop() {
-    if (rc_idle_count >= 500) {
-        uint8_t safe_modes[3] = {IDLE_MODE, INDPET_MODE, SHOOT_CEASE};
-        int16_t channels[4] = {0};
-        pub_rc_messages(safe_modes, channels);
-    }
+    detect_rc_loss();
 
     BaseType_t new_rc_raw_message =
         message_center.get_message(RC_RAW, tmp_rx_buffer, 0);
@@ -141,9 +140,7 @@ void RCApp::loop() {
                                rc.ctrl.ch3};
 
         pub_rc_messages(modes, channels);
-        rc_idle_count = 0;
-    } else {
-        rc_idle_count++;
+        pub_command_messages();
     }
 }
 
@@ -231,6 +228,72 @@ void RCApp::pub_rc_messages(uint8_t modes[3], int16_t channels[4]) {
     memcpy(comm_message.data, modes, sizeof(uint8_t) * 3);
     memcpy(&(comm_message.data[4]), channels, sizeof(int16_t) * 2);
     message_center.pub_message(COMM_OUT, &comm_message);
+}
+
+void RCApp::detect_rc_loss() {
+    if (rc_idle_count >= 500) {
+        uint8_t safe_modes[3] = {IDLE_MODE, INDPET_MODE, SHOOT_CEASE};
+        int16_t channels[4] = {0};
+        pub_rc_messages(safe_modes, channels);
+    }
+
+    BaseType_t new_rc_raw_message =
+        message_center.peek_message(RC_RAW, tmp_rx_buffer, 0);
+
+    if (new_rc_raw_message == pdTRUE) {
+        rc_idle_count = 0;
+    } else {
+        rc_idle_count++;
+    }
+}
+
+void RCApp::pub_command_messages() {
+    if (rc.control_mode == PC_MODE) {
+        // TODO: Implement.
+    } else {
+        ChassisCommandMessage_t chassis_command;
+        chassis_command.v_perp =
+            in_out_map(rc.ctrl.ch2, -CHANNEL_OFFSET_MAX_ABS_VAL,
+                       CHANNEL_OFFSET_MAX_ABS_VAL,
+                       -robot_config::chassis_params::MAX_TRANSLATION,
+                       robot_config::chassis_params::MAX_TRANSLATION);
+        chassis_command.v_parallel =
+            in_out_map(rc.ctrl.ch3, -CHANNEL_OFFSET_MAX_ABS_VAL,
+                       CHANNEL_OFFSET_MAX_ABS_VAL,
+                       -robot_config::chassis_params::MAX_TRANSLATION,
+                       robot_config::chassis_params::MAX_TRANSLATION);
+        chassis_command.wz =
+            in_out_map(rc.ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL,
+                       CHANNEL_OFFSET_MAX_ABS_VAL,
+                       -robot_config::chassis_params::MAX_ROTATION,
+                       robot_config::chassis_params::MAX_ROTATION);
+        chassis_command.command_bits = 0;
+
+        CANCommMessage_t can_comm_message;
+        int16_t quantized_yaw =
+            quantize_float(in_out_map(rc.ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL,
+                                      CHANNEL_OFFSET_MAX_ABS_VAL,
+                                      -2.0f * DEGREE2RAD, 2.0f * DEGREE2RAD),
+                           -PI, PI, std::numeric_limits<int16_t>::min(),
+                           std::numeric_limits<int16_t>::max());
+        int quantized_pitch =
+            quantize_float(in_out_map(rc.ctrl.ch1, -CHANNEL_OFFSET_MAX_ABS_VAL,
+                                      CHANNEL_OFFSET_MAX_ABS_VAL,
+                                      -1.0f * DEGREE2RAD, 1.0f * DEGREE2RAD),
+                           -PI, PI, std::numeric_limits<int16_t>::min(),
+                           std::numeric_limits<int16_t>::max());
+        uint32_t command_bits = 0;
+
+        can_comm_message.topic_name = COMMAND_GIMBAL;
+        std::memcpy(can_comm_message.data, &quantized_yaw, sizeof(int16_t));
+        std::memcpy(&(can_comm_message.data[2]), &quantized_pitch,
+                    sizeof(int16_t));
+        std::memcpy(&(can_comm_message.data[4]), &command_bits,
+                    sizeof(uint32_t));
+
+        message_center.pub_message(COMMAND_CHASSIS, &chassis_command);
+        message_center.pub_message(COMM_OUT, &can_comm_message);
+    }
 }
 
 #endif /*__RC_APP_C__*/

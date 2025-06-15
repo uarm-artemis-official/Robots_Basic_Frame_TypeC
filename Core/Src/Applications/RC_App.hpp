@@ -46,6 +46,8 @@ class RCApp : public RTOSApp<RCApp> {
                                BoardActMode_t& act_mode,
                                ShootActMode_t& shoot_mode);
     void pub_rc_messages(uint8_t modes[3], int16_t channels[4]);
+    void detect_rc_loss();
+    void pub_command_messages();
 };
 
 #endif /*__RC_APP_H__*/

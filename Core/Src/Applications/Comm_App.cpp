@@ -10,9 +10,13 @@
 ******************************************************************************
 */
 #include "Comm_App.h"
+#include <cstring>
+#include <limits>
 #include "apps_defines.h"
+#include "quantize.hpp"
 #include "string.h"
 #include "uarm_lib.h"
+#include "uarm_math.h"
 #include "uarm_os.h"
 
 CommApp::CommApp(IMessageCenter& message_center_ref, IDebug& debug_ref,
@@ -56,6 +60,28 @@ void CommApp::loop() {
                        sizeof(uint8_t) * 3);
                 message_center.pub_message(RC_INFO, &rc_info);
             } break;
+            case COMMAND_GIMBAL: {
+                GimbalCommandMessage_t gimbal_command;
+                int16_t quantized_yaw;
+                int16_t quantized_pitch;
+
+                std::memcpy(&quantized_yaw, incoming_message.data,
+                            sizeof(int16_t));
+                std::memcpy(&quantized_pitch, &(incoming_message.data[2]),
+                            sizeof(int16_t));
+                std::memcpy(&(gimbal_command.command_bits),
+                            &(incoming_message.data[4]), sizeof(uint32_t));
+
+                gimbal_command.yaw = inv_quantize_float(
+                    quantized_yaw, std::numeric_limits<int16_t>::min(),
+                    std::numeric_limits<int16_t>::max(), -PI, PI);
+                gimbal_command.pitch = inv_quantize_float(
+                    quantized_pitch, std::numeric_limits<int16_t>::min(),
+                    std::numeric_limits<int16_t>::max(), -PI, PI);
+
+                message_center.pub_message(COMMAND_GIMBAL, &gimbal_command);
+                break;
+            }
             case PLAYER_COMMANDS:
                 // TODO: Implement
                 break;

@@ -31,6 +31,7 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     Gimbal_Imu_Calibration_t imu_calibration;
     Gimbal_Motor_Control_t motor_controls[GIMBAL_MOTOR_COUNT];
     int16_t gimbal_channels[2];
+    float command_deltas[2];
 
     IMessageCenter& message_center;
     IEventCenter& event_center;
@@ -70,6 +71,8 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     void get_rc_info();
     void get_motor_feedback();
     void get_imu_headings();
+
+    void process_commands();
 
     void calc_channels_to_angles(const int16_t g_channels[2], float deltas[2]);
     void calc_imu_center();

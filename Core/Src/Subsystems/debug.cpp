@@ -14,6 +14,8 @@ BoardStatus_t Debug::get_board_status(void) {
 }
 
 void Debug::set_led_state(Board_LED_t led, Board_LED_State_t state) {
+    (void) led;
+    (void) state;
     // TODO: Reimplement with PWM.
     // uint16_t port, pin_state;
     // switch (led) {

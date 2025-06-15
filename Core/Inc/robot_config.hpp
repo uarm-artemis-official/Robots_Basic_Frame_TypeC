@@ -218,6 +218,9 @@ namespace robot_config {
         constexpr float YETA_CHASSIS_SPIN = 0;
         constexpr float MIN_OUT_CHASSIS_SPIN = -2;
         constexpr float MAX_OUT_CHASSIS_SPIN = 2;
+
+        constexpr float MAX_TRANSLATION = 2;
+        constexpr float MAX_ROTATION = 2;
     }  // namespace chassis_params
 }  // namespace robot_config
 

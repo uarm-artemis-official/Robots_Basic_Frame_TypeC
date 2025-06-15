@@ -72,29 +72,18 @@ void ChassisApp<DriveTrain>::set_initial_state() {
     chassis.gimbal_yaw_rel_angle = 0;
 
     std::memset(&(chassis.ref_power_stat), 0, sizeof(ChassisPowerStat_t));
-    std::memset(rc_channels, 0, sizeof(int16_t) * 4);
 }
 
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::loop() {
-    chassis_get_rc_info(rc_channels);
+    chassis_get_rc_info();
     chassis_get_gimbal_rel_angles();
 
-    update_movement_commands();
+    process_commands();
+    // update_movement_commands();
     calc_movement_vectors();
 
     drive_train.drive(chassis.vx, chassis.vy, chassis.wz);
-}
-
-template <class DriveTrain>
-void ChassisApp<DriveTrain>::update_movement_commands() {
-    // TODO: Replace 660 with constant describing max rc channel.
-    chassis.v_perp = in_out_map(rc_channels[2], -660, 660, -MAX_TRANSLATION,
-                                MAX_TRANSLATION);
-    chassis.v_parallel = in_out_map(rc_channels[3], -660, 660, -MAX_TRANSLATION,
-                                    MAX_TRANSLATION);
-    chassis.wz =
-        in_out_map(rc_channels[0], -660, 660, -MAX_ROTATION, MAX_ROTATION);
 }
 
 /**
@@ -171,7 +160,7 @@ void ChassisApp<DriveTrain>::chassis_get_gimbal_rel_angles() {
 }
 
 template <class DriveTrain>
-void ChassisApp<DriveTrain>::chassis_get_rc_info(int16_t* channels) {
+void ChassisApp<DriveTrain>::chassis_get_rc_info() {
     RCInfoMessage_t rc_info;
     BaseType_t new_message = message_center.peek_message(RC_INFO, &rc_info, 0);
 
@@ -182,7 +171,18 @@ void ChassisApp<DriveTrain>::chassis_get_rc_info(int16_t* channels) {
 
         chassis.chassis_mode = board_mode;
         chassis.chassis_act_mode = act_mode;
-        std::memcpy(channels, &(rc_info.channels), sizeof(int16_t) * 4);
+    }
+}
+
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::process_commands() {
+    ChassisCommandMessage_t chassis_command;
+    uint8_t new_message =
+        message_center.get_message(COMMAND_CHASSIS, &chassis_command, 0);
+    if (new_message == pdTRUE) {
+        chassis.v_perp = chassis_command.v_perp;
+        chassis.v_parallel = chassis_command.v_parallel;
+        chassis.wz = chassis_command.wz;
     }
 }
 
