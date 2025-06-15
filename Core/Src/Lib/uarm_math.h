@@ -30,6 +30,8 @@ extern "C" {
 
 /* User defiend functions declaration */
 /* maths */
+float sign(float x);
+
 double exp_sum(double* array, int length);
 void softmax(float* x, int len);
 void abs_limit(float* a, float ABS_MAX);

@@ -33,6 +33,10 @@ typedef enum {
 } BoardActMode_t;  // should be determined by remore controller
 
 typedef enum { SHOOT_CONT, SHOOT_CEASE } ShootActMode_t;
+enum class ShootState {
+    NORMAL,
+    ANTIJAM,
+};
 
 typedef enum { GYRO_MODE = 1, ENCODE_MODE } GimbalMotorMode_t;
 
@@ -194,10 +198,15 @@ typedef struct {
 
 struct Shoot {
     float loader_target_rpm;
-    int32_t flywheel_target_rpm;
+    float flywheel_target_rpm;
 
     EAmmoLidStatus lid_status;
     ShootActMode_t shoot_act_mode;
+    ShootState shoot_state;
+
+    float stall_duration;
+    float no_stall_duration;
+    float antijam_direction;
 };
 
 struct LoaderControl {
@@ -210,6 +219,7 @@ struct FlyWheelControl {
     Motor_CAN_ID_t stdid;
     PID2_t speed_pid;
     Motor_Feedback_t feedback;
+    Ramp sp_ramp;
 };
 
 /* =========================================================================

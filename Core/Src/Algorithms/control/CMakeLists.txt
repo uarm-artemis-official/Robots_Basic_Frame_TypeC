@@ -1,4 +1,4 @@
-add_library(CONTROL_LIB STATIC feedforward.c fuzzy_control.c pid.cpp ramp.c)
+add_library(CONTROL_LIB STATIC feedforward.c fuzzy_control.c pid.cpp ramp.cpp)
 target_link_libraries(CONTROL_LIB 
     PUBLIC 
         LIB::UARM_INCLUDE

@@ -42,11 +42,11 @@ void ChassisApp<DriveTrain>::init() {
     drive_train.init();
     debug.set_led_state(RED, ON);
 
-    pid2_init(chassis.spin_pid, robot_config::pid_params::KP_CHASSIS_SPIN,
-              robot_config::pid_params::KI_CHASSIS_SPIN,
-              robot_config::pid_params::KD_CHASSIS_SPIN,
-              robot_config::pid_params::BETA_CHASSIS_SPIN,
-              robot_config::pid_params::YETA_CHASSIS_SPIN,
+    pid2_init(chassis.spin_pid, robot_config::chassis_params::KP_CHASSIS_SPIN,
+              robot_config::chassis_params::KI_CHASSIS_SPIN,
+              robot_config::chassis_params::KD_CHASSIS_SPIN,
+              robot_config::chassis_params::BETA_CHASSIS_SPIN,
+              robot_config::chassis_params::YETA_CHASSIS_SPIN,
               -ChassisApp::MAX_ROTATION, ChassisApp::MAX_ROTATION);
 
     /* set initial chassis mode to idle mode or debug mode */

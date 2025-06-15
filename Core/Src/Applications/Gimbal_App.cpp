@@ -12,7 +12,6 @@
 #include "apps_defines.h"
 #include "motors.h"
 #include "pid.h"
-#include "ramp.h"
 #include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
@@ -53,40 +52,40 @@ void GimbalApp::set_initial_state() {
     motor_controls[GIMBAL_YAW_MOTOR_INDEX].stdid = GIMBAL_YAW;
     motor_controls[GIMBAL_PITCH_MOTOR_INDEX].stdid = GIMBAL_PITCH;
     pid2_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,
-              robot_config::pid_params::KP_GIMBAL_YAW_ANGLE,
-              robot_config::pid_params::KI_GIMBAL_YAW_ANGLE,
-              robot_config::pid_params::KD_GIMBAL_YAW_ANGLE,
-              robot_config::pid_params::BETA_GIMBAL_YAW_ANGLE,
-              robot_config::pid_params::YETA_GIMBAL_YAW_ANGLE,
-              robot_config::pid_params::MIN_OUT_GIMBAL_YAW_ANGLE,
-              robot_config::pid_params::MAX_OUT_GIMBAL_YAW_ANGLE);
+              robot_config::gimbal_params::KP_GIMBAL_YAW_ANGLE,
+              robot_config::gimbal_params::KI_GIMBAL_YAW_ANGLE,
+              robot_config::gimbal_params::KD_GIMBAL_YAW_ANGLE,
+              robot_config::gimbal_params::BETA_GIMBAL_YAW_ANGLE,
+              robot_config::gimbal_params::YETA_GIMBAL_YAW_ANGLE,
+              robot_config::gimbal_params::MIN_OUT_GIMBAL_YAW_ANGLE,
+              robot_config::gimbal_params::MAX_OUT_GIMBAL_YAW_ANGLE);
 
     pid2_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid,
-              robot_config::pid_params::KP_GIMBAL_YAW_SPEED,
-              robot_config::pid_params::KI_GIMBAL_YAW_SPEED,
-              robot_config::pid_params::KD_GIMBAL_YAW_SPEED,
-              robot_config::pid_params::BETA_GIMBAL_YAW_SPEED,
-              robot_config::pid_params::YETA_GIMBAL_YAW_SPEED,
-              robot_config::pid_params::MIN_OUT_GIMBAL_YAW_SPEED,
-              robot_config::pid_params::MAX_OUT_GIMBAL_YAW_SPEED);
+              robot_config::gimbal_params::KP_GIMBAL_YAW_SPEED,
+              robot_config::gimbal_params::KI_GIMBAL_YAW_SPEED,
+              robot_config::gimbal_params::KD_GIMBAL_YAW_SPEED,
+              robot_config::gimbal_params::BETA_GIMBAL_YAW_SPEED,
+              robot_config::gimbal_params::YETA_GIMBAL_YAW_SPEED,
+              robot_config::gimbal_params::MIN_OUT_GIMBAL_YAW_SPEED,
+              robot_config::gimbal_params::MAX_OUT_GIMBAL_YAW_SPEED);
 
     pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid,
-              robot_config::pid_params::KP_GIMBAL_PITCH_ANGLE,
-              robot_config::pid_params::KI_GIMBAL_PITCH_ANGLE,
-              robot_config::pid_params::KD_GIMBAL_PITCH_ANGLE,
-              robot_config::pid_params::BETA_GIMBAL_PITCH_ANGLE,
-              robot_config::pid_params::YETA_GIMBAL_PITCH_ANGLE,
-              robot_config::pid_params::MIN_OUT_GIMBAL_PITCH_ANGLE,
-              robot_config::pid_params::MAX_OUT_GIMBAL_PITCH_ANGLE);
+              robot_config::gimbal_params::KP_GIMBAL_PITCH_ANGLE,
+              robot_config::gimbal_params::KI_GIMBAL_PITCH_ANGLE,
+              robot_config::gimbal_params::KD_GIMBAL_PITCH_ANGLE,
+              robot_config::gimbal_params::BETA_GIMBAL_PITCH_ANGLE,
+              robot_config::gimbal_params::YETA_GIMBAL_PITCH_ANGLE,
+              robot_config::gimbal_params::MIN_OUT_GIMBAL_PITCH_ANGLE,
+              robot_config::gimbal_params::MAX_OUT_GIMBAL_PITCH_ANGLE);
 
     pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].s_pid,
-              robot_config::pid_params::KP_GIMBAL_PITCH_SPEED,
-              robot_config::pid_params::KI_GIMBAL_PITCH_SPEED,
-              robot_config::pid_params::KD_GIMBAL_PITCH_SPEED,
-              robot_config::pid_params::BETA_GIMBAL_PITCH_SPEED,
-              robot_config::pid_params::YETA_GIMBAL_PITCH_SPEED,
-              robot_config::pid_params::MIN_OUT_GIMBAL_PITCH_SPEED,
-              robot_config::pid_params::MAX_OUT_GIMBAL_PITCH_SPEED);
+              robot_config::gimbal_params::KP_GIMBAL_PITCH_SPEED,
+              robot_config::gimbal_params::KI_GIMBAL_PITCH_SPEED,
+              robot_config::gimbal_params::KD_GIMBAL_PITCH_SPEED,
+              robot_config::gimbal_params::BETA_GIMBAL_PITCH_SPEED,
+              robot_config::gimbal_params::YETA_GIMBAL_PITCH_SPEED,
+              robot_config::gimbal_params::MIN_OUT_GIMBAL_PITCH_SPEED,
+              robot_config::gimbal_params::MAX_OUT_GIMBAL_PITCH_SPEED);
 
     // Initialize non-zero Gimbal_t fields.
     memset(&gimbal, 0, sizeof(Gimbal_t));
@@ -103,6 +102,7 @@ void GimbalApp::set_initial_state() {
 }
 
 bool GimbalApp::exit_calibrate_cond() {
+    // TODO: Add speed condition (e.g. rpm has to be lower than 5)?
     return fabs(gimbal.yaw_rel_angle) < (2.0f * DEGREE2RAD);
 }
 

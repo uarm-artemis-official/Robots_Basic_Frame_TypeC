@@ -109,13 +109,12 @@ typedef struct {
 /* =========================================================================
  * RAMP TYPES
  * ====================================================================== */
-
-typedef struct ramp_t {
-    int32_t count;
-    int32_t scale;
-    float out;
-    void (*init)(struct ramp_t* ramp, int32_t scale);
-    float (*calc)(struct ramp_t* ramp);
-} ramp_t;
+typedef struct {
+    float target;
+    float start;
+    float max_change;
+    float output;
+    float cumsum_dt;
+} Ramp;
 
 #endif

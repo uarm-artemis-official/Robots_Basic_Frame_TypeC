@@ -5,6 +5,7 @@
 
 // TODO: Add startup events for apps so certain apps will start after certain events.
 // e.g. Chassis and Gimbal Apps only start when motors are detected to be online.
+// TODO: Add another template parameter for task period with getter function to access it.
 template <class Derived>
 class ExtendedRTOSApp {
    public:

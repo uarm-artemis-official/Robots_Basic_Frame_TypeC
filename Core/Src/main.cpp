@@ -105,6 +105,7 @@
 #include "message_center.h"
 #include "motors.h"
 #include "rc_comm.hpp"
+#include "robot_config.hpp"
 #include "stdio.h"
 #include "stm32f407xx.h"
 #include "uart_isr.h"
@@ -201,7 +202,11 @@ static PCUARTApp pc_uart_app(message_center);
 static IMUApp imu_app(message_center, event_center, imu, debug);
 static GimbalApp gimbal_app(message_center, event_center, debug,
                             no_init_motors);
-static ShootApp shoot_app(message_center, ammo_lid, no_init_motors, 10);
+static ShootApp shoot_app(
+    message_center, ammo_lid, no_init_motors,
+    robot_config::shoot_params::LOADER_ACTIVE_RPM,
+    robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
+    robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
 /* USER CODE END 0 */
 
 /**
