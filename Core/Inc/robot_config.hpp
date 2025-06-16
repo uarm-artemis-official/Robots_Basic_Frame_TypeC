@@ -16,6 +16,13 @@ namespace robot_config {
 #endif
 
 #ifdef HERO
+        static_assert(false);
+        constexpr float IMU_ORIENTATION[3][3] = {
+            {0.0f, 1.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+        };
+
         static_assert(false, "Uncalibrated Gimbal encoder centers.");
         constexpr int16_t YAW_ECD_CENTER = 0;
         constexpr int16_t PITCH_ECD_CENTER = 0;
@@ -61,6 +68,13 @@ namespace robot_config {
 #endif
 
 #if defined(SWERVE_GIMBAL) || defined(OMNI_GIMBAL) || defined(MECANUM_GIMBAL)
+        // TODO: Move to front-right-up (x-y-z) reference frame???
+        constexpr float IMU_ORIENTATION[3][3] = {
+            {1.0f, 0.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+        };
+
         constexpr float KP_GIMBAL_YAW_ANGLE = 150;
         constexpr float KI_GIMBAL_YAW_ANGLE = 0;
         constexpr float KD_GIMBAL_YAW_ANGLE = 0;

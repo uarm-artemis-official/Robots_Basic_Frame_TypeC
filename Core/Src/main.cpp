@@ -168,7 +168,8 @@ static Debug debug;
 static CanComm can_comm;
 static Motors motors;
 static Motors no_init_motors;
-static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4);
+static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4,
+               robot_config::gimbal_params::IMU_ORIENTATION);
 static AmmoLid ammo_lid;
 static RCComm rc_comm;
 
