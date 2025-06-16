@@ -451,6 +451,11 @@ void GimbalApp::update_targets(int16_t* g_channels) {
         if (new_pack_response == pdTRUE) {
             gimbal.yaw_target_angle = gimbal.yaw_rel_angle + deltas[0];
             gimbal.pitch_target_angle = gimbal.pitch_rel_angle + deltas[1];
+
+            if (gimbal.yaw_target_angle > PI)
+                gimbal.yaw_target_angle -= 2.0f * PI;
+            if (gimbal.yaw_target_angle < -PI)
+                gimbal.yaw_target_angle += 2.0f * PI;
         }
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                gimbal.gimbal_act_mode == INDPET_MODE) {
