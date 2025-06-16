@@ -176,14 +176,14 @@ static RCComm rc_comm;
 static constexpr float swerve_chassis_width = 0.352728f;
 static constexpr float swerve_dt =
     ChassisApp<SwerveDrive>::LOOP_PERIOD_MS * 0.001;
-static SwerveDrive swerve_drive(message_center, swerve_chassis_width,
-                                swerve_dt);
+static SwerveDrive swerve_drive(message_center, no_init_motors,
+                                swerve_chassis_width, swerve_dt);
 static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 #else
 
 #ifdef OMNI_CHASSIS
 static constexpr float omni_chassis_width = 0.40f;
-static OmniDrive omni_drive(message_center, omni_chassis_width,
+static OmniDrive omni_drive(message_center, no_init_motors, omni_chassis_width,
                             omni_chassis_width);
 #else
 static constexpr float mecanum_chassis_width = 0.41f;

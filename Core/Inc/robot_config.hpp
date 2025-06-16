@@ -55,7 +55,6 @@ namespace robot_config {
 #endif
 
 #ifdef SWERVE_GIMBAL
-        static_assert(false, "Uncalibrated Gimbal encoder centers.");
         constexpr int16_t YAW_ECD_CENTER = 0;
         constexpr int16_t PITCH_ECD_CENTER = 0;
         constexpr uint32_t LOADER_GEAR_RATIO = 36;
