@@ -6,8 +6,12 @@
 #include "uarm_lib.h"
 #include "uarm_os.h"
 
-Imu::Imu(uint32_t sampling_rate_, float beta_)
-    : madgewick(sampling_rate_, beta_) {}
+Imu::Imu(uint32_t sampling_rate_, float beta_, const float orientation_[3][3])
+    : madgewick(sampling_rate_, beta_),
+      orientation {
+          {orientation_[0][0], orientation_[0][1], orientation_[0][2]},
+          {orientation_[1][0], orientation_[1][1], orientation_[1][2]},
+          {orientation_[2][0], orientation_[2][1], orientation_[2][2]}} {}
 
 void Imu::init() {
     BMI088_init();
@@ -48,8 +52,8 @@ void Imu::gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) {
     bmi088_real_data_t bmi088_raw_data;
     BMI088_Read(bmi088_raw_data.gyro, bmi088_raw_data.accel, &temperature);
 
-    Imu::adjust_data(accel, bmi088_raw_data.accel, accel_bias, accel_scale);
-    Imu::adjust_data(gyro, bmi088_raw_data.gyro, gyro_bias, gyro_scale);
+    adjust_data(accel, bmi088_raw_data.accel, accel_bias, accel_scale);
+    adjust_data(gyro, bmi088_raw_data.gyro, gyro_bias, gyro_scale);
 
     if (read_mag) {
         ist8310_read_mag(mag);
@@ -66,13 +70,21 @@ void Imu::gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) {
 void Imu::adjust_data(float output[3], float data[3], const float bias[3],
                       const float scale[3][3]) {
     float tmp[3];
-    for (int i = 0; i < 3; i++) {
+    float tmp_output[3];
+
+    for (size_t i = 0; i < 3; i++) {
         tmp[i] = data[i] - bias[i];
     }
 
-    for (int i = 0; i < 3; i++) {
-        output[i] =
+    for (size_t i = 0; i < 3; i++) {
+        tmp_output[i] =
             scale[i][0] * tmp[0] + scale[i][1] * tmp[1] + scale[i][2] * tmp[2];
+    }
+
+    for (size_t i = 0; i < 3; i++) {
+        output[i] = orientation[i][0] * tmp_output[0] +
+                    orientation[i][1] * tmp_output[1] +
+                    orientation[i][2] * tmp_output[2];
     }
 }
 

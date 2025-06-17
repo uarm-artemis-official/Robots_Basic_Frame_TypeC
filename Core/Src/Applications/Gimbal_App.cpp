@@ -12,6 +12,7 @@
 #include "apps_defines.h"
 #include "motors.h"
 #include "pid.h"
+#include "ramp.hpp"
 #include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
@@ -69,6 +70,9 @@ void GimbalApp::set_initial_state() {
               robot_config::gimbal_params::MIN_OUT_GIMBAL_YAW_SPEED,
               robot_config::gimbal_params::MAX_OUT_GIMBAL_YAW_SPEED);
 
+    ramp_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].sp_ramp,
+              robot_config::gimbal_params::YAW_RAMP_MAX_CHANGE);
+
     pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid,
               robot_config::gimbal_params::KP_GIMBAL_PITCH_ANGLE,
               robot_config::gimbal_params::KI_GIMBAL_PITCH_ANGLE,
@@ -86,6 +90,9 @@ void GimbalApp::set_initial_state() {
               robot_config::gimbal_params::YETA_GIMBAL_PITCH_SPEED,
               robot_config::gimbal_params::MIN_OUT_GIMBAL_PITCH_SPEED,
               robot_config::gimbal_params::MAX_OUT_GIMBAL_PITCH_SPEED);
+
+    ramp_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].sp_ramp,
+              robot_config::gimbal_params::PITCH_RAMP_MAX_CHANGE);
 
     // Initialize non-zero Gimbal_t fields.
     memset(&gimbal, 0, sizeof(Gimbal_t));
@@ -144,11 +151,11 @@ void GimbalApp::loop() {
         calc_imu_center();
     }
 
+    get_commands();
     safe_mode_switch();
-    process_commands();
 
     update_headings();
-    update_targets(gimbal_channels);
+    update_targets();
 
     cmd_exec();
 
@@ -210,6 +217,22 @@ void GimbalApp::set_modes(uint8_t modes[3]) {
     } else {
         set_motor_mode(ENCODE_MODE);
     }
+}
+
+void GimbalApp::set_gimbal_targets(float new_yaw_target_angle,
+                                   float new_pitch_target_angle) {
+    gimbal.yaw_target_angle = new_yaw_target_angle;
+    gimbal.pitch_target_angle = new_pitch_target_angle;
+
+    if (gimbal.yaw_target_angle > PI)
+        gimbal.yaw_target_angle -= 2.0f * PI;
+    if (gimbal.yaw_target_angle < -PI)
+        gimbal.yaw_target_angle += 2.0f * PI;
+
+    ramp_set_target(motor_controls[GIMBAL_YAW_MOTOR_INDEX].sp_ramp,
+                    gimbal.yaw_rel_angle, gimbal.yaw_target_angle);
+    ramp_set_target(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].sp_ramp,
+                    gimbal.pitch_rel_angle, gimbal.pitch_target_angle);
 }
 
 void GimbalApp::get_rc_info() {
@@ -400,7 +423,7 @@ void GimbalApp::get_imu_headings() {
     }
 }
 
-void GimbalApp::process_commands() {
+void GimbalApp::get_commands() {
     GimbalCommandMessage_t gimbal_command;
     uint8_t new_message =
         message_center.get_message(COMMAND_GIMBAL, &gimbal_command, 0);
@@ -440,34 +463,24 @@ void GimbalApp::update_headings() {
     }
 }
 
-void GimbalApp::update_targets(int16_t* g_channels) {
+void GimbalApp::update_targets() {
     if (gimbal.gimbal_mode == IDLE_MODE) {
-        gimbal.yaw_target_angle = 0;
-        gimbal.pitch_target_angle = 0;
+        set_gimbal_targets(0, 0);
     } else if (gimbal.gimbal_mode == AUTO_AIM_MODE) {
         float deltas[2];
         BaseType_t new_pack_response =
             message_center.get_message(AUTO_AIM, deltas, 0);
         if (new_pack_response == pdTRUE) {
-            gimbal.yaw_target_angle = gimbal.yaw_rel_angle + deltas[0];
-            gimbal.pitch_target_angle = gimbal.pitch_rel_angle + deltas[1];
-
-            if (gimbal.yaw_target_angle > PI)
-                gimbal.yaw_target_angle -= 2.0f * PI;
-            if (gimbal.yaw_target_angle < -PI)
-                gimbal.yaw_target_angle += 2.0f * PI;
+            set_gimbal_targets(gimbal.yaw_rel_angle + deltas[0],
+                               gimbal.pitch_rel_angle + deltas[1]);
         }
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                gimbal.gimbal_act_mode == INDPET_MODE) {
-        gimbal.yaw_target_angle = 0;
+        set_gimbal_targets(0, gimbal.pitch_target_angle);
     } else {
-        gimbal.yaw_target_angle -= command_deltas[0];
-        if (gimbal.yaw_target_angle > PI)
-            gimbal.yaw_target_angle -= 2.0f * PI;
-        if (gimbal.yaw_target_angle < -PI)
-            gimbal.yaw_target_angle += 2.0f * PI;
-
-        gimbal.pitch_target_angle -= command_deltas[1];
+        // FIXME: Change subtracting command deltas to adding them.
+        set_gimbal_targets(gimbal.yaw_target_angle - command_deltas[0],
+                           gimbal.pitch_target_angle - command_deltas[1]);
     }
 
     // Software limit pitch target range to prevent hitting mechanical hard-stops.
@@ -483,14 +496,21 @@ void GimbalApp::update_targets(int16_t* g_channels) {
  * retval 	  None
  */
 void GimbalApp::cmd_exec() {
-    float yaw_diff = GimbalApp::calc_rel_angle(gimbal.yaw_target_angle,
-                                               gimbal.yaw_rel_angle);
+    ramp_calc_output(motor_controls[GIMBAL_YAW_MOTOR_INDEX].sp_ramp,
+                     LOOP_PERIOD_MS * 0.001);
+    ramp_calc_output(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].sp_ramp,
+                     LOOP_PERIOD_MS * 0.001);
+
+    float yaw_diff = GimbalApp::calc_rel_angle(
+        motor_controls[GIMBAL_YAW_MOTOR_INDEX].sp_ramp.output,
+        gimbal.yaw_rel_angle);
 
     // Inverted relative angle calculation (i.e. find target relative to angle instead of reverse)
     // due to mounting of GM6020 on left side of gimbal instead of right side. The left side has
     // opposite rotation sign convention (i.e. rotating CCW is negative) than right side.
-    float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_rel_angle,
-                                                 gimbal.pitch_target_angle);
+    float pitch_diff = GimbalApp::calc_rel_angle(
+        gimbal.pitch_rel_angle,
+        motor_controls[GIMBAL_PITCH_MOTOR_INDEX].sp_ramp.output);
 
     pid2_dual_loop_control(
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,

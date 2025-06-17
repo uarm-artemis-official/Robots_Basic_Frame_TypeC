@@ -178,9 +178,10 @@ typedef struct Gimbal_t {
 
 typedef struct {
     uint32_t stdid;
+    Motor_Feedback_t feedback;
     PID2_t f_pid;
     PID2_t s_pid;
-    Motor_Feedback_t feedback;
+    Ramp sp_ramp;
 } Gimbal_Motor_Control_t;
 
 typedef struct {

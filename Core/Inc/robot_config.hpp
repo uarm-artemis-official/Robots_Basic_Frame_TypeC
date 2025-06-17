@@ -16,6 +16,13 @@ namespace robot_config {
 #endif
 
 #ifdef HERO
+        static_assert(false);
+        constexpr float IMU_ORIENTATION[3][3] = {
+            {0.0f, 1.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+        };
+
         static_assert(false, "Uncalibrated Gimbal encoder centers.");
         constexpr int16_t YAW_ECD_CENTER = 0;
         constexpr int16_t PITCH_ECD_CENTER = 0;
@@ -37,6 +44,8 @@ namespace robot_config {
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 0;
 
+        constexpr float YAW_RAMP_MAX_CHANGE = 0.5;  // rad/s
+
         constexpr float KP_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
@@ -52,6 +61,8 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
+
+        constexpr float PITCH_RAMP_MAX_CHANGE = 0.5;  // rad/s
 #endif
 
 #ifdef SWERVE_GIMBAL
@@ -61,6 +72,13 @@ namespace robot_config {
 #endif
 
 #if defined(SWERVE_GIMBAL) || defined(OMNI_GIMBAL) || defined(MECANUM_GIMBAL)
+        // TODO: Move to front-right-up (x-y-z) reference frame???
+        constexpr float IMU_ORIENTATION[3][3] = {
+            {1.0f, 0.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+        };
+
         constexpr float KP_GIMBAL_YAW_ANGLE = 150;
         constexpr float KI_GIMBAL_YAW_ANGLE = 0;
         constexpr float KD_GIMBAL_YAW_ANGLE = 0;
@@ -77,6 +95,8 @@ namespace robot_config {
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
 
+        constexpr float YAW_RAMP_MAX_CHANGE = 0.5;  // rad/s
+
         constexpr float KP_GIMBAL_PITCH_ANGLE = 300;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 30;
         constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
@@ -92,6 +112,8 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
+
+        constexpr float PITCH_RAMP_MAX_CHANGE = 0.5;  // rad/s
 #endif
 
 #ifdef GTEST
@@ -115,6 +137,8 @@ namespace robot_config {
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 0;
 
+        constexpr float YAW_RAMP_MAX_CHANGE = 0;  // rad/s
+
         constexpr float KP_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
@@ -130,6 +154,8 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
+
+        constexpr float PITCH_RAMP_MAX_CHANGE = 0;  // rad/s
 #endif
 
         // OTHER PARAMETERS

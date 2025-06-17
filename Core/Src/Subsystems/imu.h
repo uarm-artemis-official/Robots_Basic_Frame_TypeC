@@ -21,17 +21,18 @@ class Imu : public IImu {
         {0.0, 1.0, 0},
         {0.0, 0, 1.0},
     };
+    const float orientation[3][3];
 
    public:
-    static void adjust_data(float output[3], float data[3], const float bias[3],
-                            const float scale[3][3]);
-    Imu(uint32_t sampling_rate_, float beta_);
+    Imu(uint32_t sampling_rate_, float beta_, const float orientation_[3][3]);
     void init() override;
     float get_temp() override;
     void get_attitude(Attitude_t& attitude) override;
     void get_sensor_data(AhrsSensor_t& sensor) override;
     void set_heat_pwm(uint16_t duty_cycle) override;
     void gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) override;
+    void adjust_data(float output[3], float data[3], const float bias[3],
+                     const float scale[3][3]);
 };
 
 #endif
