@@ -44,6 +44,8 @@ namespace robot_config {
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 0;
 
+        constexpr float YAW_RAMP_MAX_CHANGE = 0.5;  // rad/s
+
         constexpr float KP_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
@@ -59,6 +61,8 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
+
+        constexpr float PITCH_RAMP_MAX_CHANGE = 0.5;  // rad/s
 #endif
 
 #ifdef SWERVE_GIMBAL
@@ -91,6 +95,8 @@ namespace robot_config {
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
 
+        constexpr float YAW_RAMP_MAX_CHANGE = 0.5;  // rad/s
+
         constexpr float KP_GIMBAL_PITCH_ANGLE = 300;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 30;
         constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
@@ -106,6 +112,8 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
+
+        constexpr float PITCH_RAMP_MAX_CHANGE = 0.5;  // rad/s
 #endif
 
 #ifdef GTEST
@@ -129,6 +137,8 @@ namespace robot_config {
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 0;
 
+        constexpr float YAW_RAMP_MAX_CHANGE = 0;  // rad/s
+
         constexpr float KP_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
@@ -144,6 +154,8 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
+
+        constexpr float PITCH_RAMP_MAX_CHANGE = 0;  // rad/s
 #endif
 
         // OTHER PARAMETERS
