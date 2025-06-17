@@ -36,7 +36,7 @@ add_library(GENERIC_APPS
         Control_App.cpp
         IMU_App.cpp
         PC_UART_App.cpp
-        Referee_App.c
+        Referee_App.cpp
         Timer_App.cpp
         WatchDog_App.c)
 target_include_directories(GENERIC_APPS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -53,4 +53,5 @@ target_link_libraries(GENERIC_APPS
         SUBSYSTEMS::PC_COMM
         SUBSYSTEMS::IMU
         SUBSYSTEMS::DEBUG
+        SUBSYSTEMS::REF_UI
         ALGORITHMS::COMMS_LIB)

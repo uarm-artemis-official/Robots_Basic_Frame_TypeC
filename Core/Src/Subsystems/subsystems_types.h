@@ -3,6 +3,7 @@
 
 #include "attitude_types.h"
 #include "motor_types.h"
+#include "referee_data.h"
 #include "subsystems_defines.h"
 #include "uarm_os.h"
 #include "uarm_types.h"
@@ -113,17 +114,21 @@ typedef enum Topic_Name_t {
     COMM_IN,
     IMU_READINGS,
     //	IMU_READY,
-    REF_INFO,
+    UI_SEND,
     PLAYER_COMMANDS,
     RC_INFO,
     RC_RAW,
-    REFEREE_INFO,
+
     UC_PACK_IN,
     AUTO_AIM,
     UART_OUT,
 
     // Gimbal -> Chassis
     GIMBAL_REL_ANGLES,
+
+    // Referee System
+    REFEREE_IN,
+    REFEREE_OUT,
 } Topic_Name_t;
 
 typedef struct Topic_Handle_t {
@@ -207,4 +212,47 @@ typedef enum Sync_Event_t {
     None,
 } Sync_Event_t;
 
+/* =========================================================================
+ * REFEREE UI SYSTEM TYPES
+ * ====================================================================== */
+typedef enum {
+    UI_TYPE_IDLE_ID = 0,
+    /* General UI */
+    UI_ROBOT_ACT_MODE,
+    UI_ROBOT_LEVEL,
+    UI_SUPCAP_PERCENT,
+
+    /* Infantry only */
+    UI_INFANTRY_MARK,
+
+    /* Hero only */
+    UI_HERO_MARK,
+} referee_ui_type_t;
+
+typedef enum {
+    UI_IDLE_ID = 0x0000,  // No interaction
+    // Sub cmd id
+    SUB_UI_LAYER_DEL_ID = 0x0100,
+    SUB_UI_DRAW_1_ID = 0x0101,
+    SUB_UI_DRAW_2_ID = 0x0102,
+    SUB_UI_DRAW_5_ID = 0x0103,
+    SUB_UI_DRAW_7_ID = 0x0104,
+    SUB_UI_EXT_CUSTOM_ID = 0x0110
+} ref_ui_id_t;
+
+typedef struct {
+    robot_interaction_data_t ui_intrect_data;
+    interaction_layer_delete_t ui_del_fig_data;
+    interaction_figure_t ui_figure_data;
+    interaction_figure_2_t ui_figure_draw_2_data;
+    interaction_figure_5_t ui_figure_draw_5_data;
+    interaction_figure_7_t ui_draw_marks_data;
+    interaction_figure_7_t ui_draw_info_data;
+    ext_client_custom_character_t ui_custom_data;
+
+    uint8_t first_drawing_flag;
+    uint8_t cur_sending_count;
+    referee_ui_type_t cur_sending_id;
+    uint8_t pack_seq;
+} Referee_UI_t;
 #endif

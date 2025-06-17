@@ -13,6 +13,7 @@
 #define COMM_TASK_EXEC_TIME 2
 #define RC_TASK_EXEC_TIME 2
 #define PC_UART_TASK_EXEC_TIME 10
+#define REFEREE_TASK_EXEC_TIME 10
 
 /* =========================================================================
  * CHASSIS DEFINES 
@@ -144,3 +145,5 @@
  * TIMER DEFINES
  * ====================================================================== */
 // #define DISABLE_MOTOR_SEND
+
+/* Referee App Defines */

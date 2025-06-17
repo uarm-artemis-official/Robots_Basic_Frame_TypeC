@@ -29,3 +29,10 @@ target_link_libraries(QUEUE_M
     PUBLIC 
         COMMON_INCLUDES)
 add_library(FW::QUEUE_M ALIAS QUEUE_M)
+
+add_library(REF_DATA STATIC referee_data.c)
+target_include_directories(REF_DATA PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(REF_DATA
+    PUBLIC 
+        COMMON_INCLUDES)
+add_library(FW::REF_DATA ALIAS REF_DATA)

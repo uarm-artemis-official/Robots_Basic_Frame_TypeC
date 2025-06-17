@@ -5,6 +5,7 @@ target_include_directories(SUBSYSTEMS_INCLUDE
         ${FIRMWARE_PATH}/Device/motors
         ${FIRMWARE_PATH}/Device/bmi088
         ${FIRMWARE_PATH}/Device/ist8310
+        ${FIRMWARE_PATH}
         ${ALGORITHMS_PATH}/attitude)
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
@@ -78,3 +79,13 @@ target_link_libraries(CAN_COMM
         LIB::UARM_OS
         FW::QUEUE_M)
 add_library(SUBSYSTEMS::CAN_COMM ALIAS CAN_COMM)
+
+add_library(REF_UI STATIC referee_ui.cpp)
+target_link_libraries(REF_UI
+    PUBLIC
+        SUBSYSTEMS_INCLUDE
+        LIB::UARM_LIB
+        LIB::UARM_INCLUDE
+        ALGORITHMS::COMMS_LIB
+        FW::REF_DATA)
+add_library(SUBSYSTEMS::REF_UI ALIAS REF_UI)

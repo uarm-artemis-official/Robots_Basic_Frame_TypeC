@@ -17,12 +17,12 @@ class MessageCenter : public IMessageCenter {
         // [yaw, pitch]
         Topic_Handle_t {GIMBAL_REL_ANGLES, sizeof(float) * 2, 1, NULL},
         // TODO: Make struct with necessary info from ref system.
-        Topic_Handle_t {REF_INFO, 0, 1, NULL},
+        Topic_Handle_t {UI_SEND, 0, 1, NULL},
         // TODO: Make struct with necessary info for commands from player inputs.
         Topic_Handle_t {PLAYER_COMMANDS, 0, 1, NULL},
 
         Topic_Handle_t {PLAYER_COMMANDS, 0, 1, NULL},
-        Topic_Handle_t {REFEREE_INFO, sizeof(uint8_t) * 2, 1, NULL},
+        Topic_Handle_t {REFEREE_IN, sizeof(uint8_t) * 41, 1, NULL},
         Topic_Handle_t {RC_RAW, sizeof(uint8_t) * 18, 5, NULL},
         Topic_Handle_t {UC_PACK_IN, sizeof(uint8_t) * 64, 10, NULL},
         Topic_Handle_t {AUTO_AIM, sizeof(float) * 2, 1, NULL},

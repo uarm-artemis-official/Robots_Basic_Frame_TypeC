@@ -54,4 +54,14 @@
  * ====================================================================== */
 #define CAN_COMM_QUEUE_SIZE 5
 
+/* =========================================================================
+ * REFEREE UI DEFINES
+ * ====================================================================== */
+#define UI_HEADER_LEN 6
+#define UI_SEVEN_DRAWS_LEN 105  // 7 * sizeof(interaction_figure_t)=15
+#define UI_HERO_MARK_LEN UI_HEADER_LEN + UI_SEVEN_DRAWS_LEN
+#define UI_INFANTRY_MARK_LEN UI_HEADER_LEN + UI_SEVEN_DRAWS_LEN
+#define UI_STRING_DRAWS_LEN 45  // 15 + 30
+#define UI_ACT_MODE_LEN UI_HEADER_LEN + UI_STRING_DRAWS_LEN
+
 #endif

@@ -47,7 +47,7 @@ void CommApp::loop() {
 
     if (new_receive_message == pdTRUE) {
         switch (incoming_message.topic_name) {
-            case REF_INFO:
+            case REFEREE_OUT:
                 // TODO: Implement
                 break;
             case GIMBAL_REL_ANGLES: {

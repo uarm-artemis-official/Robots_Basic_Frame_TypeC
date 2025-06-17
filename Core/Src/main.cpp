@@ -103,6 +103,7 @@
 #include "imu.h"
 #include "message_center.h"
 #include "motors.h"
+#include "referee_ui.h"
 #include "stdio.h"
 #include "stm32f407xx.h"
 #include "uart_isr.h"
@@ -170,6 +171,7 @@ static Debug debug;
 static CanComm can_comm;
 static Motors motors;
 static Imu imu;
+static RefereeUI ref_ui;
 
 #ifdef SWERVE_CHASSIS
 static SwerveDrive swerve_drive(message_center, 0);
@@ -195,6 +197,7 @@ static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center);
 static IMUApp imu_app(message_center, event_center, imu, debug);
 static GimbalApp gimbal_app(message_center, event_center, debug);
+static RefereeApp referee_app(message_center, event_center, debug, ref_ui);
 /* USER CODE END 0 */
 
 /**
@@ -278,27 +281,29 @@ int main(void) {
     if (board_status == CHASSIS_BOARD) {
         osThreadDef(
             ChassisTask, [](const void* arg) { chassis_app.run(arg); },
-			osPriorityHigh, 0, 256);
+            osPriorityHigh, 0, 256);
         osThreadCreate(osThread(ChassisTask), NULL);
 
         osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
         osThreadCreate(osThread(RCTask), NULL);
 
-        //    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
-        //    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
+        osThreadDef(
+            RefTask, [](const void* arg) { referee_app.run(arg); },
+            osPriorityHigh, 0, 384);
+        osThreadCreate(osThread(RefTask), NULL);
 
     } else if (board_status == GIMBAL_BOARD) {
         osThreadDef(
             GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
-			osPriorityHigh, 0, 512);
+            osPriorityHigh, 0, 512);
         osThreadCreate(osThread(GimbalTask), NULL);
 
         // osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
         // osThreadCreate(osThread(ShootTask), NULL);
 
         osThreadDef(
-            IMUTask, [](const void* arg) { imu_app.run(arg); }, osPriorityRealtime,
-            0, 256);
+            IMUTask, [](const void* arg) { imu_app.run(arg); },
+            osPriorityRealtime, 0, 256);
         osThreadCreate(osThread(IMUTask), NULL);
 
         osThreadDef(
