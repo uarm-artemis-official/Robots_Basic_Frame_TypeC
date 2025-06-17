@@ -83,7 +83,7 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     void update_imu_angle(float yaw, float pitch);
     void update_ecd_angles();
     void update_headings();
-    void update_targets(int16_t* g_channels);
+    void update_targets();
 
     void cmd_exec();
 

@@ -463,7 +463,7 @@ void GimbalApp::update_headings() {
     }
 }
 
-void GimbalApp::update_targets(int16_t* g_channels) {
+void GimbalApp::update_targets() {
     if (gimbal.gimbal_mode == IDLE_MODE) {
         set_gimbal_targets(0, 0);
     } else if (gimbal.gimbal_mode == AUTO_AIM_MODE) {
