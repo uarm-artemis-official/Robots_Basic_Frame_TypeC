@@ -66,16 +66,13 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     void set_board_mode(BoardMode_t mode);
     void set_act_mode(BoardActMode_t mode);
     void set_motor_mode(GimbalMotorMode_t mode);
-    void set_gimbal_targets(float new_yaw_target_angle,
-                            float new_pitch_target_angle);
-
     void safe_mode_switch();
 
     void get_rc_info();
     void get_motor_feedback();
     void get_imu_headings();
 
-    void get_commands();
+    void process_commands();
 
     void calc_channels_to_angles(const int16_t g_channels[2], float deltas[2]);
     void calc_imu_center();

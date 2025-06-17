@@ -53,7 +53,13 @@ typedef struct {
 typedef struct {
     uint8_t robot_color;  // 0: red, 1: blue
 
-    // TODO: Implement
+    // imu data
+    float pitch;
+    float yaw;
+    float accel_x;
+    float accel_y;
+
+    float wheel_rpm[4];  // from chassis wheels
 } UC_Board_Data_Pack_t;
 
 // OTHER STRUCTS
