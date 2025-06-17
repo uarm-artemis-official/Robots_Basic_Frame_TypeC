@@ -165,7 +165,7 @@ namespace robot_config {
         constexpr float MIN_OUT_FLYWHEEL_SPEED = 0;
         constexpr float MAX_OUT_FLYWHEEL_SPEED = 0;
 #else
-        constexpr float KP_LOADER_SPEED = 5;
+        constexpr float KP_LOADER_SPEED = 12;
         constexpr float KI_LOADER_SPEED = 0;
         constexpr float KD_LOADER_SPEED = 0;
         constexpr float BETA_LOADER_SPEED = 1;
@@ -173,8 +173,8 @@ namespace robot_config {
         constexpr float MIN_OUT_LOADER_SPEED = -5000;
         constexpr float MAX_OUT_LOADER_SPEED = 5000;
 
-        constexpr float KP_FLYWHEEL_SPEED = 25;
-        constexpr float KI_FLYWHEEL_SPEED = 15;
+        constexpr float KP_FLYWHEEL_SPEED = 27;
+        constexpr float KI_FLYWHEEL_SPEED = 5;
         constexpr float KD_FLYWHEEL_SPEED = 0;
         constexpr float BETA_FLYWHEEL_SPEED = 1;
         constexpr float YETA_FLYWHEEL_SPEED = 0;
@@ -183,9 +183,9 @@ namespace robot_config {
 #endif
 
         // OTHER PARAMETERS
-        constexpr float LOADER_ACTIVE_RPM = 10;
-        constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 100;
-        constexpr float MAX_FLYWHEEL_ACCEL = 100;  // rotations/min/second
+        constexpr float LOADER_ACTIVE_RPM = 75;
+        constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
+        constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
 
         constexpr float JAM_STALL_DURATION_THRESHOLD = 0.1;  // seconds
         constexpr int16_t JAM_LOADER_RPM_THRESHOLD = 5;      // rpm
