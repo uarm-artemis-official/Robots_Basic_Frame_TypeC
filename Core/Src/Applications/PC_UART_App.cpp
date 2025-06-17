@@ -15,8 +15,8 @@
 #include "uarm_lib.h"
 #include "uarm_os.h"
 
-PCUARTApp::PCUARTApp(IMessageCenter& message_center_ref)
-    : message_center(message_center_ref) {
+PCUARTApp::PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_)
+    : message_center(message_center_ref), motors(motors_) {
     memset(new_pack_buffer, 0, sizeof(uint8_t) * 64);
 }
 
@@ -79,8 +79,56 @@ void PCUARTApp::loop() {
     // send_pack.pitch += 0.1;
     // uc_send_board_data(&send_pack);
 
+#ifndef SWERVE_CHASSIS
     while (message_center.get_message(UC_PACK_OUT, new_send_buffer, 0) ==
            pdTRUE) {
         PCComm::send_bytes(new_send_buffer, 196);
     }
+#else
+    send_swerve_data();
+#endif
+}
+
+void PCUARTApp::send_swerve_data() {
+#ifdef SWERVE_CHASSIS
+    MotorReadMessage_t read_message;
+    std::array<uint32_t, 4> steer_motor_ids = {
+        SWERVE_STEER_MOTOR1,
+        SWERVE_STEER_MOTOR2,
+        SWERVE_STEER_MOTOR3,
+        SWERVE_STEER_MOTOR4,
+    };
+    std::array<uint32_t, 4> drive_motor_ids = {
+        CHASSIS_WHEEL1,
+        CHASSIS_WHEEL2,
+        CHASSIS_WHEEL3,
+        CHASSIS_WHEEL4,
+    };
+    std::array<LK_Motor_Torque_Feedback_t, 4> steer_feedback;
+    std::array<Motor_Feedback_t, 4> drive_feedback;
+
+    uint8_t new_read_message =
+        message_center.peek_message(MOTOR_READ, &read_message, 0);
+    if (new_read_message == 1) {
+        for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
+            for (size_t j = 0; j < steer_motor_ids.size(); j++) {
+                if (steer_motor_ids.at(j) == read_message.can_ids[i]) {
+                    motors.get_raw_feedback(steer_motor_ids.at(j),
+                                            read_message.feedback[i],
+                                            &(steer_feedback.at(j)));
+                    break;
+                }
+            }
+
+            for (size_t j = 0; j < drive_motor_ids.size(); j++) {
+                if (drive_motor_ids.at(j) == read_message.can_ids[i]) {
+                    motors.get_raw_feedback(drive_motor_ids.at(j),
+                                            read_message.feedback[i],
+                                            &(drive_feedback.at(j)));
+                    break;
+                }
+            }
+        }
+    }
+#endif
 }

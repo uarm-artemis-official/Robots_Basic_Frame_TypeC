@@ -199,7 +199,7 @@ static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 static RCApp rc_app(message_center, rc_comm);
 static CommApp comm_app(message_center, debug, can_comm);
 static TimerApp timer_app(motors, message_center, debug);
-static PCUARTApp pc_uart_app(message_center);
+static PCUARTApp pc_uart_app(message_center, no_init_motors);
 static IMUApp imu_app(message_center, event_center, imu, debug);
 static GimbalApp gimbal_app(message_center, event_center, debug,
                             no_init_motors);
