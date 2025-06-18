@@ -135,7 +135,6 @@ void GimbalApp::calibrate() {
 }
 
 void GimbalApp::loop() {
-    get_rc_info();
     get_motor_feedback();
 
     if (is_imu_calibrated()) {
@@ -163,7 +162,16 @@ void GimbalApp::loop() {
  * @param[in] mode: Board work mode
  * */
 void GimbalApp::set_board_mode(BoardMode_t mode) {
-    gimbal.gimbal_mode = mode;
+    switch (mode) {
+        case PATROL_MODE:
+        case AUTO_AIM_MODE:
+        case AUTO_PILOT_MODE:  // full control to mini-pc.
+        case IDLE_MODE:
+            gimbal.gimbal_mode = mode;
+            break;
+        default:
+            return;
+    }
 }
 /*
  * @brief     determime the mode for gimbal actions:
@@ -172,8 +180,17 @@ void GimbalApp::set_board_mode(BoardMode_t mode) {
  * @param[in] mode: act mode
  * */
 void GimbalApp::set_act_mode(BoardActMode_t mode) {
-    gimbal.prev_gimbal_act_mode = gimbal.gimbal_act_mode;
-    gimbal.gimbal_act_mode = mode;
+    switch (mode) {
+        case GIMBAL_CENTER:
+        case GIMBAL_FOLLOW:
+        case SELF_GYRO:
+        case INDPET_MODE:
+            gimbal.prev_gimbal_act_mode = gimbal.gimbal_act_mode;
+            gimbal.gimbal_act_mode = mode;
+            break;
+        default:
+            return;
+    }
 }
 
 /*
@@ -182,8 +199,15 @@ void GimbalApp::set_act_mode(BoardActMode_t mode) {
  * @param[in] mode: motor mode
  * */
 void GimbalApp::set_motor_mode(GimbalMotorMode_t mode) {
-    gimbal.prev_gimbal_motor_mode = gimbal.gimbal_motor_mode;
-    gimbal.gimbal_motor_mode = mode;
+    switch (mode) {
+        case GYRO_MODE:
+        case ENCODE_MODE:
+            gimbal.prev_gimbal_motor_mode = gimbal.gimbal_motor_mode;
+            gimbal.gimbal_motor_mode = mode;
+            break;
+        default:
+            return;
+    }
 }
 
 /*
@@ -210,22 +234,6 @@ void GimbalApp::set_modes(uint8_t modes[3]) {
     } else {
         set_motor_mode(ENCODE_MODE);
     }
-}
-
-void GimbalApp::get_rc_info() {
-#ifndef ENABLE_MANUAL_MODE_SET
-    RCInfoMessage_t rc_info;
-    BaseType_t new_rc_info_message =
-        message_center.peek_message(RC_INFO, &rc_info, 0);
-    if (new_rc_info_message == pdTRUE) {
-        set_modes(rc_info.modes);
-        memcpy(gimbal_channels, rc_info.channels, sizeof(int16_t) * 2);
-    }
-#else
-    set_board_mode(gbal, AUTO_AIM_MODE);
-    set_act_mode(gbal, GIMBAL_FOLLOW);
-    set_motor_mode(gbal, ENCODE_MODE);
-#endif
 }
 
 void GimbalApp::get_motor_feedback() {
@@ -407,6 +415,23 @@ void GimbalApp::process_commands() {
     if (new_message == pdTRUE) {
         command_deltas[0] = gimbal_command.yaw;
         command_deltas[1] = gimbal_command.pitch;
+
+        BoardMode_t board_mode =
+            static_cast<BoardMode_t>((gimbal_command.command_bits >> 3) & 0x7);
+        BoardActMode_t act_mode =
+            static_cast<BoardActMode_t>(gimbal_command.command_bits & 0x7);
+
+        set_board_mode(board_mode);
+        set_act_mode(act_mode);
+
+        gimbal.prev_gimbal_motor_mode = gimbal.gimbal_motor_mode;
+        if (gimbal.gimbal_act_mode == SELF_GYRO ||
+            gimbal.gimbal_act_mode == GIMBAL_FOLLOW ||
+            gimbal.gimbal_act_mode == GIMBAL_CENTER) {
+            set_motor_mode(GYRO_MODE);
+        } else {
+            set_motor_mode(ENCODE_MODE);
+        }
     } else {
         command_deltas[0] = 0;
         command_deltas[1] = 0;
@@ -460,7 +485,10 @@ void GimbalApp::update_targets() {
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                gimbal.gimbal_act_mode == INDPET_MODE) {
         gimbal.yaw_target_angle = 0;
-    } else {
+    } else if (gimbal.gimbal_mode == PATROL_MODE &&
+               (gimbal.gimbal_act_mode == GIMBAL_FOLLOW ||
+                gimbal.gimbal_act_mode == GIMBAL_CENTER ||
+                gimbal.gimbal_act_mode == SELF_GYRO)) {
         gimbal.yaw_target_angle -= command_deltas[0];
         if (gimbal.yaw_target_angle > PI)
             gimbal.yaw_target_angle -= 2.0f * PI;
@@ -468,6 +496,8 @@ void GimbalApp::update_targets() {
             gimbal.yaw_target_angle += 2.0f * PI;
 
         gimbal.pitch_target_angle -= command_deltas[1];
+    } else {
+        ASSERT(false, "Unknown state");
     }
 
     // Software limit pitch target range to prevent hitting mechanical hard-stops.

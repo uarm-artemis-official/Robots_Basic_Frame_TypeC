@@ -93,7 +93,7 @@ void ShootApp::init() {
 }
 
 void ShootApp::loop() {
-    get_rc_info();
+    process_commands();
     get_motor_feedback();
     detect_loader_stall();
 
@@ -103,13 +103,14 @@ void ShootApp::loop() {
     send_motor_outputs();
 }
 
-void ShootApp::get_rc_info() {
-    RCInfoMessage_t rc_info;
-    BaseType_t new_rc_info_message =
-        message_center.peek_message(RC_INFO, &rc_info, 0);
-    if (new_rc_info_message == pdTRUE) {
+void ShootApp::process_commands() {
+    ShootCommandMessage_t shoot_command;
+    uint8_t new_message =
+        message_center.get_message(COMMAND_SHOOT, &shoot_command, 0);
+
+    if (new_message == pdTRUE) {
         ShootActMode_t shoot_mode =
-            static_cast<ShootActMode_t>(rc_info.modes[2]);
+            static_cast<ShootActMode_t>(shoot_command.command_bits);
         set_shoot_mode(shoot_mode);
     }
 }
@@ -239,7 +240,14 @@ void ShootApp::send_motor_outputs() {
 }
 
 void ShootApp::set_shoot_mode(ShootActMode_t new_mode) {
-    shoot.shoot_act_mode = new_mode;
+    switch (new_mode) {
+        case SHOOT_CEASE:
+        case SHOOT_CONT:
+            shoot.shoot_act_mode = new_mode;
+            break;
+        default:
+            return;
+    }
 }
 
 void ShootApp::set_loader_target(float new_target) {

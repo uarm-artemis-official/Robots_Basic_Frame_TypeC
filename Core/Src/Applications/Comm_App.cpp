@@ -82,9 +82,16 @@ void CommApp::loop() {
                 message_center.pub_message(COMMAND_GIMBAL, &gimbal_command);
                 break;
             }
-            case PLAYER_COMMANDS:
-                // TODO: Implement
+            case COMMAND_SHOOT: {
+                ShootCommandMessage_t shoot_command;
+                std::memcpy(&(shoot_command.command_bits),
+                            incoming_message.data, sizeof(uint32_t));
+                std::memcpy(&(shoot_command.extra_bits),
+                            &(incoming_message.data[4]), sizeof(uint32_t));
+
+                message_center.pub_message(COMMAND_SHOOT, &shoot_command);
                 break;
+            }
             default:
                 break;
         }

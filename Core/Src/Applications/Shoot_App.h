@@ -38,9 +38,10 @@ class ShootApp : public RTOSApp<ShootApp> {
     void init();
     void loop();
 
-    void get_rc_info();
     void get_motor_feedback();
     void detect_loader_stall();
+
+    void process_commands();
 
     void calc_targets();
     void calc_motor_outputs();

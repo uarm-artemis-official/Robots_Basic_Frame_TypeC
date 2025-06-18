@@ -16,13 +16,11 @@ typedef enum { CTRLER_MODE = 1, PC_MODE } CtrlMode_t;
 
 typedef enum {
     PATROL_MODE = 1,
-    DETECTION_MODE,
     AUTO_AIM_MODE,
-    AUTO_PILOT_MODE,
+    AUTO_PILOT_MODE,  // full control to mini-pc.
     IDLE_MODE,
-    DEBUG_MODE,
     //	PC_MODE
-} BoardMode_t;  //only for sentry
+} BoardMode_t;
 
 typedef enum {
     GIMBAL_CENTER =
@@ -32,7 +30,7 @@ typedef enum {
     INDPET_MODE,  // chassis ground coordinate, or dummy version of self-gyro mode
 } BoardActMode_t;  // should be determined by remore controller
 
-typedef enum { SHOOT_CONT, SHOOT_CEASE } ShootActMode_t;
+typedef enum { SHOOT_CONT = 1, SHOOT_CEASE } ShootActMode_t;
 enum class ShootState {
     NORMAL,
     ANTIJAM,

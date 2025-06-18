@@ -54,8 +54,6 @@
 
 #define GIMBAL_IMU_SAMPLES 20
 
-#define CHANNEL_OFFSET_MAX_ABS_VAL 660
-
 /* =========================================================================
  * IMU DEFINES
  * ====================================================================== */
@@ -95,27 +93,9 @@
  * COMM DEFINES
  * ====================================================================== */
 /* Define used can id */
-//higher id, lower priority
-//FIXME: adjust the priority
-#define IDLE_COMM_ID 0x300
-#define ANGLE_COMM_ID 0x301
-#define RC_COMM_ID 0x302
-#define PC_COMM_ID 0x303
-#define KEY_COMM_ID 0x304
-#define REF_COMM_ID 0x305
-#define PC_EXT_KEY_ID 0x306
-#define TOTAL_COMM_ID 7
-
-#define ANGLE_IDX (ANGLE_COMM_ID - IDLE_COMM_ID)
-#define RC_IDX (RC_COMM_ID - IDLE_COMM_ID)
-#define PC_IDX (PC_COMM_ID - IDLE_COMM_ID)
-#define REF_IDX (REF_COMM_ID - IDLE_COMM_ID)
-#define KEY_IDX (KEY_COMM_ID - IDLE_COMM_ID)
-#define PC_EXT_KEY_IDX (PC_EXT_KEY_ID - IDLE_COMM_ID)
-
-#define ANGLE_COMM_SCALE_FACTOR \
-    (32767.0f / PI -            \
-     500.0f)  //32767 is the maximum size of int16_t														 // exp: since we need to transmit the float angle(-pi, pi), we need to transfer it														 // to int16_t, and rescale it in the receiver side.
+#define CHANNEL_OFFSET_MAX_ABS_VAL 660
+#define MAX_MOUSE_YAW_OUT 2
+#define MAX_MOUSE_PITCH_OUT 2
 
 #endif
 

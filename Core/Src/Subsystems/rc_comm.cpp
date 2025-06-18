@@ -147,6 +147,7 @@ void RCComm::key_scan(KeyObject& key, uint16_t key_buffer,
                       EKeyBitIndex key_bit_index) {
     uint16_t key_index = static_cast<uint16_t>(key_bit_index);
     if (key_buffer & key_index) {
+        // TODO: Add software timer instead of counting.
         key.status_count++;
     } else
         key.status_count = 0;

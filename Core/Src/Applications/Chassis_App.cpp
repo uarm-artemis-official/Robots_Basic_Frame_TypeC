@@ -76,11 +76,10 @@ void ChassisApp<DriveTrain>::set_initial_state() {
 
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::loop() {
-    chassis_get_rc_info();
     chassis_get_gimbal_rel_angles();
 
     process_commands();
-    // update_movement_commands();
+
     calc_movement_vectors();
 
     drive_train.drive(chassis.vx, chassis.vy, chassis.wz);
@@ -160,21 +159,6 @@ void ChassisApp<DriveTrain>::chassis_get_gimbal_rel_angles() {
 }
 
 template <class DriveTrain>
-void ChassisApp<DriveTrain>::chassis_get_rc_info() {
-    RCInfoMessage_t rc_info;
-    BaseType_t new_message = message_center.peek_message(RC_INFO, &rc_info, 0);
-
-    if (new_message == pdTRUE) {
-        // TODO: Add input validation for modes and channels.
-        BoardMode_t board_mode = static_cast<BoardMode_t>(rc_info.modes[0]);
-        BoardActMode_t act_mode = static_cast<BoardActMode_t>(rc_info.modes[1]);
-
-        chassis.chassis_mode = board_mode;
-        chassis.chassis_act_mode = act_mode;
-    }
-}
-
-template <class DriveTrain>
 void ChassisApp<DriveTrain>::process_commands() {
     ChassisCommandMessage_t chassis_command;
     uint8_t new_message =
@@ -183,6 +167,42 @@ void ChassisApp<DriveTrain>::process_commands() {
         chassis.v_perp = chassis_command.v_perp;
         chassis.v_parallel = chassis_command.v_parallel;
         chassis.wz = chassis_command.wz;
+
+        BoardMode_t board_mode =
+            static_cast<BoardMode_t>((chassis_command.command_bits >> 3) & 0x7);
+        BoardActMode_t act_mode =
+            static_cast<BoardActMode_t>(chassis_command.command_bits & 0x7);
+
+        set_board_mode(board_mode);
+        set_act_mode(act_mode);
+    }
+}
+
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::set_board_mode(BoardMode_t new_board_mode) {
+    switch (new_board_mode) {
+        case PATROL_MODE:
+        case AUTO_AIM_MODE:
+        case AUTO_PILOT_MODE:  // full control to mini-pc.
+        case IDLE_MODE:
+            chassis.chassis_mode = new_board_mode;
+            break;
+        default:
+            return;
+    }
+}
+
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::set_act_mode(BoardActMode_t new_act_mode) {
+    switch (new_act_mode) {
+        case GIMBAL_CENTER:
+        case GIMBAL_FOLLOW:
+        case SELF_GYRO:
+        case INDPET_MODE:
+            chassis.chassis_act_mode = new_act_mode;
+            break;
+        default:
+            return;
     }
 }
 

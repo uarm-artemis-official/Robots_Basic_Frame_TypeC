@@ -68,7 +68,6 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     void set_motor_mode(GimbalMotorMode_t mode);
     void safe_mode_switch();
 
-    void get_rc_info();
     void get_motor_feedback();
     void get_imu_headings();
 

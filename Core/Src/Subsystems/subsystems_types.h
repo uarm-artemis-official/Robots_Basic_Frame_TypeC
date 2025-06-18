@@ -128,6 +128,7 @@ typedef enum Topic_Name_t {
     GIMBAL_REL_ANGLES,
     COMMAND_GIMBAL,
     COMMAND_CHASSIS,
+    COMMAND_SHOOT,
 } Topic_Name_t;
 
 // TODO: Find better solution to defining a testable QueueHandle_t.
@@ -186,6 +187,11 @@ typedef struct {
     float pitch;
     uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
 } GimbalCommandMessage_t;
+
+typedef struct {
+    uint32_t command_bits;
+    uint32_t extra_bits;
+} ShootCommandMessage_t;
 
 /* =========================================================================
  * DEBUG TYPES
