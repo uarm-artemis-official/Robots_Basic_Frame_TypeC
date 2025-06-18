@@ -119,19 +119,19 @@ void RCComm::parse_pc(Buffer& buffer, PC& pc) {
         (std::get<15>(buffer) << 8);  //multiple keys reading
 
     key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::W);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::S);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::A);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::D);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::SHIFT);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::CTRL);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::Q);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::E);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::R);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::F);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::G);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::C);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::V);
-    key_scan(pc.keyboard.W, pc.keyboard.key_buffer, EKeyBitIndex::B);
+    key_scan(pc.keyboard.S, pc.keyboard.key_buffer, EKeyBitIndex::S);
+    key_scan(pc.keyboard.A, pc.keyboard.key_buffer, EKeyBitIndex::A);
+    key_scan(pc.keyboard.D, pc.keyboard.key_buffer, EKeyBitIndex::D);
+    key_scan(pc.keyboard.Shift, pc.keyboard.key_buffer, EKeyBitIndex::SHIFT);
+    key_scan(pc.keyboard.Ctrl, pc.keyboard.key_buffer, EKeyBitIndex::CTRL);
+    key_scan(pc.keyboard.Q, pc.keyboard.key_buffer, EKeyBitIndex::Q);
+    key_scan(pc.keyboard.E, pc.keyboard.key_buffer, EKeyBitIndex::E);
+    key_scan(pc.keyboard.R, pc.keyboard.key_buffer, EKeyBitIndex::R);
+    key_scan(pc.keyboard.F, pc.keyboard.key_buffer, EKeyBitIndex::F);
+    key_scan(pc.keyboard.G, pc.keyboard.key_buffer, EKeyBitIndex::G);
+    key_scan(pc.keyboard.C, pc.keyboard.key_buffer, EKeyBitIndex::C);
+    key_scan(pc.keyboard.V, pc.keyboard.key_buffer, EKeyBitIndex::V);
+    key_scan(pc.keyboard.B, pc.keyboard.key_buffer, EKeyBitIndex::B);
 
     if ((abs(pc.mouse.x) > MOUSE_MAX_SPEED) ||
         (abs(pc.mouse.x) > MOUSE_MAX_SPEED)) {
@@ -149,8 +149,9 @@ void RCComm::key_scan(KeyObject& key, uint16_t key_buffer,
     if (key_buffer & key_index) {
         // TODO: Add software timer instead of counting.
         key.status_count++;
-    } else
+    } else {
         key.status_count = 0;
+    }
 
     // Update key's status
     key.pre_status = key.status;
