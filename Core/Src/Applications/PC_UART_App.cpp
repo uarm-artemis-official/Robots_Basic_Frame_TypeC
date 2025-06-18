@@ -13,6 +13,7 @@
 #include "pack_handler.h"  // TODO: Remove
 #include "pc_comm.h"
 #include "uarm_lib.h"
+#include "uarm_math.h"
 #include "uarm_os.h"
 
 PCUARTApp::PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_)
@@ -52,7 +53,8 @@ void PCUARTApp::loop() {
                     std::memcpy(&aim_pack, new_pack_buffer + PACK_HEADER_SIZE,
                                 get_data_size(new_pack_buffer[0]));
                     if (aim_pack.target_num > 0) {
-                        float deltas[] = {aim_pack.delta_yaw,
+                        float deltas[] = {value_limit(aim_pack.delta_yaw,
+                                                      -0.122173, 0.122173),
                                           aim_pack.delta_pitch};
                         recent_deltas[0] = aim_pack.delta_yaw;
                         recent_deltas[1] = aim_pack.delta_pitch;

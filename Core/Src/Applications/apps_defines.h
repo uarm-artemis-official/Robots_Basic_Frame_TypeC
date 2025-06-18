@@ -12,7 +12,7 @@
 #define TIMER_TASK_EXEC_TIME 1
 #define COMM_TASK_EXEC_TIME 2
 #define RC_TASK_EXEC_TIME 2
-#define PC_UART_TASK_EXEC_TIME 5
+#define PC_UART_TASK_EXEC_TIME 1
 
 /* =========================================================================
  * CHASSIS DEFINES 
