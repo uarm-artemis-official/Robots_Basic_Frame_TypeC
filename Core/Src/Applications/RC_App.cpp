@@ -373,11 +373,11 @@ void RCApp::pub_command_messages() {
         send_chassis_command(v_parallel, v_perp, wz, board_mode, act_mode);
 
         float yaw = in_out_map(rc.ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL,
-                               CHANNEL_OFFSET_MAX_ABS_VAL, -2.0f * DEGREE2RAD,
-                               2.0f * DEGREE2RAD);
+                               CHANNEL_OFFSET_MAX_ABS_VAL, -5.0f * DEGREE2RAD,
+                               5.0f * DEGREE2RAD);
         float pitch = in_out_map(rc.ctrl.ch1, -CHANNEL_OFFSET_MAX_ABS_VAL,
-                                 CHANNEL_OFFSET_MAX_ABS_VAL, -1.0f * DEGREE2RAD,
-                                 1.0f * DEGREE2RAD);
+                                 CHANNEL_OFFSET_MAX_ABS_VAL, -5.0f * DEGREE2RAD,
+                                 5.0f * DEGREE2RAD);
 
         send_gimbal_can_comm(yaw, pitch, board_mode, act_mode);
 
