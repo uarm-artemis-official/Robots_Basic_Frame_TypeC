@@ -273,13 +273,13 @@ void RCApp::pub_command_messages() {
         int16_t quantized_yaw =
             quantize_float(in_out_map(rc.ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL,
                                       CHANNEL_OFFSET_MAX_ABS_VAL,
-                                      -2.0f * DEGREE2RAD, 2.0f * DEGREE2RAD),
+                                      -5.0f * DEGREE2RAD, 5.0f * DEGREE2RAD),
                            -PI, PI, std::numeric_limits<int16_t>::min(),
                            std::numeric_limits<int16_t>::max());
         int quantized_pitch =
             quantize_float(in_out_map(rc.ctrl.ch1, -CHANNEL_OFFSET_MAX_ABS_VAL,
                                       CHANNEL_OFFSET_MAX_ABS_VAL,
-                                      -1.0f * DEGREE2RAD, 1.0f * DEGREE2RAD),
+                                      -5.0f * DEGREE2RAD, 5.0f * DEGREE2RAD),
                            -PI, PI, std::numeric_limits<int16_t>::min(),
                            std::numeric_limits<int16_t>::max());
         uint32_t command_bits = 0;

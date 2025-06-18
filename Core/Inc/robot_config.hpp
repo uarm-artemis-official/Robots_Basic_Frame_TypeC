@@ -75,32 +75,32 @@ namespace robot_config {
             {0.0f, 0.0f, 1.0f},
         };
 
-        constexpr float KP_GIMBAL_YAW_ANGLE = 150;
-        constexpr float KI_GIMBAL_YAW_ANGLE = 0;
-        constexpr float KD_GIMBAL_YAW_ANGLE = 0;
+        constexpr float KP_GIMBAL_YAW_ANGLE = 105;
+        constexpr float KI_GIMBAL_YAW_ANGLE = 16;
+        constexpr float KD_GIMBAL_YAW_ANGLE = 0.05;
         constexpr float BETA_GIMBAL_YAW_ANGLE = 1;
         constexpr float YETA_GIMBAL_YAW_ANGLE = 0;
         constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = -800;
         constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 800;
 
-        constexpr float KP_GIMBAL_YAW_SPEED = 400;
-        constexpr float KI_GIMBAL_YAW_SPEED = 70;
+        constexpr float KP_GIMBAL_YAW_SPEED = 240;
+        constexpr float KI_GIMBAL_YAW_SPEED = 10;
         constexpr float KD_GIMBAL_YAW_SPEED = 0;
         constexpr float BETA_GIMBAL_YAW_SPEED = 1;
         constexpr float YETA_GIMBAL_YAW_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
 
-        constexpr float KP_GIMBAL_PITCH_ANGLE = 300;
-        constexpr float KI_GIMBAL_PITCH_ANGLE = 30;
-        constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
+        constexpr float KP_GIMBAL_PITCH_ANGLE = 80;
+        constexpr float KI_GIMBAL_PITCH_ANGLE = 10;
+        constexpr float KD_GIMBAL_PITCH_ANGLE = 0.05;
         constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
         constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
         constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
 
-        constexpr float KP_GIMBAL_PITCH_SPEED = 180;
-        constexpr float KI_GIMBAL_PITCH_SPEED = 0;
+        constexpr float KP_GIMBAL_PITCH_SPEED = 200;
+        constexpr float KI_GIMBAL_PITCH_SPEED = 10;
         constexpr float KD_GIMBAL_PITCH_SPEED = 0;
         constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
