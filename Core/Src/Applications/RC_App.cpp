@@ -131,19 +131,6 @@ void RCApp::loop() {
                   rc_rx_buffer.begin());
 
         parse_raw_rc();
-
-        // BoardMode_t board_mode;
-        // BoardActMode_t act_mode;
-        // ShootActMode_t shoot_mode;
-        // map_switches_to_modes(board_mode, act_mode, shoot_mode);
-
-        // uint8_t modes[3] = {static_cast<uint8_t>(board_mode),
-        //                     static_cast<uint8_t>(act_mode),
-        //                     static_cast<uint8_t>(shoot_mode)};
-        // int16_t channels[4] = {rc.ctrl.ch0, rc.ctrl.ch1, rc.ctrl.ch2,
-        //                        rc.ctrl.ch3};
-
-        // pub_rc_messages(modes, channels);
         pub_command_messages();
     }
 }
@@ -217,22 +204,6 @@ void RCApp::map_switches_to_modes(BoardMode_t& board_mode,
         act_mode = INDPET_MODE;
         shoot_mode = SHOOT_CEASE;
     }
-}
-
-void RCApp::pub_rc_messages(uint8_t modes[3], int16_t channels[4]) {
-    RCInfoMessage_t rc_info_message;
-    memset(&rc_info_message, 0, sizeof(RCInfoMessage_t));
-    memcpy(&(rc_info_message.modes), modes, sizeof(uint8_t) * 3);
-    memcpy(&(rc_info_message.channels), channels, sizeof(int16_t) * 4);
-    message_center.pub_message(RC_INFO, &rc_info_message);
-
-    // Publish to COMM_OUT (Chassis -> Gimbal).
-    CANCommMessage_t comm_message;
-    memset(&comm_message, 0, sizeof(CANCommMessage_t));
-    comm_message.topic_name = RC_INFO;
-    memcpy(comm_message.data, modes, sizeof(uint8_t) * 3);
-    memcpy(&(comm_message.data[4]), channels, sizeof(int16_t) * 2);
-    message_center.pub_message(COMM_OUT, &comm_message);
 }
 
 void RCApp::detect_rc_loss() {

@@ -94,11 +94,6 @@ void GimbalApp::set_initial_state() {
 
     init_folp_filter(&(gimbal.folp_f_yaw), 0.90f);
     init_folp_filter(&(gimbal.folp_f_pitch), 0.90f);
-
-    gimbal.prev_gimbal_motor_mode = ENCODE_MODE;
-    gimbal.gimbal_motor_mode = ENCODE_MODE;
-    gimbal.gimbal_act_mode = INDPET_MODE;
-    gimbal.gimbal_mode = IDLE_MODE;
 }
 
 bool GimbalApp::exit_calibrate_cond() {
@@ -360,20 +355,6 @@ void GimbalApp::safe_mode_switch() {
         // TODO: Implement synchronization method if switching from encoder -> gyro results
         //       in noticeable shifts due to changes in imu_center due to gyroscopic drift.
     }
-}
-
-void GimbalApp::calc_channels_to_angles(const int16_t g_channels[2],
-                                        float deltas[2]) {
-    /**
-	 * deltas[0] - delta yaw
-	 * deltas[1] - delta pitch
-	 */
-    deltas[0] = in_out_map((float) g_channels[0], -CHANNEL_OFFSET_MAX_ABS_VAL,
-                           CHANNEL_OFFSET_MAX_ABS_VAL, -2.0f * DEGREE2RAD,
-                           2.0f * DEGREE2RAD);
-    deltas[1] = in_out_map((float) g_channels[1], -CHANNEL_OFFSET_MAX_ABS_VAL,
-                           CHANNEL_OFFSET_MAX_ABS_VAL, -1.0f * DEGREE2RAD,
-                           1.0f * DEGREE2RAD);
 }
 
 bool GimbalApp::is_imu_calibrated() {

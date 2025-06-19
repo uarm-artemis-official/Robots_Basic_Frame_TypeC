@@ -49,7 +49,6 @@ class RCApp : public RTOSApp<RCApp> {
     void map_switches_to_modes(BoardMode_t& board_mode,
                                BoardActMode_t& act_mode,
                                ShootActMode_t& shoot_mode);
-    void pub_rc_messages(uint8_t modes[3], int16_t channels[4]);
     void detect_rc_loss();
     void send_gimbal_can_comm(float yaw, float pitch, BoardMode_t board_mode,
                               BoardActMode_t act_mode);

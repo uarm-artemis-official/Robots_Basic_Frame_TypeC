@@ -73,7 +73,6 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
 
     void process_commands();
 
-    void calc_channels_to_angles(const int16_t g_channels[2], float deltas[2]);
     void calc_imu_center();
 
     void update_imu_angle(float yaw, float pitch);
