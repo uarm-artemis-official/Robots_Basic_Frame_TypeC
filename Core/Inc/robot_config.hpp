@@ -76,7 +76,7 @@ namespace robot_config {
         };
 
         constexpr float KP_GIMBAL_YAW_ANGLE = 105;
-        constexpr float KI_GIMBAL_YAW_ANGLE = 16;
+        constexpr float KI_GIMBAL_YAW_ANGLE = 0;  // Not allowed.
         constexpr float KD_GIMBAL_YAW_ANGLE = 0.05;
         constexpr float BETA_GIMBAL_YAW_ANGLE = 1;
         constexpr float YETA_GIMBAL_YAW_ANGLE = 0;
@@ -139,7 +139,7 @@ namespace robot_config {
 
         constexpr float KP_GIMBAL_PITCH_SPEED = 0;
         constexpr float KI_GIMBAL_PITCH_SPEED = 0;
-        constexpr float KD_GIMBAL_PITCH_SPPED = 0;
+        constexpr float KD_GIMBAL_PITCH_SPEED = 0;
         constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
