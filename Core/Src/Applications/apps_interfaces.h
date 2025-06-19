@@ -73,7 +73,7 @@ class ChassisDrive {
 
     void set_max_power(float new_max_power) {
         Derived* derived = static_cast<Derived*>(this);
-        derived->set_max_power_impl();
+        derived->set_max_power_impl(new_max_power);
     }
 };
 

@@ -51,6 +51,7 @@ float pid_dual_loop_control(float f_tar_val, PID_t* f_pid, PID_t* s_pid,
 
 void pid2_init(PID2_t& pid, float k_p, float k_i, float k_d, float beta,
                float yeta, float min_out, float max_out);
+void pid2_set_limits(PID2_t& pid, float new_min_out, float new_max_out);
 float pid2_calculate(PID2_t& pid, float sp, float pv, float dt);
 float pid2_single_loop_control(PID2_t& pid, float sp, float pv, float dt);
 float pid2_dual_loop_control(PID2_t& f_pid, PID2_t& s_pid, float sp, float f_pv,

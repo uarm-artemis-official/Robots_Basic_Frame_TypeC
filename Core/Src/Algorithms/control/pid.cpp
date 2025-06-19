@@ -116,6 +116,7 @@ float pid_dual_loop_control(float f_tar_val, PID_t* f_pid, PID_t* s_pid,
     return pid_calculate(s_pid, s_cur_val, f_out, dt);
 }
 
+// TODO: Implement back-calculation.
 void pid2_init(PID2_t& pid, float k_p, float k_i, float k_d, float beta,
                float yeta, float min_out, float max_out) {
     ASSERT(max_out >= min_out, "max_out has to be greater or equal to min_out");
@@ -143,6 +144,16 @@ void pid2_init(PID2_t& pid, float k_p, float k_i, float k_d, float beta,
 
     pid.prev_total_out = 0;
     pid.total_out = 0;
+}
+
+void pid2_set_limits(PID2_t& pid, float new_min_out, float new_max_out) {
+    ASSERT(new_max_out >= new_min_out,
+           "new_max_out has to be greater or equal to new_min_out.");
+
+    pid.max_out = new_max_out;
+    pid.min_out = new_min_out;
+
+    // TODO: Implement anti-integrator windup
 }
 
 float pid2_calculate(PID2_t& pid, float sp, float pv, float dt) {

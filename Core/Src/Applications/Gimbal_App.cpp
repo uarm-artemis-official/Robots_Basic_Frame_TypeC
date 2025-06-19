@@ -104,8 +104,9 @@ void GimbalApp::set_initial_state() {
 bool GimbalApp::exit_calibrate_cond() {
     // TODO: Add speed condition (e.g. rpm has to be lower than 5)?
     return fabs(gimbal.yaw_rel_angle) <
-           (robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA *
-            DEGREE2RAD);
+               (robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA *
+                DEGREE2RAD) &&
+           motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm < 10;
 }
 
 void GimbalApp::calibrate() {
@@ -117,7 +118,7 @@ void GimbalApp::calibrate() {
     float yaw_diff =
         calc_rel_angle(gimbal.yaw_target_angle, gimbal.yaw_rel_angle);
     float pitch_diff =
-        calc_rel_angle(gimbal.pitch_target_angle, gimbal.pitch_rel_angle);
+        calc_rel_angle(gimbal.pitch_rel_angle, gimbal.pitch_target_angle);
 
     pid2_dual_loop_control(
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,
@@ -497,7 +498,9 @@ void GimbalApp::update_targets() {
 
         gimbal.pitch_target_angle -= command_deltas[1];
     } else {
-        ASSERT(false, "Unknown state");
+        gimbal.yaw_target_angle = 0;
+        gimbal.pitch_target_angle = 0;
+        // ASSERT(false, "Unknown state");
     }
 
     // Software limit pitch target range to prevent hitting mechanical hard-stops.
