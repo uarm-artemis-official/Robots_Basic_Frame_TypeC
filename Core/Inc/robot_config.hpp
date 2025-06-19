@@ -224,6 +224,8 @@ namespace robot_config {
         constexpr float MIN_OUT_OMNI_DRIVE = -5000;
         constexpr float MAX_OUT_OMNI_DRIVE = 5000;
 
+        constexpr float WHEEL_RAMP_MAX_ACCEL = 5;  // rad/s^2
+
         constexpr float KP_CHASSIS_SPIN = 1;
         constexpr float KI_CHASSIS_SPIN = 0;
         constexpr float KD_CHASSIS_SPIN = 0;

@@ -54,7 +54,8 @@ void PCUARTApp::loop() {
                                 get_data_size(new_pack_buffer[0]));
                     if (aim_pack.target_num > 0) {
                         float deltas[] = {value_limit(aim_pack.delta_yaw,
-                                                      -0.122173, 0.122173),
+                                                      -(15.f * DEGREE2RAD),
+                                                      15.f * DEGREE2RAD),
                                           aim_pack.delta_pitch};
                         recent_deltas[0] = aim_pack.delta_yaw;
                         recent_deltas[1] = aim_pack.delta_pitch;

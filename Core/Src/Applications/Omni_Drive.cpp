@@ -2,16 +2,20 @@
 #include <cstring>
 #include <numeric>
 #include "pid.h"
+#include "ramp.hpp"
 #include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 
 OmniDrive::OmniDrive(IMessageCenter& message_center_ref, IMotors& motors_ref,
-                     float chassis_width, float chassis_length)
+                     float chassis_width, float chassis_length,
+                     float power_limit_, float chassis_dt_)
     : message_center(message_center_ref),
       motors(motors_ref),
       width(chassis_width),
-      length(chassis_length) {}
+      length(chassis_length),
+      power_limit(power_limit_),
+      chassis_dt(chassis_dt_) {}
 
 void OmniDrive::init_impl() {
     for (size_t i = 0; i < motor_controls.size(); i++) {
@@ -26,6 +30,8 @@ void OmniDrive::init_impl() {
                   robot_config::chassis_params::YETA_OMNI_DRIVE,
                   robot_config::chassis_params::MIN_OUT_OMNI_DRIVE,
                   robot_config::chassis_params::MAX_OUT_OMNI_DRIVE);
+        ramp_init(motor_controls.at(i).sp_ramp,
+                  robot_config::chassis_params::WHEEL_RAMP_MAX_ACCEL);
     }
 
     std::get<0>(motor_controls).stdid = CHASSIS_WHEEL1;
@@ -104,8 +110,14 @@ void OmniDrive::calc_motor_volts() {
     float available_total_current = power_limit / 24.f / CURRENT_RESOLUTION;
 
     for (size_t i = 0; i < motor_controls.size(); i++) {
-        int16_t motor_out = value_limit(std::roundf(motor_angluar_vel[i]),
-                                        -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
+        int16_t motor_target =
+            value_limit(std::roundf(motor_angluar_vel[i]), -CHASSIS_MAX_SPEED,
+                        CHASSIS_MAX_SPEED);
+        ramp_set_target(motor_controls.at(i).sp_ramp,
+                        motor_controls.at(i).feedback.rx_rpm / RADS_TO_RPM,
+                        motor_target);
+
+        ramp_calc_output(motor_controls.at(i).sp_ramp, chassis_dt);
 
         float current_limit =
             motor_angluar_vel.at(i) / angular_vel_sum * available_total_current;
@@ -113,7 +125,8 @@ void OmniDrive::calc_motor_volts() {
                         current_limit);
         pid2_single_loop_control(
             motor_controls.at(i).f_pid,
-            motor_out * RADS_TO_RPM * CHASSIS_MOTOR_DEC_RATIO,
+            motor_controls.at(i).sp_ramp.output * RADS_TO_RPM *
+                CHASSIS_MOTOR_DEC_RATIO,
             static_cast<float>(motor_controls.at(i).feedback.rx_rpm),
             CHASSIS_TASK_EXEC_TIME * 0.001);
     }

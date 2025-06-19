@@ -190,7 +190,8 @@ static OmniDrive omni_drive(message_center, no_init_motors, omni_chassis_width,
 static constexpr float mecanum_chassis_width = 0.41f;
 static constexpr float mecanum_chassis_length = 0.35f;
 static OmniDrive omni_drive(message_center, no_init_motors,
-                            mecanum_chassis_width, mecanum_chassis_length);
+                            mecanum_chassis_width, mecanum_chassis_length, 50,
+                            ChassisApp<OmniDrive>::LOOP_PERIOD_MS * 0.001);
 #endif
 
 static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);

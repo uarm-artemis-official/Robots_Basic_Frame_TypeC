@@ -12,11 +12,12 @@ class OmniDrive : public ChassisDrive<OmniDrive> {
     std::array<float, 4> motor_angluar_vel;
     IMessageCenter& message_center;
     IMotors& motors;
-    float width, length, power_limit;
+    float width, length, power_limit, chassis_dt;
 
    public:
     OmniDrive(IMessageCenter& message_center_ref, IMotors& motors,
-              float chassis_width, float chassis_length);
+              float chassis_width, float chassis_length, float power_limit_,
+              float chassis_dt_);
 
     void init_impl();
 

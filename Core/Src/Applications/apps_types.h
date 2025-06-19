@@ -114,6 +114,7 @@ typedef struct {
 typedef struct {
     uint32_t stdid;
     PID2_t f_pid;  //first pid handler for single-loop control
+    Ramp sp_ramp;
     Motor_Feedback_t feedback;
 } Chassis_Wheel_Control_t;
 
