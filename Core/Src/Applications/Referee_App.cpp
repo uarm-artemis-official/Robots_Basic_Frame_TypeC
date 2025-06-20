@@ -194,6 +194,8 @@ void RefereeApp::draw_all_ui() {
     // if (ref.robot_status_data.robot_id != 0) {
     ref_ui.set_ui_data(UI_INFANTRY_MARK, ref.robot_status_data.robot_id);
     ref_ui.send_ui_data(INTERA_UI_ID, UI_INFANTRY_MARK_LEN);
+    ref_ui.set_ui_data(UI_ROBOT_VAILD_INFO, ref.robot_status_data.robot_id);
+    ref_ui.send_ui_data(INTERA_UI_ID, UI_ROBOT_VAILD_INFO_LEN);
     // }
 }
 

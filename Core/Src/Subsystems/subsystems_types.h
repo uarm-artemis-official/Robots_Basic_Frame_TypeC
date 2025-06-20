@@ -218,6 +218,7 @@ typedef enum Sync_Event_t {
 typedef enum {
     UI_TYPE_IDLE_ID = 0,
     /* General UI */
+    UI_ROBOT_VAILD_INFO,
     UI_ROBOT_ACT_MODE,
     UI_ROBOT_LEVEL,
     UI_SUPCAP_PERCENT,
@@ -251,6 +252,7 @@ typedef struct {
     ext_client_custom_character_t ui_custom_data;
 
     uint8_t first_drawing_flag;
+    uint8_t first_drawing_flag_info;  // For infantry marks
     uint8_t cur_sending_count;
     referee_ui_type_t cur_sending_id;
     uint8_t pack_seq;

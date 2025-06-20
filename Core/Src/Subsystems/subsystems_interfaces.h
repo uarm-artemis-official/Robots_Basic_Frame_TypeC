@@ -41,7 +41,7 @@ class IRefUI {
     virtual void set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id) = 0;
     virtual void send_ui_data(uint16_t cmd_id, uint16_t len) = 0;
     virtual void draw_marks() = 0;
-    virtual void draw_act_mode() = 0;
+    virtual void draw_vaild_info() = 0;
 };
 
 class IEventCenter {

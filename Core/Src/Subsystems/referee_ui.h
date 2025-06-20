@@ -21,7 +21,7 @@ class RefereeUI : public IRefUI {
     void set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id) override;
     void send_ui_data(uint16_t cmd_id, uint16_t len) override;
     void draw_marks() override;
-    void draw_act_mode() override;
+    void draw_vaild_info() override;
 };
 
 #endif /* SRC_REF_UI_H_ */
