@@ -18,24 +18,10 @@
 #ifndef __RAMP_H__
 #define __RAMP_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef RAMP_H_GLOBAL
-  #define RAMP_H_EXTERN
-#else
-  #define RAMP_H_EXTERN extern
-#endif
-
 #include "control_types.h"
 
+void ramp_init(Ramp& ramp, float max_change_);
+void ramp_set_target(Ramp& ramp, float start, float new_target);
+void ramp_calc_output(Ramp& ramp, float dt);
 
-void  ramp_init(ramp_t *ramp, int32_t scale);
-float ramp_calculate(ramp_t *ramp);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // __RAMP_H__
+#endif  // __RAMP_H__

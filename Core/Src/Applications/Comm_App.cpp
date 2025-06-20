@@ -9,18 +9,14 @@
 * All rights reserved.
 ******************************************************************************
 */
-
-#ifndef __COMM_APP_C__
-#define __COMM_APP_C__
-
 #include "Comm_App.h"
+#include <cstring>
+#include <limits>
 #include "apps_defines.h"
-#include "can_comm.h"
-#include "debug.h"
-#include "message_center.h"
-#include "public_defines.h"
+#include "quantize.hpp"
 #include "string.h"
 #include "uarm_lib.h"
+#include "uarm_math.h"
 #include "uarm_os.h"
 
 CommApp::CommApp(IMessageCenter& message_center_ref, IDebug& debug_ref,
@@ -57,48 +53,57 @@ void CommApp::loop() {
             } break;
             case RC_INFO: {
                 RCInfoMessage_t rc_info;
+                memset(&rc_info, 0, sizeof(RCInfoMessage_t));
                 memcpy(rc_info.channels, &(incoming_message.data[4]),
                        sizeof(int16_t) * 2);
                 memcpy(rc_info.modes, incoming_message.data,
                        sizeof(uint8_t) * 3);
                 message_center.pub_message(RC_INFO, &rc_info);
             } break;
-            case PLAYER_COMMANDS:
-                // TODO: Implement
+            case COMMAND_GIMBAL: {
+                GimbalCommandMessage_t gimbal_command;
+                int16_t quantized_yaw;
+                int16_t quantized_pitch;
+
+                std::memcpy(&quantized_yaw, incoming_message.data,
+                            sizeof(int16_t));
+                std::memcpy(&quantized_pitch, &(incoming_message.data[2]),
+                            sizeof(int16_t));
+                std::memcpy(&(gimbal_command.command_bits),
+                            &(incoming_message.data[4]), sizeof(uint32_t));
+
+                gimbal_command.yaw = inv_quantize_float(
+                    quantized_yaw, std::numeric_limits<int16_t>::min(),
+                    std::numeric_limits<int16_t>::max(), -PI, PI);
+                gimbal_command.pitch = inv_quantize_float(
+                    quantized_pitch, std::numeric_limits<int16_t>::min(),
+                    std::numeric_limits<int16_t>::max(), -PI, PI);
+
+                message_center.pub_message(COMMAND_GIMBAL, &gimbal_command);
                 break;
+            }
+            case COMMAND_SHOOT: {
+                ShootCommandMessage_t shoot_command;
+                std::memcpy(&(shoot_command.command_bits),
+                            incoming_message.data, sizeof(uint32_t));
+                std::memcpy(&(shoot_command.extra_bits),
+                            &(incoming_message.data[4]), sizeof(uint32_t));
+
+                message_center.pub_message(COMMAND_SHOOT, &shoot_command);
+                break;
+            }
             default:
                 break;
         }
     }
 };
 
-// TickType_t xLastWakeTime;
-// const TickType_t xFrequency = pdMS_TO_TICKS(COMM_TASK_EXEC_TIME);
-// xLastWakeTime = xTaskGetTickCount();
-
-// for (;;) {
-//     vTaskDelayUntil(&xLastWakeTime, xFrequency);
-// }
 /***************************** CAN COMM BEGAIN ************************************/
 /**
 * @brief CAN commnication message subscription
 * @param None
 * @retval None
 */
-//void can_comm_subscribe_process(void){
-//	if(board_status == CHASSIS_BOARD){
-//		comm_subscribe(&chassis_comm.sub_list, COMM_REMOTE_CONTROL, Transmitter);
-//		comm_subscribe(&chassis_comm.sub_list, COMM_PC_CONTROL, Transmitter);
-//		comm_subscribe(&chassis_comm.sub_list, COMM_EXT_PC_CONTROL, Transmitter);
-//		comm_subscribe(&chassis_comm.sub_list, COMM_GIMBAL_ANGLE, Receiver);
-//	}
-//	else if(board_status == GIMBAL_BOARD){
-//		comm_subscribe(&gimbal_comm.sub_list, COMM_GIMBAL_ANGLE, Transmitter);
-//		comm_subscribe(&gimbal_comm.sub_list, COMM_REMOTE_CONTROL, Receiver);
-//		comm_subscribe(&gimbal_comm.sub_list, COMM_PC_CONTROL, Receiver);
-//		comm_subscribe(&gimbal_comm.sub_list, COMM_EXT_PC_CONTROL, Receiver);
-//	}
-//}
 ///**
 //* @brief CAN commnication struct initialization
 //* @param None
@@ -168,141 +173,3 @@ void CommApp::loop() {
 // 		(*rx_buffer)[i][3] = (int16_t)(comm_temp_rx_buffer[6] << 8 | comm_temp_rx_buffer[7]);
 // 	}
 // }
-/***************************** CAN COMM END ************************************/
-/* Since we have multiple can comm works in the future , there is necessity that apply
- * FIFO Queue management of our CAN2 data pool. This function has been moved to algo*/
-/***************************** UART COMM BEGAIN ************************************/
-/**
-* @brief uart commnication process
-* @param None
-* @retval None
-*/
-//void usart_comm_process(void){
-//	for(;;){
-//		if(capture_flag == 0){
-//			comm_pack.vision.target_num = 0;
-//		}
-//		else{
-//			osDelay(3000);
-//			if(capture_flag == 1)
-//				capture_flag = 0;
-//		}
-//	}
-//}
-#ifdef USE_UART_DMA
-static uint8_t temp_buffer[PACKLEN + 1];
-/**
-* @brief uart global interrupt function
-* @param UART_HandleTypeDef object refered to a uart structure
-* @retval None
-*/
-//FIXME: Use DMA to trigger UART6 and UART7
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
-    // When enter this callback function, the variable pdata has been filled with the received data.
-    // Thus parse it directly.
-    HAL_GPIO_WritePin(LD_E_GPIO_Port, LD_E_Pin, RESET);
-    if (huart == &huart6 && board_status == CHASSIS_BOARD) {
-        HAL_GPIO_WritePin(LD_G_GPIO_Port, LD_G_Pin, RESET);
-        //		  comm_pack=parse_all(pdata);
-        strncpy(temp_buffer, pdata, PACKLEN);
-        comm_pack.vision = parse_all(temp_buffer);
-        abs_yaw = angle_preprocess(&motor_data[5], comm_pack.vision.yaw_data,
-                                   1.8, YAW_MOTOR);
-        //		  abs_pitch=angle_preprocess(&motor_data[4], comm_pack.pitch_data, 1, PITCH_MOTOR);
-        temp_buffer[sizeof(temp_buffer) - 1] = '\0';
-        HAL_UART_Transmit(&huart7, (char*) temp_buffer, strlen(temp_buffer),
-                          1000);
-        HAL_UART_Receive_IT(&huart6, (char*) pdata, PACKLEN);
-        capture_flag = 1;
-    } else if (huart == &huart6 && board_status == GIMBAL_BOARD) {
-        comm_pack.vision = parse_all(pdata);
-        //		  abs_yaw=angle_preprocess(&motor_data[5], comm_pack.yaw_data, 1, YAW_MOTOR);
-        abs_pitch = angle_preprocess(
-            &motor_data[4], comm_pack.vision.pitch_data, 1, PITCH_MOTOR);
-        HAL_GPIO_WritePin(LD_F_GPIO_Port, LD_F_Pin, RESET);
-        HAL_UART_Receive_IT(&huart6, (char*) pdata, PACKLEN);
-        capture_flag = 1;
-    } else {
-        HAL_GPIO_WritePin(LD_F_GPIO_Port, LD_F_Pin, SET);
-        capture_flag = 0;
-    }
-    // Enable the uart interrupt again
-}
-
-/* no sub comm func for backing up */
-void can_comm_process_nosub(void) {
-    Comm_t comm_pack;
-    /* can comm tasks */
-    if (board_status == CHASSIS_BOARD) {
-        //reset the comm struct configure
-        //		can_comm_reset_config(&chassis_comm, IDLE_COMM_ID);
-        for (;;) {
-            /* send tasks */
-            if (comm_pack.comm_rc.send_flag == 1) {
-                memcpy(&(chassis_comm.can_comm.tx_data),
-                       &(comm_pack.comm_rc.rc_data),
-                       sizeof(comm_pack.comm_rc.rc_data));
-                chassis_comm.can_comm.can_send_comm_data(
-                    &hcan2, chassis_comm.can_comm.tx_data, RC_COMM_ID);
-                comm_pack.comm_rc.send_flag =
-                    0;  //reset flag to avoid message flooding
-            }
-
-            /* recv tasks */
-            chassis_comm.can_comm.can_recv_comm_data(
-                &hcan2, 8, chassis_comm.can_comm.rx_data);
-            /* relative angle for attitude breakdown */
-            if (can_comm_rx[ANGLE_IDX].comm_id == ANGLE_COMM_ID) {
-                process_rx_data(&chassis_comm, comm_pack.comm_ga.angle_data,
-                                ANGLE_COMM_SCALE_FACTOR, ANGLE_IDX);
-                chassis.gimbal_yaw_rel_angle =
-                    -comm_pack.comm_ga
-                         .angle_data[0];  //can_rx_scale_buffer[ANGLE_IDX][0];
-                chassis.gimbal_yaw_abs_angle =
-                    comm_pack.comm_ga
-                        .angle_data[1];  //can_rx_scale_buffer[ANGLE_IDX][1];
-                can_comm_rx[ANGLE_IDX].comm_id =
-                    0;  //reset id to avoid message flooding
-            }
-            osDelay(1);
-        }
-    } else if (board_status == GIMBAL_BOARD) {
-        //		can_comm_reset_config(&gimbal_comm, IDLE_COMM_ID);
-        for (;;) {
-            /* send tasks */
-            /*yaw relative angle can_tx_scale_buffer[ANGLE_IDX]*/
-            if (comm_pack.comm_ga.send_flag == 1) {
-                process_tx_data(comm_pack.comm_ga.angle_data,
-                                gimbal_comm.can_comm.tx_data, 4,
-                                ANGLE_COMM_SCALE_FACTOR);
-                gimbal_comm.can_comm.can_send_comm_data(
-                    &hcan2, gimbal_comm.can_comm.tx_data, ANGLE_COMM_ID);
-                comm_pack.comm_ga.send_flag =
-                    0;  //reset flag to avoid message flooding
-            }
-
-            /* recv tasks */
-            gimbal_comm.can_comm.can_recv_comm_data(
-                &hcan2, 8, gimbal_comm.can_comm.rx_data);
-            /* relative angle for attitude breakdown */
-            if (can_comm_rx[RC_IDX].comm_id == RC_COMM_ID) {
-                rc.ctrl.ch0 = gimbal_comm.can_comm.rx_data[RC_IDX][0];
-                rc.ctrl.ch1 = gimbal_comm.can_comm.rx_data[RC_IDX][1];
-                rc.ctrl.s1 = gimbal_comm.can_comm.rx_data[RC_IDX][2];
-                rc.ctrl.s2 = gimbal_comm.can_comm.rx_data[RC_IDX][3];
-                can_comm_rx[RC_IDX].comm_id =
-                    0;  //reset id to avoid message flooding
-            }
-            osDelay(1);
-        }
-    }
-}
-
-#endif
-
-/*****************************  UART COMM END  ************************************/
-/* The UART comm between boards are being on hold since ethe CAN comm can be more
- * reliable and fast, and we will use UART DMA to save cpu's arithmetic power */
-/********************************  COMM END  ************************************/
-
-#endif /*__COMM_TASK_C__*/

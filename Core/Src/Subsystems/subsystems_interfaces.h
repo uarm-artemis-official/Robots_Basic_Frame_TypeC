@@ -19,20 +19,23 @@ class IMessageCenter {
 class IMotors {
    public:
     virtual void init(Motor_Config_t config) = 0;
-    virtual void set_motor_voltage(Motor_CAN_ID_t can_id, int32_t output) = 0;
+    virtual bool is_valid_output(size_t motor_index, int32_t new_output) = 0;
+    virtual void set_motor_voltage(uint32_t can_id, int32_t output) = 0;
     virtual void send_motor_voltage() = 0;
     virtual void request_feedback(Motor_CAN_ID_t can_id) = 0;
+    virtual void get_raw_feedback(uint32_t stdid, uint8_t data[8],
+                                  void* feedback) = 0;
+    virtual Motor_Brand_t get_motor_brand(uint32_t stdid) = 0;
 };
 
 class IImu {
    public:
     virtual void init() = 0;
     virtual float get_temp() = 0;
-    virtual void get_attitude(Attitude_t* attitude) = 0;
-    virtual void set_offset() = 0;
+    virtual void get_attitude(Attitude_t& attitude) = 0;
+    virtual void get_sensor_data(AhrsSensor_t& sensor) = 0;
     virtual void set_heat_pwm(uint16_t duty_cycle) = 0;
-    virtual void set_cali_slove() = 0;
-    virtual void ahrs_update(AhrsSensor_t* sensor, bool read_mag) = 0;
+    virtual void gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) = 0;
 };
 
 class IRefUI {
@@ -66,6 +69,29 @@ class ICanComm {
     virtual void init() = 0;
     virtual void can_transmit_comm_message(uint8_t send_data[8],
                                            uint32_t comm_id) = 0;
+};
+
+class IAmmoLid {
+   public:
+    virtual void init() = 0;
+    virtual void set_lid_status(EAmmoLidStatus new_status) = 0;
+};
+
+class IRCComm {
+   public:
+    virtual ~IRCComm() = default;  // Virtual destructor
+    virtual void buffer_init(Buffer& buffer) = 0;
+    virtual void key_object_init(KeyObject& key) = 0;
+    virtual void keyboard_init(Keyboard& keyboard) = 0;
+    virtual void mouse_init(Mouse& mouse) = 0;
+    virtual void pc_init(PC& pc) = 0;
+    virtual void controller_init(Controller& controller) = 0;
+    virtual void parse_switches(Buffer& buffer, ESwitchState& s1,
+                                ESwitchState& s2) = 0;
+    virtual void parse_controller(Buffer& buffer, Controller& controller) = 0;
+    virtual void parse_pc(Buffer& buffer, PC& pc) = 0;
+    virtual void key_scan(KeyObject& key, uint16_t key_buffer,
+                          EKeyBitIndex key_bit_index) = 0;
 };
 
 #endif

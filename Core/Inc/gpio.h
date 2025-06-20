@@ -30,7 +30,6 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 #include "stm32f4xx_hal.h"
-#include "public_defines.h"
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */

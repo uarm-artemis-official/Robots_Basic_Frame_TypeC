@@ -12,12 +12,9 @@
 *******************************************************************************/
 
 #include "Timer_App.h"
+#include <cstring>
 #include "apps_defines.h"
 #include "apps_types.h"
-#include "debug.h"
-#include "message_center.h"
-#include "motors.h"
-#include "public_defines.h"
 #include "uarm_lib.h"
 #include "uarm_os.h"
 
@@ -67,10 +64,7 @@ void TimerApp::loop() {
         message_center.get_message(MOTOR_SET, &motor_tx_message, 0);
     if (received_new_message == 1) {
         for (int i = 0; i < MAX_MOTOR_COUNT; i++) {
-            if (motor_tx_message.can_ids[i] == 0)
-                break;
-            if (-30000 <= motor_tx_message.motor_can_volts[i] &&
-                motor_tx_message.motor_can_volts[i] <= 30000) {
+            if (motor_tx_message.can_ids[i] != 0) {
                 system_motors.set_motor_voltage(
                     motor_tx_message.can_ids[i],
                     motor_tx_message.motor_can_volts[i]);
@@ -78,9 +72,7 @@ void TimerApp::loop() {
         }
     }
 
-    for (size_t i = 0; i < swerve_ids.size(); i++) {
-        system_motors.request_feedback(swerve_ids.at(i));
-    }
+    // system_motors.request_feedback(swerve_ids.at(i));
 
 #ifndef DISABLE_MOTOR_SEND
     system_motors.send_motor_voltage();

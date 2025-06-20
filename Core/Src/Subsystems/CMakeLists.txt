@@ -7,9 +7,12 @@ target_include_directories(SUBSYSTEMS_INCLUDE
         ${FIRMWARE_PATH}/Device/ist8310
         ${FIRMWARE_PATH}
         ${ALGORITHMS_PATH}/attitude)
+target_link_libraries(SUBSYSTEMS_INCLUDE
+    INTERFACE
+        LIB::UARM_INCLUDE)
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
-
+if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest")
 add_library(DEBUG STATIC debug.cpp)
 target_include_directories(DEBUG 
     PUBLIC
@@ -89,3 +92,21 @@ target_link_libraries(REF_UI
         ALGORITHMS::COMMS_LIB
         FW::REF_DATA)
 add_library(SUBSYSTEMS::REF_UI ALIAS REF_UI)
+
+add_library(RC_COMM STATIC rc_comm.cpp)
+target_include_directories(RC_COMM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(RC_COMM
+    PUBLIC
+        SUBSYSTEMS_INCLUDE)
+add_library(SUBSYSTEMS::RC_COMM ALIAS RC_COMM)
+
+
+add_library(AMMO_LID STATIC ammo_lid.cpp)
+target_include_directories(AMMO_LID PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(AMMO_LID 
+    PUBLIC 
+        SUBSYSTEMS_INCLUDE
+        LIB::UARM_LIB
+        FW::TIMERS_HANDLER)
+add_library(SUBSYSTEMS::AMMO_LID ALIAS AMMO_LID)
+endif()

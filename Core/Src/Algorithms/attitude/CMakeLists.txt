@@ -1,4 +1,4 @@
-add_library(ATTITUDE_LIB STATIC angle_process.c mahony_ahrs.c madgwick_ahrs.c)
+add_library(ATTITUDE_LIB STATIC angle_process.c mahony_ahrs.c madgwick_ahrs.c madgewick.cpp)
 target_link_libraries(ATTITUDE_LIB 
     PUBLIC
         LIB::UARM_LIB

@@ -15,7 +15,7 @@
 #include "apps_interfaces.h"
 #include "apps_types.h"
 
-class IMUApp : public RTOSApp<IMUApp> {
+class IMUApp : public ExtendedRTOSApp<IMUApp> {
    private:
     IMessageCenter& message_center;
     IEventCenter& event_center;
@@ -25,6 +25,7 @@ class IMUApp : public RTOSApp<IMUApp> {
     IMU_t imu_app_state;
     IMU_Heat_t imu_heating_control;
     Attitude_t attitude;
+    AhrsSensor_t sensor_data;
     float message_data[2];
 
    public:
@@ -36,9 +37,10 @@ class IMUApp : public RTOSApp<IMUApp> {
     IMUApp(IMessageCenter& message_center_ref, IEventCenter& event_center_ref,
            IImu& imu_ref, IDebug& debug_ref);
     void init();
+    void calibrate();
+    bool exit_calibrate_cond();
     void loop();
 
-    void calibrate_imu();
     int32_t imu_temp_pid_control();
 
     void set_imu_temp_status(IMU_temp_status status);

@@ -1,6 +1,7 @@
 add_library(APPS_INCLUDE INTERFACE)
 target_include_directories(APPS_INCLUDE
     INTERFACE
+        ${PROJECT_SOURCE_DIR}/Core/Inc
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${ALGORITHMS_PATH}/control
         ${ALGORITHMS_PATH}/attitude
@@ -17,7 +18,7 @@ target_link_libraries(CHASSIS_DRIVES
         LIB::UARM_MATH)
 
 # Add Shoot_App.c back again later
-add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp)
+add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp Shoot_App.cpp)
 target_link_libraries(BASIC_APPS
     PUBLIC
         APPS_INCLUDE
@@ -25,15 +26,14 @@ target_link_libraries(BASIC_APPS
         LIB::UARM_OS
         LIB::UARM_MATH
         CHASSIS_DRIVES
-        SUBSYSTEMS::MESSAGE_CENTER
-        SUBSYSTEMS::MOTORS
         ALGORITHMS::ATTITUDE_LIB
+        SUBSYSTEMS::SUBSYSTEMS_INCLUDE
         ALGORITHMS::CONTROL_LIB)
 
 add_library(GENERIC_APPS 
     STATIC 
         Comm_App.cpp
-        Control_App.cpp
+        RC_App.cpp
         IMU_App.cpp
         PC_UART_App.cpp
         Referee_App.cpp
@@ -54,4 +54,5 @@ target_link_libraries(GENERIC_APPS
         SUBSYSTEMS::IMU
         SUBSYSTEMS::DEBUG
         SUBSYSTEMS::REF_UI
+        SUBSYSTEMS::SUBSYSTEMS_INCLUDE
         ALGORITHMS::COMMS_LIB)

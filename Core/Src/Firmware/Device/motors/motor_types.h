@@ -26,6 +26,7 @@ typedef enum {
     LK_CMD_ML_ANGLE = 0xA3,
     LK_CMD_ML_ANGLE_WITH_SPEED = 0xA4,
     // Multiple Loop Speed Control, -2048 ~ 2048
+    LK_CMD_SL_ANGLE_WITH_SPEED1 = 0xA5,
     LK_CMD_SL_ANGLE_WITH_SPEED = 0xA6,
     LK_CMD_INCREMENTAL_ANGLE = 0xA7
 } LK_Motor_Command_t;
@@ -43,5 +44,13 @@ typedef struct {
     int16_t rx_current;
     int16_t rx_temp;
 } Motor_Feedback_t;
+
+typedef struct {
+    int8_t temperature;      // degrees celsius (1 degree resolution)
+    int16_t torque_current;  // -2048 ~ 2048 -> -16.5A ~ 16.5A
+    int16_t speed;           // degrees per second.
+    uint16_t
+        ecd_position;  // 0 ~ 65535 (for 18-bit encoder) maps onto 0 ~ 360 degrees?
+} LK_Motor_Torque_Feedback_t;
 
 #endif

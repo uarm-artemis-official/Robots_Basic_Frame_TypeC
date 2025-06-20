@@ -1,14 +1,8 @@
 #ifndef __CAN_ISR_H
 #define __CAN_ISR_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+enum class CAN_ISR_Config { NORMAL, SWERVE };
 
-void init_can_isr();
-
-#ifdef __cplusplus
-}
-#endif
+void init_can_isr(CAN_ISR_Config config);
 
 #endif

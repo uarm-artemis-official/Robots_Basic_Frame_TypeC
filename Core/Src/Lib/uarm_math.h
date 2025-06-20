@@ -30,11 +30,19 @@ extern "C" {
 
 /* User defiend functions declaration */
 /* maths */
+float sign(float x);
+
 double exp_sum(double* array, int length);
 void softmax(float* x, int len);
 void abs_limit(float* a, float ABS_MAX);
 float in_out_map(float input, float in_min, float in_max, float out_min,
                  float out_max);
+float fast_inv_sqrt(float x);
+float realign(float theta, float pos);
+
+float value_limit(float x, float min_x, float max_x);
+float relative_angle(float angle1, float angle2);
+float relative_angle_rad(float angle1, float angle2);
 
 /* generic filters */
 void init_folp_filter(first_order_low_pass_t* folp, float a);

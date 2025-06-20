@@ -58,6 +58,7 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 enable_language(C CXX ASM)
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
+    include(CTest)
     include(FetchContent)
     FetchContent_Declare(
         googletest
@@ -77,10 +78,8 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
         INTERFACE 
             GTEST)
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Lib)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src/Algorithms)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
-
 else()
     add_executable(${CMAKE_PROJECT_NAME})
 
@@ -123,5 +122,14 @@ else()
         GENERIC_APPS
         ISRS::UART_ISR
         ISRS::CAN_ISR
+        SUBSYSTEMS::DEBUG
+        SUBSYSTEMS::RC_COMM
+        SUBSYSTEMS::AMMO_LID
+        SUBSYSTEMS::PC_COMM
+        SUBSYSTEMS::CAN_COMM
+        SUBSYSTEMS::MOTORS
+        SUBSYSTEMS::MESSAGE_CENTER
+        SUBSYSTEMS::EVENT_CENTER
+        SUBSYSTEMS::IMU
         stm32cubemx)
 endif()

@@ -95,6 +95,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "FreeRTOS.h"
+#include "ammo_lid.hpp"
 #include "can_comm.h"
 #include "can_isr.h"
 #include "debug.h"
@@ -104,17 +105,19 @@
 #include "message_center.h"
 #include "motors.h"
 #include "referee_ui.h"
+#include "rc_comm.hpp"
+#include "robot_config.hpp"
 #include "stdio.h"
 #include "stm32f407xx.h"
 #include "uart_isr.h"
 
 #include "Chassis_App.h"
 #include "Comm_App.h"
-#include "Control_App.h"
 #include "Gimbal_App.h"
 #include "IMU_App.h"
 #include "Omni_Drive.h"
 #include "PC_UART_App.h"
+#include "RC_App.hpp"
 #include "Referee_App.h"
 #include "Shoot_App.h"
 #include "Swerve_Drive.h"
@@ -157,47 +160,58 @@ uint8_t referee_timeout_check_flag = 0;
 uint32_t prev_uart_timestamp = 0;
 
 /* new defined variables*/
-uint32_t debugger_signal_counter = 0;  //count the idle time
-uint32_t debugger_signal_flag = 0;     //mark the debugger task
-uint8_t ref_rx_frame[256] = {0};       //referee temp frame buffer
+uint8_t ref_rx_frame[256] = {0};  //referee temp frame buffer
 //uint8_t ref_rx_frame[MAX_REF_BUFFER_SZIE]={0}; //referee temp frame buffer
-//uint8_t rc_rx_buffer[DBUS_BUFFER_LEN]; //rc temporary buffer
-uint16_t chassis_gyro_counter = 0;  // used for backup robots without slipring
-uint8_t chassis_gyro_flag = 0;      // used for backup robots without slipring
 
 static MessageCenter& message_center = MessageCenter::get_instance();
 static EventCenter event_center;
 static Debug debug;
 static CanComm can_comm;
 static Motors motors;
-static Imu imu;
 static RefereeUI ref_ui;
+static Motors no_init_motors;
+static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4,
+               robot_config::gimbal_params::IMU_ORIENTATION);
+static AmmoLid ammo_lid;
+static RCComm rc_comm;
 
 #ifdef SWERVE_CHASSIS
-static SwerveDrive swerve_drive(message_center, 0);
+static constexpr float swerve_chassis_width = 0.352728f;
+static constexpr float swerve_dt =
+    ChassisApp<SwerveDrive>::LOOP_PERIOD_MS * 0.001;
+static SwerveDrive swerve_drive(message_center, no_init_motors,
+                                swerve_chassis_width, swerve_dt);
 static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 #else
 
 #ifdef OMNI_CHASSIS
 static constexpr float omni_chassis_width = 0.40f;
-static OmniDrive omni_drive(message_center, omni_chassis_width,
+static OmniDrive omni_drive(message_center, no_init_motors, omni_chassis_width,
                             omni_chassis_width);
 #else
 static constexpr float mecanum_chassis_width = 0.41f;
 static constexpr float mecanum_chassis_length = 0.35f;
-static OmniDrive omni_drive(message_center, mecanum_chassis_width,
-                            mecanum_chassis_length);
+static OmniDrive omni_drive(message_center, no_init_motors,
+                            mecanum_chassis_width, mecanum_chassis_length, 50,
+                            ChassisApp<OmniDrive>::LOOP_PERIOD_MS * 0.001);
 #endif
 
 static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 #endif
 
+static RCApp rc_app(message_center, rc_comm);
 static CommApp comm_app(message_center, debug, can_comm);
 static TimerApp timer_app(motors, message_center, debug);
-static PCUARTApp pc_uart_app(message_center);
+static PCUARTApp pc_uart_app(message_center, no_init_motors);
 static IMUApp imu_app(message_center, event_center, imu, debug);
-static GimbalApp gimbal_app(message_center, event_center, debug);
 static RefereeApp referee_app(message_center, event_center, debug, ref_ui);
+static GimbalApp gimbal_app(message_center, event_center, debug,
+                            no_init_motors);
+static ShootApp shoot_app(
+    message_center, ammo_lid, no_init_motors,
+    robot_config::shoot_params::LOADER_ACTIVE_RPM,
+    robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
+    robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
 /* USER CODE END 0 */
 
 /**
@@ -284,7 +298,9 @@ int main(void) {
             osPriorityHigh, 0, 256);
         osThreadCreate(osThread(ChassisTask), NULL);
 
-        osThreadDef(RCTask, RC_Task_Func, osPriorityHigh, 0, 384);
+        osThreadDef(
+            RCTask, [](const void* arg) { rc_app.run(arg); }, osPriorityHigh, 0,
+            384);
         osThreadCreate(osThread(RCTask), NULL);
 
         osThreadDef(
@@ -295,11 +311,13 @@ int main(void) {
     } else if (board_status == GIMBAL_BOARD) {
         osThreadDef(
             GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
-            osPriorityHigh, 0, 512);
+            osPriorityRealtime, 0, 512);
         osThreadCreate(osThread(GimbalTask), NULL);
 
-        // osThreadDef(ShootTask, Shoot_Task_Func, osPriorityHigh, 0, 256);
-        // osThreadCreate(osThread(ShootTask), NULL);
+        osThreadDef(
+            ShootTask, [](const void* arg) { shoot_app.run(arg); },
+            osPriorityHigh, 0, 256);
+        osThreadCreate(osThread(ShootTask), NULL);
 
         osThreadDef(
             IMUTask, [](const void* arg) { imu_app.run(arg); },
@@ -397,8 +415,6 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     // referee_init(&referee);
     dwt_init();
 
-    // TODO: Init event_center.
-
     UART_Config_t config;
     if (debug.get_board_status() == CHASSIS_BOARD) {
         config = CHASSIS;
@@ -406,7 +422,13 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
         config = GIMBAL;
     }
     init_uart_isr(config);
-    init_can_isr();
+
+#ifdef SWERVE_CHASSIS
+    constexpr CAN_ISR_Config can_config = CAN_ISR_Config::SWERVE;
+#else
+    constexpr CAN_ISR_Config can_config = CAN_ISR_Config::NORMAL;
+#endif
+    init_can_isr(can_config);
 
     return HAL_OK;
 }
@@ -420,16 +442,6 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
     /* USER CODE BEGIN Callback 0 */
-    if (htim->Instance == TIM13) {
-        if (debugger_signal_flag == 1)
-            ++debugger_signal_counter;
-        //		if(shoot_reserve_flag == 1)
-        //			++shoot_reserve_counter;
-        //		if(shoot_check_flag == 1)
-        //			++shoot_check_counter;
-        if (chassis_gyro_flag == 1)
-            ++chassis_gyro_counter;
-    }
     /* USER CODE END Callback 0 */
     if (htim->Instance == TIM5) {
         HAL_IncTick();

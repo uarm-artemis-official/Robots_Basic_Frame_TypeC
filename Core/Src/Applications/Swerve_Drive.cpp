@@ -1,31 +1,68 @@
 #include "Swerve_Drive.h"
+#include <algorithm>
 #include <cstring>
+#include <iterator>
+#include <numbers>
+#include "apps_defines.h"
 #include "motors.h"
+#include "pid.h"
+#include "robot_config.hpp"
 #include "uarm_lib.h"
+#include "uarm_math.h"
 
 SwerveDrive::SwerveDrive(IMessageCenter& message_center_ref,
-                         uint32_t chassis_width)
-    : message_center(message_center_ref), width(chassis_width) {}
+                         IMotors& motors_ref, float width_, float dt_)
+    : message_center(message_center_ref),
+      motors(motors_ref),
+      width(width_),
+      dt(dt_) {}
 
 void SwerveDrive::init_impl() {
-    std::memset(target_wheel_angles, 0, sizeof(float) * 4);
-    std::memset(target_wheel_speeds, 0, sizeof(int16_t) * 4);
+    steer_curr_angle = {0};
+    steer_curr_speed = {0};
+    steer_cw_mag = {0};
+    steer_ccw_mag = {0};
+    steer_target_angle = {0};
+    drive_target_speed = {0};
 
-    for (size_t i = 0; i < swerve_motors.size(); i++) {
-        std::memset(&(swerve_motors[i].feedback), 0, sizeof(Motor_Feedback_t));
-        swerve_motors[i].angle = 0;
+    steer_max_speed = {0};
+    steer_ccw = {false};
+    steer_output_angle = {0};
+    drive_output = {0};
+
+    for (size_t i = 0; i < drive_motors.size(); i++) {
+        drive_motors.at(i).stdid = 0;
+        pid2_init(drive_motors.at(i).f_pid,
+                  robot_config::chassis_params::KP_SWERVE_DRIVE,
+                  robot_config::chassis_params::KI_SWERVE_DRIVE,
+                  robot_config::chassis_params::KD_SWERVE_DRIVE,
+                  robot_config::chassis_params::BETA_SWERVE_DRIVE,
+                  robot_config::chassis_params::YETA_SWERVE_DRIVE,
+                  robot_config::chassis_params::MIN_OUT_SWERVE_DRIVE,
+                  robot_config::chassis_params::MAX_OUT_SWERVE_DRIVE);
+        drive_motors.at(i).feedback.rx_angle = 0;
+        drive_motors.at(i).feedback.rx_current = 0;
+        drive_motors.at(i).feedback.rx_rpm = 0;
+        drive_motors.at(i).feedback.rx_temp = 0;
     }
 
-    swerve_motors[0].stdid = CHASSIS_WHEEL1;
-    swerve_motors[1].stdid = CHASSIS_WHEEL2;
-    swerve_motors[2].stdid = CHASSIS_WHEEL3;
-    swerve_motors[3].stdid = CHASSIS_WHEEL4;
-    swerve_motors[4].stdid = SWERVE_STEER_MOTOR1;
-    swerve_motors[5].stdid = SWERVE_STEER_MOTOR2;
-    swerve_motors[6].stdid = SWERVE_STEER_MOTOR3;
-    swerve_motors[7].stdid = SWERVE_STEER_MOTOR4;
+    for (size_t i = 0; i < steer_motors.size(); i++) {
+        steer_motors.at(i).stdid = 0;
+        steer_motors.at(i).lk_feedback.ecd_position = 0;
+        steer_motors.at(i).lk_feedback.speed = 0;
+        steer_motors.at(i).lk_feedback.torque_current = 0;
+        steer_motors.at(i).lk_feedback.temperature = 0;
+    }
 
-    // TODO: init PID_t structs for drive wheels.
+    std::get<0>(drive_motors).stdid = CHASSIS_WHEEL1;
+    std::get<1>(drive_motors).stdid = CHASSIS_WHEEL2;
+    std::get<2>(drive_motors).stdid = CHASSIS_WHEEL3;
+    std::get<3>(drive_motors).stdid = CHASSIS_WHEEL4;
+
+    std::get<0>(steer_motors).stdid = SWERVE_STEER_MOTOR1;
+    std::get<1>(steer_motors).stdid = SWERVE_STEER_MOTOR2;
+    std::get<2>(steer_motors).stdid = SWERVE_STEER_MOTOR3;
+    std::get<3>(steer_motors).stdid = SWERVE_STEER_MOTOR4;
 }
 
 void SwerveDrive::get_motor_feedback() {
@@ -34,24 +71,21 @@ void SwerveDrive::get_motor_feedback() {
     uint8_t new_read_message =
         message_center.peek_message(MOTOR_READ, &read_message, 0);
     if (new_read_message == 1) {
-        for (size_t i = 0; i < swerve_motors.size(); i++) {
-            for (size_t j = 0; j < MAX_MOTOR_COUNT; j++) {
-                if (swerve_motors[i].stdid == read_message.can_ids[j]) {
-                    switch (Motors::get_motor_brand(swerve_motors[i].stdid)) {
-                        case LK:
-                            Motors::parse_feedback(swerve_motors[i].stdid,
-                                                   read_message.feedback[i],
-                                                   &(swerve_motors[i].angle));
-                            break;
-                        case DJI:
-                            Motors::parse_feedback(
-                                swerve_motors[i].stdid,
-                                read_message.feedback[i],
-                                &(swerve_motors[i].feedback));
-                            break;
-                        default:
-                            continue;
-                    }
+        for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
+            for (size_t j = 0; j < steer_motors.size(); j++) {
+                if (steer_motors[j].stdid == read_message.can_ids[i]) {
+                    motors.get_raw_feedback(steer_motors.at(j).stdid,
+                                            read_message.feedback[i],
+                                            &(steer_motors.at(j).lk_feedback));
+                    break;
+                }
+            }
+
+            for (size_t j = 0; j < drive_motors.size(); j++) {
+                if (drive_motors.at(j).stdid == read_message.can_ids[i]) {
+                    motors.get_raw_feedback(drive_motors.at(j).stdid,
+                                            read_message.feedback[i],
+                                            &(drive_motors.at(j).feedback));
                     break;
                 }
             }
@@ -73,125 +107,103 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
 	 *		  	  |	     |                           |     \__>   wz       180  deg  
 	 *		 v4	 [] ---- [] v3     <Rear>              ----> vx  				 
 	 *										
-     Annotations used for velocity vector of robot:
-        V : Translational velocity vector,
-        Vx, Vy : translational velocity vector component along X and Y axis respectively,
-        vx, vy : magnitude of translational velocity component along X and Y axis respectively,
-        Ω : angular (rotational) velocity vector, it is positive in counterclockwise direction,
-        wz : magnitude of angular velocity vector,
-        R : the distance vector from the axis of rotation to swerve module,
-        X : The distance from wheel center of front and rear wheel along X axis,
-        Y : The distance from wheel center of left and right wheel along Y axis.
+     */
+    float A = vx - wz * (width * 0.5);
+    float B = vx + wz * (width * 0.5);
+    float C = vy - wz * (width * 0.5);
+    float D = vy + wz * (width * 0.5);
+    float theta1 = atan2(B, D) * 180 / PI;
+    float theta2 = atan2(B, C) * 180 / PI;
+    float theta3 = atan2(A, C) * 180 / PI;
+    float theta4 = atan2(A, D) * 180 / PI;
 
-	Annotations used for swerve module:
-        Vi(i = 1, 2, 3, 4)  : resultant velocity vector,
-        Vit(i = 1, 2, 3, 4) : translational velocity vector,
-        Vir(i = 1, 2, 3, 4) : rotational velocity vector,
-        vi(i = 1, 2, 3, 4)  : resultant velocity,
-        vix(i = 1, 2, 3, 4) : velocity component along X axis,
-        viy(i = 1, 2, 3, 4) : velocity component along Y axis,
-        0i : Angle of azimuth motor
+    /* Zero position of MG4005 (only needed if motor zero are not pointing in the "forward" direction) */
+    float zero1 = 330;
+    float zero2 = 166.5;
+    float zero3 = 340;
+    float zero4 = 195.5;
 
-     The general inverse kinematic equation is,
-        Vi = Vit + Vir (1)
-        V1 = V + Ω × R (2)
-        V1x = Vx + (Ω × R)x (3)
-        V1y = Vy + (Ω × R)y (3)
-        V1x = Vx - Ω ∗ X/2 (4)
-        V1y = Vy + Ω ∗ Y/2 (4)
-    
-    For module 1,
-        v1x = vx - wz ∗ X/2 
-        v1y = vy + wz ∗ Y/2 
-        v1 = sqrt((v1x)^2 + (v1y)^2)) 
-        θ1 = atan2(v1y,v1x) * (1800/pi)
-    
-    For module 2,
-        v2x = vx + wz ∗ X/2 
-        v2y = vy + wz ∗ Y/2 
-        v2 = sqrt((v2x)^2 + (v2y)^2)) 
-        θ2 = atan2(v2y,v2x) * (1800/pi)
+    /* Realign domain with relative zero of MG4005 (we now multiply by 10 to convert to dps) */
+    steer_target_angle.at(0) = realign(theta1, zero1);
+    steer_target_angle.at(1) = realign(theta2, zero2);
+    steer_target_angle.at(2) = realign(theta3, zero3);
+    steer_target_angle.at(3) = realign(theta4, zero4);
 
-    For module 3,
-        v3x = vx + wz ∗ X/2 
-        v3y = vy - wz ∗ Y/2 
-        v3 = sqrt((v3x)^2 + (v3y)^2)) 
-        θ3 = atan2(v3y,v3x) * (1800/pi)
+    /* Set max rotaional speed (Ω) of MG4005 in dps */
+    constexpr uint16_t STEER_MAX_SPEED = 4500;
+    constexpr float ECD_SCALE_FACTOR = 360.0f / 65535.0f;
+    constexpr float ANGLE_THRESHOLD = 5.0f;
+    constexpr int16_t SPEED_THRESHOLD = 0;
+    for (size_t i = 0; i < NUM_STEER_MOTORS; i++) {
+        steer_max_speed.at(i) = STEER_MAX_SPEED;
 
-    For module 4,
-        v4x = vx - wz ∗ X/2 
-        v4y = vy - wz ∗ Y/2 
-        v4 = sqrt((v4x)^2 + (v4y)^2)) 
-        θ4 = atan2(v4y,v4x) * (1800/pi)
-    */
-    /* Define variables shown above */
-    // float v1x =
-    //     chassis_hdlr->vx - chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v1y =
-    //     chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v2x =
-    //     chassis_hdlr->vx + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v2y =
-    //     chassis_hdlr->vy + chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v3x =
-    //     chassis_hdlr->vx + chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v3y =
-    //     chassis_hdlr->vy - chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
-    // float v4x =
-    //     chassis_hdlr->vx - chassis_hdlr->wz * (CHASSIS_WHEEL_X_LENGTH * 0.5);
-    // float v4y =
-    //     chassis_hdlr->vy - chassis_hdlr->wz * (CHASSIS_WHEEL_Y_LENGTH * 0.5);
+        steer_curr_angle.at(i) =
+            ECD_SCALE_FACTOR *
+            static_cast<float>(steer_motors.at(i).lk_feedback.ecd_position);
 
-    // /* For speed (Vi) control of M3508 */
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL1_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v1x, 2) + pow(v1y, 2))) * CHASSIS_MOTOR_DEC_RATIO;
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL2_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v2x, 2) + pow(v2y, 2))) *
-    //     CHASSIS_MOTOR_DEC_RATIO chassis_hdlr->mec_spd[CHASSIS_WHEEL3_CAN_ID] =
-    //         (int16_t) (sqrt(pow(v3x, 2) + pow(v3y, 2))) *
-    //         CHASSIS_MOTOR_DEC_RATIO;
-    // chassis_hdlr->mec_spd[CHASSIS_WHEEL4_CAN_ID] =
-    //     (int16_t) (sqrt(pow(v4x, 2) + pow(v4y, 2))) * CHASSIS_MOTOR_DEC_RATIO;
-    // /* Zero-ing of MG4005 (only needed if motors are not pointing in the "forward" direction)*/
+        steer_curr_speed.at(i) = steer_motors.at(i).lk_feedback.speed;
+        steer_cw_mag.at(i) =
+            relative_angle(steer_curr_angle.at(i), steer_target_angle.at(i));
+        steer_ccw_mag.at(i) =
+            relative_angle(steer_target_angle.at(i), steer_curr_angle.at(i));
 
-    // /* Set max rotaional speed (Ω) of MG4005 in dps */
-    // chassis_hdlr->swerve_speed[SWERVE_1_CAN_ID] =
-    //     (uint16_t) (9000)
+        if (std::min(steer_ccw_mag.at(i), steer_cw_mag.at(i)) >=
+                ANGLE_THRESHOLD &&
+            abs(steer_curr_speed.at(i)) <= SPEED_THRESHOLD) {
+            steer_output_angle.at(i) = steer_target_angle.at(i);
+            steer_ccw.at(i) = steer_ccw_mag.at(i) < steer_cw_mag.at(i);
+        }
+    }
 
-    //     /* For angle (0i) control of MG4005 [-1800,1800] */
-    //     chassis_hdlr->swerve_angle[SWERVE_1_CAN_ID] =
-    //         (uint32_t) (atan2(v1y, v1x) *
-    //                     (1800 /
-    //                      pi)) if chassis_hdlr->swerve_angle[SWERVE_1_CAN_ID]
+    /* For speed (Vi) control of M3508 */
+    std::get<0>(drive_target_speed) = sqrt(pow(B, 2) + pow(D, 2));
+    std::get<1>(drive_target_speed) = sqrt(pow(B, 2) + pow(C, 2));
+    std::get<2>(drive_target_speed) = sqrt(pow(A, 2) + pow(C, 2));
+    std::get<3>(drive_target_speed) = sqrt(pow(A, 2) + pow(D, 2));
+
+    constexpr float inverse_wheel_radius = 1 / 0.0508;
+    constexpr float RADS_TO_RPM = 60 / (2 * PI);
+    for (size_t i = 0; i < NUM_DRIVE_MOTORS; i++) {
+        pid2_single_loop_control(
+            drive_motors.at(i).f_pid,
+            drive_target_speed.at(i) * RADS_TO_RPM * CHASSIS_MOTOR_DEC_RATIO *
+                inverse_wheel_radius,
+            static_cast<float>(drive_motors.at(i).feedback.rx_rpm), dt);
+        drive_output.at(i) =
+            static_cast<int32_t>(drive_motors.at(i).f_pid.total_out);
+    }
 }
 
 void SwerveDrive::send_motor_messages() {
-    Motor_CAN_ID_t angle_can_ids[] = {
-        SWERVE_STEER_MOTOR1, SWERVE_STEER_MOTOR2, SWERVE_STEER_MOTOR3,
-        SWERVE_STEER_MOTOR4, CHASSIS_WHEEL1,      CHASSIS_WHEEL2,
-        CHASSIS_WHEEL3,      CHASSIS_WHEEL4,
-    };
+    static_assert(NUM_STEER_MOTORS + NUM_DRIVE_MOTORS <= MAX_MOTOR_COUNT);
     MotorSetMessage_t set_message;
-    memset(&set_message, 0, sizeof(MotorSetMessage_t));
-
-    for (int i = 0; i < 4; i++) {
+    std::memset(&set_message, 0, sizeof(MotorSetMessage_t));
+    for (size_t i = 0; i < NUM_STEER_MOTORS; i++) {
         set_message.motor_can_volts[i] = SwerveDrive::pack_lk_motor_message(
-            true, target_wheel_speeds[i], target_wheel_angles[i]);
-        set_message.can_ids[i] = angle_can_ids[i];
+            steer_ccw.at(i), steer_max_speed.at(i),
+            steer_output_angle.at(i) * 100);
+        set_message.can_ids[i] =
+            static_cast<Motor_CAN_ID_t>(steer_motors.at(i).stdid);
     }
 
-    // TODO: Add chassis wheel speeds to set_message.
+    for (size_t i = 0; i < NUM_DRIVE_MOTORS; i++) {
+        set_message.motor_can_volts[NUM_STEER_MOTORS + i] = drive_output.at(i);
+        set_message.can_ids[NUM_STEER_MOTORS + i] =
+            static_cast<Motor_CAN_ID_t>(drive_motors.at(i).stdid);
+    }
 
     message_center.pub_message(MOTOR_SET, &set_message);
 }
 
 int32_t SwerveDrive::pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                            uint32_t angle) {
-    ASSERT(angle < 40000, "LK angle cannot be greater than 36000");
+    // ASSERT(angle <= 36000, "LK angle cannot be greater than 36000");
+    ASSERT(max_speed <= 16383,
+           "Max speeds higher than 16383 are not supported");
     int32_t motor_message_value = 0;
-    motor_message_value |= (((uint32_t) max_speed) & 0x0fff) << 16;
+    motor_message_value |= (((uint32_t) max_speed) & 0x3fff) << 16;
     motor_message_value |= angle & 0xffff;
-    motor_message_value |= (int32_t) spin_ccw << 31;
+    motor_message_value |= (uint32_t) spin_ccw << 30;
 
     return motor_message_value;
 }

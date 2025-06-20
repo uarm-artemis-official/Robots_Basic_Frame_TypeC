@@ -4,9 +4,11 @@
 #include "subsystems_interfaces.h"
 #include "subsystems_types.h"
 
+// TODO: Add timestamp or something for users to differentiate messages.
 class MessageCenter : public IMessageCenter {
    private:
-    Topic_Handle_t topic_handles[14] = {
+    // TODO: replace with std::array. Hard? cannot use template deduction??
+    Topic_Handle_t topic_handles[18] = {
         Topic_Handle_t {MOTOR_SET, sizeof(MotorSetMessage_t), 5, NULL},
         Topic_Handle_t {MOTOR_READ, sizeof(MotorReadMessage_t), 1, NULL},
         Topic_Handle_t {RC_INFO, sizeof(RCInfoMessage_t), 1, NULL},
@@ -24,15 +26,24 @@ class MessageCenter : public IMessageCenter {
         Topic_Handle_t {PLAYER_COMMANDS, 0, 1, NULL},
         Topic_Handle_t {REFEREE_IN, sizeof(uint8_t) * 41, 1, NULL},
         Topic_Handle_t {RC_RAW, sizeof(uint8_t) * 18, 5, NULL},
-        Topic_Handle_t {UC_PACK_IN, sizeof(uint8_t) * 64, 10, NULL},
+
+        Topic_Handle_t {UC_PACK_IN, sizeof(uint8_t) * 64, 1, NULL},
+        Topic_Handle_t {UC_PACK_OUT, sizeof(uint8_t) * 196, 10, NULL},
         Topic_Handle_t {AUTO_AIM, sizeof(float) * 2, 1, NULL},
-    };
+
+        Topic_Handle_t {COMMAND_CHASSIS, sizeof(ChassisCommandMessage_t), 1,
+                        NULL},
+        Topic_Handle_t {COMMAND_GIMBAL, sizeof(GimbalCommandMessage_t), 1,
+                        NULL},
+        Topic_Handle_t {COMMAND_SHOOT, sizeof(ShootCommandMessage_t), 1, NULL}};
     bool initialized = false;
 
    public:
     static MessageCenter& get_instance();
 
     void init() override;
+
+    // TODO: Replace return values with bools?
     uint8_t get_message(Topic_Name_t topic, void* data_ptr,
                         int ticks_to_wait) override;
     uint8_t peek_message(Topic_Name_t topic, void* data_ptr,

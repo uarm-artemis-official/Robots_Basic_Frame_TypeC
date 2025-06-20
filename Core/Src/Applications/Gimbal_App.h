@@ -31,61 +31,59 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     Gimbal_Imu_Calibration_t imu_calibration;
     Gimbal_Motor_Control_t motor_controls[GIMBAL_MOTOR_COUNT];
     int16_t gimbal_channels[2];
+    float command_deltas[2];
 
     IMessageCenter& message_center;
     IEventCenter& event_center;
     IDebug& debug;
+    IMotors& motors;
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = GIMBAL_TASK_EXEC_TIME;
+
+    // Software limits on pitch targets to prevent pitch from hitting mechanical hard stops.
+    static constexpr float PITCH_LOWER_LIMIT = -0.1;
+    static constexpr float PITCH_UPPER_LIMIT = 0.4;
+    static constexpr uint32_t IMU_CENTER_TARGET_SAMPLES = 100;
+
     static float calc_rel_angle(float angle1, float angle2);
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
     GimbalApp(IMessageCenter& message_center_ref, IEventCenter& event_center,
-              IDebug& debug_ref);
+              IDebug& debug_ref, IMotors& motors_ref);
     void init();
     void set_initial_state();
+    void wait_for_motors();
 
     bool exit_calibrate_cond();
     void calibrate();
 
-    void after_calibrate();
-    bool exit_loop_prepare_cond();
-    void loop_prepare();
-    void after_loop_prepare();
-
     void loop();
+
+    bool is_imu_calibrated();
 
     void set_modes(uint8_t modes[3]);
     void set_board_mode(BoardMode_t mode);
     void set_act_mode(BoardActMode_t mode);
     void set_motor_mode(GimbalMotorMode_t mode);
+    void safe_mode_switch();
 
-    void get_rc_info();
     void get_motor_feedback();
     void get_imu_headings();
 
-    void safe_mode_switch();
-    void get_euler_angle();
-    void update_imu_angle(float yaw, float pitch);
-    void update_ecd_euler_angle(float yaw_target_angle,
-                                float pitch_target_angle);
-    void update_ecd_angles();
-    void update_truns(float halfc);
-    void set_angle(float target_angle);
-    void set_limited_angle(float yaw_target_angle, float pitch_target_angle);
-    void set_spd(int16_t yaw_target_spd);
-    void cmd_exec();
-    void update_rel_turns(int jump_threshold);
-    void send_rel_angles();
-    void calc_rel_targets(float delta_yaw, float delta_pitch);
-    void calc_channels_to_angles(const int16_t g_channels[2], float deltas[2]);
-    // void gimbal_update_autoaim_rel_angle(Gimbal_t *gbal, UC_Auto_Aim_Pack_t *pack);
-    float calc_dual_pid_out(PID2_t* f_pid, PID2_t* s_pid, float f_cur_val);
-    void send_motor_volts();
+    void process_commands();
 
+    void calc_imu_center();
+
+    void update_imu_angle(float yaw, float pitch);
+    void update_ecd_angles();
     void update_headings();
-    void update_targets(int16_t* g_channels);
+    void update_targets();
+
+    void cmd_exec();
+
+    void send_motor_volts();
+    void send_rel_angles();
 };
 
 #endif /* __SRC_APPLICATIONS_GIMBAL_APP_H_ */

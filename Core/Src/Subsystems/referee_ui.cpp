@@ -49,7 +49,7 @@ void RefereeUI::set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id) {
                 draw_vaild_info();
                 break;
             /* Hero Draw marks */
-            case UI_INFANTRY_MARK || UI_HERO_MARK:
+            case UI_INFANTRY_MARK:
                 draw_marks();
                 break;
             default:
@@ -74,7 +74,7 @@ void RefereeUI::set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id) {
                 draw_vaild_info();
                 break;
             /* Hero Draw marks */
-            case UI_HERO_MARK || UI_INFANTRY_MARK:
+            case UI_HERO_MARK:
                 draw_marks();
                 break;
             default:
@@ -355,209 +355,209 @@ void RefereeUI::draw_vaild_info() {
     ref_ui.ui_intrect_data.data_cmd_id = SUB_UI_DRAW_7_ID;
 
     if (ref_ui.first_drawing_flag_info)
-        ref_ui.ui_draw_marks_data.interaction_figure[0].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[0].operate_tpye =
             1;  // 0: None, 1: Add, 2: Modify. 3: Delete
     else
-        ref_ui.ui_draw_marks_data.interaction_figure[0].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[0].operate_tpye =
             2;  // If not first drawing, select modify
                 /* Drawing */
                 /*
 	 * The top three bytes represent the graphic name, used for graphic indexing,
 	   which can be defined by yourself
 	 */
-    ref_ui.ui_draw_marks_data.interaction_figure[0].figure_name[0] = FIGURE_ID;
-    ref_ui.ui_draw_marks_data.interaction_figure[0].figure_name[1] = 0;
-    ref_ui.ui_draw_marks_data.interaction_figure[0].figure_name[2] =
+    ref_ui.ui_draw_info_data.interaction_figure[0].figure_name[0] = FIGURE_ID;
+    ref_ui.ui_draw_info_data.interaction_figure[0].figure_name[1] = 0;
+    ref_ui.ui_draw_info_data.interaction_figure[0].figure_name[2] =
         0;  // Graphic name
 
-    ref_ui.ui_draw_marks_data.interaction_figure[0].figure_tpye =
+    ref_ui.ui_draw_info_data.interaction_figure[0].figure_tpye =
         0;  // Graphic type, 0 is straight line, check user manual for others
-    ref_ui.ui_draw_marks_data.interaction_figure[0].layer =
+    ref_ui.ui_draw_info_data.interaction_figure[0].layer =
         0;  // Number(#) of layers, layer #0
-    ref_ui.ui_draw_marks_data.interaction_figure[0].color =
+    ref_ui.ui_draw_info_data.interaction_figure[0].color =
         1;  // 0 Correspond team color(Red/Blue), 1 yellow, 2 green
-    ref_ui.ui_draw_marks_data.interaction_figure[0].width = 3;
-    ref_ui.ui_draw_marks_data.interaction_figure[0].start_x =
+    ref_ui.ui_draw_info_data.interaction_figure[0].width = 3;
+    ref_ui.ui_draw_info_data.interaction_figure[0].start_x =
         960;  // Start point/origin's x-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[0].start_y =
+    ref_ui.ui_draw_info_data.interaction_figure[0].start_y =
         360;  // Start point/origin's y-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[0].details_d =
+    ref_ui.ui_draw_info_data.interaction_figure[0].details_d =
         960;  // For straight line, it's end_x
-    ref_ui.ui_draw_marks_data.interaction_figure[0].details_e =
+    ref_ui.ui_draw_info_data.interaction_figure[0].details_e =
         560;  // For straight line, it's end_y
 
     /* Figure #2: First horizontal line */
     /* Determine the ui drawing times */
     if (ref_ui.first_drawing_flag_info)
-        ref_ui.ui_draw_marks_data.interaction_figure[1].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[1].operate_tpye =
             1;  // 0: None, 1: Add, 2: Modify. 3: Delete
     else
-        ref_ui.ui_draw_marks_data.interaction_figure[1].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[1].operate_tpye =
             2;  // If not first drawing, select modify
     /* Drawing */
-    ref_ui.ui_draw_marks_data.interaction_figure[1].figure_name[0] = FIGURE_ID;
-    ref_ui.ui_draw_marks_data.interaction_figure[1].figure_name[1] = 0;
-    ref_ui.ui_draw_marks_data.interaction_figure[1].figure_name[2] =
+    ref_ui.ui_draw_info_data.interaction_figure[1].figure_name[0] = FIGURE_ID;
+    ref_ui.ui_draw_info_data.interaction_figure[1].figure_name[1] = 0;
+    ref_ui.ui_draw_info_data.interaction_figure[1].figure_name[2] =
         1;  // Graphic name
-    ref_ui.ui_draw_marks_data.interaction_figure[1].figure_tpye =
+    ref_ui.ui_draw_info_data.interaction_figure[1].figure_tpye =
         0;  // Graphic type, 0: straight line, check user manual for others
-    ref_ui.ui_draw_marks_data.interaction_figure[1].layer =
+    ref_ui.ui_draw_info_data.interaction_figure[1].layer =
         0;  // Number of layers
-    ref_ui.ui_draw_marks_data.interaction_figure[1].color =
+    ref_ui.ui_draw_info_data.interaction_figure[1].color =
         1;  // 0 Correspond team color(Red/Blue), 1 yellow, 2 green
-    ref_ui.ui_draw_marks_data.interaction_figure[1].width = 3;
-    ref_ui.ui_draw_marks_data.interaction_figure[1].start_x =
+    ref_ui.ui_draw_info_data.interaction_figure[1].width = 3;
+    ref_ui.ui_draw_info_data.interaction_figure[1].start_x =
         850;  // Start point/origin's x-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[1].start_y =
+    ref_ui.ui_draw_info_data.interaction_figure[1].start_y =
         540;  // Start point/origin's y-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[1].details_d =
+    ref_ui.ui_draw_info_data.interaction_figure[1].details_d =
         1070;  // For straight line, it's end_x
-    ref_ui.ui_draw_marks_data.interaction_figure[1].details_e =
+    ref_ui.ui_draw_info_data.interaction_figure[1].details_e =
         540;  // For straight line, it's end_y
 
     /* Figure #3: Third horizontal line */
     /* Determine the ui drawing times */
     if (ref_ui.first_drawing_flag_info)
-        ref_ui.ui_draw_marks_data.interaction_figure[2].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[2].operate_tpye =
             1;  // 0: None, 1: Add, 2: Modify. 3: Delete
     else
-        ref_ui.ui_draw_marks_data.interaction_figure[2].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[2].operate_tpye =
             2;  // If not first drawing, select modify
     /* Drawing */
-    ref_ui.ui_draw_marks_data.interaction_figure[2].figure_name[0] = FIGURE_ID;
-    ref_ui.ui_draw_marks_data.interaction_figure[2].figure_name[1] = 0;
-    ref_ui.ui_draw_marks_data.interaction_figure[2].figure_name[2] =
+    ref_ui.ui_draw_info_data.interaction_figure[2].figure_name[0] = FIGURE_ID;
+    ref_ui.ui_draw_info_data.interaction_figure[2].figure_name[1] = 0;
+    ref_ui.ui_draw_info_data.interaction_figure[2].figure_name[2] =
         2;  // Graphic name
-    ref_ui.ui_draw_marks_data.interaction_figure[2].figure_tpye =
+    ref_ui.ui_draw_info_data.interaction_figure[2].figure_tpye =
         0;  // Graphic type, 0: straight line, check user manual for others
-    ref_ui.ui_draw_marks_data.interaction_figure[2].layer =
+    ref_ui.ui_draw_info_data.interaction_figure[2].layer =
         0;  // Number of layers
-    ref_ui.ui_draw_marks_data.interaction_figure[2].color =
+    ref_ui.ui_draw_info_data.interaction_figure[2].color =
         1;  // 0 Correspond team color(Red/Blue), 1 yellow, 2 green
-    ref_ui.ui_draw_marks_data.interaction_figure[2].width = 3;
-    ref_ui.ui_draw_marks_data.interaction_figure[2].start_x =
+    ref_ui.ui_draw_info_data.interaction_figure[2].width = 3;
+    ref_ui.ui_draw_info_data.interaction_figure[2].start_x =
         870;  // Start point/origin's x-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[2].start_y =
+    ref_ui.ui_draw_info_data.interaction_figure[2].start_y =
         500;  // Start point/origin's y-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[2].details_d =
+    ref_ui.ui_draw_info_data.interaction_figure[2].details_d =
         1050;  // For straight line, it's end_x
-    ref_ui.ui_draw_marks_data.interaction_figure[2].details_e =
+    ref_ui.ui_draw_info_data.interaction_figure[2].details_e =
         500;  // For straight line, it's end_y
 
     /* Figure #4: Fourth horizontal line */
     /* Determine the ui drawing times */
     if (ref_ui.first_drawing_flag_info)
-        ref_ui.ui_draw_marks_data.interaction_figure[3].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[3].operate_tpye =
             1;  // 0: None, 1: Add, 2: Modify. 3: Delete
     else
-        ref_ui.ui_draw_marks_data.interaction_figure[3].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[3].operate_tpye =
             2;  // If not first drawing, select modify
     /* Drawing */
-    ref_ui.ui_draw_marks_data.interaction_figure[3].figure_name[0] = FIGURE_ID;
-    ref_ui.ui_draw_marks_data.interaction_figure[3].figure_name[1] = 0;
-    ref_ui.ui_draw_marks_data.interaction_figure[3].figure_name[2] =
+    ref_ui.ui_draw_info_data.interaction_figure[3].figure_name[0] = FIGURE_ID;
+    ref_ui.ui_draw_info_data.interaction_figure[3].figure_name[1] = 0;
+    ref_ui.ui_draw_info_data.interaction_figure[3].figure_name[2] =
         3;  // Graphic name
-    ref_ui.ui_draw_marks_data.interaction_figure[3].figure_tpye =
+    ref_ui.ui_draw_info_data.interaction_figure[3].figure_tpye =
         0;  // Graphic type, 0: straight line, check user manual for others
-    ref_ui.ui_draw_marks_data.interaction_figure[3].layer =
+    ref_ui.ui_draw_info_data.interaction_figure[3].layer =
         0;  // Number of layers
-    ref_ui.ui_draw_marks_data.interaction_figure[3].color =
+    ref_ui.ui_draw_info_data.interaction_figure[3].color =
         1;  // 0 Correspond team color(Red/Blue), 1 yellow, 2 green
-    ref_ui.ui_draw_marks_data.interaction_figure[3].width = 3;
-    ref_ui.ui_draw_marks_data.interaction_figure[3].start_x =
+    ref_ui.ui_draw_info_data.interaction_figure[3].width = 3;
+    ref_ui.ui_draw_info_data.interaction_figure[3].start_x =
         890;  // Start point/origin's x-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[3].start_y =
+    ref_ui.ui_draw_info_data.interaction_figure[3].start_y =
         460;  // Start point/origin's y-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[3].details_d =
+    ref_ui.ui_draw_info_data.interaction_figure[3].details_d =
         1030;  // For straight line, it's end_x
-    ref_ui.ui_draw_marks_data.interaction_figure[3].details_e =
+    ref_ui.ui_draw_info_data.interaction_figure[3].details_e =
         460;  // For straight line, it's end_y
 
     /* Figure #5: Fifth horizontal line */
     /* Determine the ui drawing times */
     if (ref_ui.first_drawing_flag_info)
-        ref_ui.ui_draw_marks_data.interaction_figure[4].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[4].operate_tpye =
             1;  // 0: None, 1: Add, 2: Modify. 3: Delete
     else
-        ref_ui.ui_draw_marks_data.interaction_figure[4].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[4].operate_tpye =
             2;  // If not first drawing, select modify
     /* Drawing */
-    ref_ui.ui_draw_marks_data.interaction_figure[4].figure_name[0] = FIGURE_ID;
-    ref_ui.ui_draw_marks_data.interaction_figure[4].figure_name[1] = 0;
-    ref_ui.ui_draw_marks_data.interaction_figure[4].figure_name[2] =
+    ref_ui.ui_draw_info_data.interaction_figure[4].figure_name[0] = FIGURE_ID;
+    ref_ui.ui_draw_info_data.interaction_figure[4].figure_name[1] = 0;
+    ref_ui.ui_draw_info_data.interaction_figure[4].figure_name[2] =
         4;  // Graphic name
-    ref_ui.ui_draw_marks_data.interaction_figure[4].figure_tpye =
+    ref_ui.ui_draw_info_data.interaction_figure[4].figure_tpye =
         0;  // Graphic type, 0: straight line, check user manual for others
-    ref_ui.ui_draw_marks_data.interaction_figure[4].layer =
+    ref_ui.ui_draw_info_data.interaction_figure[4].layer =
         0;  // Number of layers
-    ref_ui.ui_draw_marks_data.interaction_figure[4].color =
+    ref_ui.ui_draw_info_data.interaction_figure[4].color =
         1;  // 0 Correspond team color(Red/Blue), 1 yellow, 2 green
-    ref_ui.ui_draw_marks_data.interaction_figure[4].width = 3;
-    ref_ui.ui_draw_marks_data.interaction_figure[4].start_x =
+    ref_ui.ui_draw_info_data.interaction_figure[4].width = 3;
+    ref_ui.ui_draw_info_data.interaction_figure[4].start_x =
         910;  // Start point/origin's x-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[4].start_y =
+    ref_ui.ui_draw_info_data.interaction_figure[4].start_y =
         420;  // Start point/origin's y-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[4].details_d =
+    ref_ui.ui_draw_info_data.interaction_figure[4].details_d =
         1010;  // For straight line, it's end_x
-    ref_ui.ui_draw_marks_data.interaction_figure[4].details_e =
+    ref_ui.ui_draw_info_data.interaction_figure[4].details_e =
         420;  // For straight line, it's end_y
 
     /* Figure #6: sixth horizontal line */
     /* Determine the ui drawing times */
     if (ref_ui.first_drawing_flag_info)
-        ref_ui.ui_draw_marks_data.interaction_figure[5].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[5].operate_tpye =
             1;  // 0: None, 1: Add, 2: Modify. 3: Delete
     else
-        ref_ui.ui_draw_marks_data.interaction_figure[5].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[5].operate_tpye =
             2;  // If not first drawing, select modify
     /* Drawing */
-    ref_ui.ui_draw_marks_data.interaction_figure[5].figure_name[0] = FIGURE_ID;
-    ref_ui.ui_draw_marks_data.interaction_figure[5].figure_name[1] = 0;
-    ref_ui.ui_draw_marks_data.interaction_figure[5].figure_name[2] =
+    ref_ui.ui_draw_info_data.interaction_figure[5].figure_name[0] = FIGURE_ID;
+    ref_ui.ui_draw_info_data.interaction_figure[5].figure_name[1] = 0;
+    ref_ui.ui_draw_info_data.interaction_figure[5].figure_name[2] =
         5;  // Graphic name
-    ref_ui.ui_draw_marks_data.interaction_figure[5].figure_tpye =
+    ref_ui.ui_draw_info_data.interaction_figure[5].figure_tpye =
         0;  // Graphic type, 0: straight line, check user manual for others
-    ref_ui.ui_draw_marks_data.interaction_figure[5].layer =
+    ref_ui.ui_draw_info_data.interaction_figure[5].layer =
         0;  // Number of layers
-    ref_ui.ui_draw_marks_data.interaction_figure[5].color =
+    ref_ui.ui_draw_info_data.interaction_figure[5].color =
         1;  // 0 Correspond team color(Red/Blue), 1 yellow, 2 green
-    ref_ui.ui_draw_marks_data.interaction_figure[5].width = 3;
-    ref_ui.ui_draw_marks_data.interaction_figure[5].start_x =
+    ref_ui.ui_draw_info_data.interaction_figure[5].width = 3;
+    ref_ui.ui_draw_info_data.interaction_figure[5].start_x =
         910;  // Start point/origin's x-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[5].start_y =
+    ref_ui.ui_draw_info_data.interaction_figure[5].start_y =
         420;  // Start point/origin's y-coordinate
-    ref_ui.ui_draw_marks_data.interaction_figure[5].details_d =
+    ref_ui.ui_draw_info_data.interaction_figure[5].details_d =
         1010;  // For straight line, it's end_x
-    ref_ui.ui_draw_marks_data.interaction_figure[5].details_e =
+    ref_ui.ui_draw_info_data.interaction_figure[5].details_e =
         420;  // For straight line, it's end_y
 
     /* Figure #7: seventh horizontal line */
     /* Determine the ui drawing times */
     if (ref_ui.first_drawing_flag_info)
-        ref_ui.ui_figure_struct_data.interaction_figure[6].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[6].operate_tpye =
             1;  // 0: None, 1: Add, 2: Modify. 3: Delete
     else
-        ref_ui.ui_figure_struct_data.interaction_figure[6].operate_tpye =
+        ref_ui.ui_draw_info_data.interaction_figure[6].operate_tpye =
             2;  // If not first drawing, select modify
     /* Drawing */
-    ref_ui.ui_figure_struct_data.interaction_figure[6].figure_name[0] =
+    ref_ui.ui_draw_info_data.interaction_figure[6].figure_name[0] =
         FIGURE_ID;
-    ref_ui.ui_figure_struct_data.interaction_figure[6].figure_name[1] = 1;
-    ref_ui.ui_figure_struct_data.interaction_figure[6].figure_name[2] =
+    ref_ui.ui_draw_info_data.interaction_figure[6].figure_name[1] = 1;
+    ref_ui.ui_draw_info_data.interaction_figure[6].figure_name[2] =
         6;  // Graphic name
-    ref_ui.ui_figure_struct_data.interaction_figure[6].figure_tpye =
+    ref_ui.ui_draw_info_data.interaction_figure[6].figure_tpye =
         6;  // Graphic type, 0: straight line, check user manual for others
-    ref_ui.ui_figure_struct_data.interaction_figure[6].layer =
+    ref_ui.ui_draw_info_data.interaction_figure[6].layer =
         0;  // Number of layers
-    ref_ui.ui_figure_struct_data.interaction_figure[6].color =
+    ref_ui.ui_draw_info_data.interaction_figure[6].color =
         1;  // 0 Correspond team color(Red/Blue), 1 yellow, 2 green
-    ref_ui.ui_figure_struct_data.interaction_figure[6].width = 3;
-    ref_ui.ui_figure_struct_data.interaction_figure[6].start_x = 1500;
-    ref_ui.ui_figure_struct_data.interaction_figure[6].start_y = 800;
-    ref_ui.ui_figure_struct_data.interaction_figure[6].details_c =
+    ref_ui.ui_draw_info_data.interaction_figure[6].width = 3;
+    ref_ui.ui_draw_info_data.interaction_figure[6].start_x = 1500;
+    ref_ui.ui_draw_info_data.interaction_figure[6].start_y = 800;
+    ref_ui.ui_draw_info_data.interaction_figure[6].details_c =
         test_data; // act mode
-    ref_ui.ui_figure_struct_data.interaction_figure[6].details_d = 0;
-    ref_ui.ui_figure_struct_data.interaction_figure[6].details_e = 0;
+    ref_ui.ui_draw_info_data.interaction_figure[6].details_d = 0;
+    ref_ui.ui_draw_info_data.interaction_figure[6].details_e = 0;
 
     test_data++;
     if (test_data > 9) {
@@ -572,8 +572,8 @@ void RefereeUI::draw_vaild_info() {
     // }
 
     /* Memcpy to main interact struct */
-    memcpy(ref_ui.ui_intrect_data.user_data, &ref_ui.ui_draw_marks_data,
-           sizeof(ref_ui.ui_draw_marks_data));
+    memcpy(ref_ui.ui_intrect_data.user_data, &ref_ui.ui_draw_info_data,
+           sizeof(ref_ui.ui_draw_info_data));
 }
 
 #endif /* SRC_REF_UI_CPP_ */

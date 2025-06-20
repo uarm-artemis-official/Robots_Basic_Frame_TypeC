@@ -9,7 +9,6 @@
 * All rights reserved.
 *******************************************************************************/
 
-
 #ifndef __AUTO_AIM_H__
 #define __AUTO_AIM_H__
 
@@ -25,10 +24,9 @@ extern "C" {
 #include "stm32f4xx_hal.h"
 
 #include "usart.h"
-#include "public_defines.h"
 
 // PACK DEFINITIONS
-#define MAX_PACK_BUFFER_SIZE 64 // Measured in bytes.
+#define MAX_PACK_BUFFER_SIZE 64  // Measured in bytes.
 #define PACK_HEADER_SIZE 4
 #define PACK_TRAILER_SIZE 4
 
@@ -40,52 +38,47 @@ extern "C" {
 // PACK STRUCTS
 // upper computer -> MCU
 typedef struct {
-	uint8_t target_num;
-	float delta_yaw;
-	float delta_pitch;
+    uint8_t target_num;
+    float delta_yaw;
+    float delta_pitch;
 } UC_Auto_Aim_Pack_t;
 
-
 typedef struct {
-	uint8_t control_code;
-	uint32_t sequence_number;
-	uint32_t acknowledge;
+    uint8_t control_code;
+    uint32_t sequence_number;
+    uint32_t acknowledge;
 } UC_Flow_Control_Pack_t;
-
 
 // MCU -> upper computer
 typedef struct {
-	uint8_t robot_color; // 0: red, 1: blue
+    uint8_t robot_color;  // 0: red, 1: blue
 
-	// imu data
-	float pitch;
-	float yaw;
-	float accel_x;
-	float accel_y;
+    // imu data
+    float pitch;
+    float yaw;
+    float accel_x;
+    float accel_y;
 
-	float wheel_rpm[4]; // from chassis wheels
+    float wheel_rpm[4];  // from chassis wheels
 } UC_Board_Data_Pack_t;
-
 
 // OTHER STRUCTS
 typedef union pack_checksum {
-	uint32_t as_integer;
-	uint8_t as_bytes[PACK_TRAILER_SIZE];
+    uint32_t as_integer;
+    uint8_t as_bytes[PACK_TRAILER_SIZE];
 } UC_Checksum_t;
 
-
 typedef struct {
-	uint8_t header_id;
-	uint8_t header_size;
-	uint8_t data_size;
-	uint8_t trailer_size;
+    uint8_t header_id;
+    uint8_t header_size;
+    uint8_t data_size;
+    uint8_t trailer_size;
 } Pack_Metadata_t;
 
-
 // INIT FUNCTIONS
-void pack_init(void *pack_struct, uint8_t data_size);
+void pack_init(void* pack_struct, uint8_t data_size);
 
-UC_Checksum_t calculate_checksum(void *data, size_t size);
+UC_Checksum_t calculate_checksum(void* data, size_t size);
 
 /*
  * Checks if the header in uc_pack_input_buffer is recognized header.
@@ -95,11 +88,12 @@ UC_Checksum_t calculate_checksum(void *data, size_t size);
  *  1 - if the header is a recognized header.
  *  0 - otherwise.
  */
-uint8_t is_valid_header(uint8_t *input_buffer);
+uint8_t is_valid_header(uint8_t* input_buffer);
 
 // UC COMMUNICATION FUNCTIONS
-uint8_t uc_send_board_data(UC_Board_Data_Pack_t *pack);
+uint8_t uc_send_board_data(UC_Board_Data_Pack_t* pack);
 uint8_t uc_send(void* pack);
+uint8_t uc_send_bytes(uint8_t* bytes, size_t size);
 
 void start_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]);
 void restart_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]);

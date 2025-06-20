@@ -3,7 +3,9 @@
 
 #include "uarm_os.h"
 
-// TODO: Implement CRTP for app that has init, calibrate, and loop stages.
+// TODO: Add startup events for apps so certain apps will start after certain events.
+// e.g. Chassis and Gimbal Apps only start when motors are detected to be online.
+// TODO: Add another template parameter for task period with getter function to access it.
 template <class Derived>
 class ExtendedRTOSApp {
    public:
@@ -35,17 +37,6 @@ class ExtendedRTOSApp {
             vTaskDelayUntil(&xLastWakeTime, xFrequency);
         }
 
-        derived->after_calibrate();
-        for (;;) {
-            if (derived->exit_loop_prepare_cond()) {
-                break;
-            } else {
-                derived->loop_prepare();
-            }
-            vTaskDelayUntil(&xLastWakeTime, xFrequency);
-        }
-        derived->after_loop_prepare();
-
         for (;;) {
             derived->loop();
             vTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -58,12 +49,6 @@ class RTOSApp : public ExtendedRTOSApp<Derived> {
    public:
     void calibrate() {}
     bool exit_calibrate_cond() { return true; }
-
-    void after_calibrate() {}
-
-    bool exit_loop_prepare_cond() { return true; }
-    void loop_prepare() {}
-    void after_loop_prepare() {}
 };
 
 template <class Derived>
@@ -88,7 +73,7 @@ class ChassisDrive {
 
     void set_max_power(float new_max_power) {
         Derived* derived = static_cast<Derived*>(this);
-        derived->set_max_power_impl();
+        derived->set_max_power_impl(new_max_power);
     }
 };
 

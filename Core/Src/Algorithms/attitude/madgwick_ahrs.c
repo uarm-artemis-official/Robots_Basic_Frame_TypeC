@@ -190,11 +190,8 @@ void madgwick_ahrs_updateIMU(AhrsSensor_t* sensor, Attitude_t* atti) {
     gy = sensor->wy;
     gz = sensor->wz;
     ax = sensor->ax;
-
+    ay = sensor->ay;
     az = sensor->az;
-    mx = sensor->mx;
-    my = sensor->my;
-    mz = sensor->mz;
 
     // Rate of change of quaternion from gyroscope
     qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);

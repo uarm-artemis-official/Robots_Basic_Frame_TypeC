@@ -1,6 +1,9 @@
+
+// TODO: Rename to .hpp
 #ifndef __SUBSYSTEMS_TYPES_H
 #define __SUBSYSTEMS_TYPES_H
 
+#include <array>
 #include "attitude_types.h"
 #include "motor_types.h"
 #include "referee_data.h"
@@ -96,6 +99,7 @@ typedef enum {
 
 typedef struct {
     float temp;
+    float prev_temp;
     uint32_t sample_time;
 
     IMU_temp_status temp_status;
@@ -115,21 +119,29 @@ typedef enum Topic_Name_t {
     IMU_READINGS,
     //	IMU_READY,
     UI_SEND,
+    REF_INFO,
     PLAYER_COMMANDS,
     RC_INFO,
     RC_RAW,
 
     UC_PACK_IN,
+    UC_PACK_OUT,
     AUTO_AIM,
     UART_OUT,
-
-    // Gimbal -> Chassis
     GIMBAL_REL_ANGLES,
 
     // Referee System
     REFEREE_IN,
     REFEREE_OUT,
+    COMMAND_GIMBAL,
+    COMMAND_CHASSIS,
+    COMMAND_SHOOT,
 } Topic_Name_t;
+
+// TODO: Find better solution to defining a testable QueueHandle_t.
+#ifdef GTEST
+typedef uint8_t* QueueHandle_t;
+#endif
 
 typedef struct Topic_Handle_t {
     Topic_Name_t name;
@@ -169,6 +181,24 @@ typedef struct {
     uint8_t feedback[MAX_MOTOR_COUNT][8];
     Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
 } MotorReadMessage_t;
+
+typedef struct {
+    float v_perp;
+    float v_parallel;
+    float wz;
+    uint16_t command_bits;  // TODO: Implement and remove RC_INFO.
+} ChassisCommandMessage_t;
+
+typedef struct {
+    float yaw;
+    float pitch;
+    uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
+} GimbalCommandMessage_t;
+
+typedef struct {
+    uint32_t command_bits;
+    uint32_t extra_bits;
+} ShootCommandMessage_t;
 
 /* =========================================================================
  * DEBUG TYPES
@@ -257,4 +287,104 @@ typedef struct {
     referee_ui_type_t cur_sending_id;
     uint8_t pack_seq;
 } Referee_UI_t;
+
+constexpr uint32_t DBUS_BUFFER_LENGTH = 18;
+constexpr uint16_t CHANNEL_CENTER = 1024;
+constexpr uint16_t MOUSE_MAX_SPEED = 15000;
+constexpr uint16_t MAX_CHANNEL_VALUE = 660;
+
+using Buffer = std::array<uint8_t, DBUS_BUFFER_LENGTH>;
+
+enum class EKeyStatus {
+    RELEASED = 0,        // key released
+    RELEASED_TO_PRESS,   // key just pressed, rising edge
+    PRESSED_TO_RELEASE,  // key just released, falling edge
+    PRESSED              // key pressed
+};
+
+enum class ESwitchState {
+    UNKNOWN = 0,
+    UP = 1,
+    MID = 3,
+    DOWN = 2,
+};
+
+enum class EKeyBitIndex {
+    W = 0x01 << 0,  // Also used for mouse clicks.
+    S = 0x01 << 1,
+    A = 0x01 << 2,
+    D = 0x01 << 3,
+    SHIFT = 0x01 << 4,
+    CTRL = 0x01 << 5,
+    Q = 0x01 << 6,
+    E = 0x01 << 7,
+    R = 0x01 << 8,
+    F = 0x01 << 9,
+    G = 0x01 << 10,
+    Z = 0x01 << 11,
+    X = 0x01 << 12,
+    C = 0x01 << 13,
+    V = 0x01 << 14,
+    B = 0x01 << 15,
+};
+
+struct Controller {
+    int16_t ch0;
+    int16_t ch1;
+    int16_t ch2;
+    int16_t ch3;
+    ESwitchState s1;
+    ESwitchState s2;
+    int16_t wheel;
+};
+
+/* pc mode */
+struct KeyObject {
+    EKeyStatus status;
+    EKeyStatus pre_status;
+    uint8_t status_count;
+};
+
+struct Keyboard {
+    KeyObject W;
+    KeyObject A;
+    KeyObject S;
+    KeyObject D;
+    KeyObject Q;
+    KeyObject E;
+    KeyObject R;
+    KeyObject V;
+    KeyObject Ctrl;
+    KeyObject F;
+    KeyObject Shift;
+    KeyObject G;
+    KeyObject C;
+    KeyObject B;
+
+    uint16_t key_buffer;  // used to grab current key info
+};
+
+struct Mouse {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+    uint8_t click_l;
+    uint8_t click_r;
+    KeyObject left_click;
+    KeyObject right_click;
+};
+
+struct PC {
+    Mouse mouse;
+    Keyboard keyboard;
+};
+
+/* =========================================================================
+ * AMMO LID TYPES
+ * ====================================================================== */
+enum class EAmmoLidStatus {
+    OPEN,
+    CLOSED,
+};
+
 #endif

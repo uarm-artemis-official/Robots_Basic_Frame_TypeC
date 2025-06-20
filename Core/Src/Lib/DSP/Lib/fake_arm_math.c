@@ -1,5 +1,5 @@
-
 #include "fake_arm_math.h"
+#include "math.h"
 
 /**
  * @brief  Floating-point matrix initialization.
@@ -93,4 +93,12 @@ arm_status arm_mat_inverse_f32(const arm_matrix_instance_f32* src,
     (void) src;
     (void) dst;
     return ARM_MATH_SUCCESS;
+}
+
+float32_t arm_cos_f32(float32_t x) {
+    return cos(x);
+}
+
+float32_t arm_sin_f32(float32_t x) {
+    return sin(x);
 }

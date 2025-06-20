@@ -112,8 +112,11 @@ uint8_t uc_send(void* pack) {
 	 * 	  1 -> Otherwise.
 	 */
     // Data is sent in LSB order with top fields bottom fields in UC_Send_Pack_t.
-    HAL_StatusTypeDef status =
-        HAL_UART_Transmit(&huart1, pack, MAX_PACK_BUFFER_SIZE, 100);
+    return uc_send_bytes(pack, MAX_PACK_BUFFER_SIZE);
+}
+
+uint8_t uc_send_bytes(uint8_t* bytes, size_t size) {
+    HAL_StatusTypeDef status = HAL_UART_Transmit(&huart1, bytes, size, 100);
     if (status == HAL_OK) {
         return 0;
     } else {

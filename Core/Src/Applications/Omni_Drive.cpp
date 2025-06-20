@@ -1,32 +1,43 @@
 #include "Omni_Drive.h"
 #include <cstring>
-#include "message_center.h"
-#include "motors.h"
+#include <numeric>
 #include "pid.h"
-#include "public_defines.h"
+#include "ramp.hpp"
+#include "robot_config.hpp"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 
-OmniDrive::OmniDrive(IMessageCenter& message_center_ref, float chassis_width,
-                     float chassis_length)
+OmniDrive::OmniDrive(IMessageCenter& message_center_ref, IMotors& motors_ref,
+                     float chassis_width, float chassis_length,
+                     float power_limit_, float chassis_dt_)
     : message_center(message_center_ref),
+      motors(motors_ref),
       width(chassis_width),
-      length(chassis_length) {}
+      length(chassis_length),
+      power_limit(power_limit_),
+      chassis_dt(chassis_dt_) {}
 
 void OmniDrive::init_impl() {
-    memset(motor_angluar_vel, 0, sizeof(int16_t) * 4);
-
-    for (int i = 0; i < CHASSIS_MAX_WHEELS; i++) {
-        std::memset(&(motor_controls[i]), 0, sizeof(Chassis_Wheel_Control_t));
-        pid_param_init(&(motor_controls[i].f_pid), max_out_wheel,
-                       max_I_out_wheel, max_err_wheel, kp_wheel, ki_wheel,
-                       kd_wheel);
+    for (size_t i = 0; i < motor_controls.size(); i++) {
+        motor_angluar_vel.at(i) = 0;
+        std::memset(&(motor_controls.at(i)), 0,
+                    sizeof(Chassis_Wheel_Control_t));
+        pid2_init(motor_controls.at(i).f_pid,
+                  robot_config::chassis_params::KP_OMNI_DRIVE,
+                  robot_config::chassis_params::KI_OMNI_DRIVE,
+                  robot_config::chassis_params::KD_OMNI_DRIVE,
+                  robot_config::chassis_params::BETA_OMNI_DRIVE,
+                  robot_config::chassis_params::YETA_OMNI_DRIVE,
+                  robot_config::chassis_params::MIN_OUT_OMNI_DRIVE,
+                  robot_config::chassis_params::MAX_OUT_OMNI_DRIVE);
+        ramp_init(motor_controls.at(i).sp_ramp,
+                  robot_config::chassis_params::WHEEL_RAMP_MAX_ACCEL);
     }
 
-    motor_controls[0].stdid = CHASSIS_WHEEL1;
-    motor_controls[1].stdid = CHASSIS_WHEEL2;
-    motor_controls[2].stdid = CHASSIS_WHEEL3;
-    motor_controls[3].stdid = CHASSIS_WHEEL4;
+    std::get<0>(motor_controls).stdid = CHASSIS_WHEEL1;
+    std::get<1>(motor_controls).stdid = CHASSIS_WHEEL2;
+    std::get<2>(motor_controls).stdid = CHASSIS_WHEEL3;
+    std::get<3>(motor_controls).stdid = CHASSIS_WHEEL4;
 }
 
 void OmniDrive::get_motor_feedback() {
@@ -37,12 +48,12 @@ void OmniDrive::get_motor_feedback() {
     uint8_t new_read_message =
         message_center.peek_message(MOTOR_READ, &read_message, 0);
     if (new_read_message == 1) {
-        for (int i = 0; i < 4; i++) {
+        for (size_t i = 0; i < motor_controls.size(); i++) {
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
                 if (wheel_can_ids[i] == read_message.can_ids[j]) {
-                    Motors::parse_feedback(wheel_can_ids[i],
-                                           read_message.feedback[j],
-                                           &(motor_controls[i].feedback));
+                    motors.get_raw_feedback(wheel_can_ids[i],
+                                            read_message.feedback[j],
+                                            &(motor_controls.at(i).feedback));
                     break;
                 }
             }
@@ -77,29 +88,46 @@ void OmniDrive::calc_target_motor_speeds(float vx, float vy, float wz) {
     /* may apply super super capacity gain here */
     /* may apply level up gain and power limit here when we have referee system feedback */
     constexpr float inverse_wheel_radius = 1 / CHASSIS_OMNI_WHEEL_RADIUS;
-    motor_angluar_vel[CHASSIS_WHEEL1_CAN_ID] = static_cast<int16_t>(
-        (vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius);
-    motor_angluar_vel
-        [CHASSIS_WHEEL2_CAN_ID] = /* We will put a negative infront of the eq. as motor install is flipped*/
-        static_cast<int16_t>(
-            -((-vx + vy - wz * (width + length) * 0.5) * inverse_wheel_radius));
-    motor_angluar_vel
-        [CHASSIS_WHEEL3_CAN_ID] = /* We will put a negative infront of the eq. as motor install is flipped*/
-        static_cast<int16_t>(
-            -((vx + vy - wz * (width + length) * 0.5) * inverse_wheel_radius));
-    motor_angluar_vel[CHASSIS_WHEEL4_CAN_ID] = static_cast<int16_t>(
-        (-vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius);
+    std::get<0>(motor_angluar_vel) =
+        (vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius;
+    std::get<1>(
+        motor_angluar_vel) = /* We will put a negative infront of the eq. as motor install is flipped*/
+        -((-vx + vy - wz * (width + length) * 0.5) * inverse_wheel_radius);
+    std::get<2>(
+        motor_angluar_vel) = /* We will put a negative infront of the eq. as motor install is flipped*/
+        -((vx + vy - wz * (width + length) * 0.5) * inverse_wheel_radius);
+    std::get<3>(motor_angluar_vel) =
+        (-vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius;
 }
 
 void OmniDrive::calc_motor_volts() {
+    float angular_vel_sum =
+        std::reduce(motor_angluar_vel.begin(), motor_angluar_vel.end());
+
+    constexpr float CURRENT_RESOLUTION = 20.f / 16834.f;
     constexpr float RADS_TO_RPM = 60 / (2 * PI);
-    for (int i = 0; i < 4; i++) {
-        VAL_LIMIT(motor_angluar_vel[i], -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
-        pid_single_loop_control(
-            static_cast<float>(motor_angluar_vel[i] * RADS_TO_RPM *
-                               CHASSIS_MOTOR_DEC_RATIO),
-            &(motor_controls[i].f_pid),
-            static_cast<float>(motor_controls[i].feedback.rx_rpm),
+
+    float available_total_current = power_limit / 24.f / CURRENT_RESOLUTION;
+
+    for (size_t i = 0; i < motor_controls.size(); i++) {
+        int16_t motor_target =
+            value_limit(std::roundf(motor_angluar_vel[i]), -CHASSIS_MAX_SPEED,
+                        CHASSIS_MAX_SPEED);
+        ramp_set_target(motor_controls.at(i).sp_ramp,
+                        motor_controls.at(i).feedback.rx_rpm / RADS_TO_RPM,
+                        motor_target);
+
+        ramp_calc_output(motor_controls.at(i).sp_ramp, chassis_dt);
+
+        float current_limit =
+            motor_angluar_vel.at(i) / angular_vel_sum * available_total_current;
+        pid2_set_limits(motor_controls.at(i).f_pid, -current_limit,
+                        current_limit);
+        pid2_single_loop_control(
+            motor_controls.at(i).f_pid,
+            motor_controls.at(i).sp_ramp.output * RADS_TO_RPM *
+                CHASSIS_MOTOR_DEC_RATIO,
+            static_cast<float>(motor_controls.at(i).feedback.rx_rpm),
             CHASSIS_TASK_EXEC_TIME * 0.001);
     }
 }
@@ -114,15 +142,25 @@ void OmniDrive::send_motor_messages() {
     memset(&set_message, 0, sizeof(MotorSetMessage_t));
 
     for (int i = 0; i < 4; i++) {
-        set_message.motor_can_volts[i] =
-            (int32_t) motor_controls[i].f_pid.total_out;
-        set_message.can_ids[i] = (Motor_CAN_ID_t) motor_controls[i].stdid;
+        set_message.motor_can_volts[i] = static_cast<int32_t>(
+            std::roundf(motor_controls.at(i).f_pid.total_out));
+        set_message.can_ids[i] =
+            static_cast<Motor_CAN_ID_t>(motor_controls.at(i).stdid);
     }
 
     message_center.pub_message(MOTOR_SET, &set_message);
 }
 
+// Assumes that wheels are always running at max output and will be limited
+// by max_out setting in pid.
 float OmniDrive::calc_power_consumption() {
-    // TODO:: Implement.
-    return 0.f;
+    float current_draw = 0;
+    for (size_t i = 0; i < motor_controls.size(); i++) {
+        current_draw += (motor_controls.at(i).f_pid.total_out) / 16834.f * 20.f;
+    }
+    return current_draw * 24;
+}
+
+void OmniDrive::set_max_power_impl(float new_max_power) {
+    power_limit = new_max_power;
 }

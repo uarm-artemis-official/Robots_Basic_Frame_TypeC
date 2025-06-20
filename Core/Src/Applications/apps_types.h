@@ -1,3 +1,5 @@
+
+// TODO: Rename to apps_types.hpp
 #ifndef __APP_TYPES_H
 #define __APP_TYPES_H
 
@@ -15,13 +17,11 @@ typedef enum { CTRLER_MODE = 1, PC_MODE } CtrlMode_t;
 
 typedef enum {
     PATROL_MODE = 1,
-    DETECTION_MODE,
     AUTO_AIM_MODE,
-    AUTO_PILOT_MODE,
+    AUTO_PILOT_MODE,  // full control to mini-pc.
     IDLE_MODE,
-    DEBUG_MODE,
     //	PC_MODE
-} BoardMode_t;  //only for sentry
+} BoardMode_t;
 
 typedef enum {
     GIMBAL_CENTER =
@@ -31,13 +31,11 @@ typedef enum {
     INDPET_MODE,  // chassis ground coordinate, or dummy version of self-gyro mode
 } BoardActMode_t;  // should be determined by remore controller
 
-typedef enum {
-    SHOOT_ONCE = 1,
-    SHOOT_TRIPLE,
-    SHOOT_CONT,
-    SHOOT_RESERVE,
-    SHOOT_CEASE
-} ShootActMode_t;
+typedef enum { SHOOT_CONT = 1, SHOOT_CEASE } ShootActMode_t;
+enum class ShootState {
+    NORMAL,
+    ANTIJAM,
+};
 
 typedef enum { GYRO_MODE = 1, ENCODE_MODE } GimbalMotorMode_t;
 
@@ -69,39 +67,46 @@ typedef struct {
 } ChassisPowerStat_t;
 
 typedef struct {
-    float vx;  //x axis velocity
-    float vy;  //y axis velocity
-    float wz;  //w axis angular velocity
+    /**
+     * Inverse kinematic outputs.
+     * 2 velocities (m/s) and 1 angular velocity (rad/s).
+     * x-y-z axes follows right-hand rule with right-front-up (robot reference frame).
+     * Origin is ideally at robot's center of mass.
+     * i.e. positive x-axis = robot's right, and positive y-axis = robot's front.
+     */
+    float vx;
+    float vy;
+    float wz;
     float max_vx;
     float max_vy;
     float max_wz;
 
+    /**
+     * Translation variables used for calculating Inverse Kinematics.
+     * These are velocity components pointing parallel and perpendicular to the movement
+     * vector created by the gimbal. These are directly manipulated through controller
+     * inputs and transformed into vx, and vy for chassis movement.
+     */
+    float v_parallel;
+    float v_perp;
+
+    /** 
+     * Gimbal yaw in radians [-pi, pi] received over CAN2 from gimbal board to chassis board.
+     * This is used calculating chassis inverse kinematics for moving relative to gimbal.
+     * Yaw angle is CCW positive and relative to front of the robot.
+     * e.g. 0 = front, -pi/2 = right, and pi/2 = left
+    */
     float gimbal_yaw_rel_angle;
-    float gimbal_yaw_abs_angle;
 
-    float gimbal_pitch_rel_angle;
-    float gimbal_pitch_abs_angle;
-
-    uint8_t pc_target_value;
-
-    PID_t f_pid;  //for Chassis twist(in Gimbal_Center mode)
-    int16_t mec_spd[4];
-    int16_t swerve_spd
-        [4];  // 0 Forward Left, 1 Forward Right, 2 Backward Right, 3 Backward Left (clockwise)
-    float swerve_angle
-        [4];  // 0 Forward Left, 1 Forward Right, 2 Backward Right, 3 Backward Left (clockwise)
-    Gimbal_Axis_t gimbal_axis;
+    PID2_t spin_pid;  //for Chassis twist(in Gimbal_Center mode)
 
     uint16_t chassis_gear;
-    uint8_t prev_robot_level;
-    uint8_t cur_robot_level;
     ChassisPowerStat_t ref_power_stat;
     ChassisPowerStat_t local_power_stat;
 
     BoardMode_t chassis_mode;  //chassis mode selection
     BoardActMode_t chassis_act_mode;
     ChassisGearMode_t chassis_gear_mode;
-
 } Chassis_t;
 
 /* =========================================================================
@@ -109,7 +114,8 @@ typedef struct {
  * ====================================================================== */
 typedef struct {
     uint32_t stdid;
-    PID_t f_pid;  //first pid handler for single-loop control
+    PID2_t f_pid;  //first pid handler for single-loop control
+    Ramp sp_ramp;
     Motor_Feedback_t feedback;
 } Chassis_Wheel_Control_t;
 
@@ -118,10 +124,22 @@ typedef struct {
  * ====================================================================== */
 typedef struct {
     uint32_t stdid;
-    PID_t f_pid;  //first pid handler for single-loop control
+    PID2_t f_pid;  //first pid handler for single-loop control
     Motor_Feedback_t feedback;
+    LK_Motor_Torque_Feedback_t lk_feedback;
     uint32_t angle;
 } Swerve_Wheel_Control_t;
+
+typedef struct {
+    uint32_t stdid;
+    PID2_t f_pid;
+    Motor_Feedback_t feedback;
+} Swerve_Drive_Control_t;
+
+typedef struct {
+    uint32_t stdid;
+    LK_Motor_Torque_Feedback_t lk_feedback;
+} Swerve_Steer_Control_t;
 
 /* =========================================================================
  * GIMBAL TYPES
@@ -141,29 +159,10 @@ typedef struct Gimbal_t {
 
     int16_t yaw_ecd_center;    //center position of the yaw motor by encoder
     int16_t pitch_ecd_center;  //center position of the pitch motor by encoder
+
     float yaw_imu_center;
-    float pitch_imu_center;
-
-    Gimbal_Axis_t axis;
-
-    //	Motor_Feedback_t yaw_ecd_fb;	//yaw feedback data pool
-    //	Motor_Feedback_t pitch_ecd_fb; //pitch feedback data pool
-
-    /* algorithm related */
-    ramp_t yaw_ramp;           // yaw ramp for calibration process
-    ramp_t pitch_ramp;         // pitch ramp for calibration process
-    AhrsSensor_t ahrs_sensor;  // copy the sensor data from imu
-    Attitude_t euler_angle;    // quaternion to euler's angle
-
-    /* filters */
-    /* pc control filters */
-    ewma_filter_t ewma_f_x;  //Exponential mean filtering for yaw
-    ewma_filter_t ewma_f_y;  //Exponential mean filtering for pitch
-    //	sliding_mean_filter_t swm_f_x; //Sliding window mean filter for yaw
-    //	sliding_mean_filter_t swm_f_y; //Sliding window mean filter for pitch
-    /* auto aimming */
-    ewma_filter_t ewma_f_aim_yaw;
-    ewma_filter_t ewma_f_aim_pitch;
+    float yaw_imu_center_cumsum;
+    uint32_t yaw_imu_center_sample_count;
 
     first_order_low_pass_t
         folp_f_yaw;  //first order low pass filter for imu data
@@ -196,33 +195,32 @@ typedef struct {
 /**
   * @brief  shoot task main struct
   */
-typedef enum { OPEN = 0, CLOSE } ShootLidStatus_t;
 
-typedef struct {
-    float mag_tar_spd;
-    float mag_tar_angle;  //target relative angle refered to cur_abs_position
-    float mag_cur_angle;  //current actual relative angle ahs been reached
-    float mag_pre_ecd_angle;
-    int16_t mag_center_offset;
-    int32_t mag_turns_counter;
-    int16_t mag_zero_offset;
-    uint8_t prev_angle_reset;
+struct Shoot {
+    float loader_target_rpm;
+    float flywheel_target_rpm;
 
-    int32_t fric_tar_spd;
-    uint16_t fric_left_cur_spd;
-    uint16_t fric_right_cur_spd;
-    int32_t fric_can_tar_spd;
-    uint8_t fric_engage_flag;
-    uint32_t fric_counter;
-
-    uint8_t lid_counter;
-
-    Motor_Feedback_t mag_fb;
-    ramp_t fric_left_ramp;
-    ramp_t fric_right_ramp;
-    ShootLidStatus_t lid_status;
+    EAmmoLidStatus lid_status;
     ShootActMode_t shoot_act_mode;
-} Shoot_t;
+    ShootState shoot_state;
+
+    float stall_duration;
+    float no_stall_duration;
+    float antijam_direction;
+};
+
+struct LoaderControl {
+    Motor_CAN_ID_t stdid;
+    PID2_t speed_pid;
+    Motor_Feedback_t feedback;
+};
+
+struct FlyWheelControl {
+    Motor_CAN_ID_t stdid;
+    PID2_t speed_pid;
+    Motor_Feedback_t feedback;
+    Ramp sp_ramp;
+};
 
 /* =========================================================================
  * IMU TYPES
@@ -252,4 +250,17 @@ typedef struct {
 
 } Referee_t;
 
+/* =========================================================================
+ * RC TYPES
+ * ====================================================================== */
+typedef struct {
+    /* controll mode selection */
+    Controller ctrl;
+    PC pc;
+    CtrlMode_t control_mode;
+
+    /* status update */
+    BoardMode_t board_mode;
+    BoardActMode_t board_act_mode;
+} RemoteControl_t;
 #endif

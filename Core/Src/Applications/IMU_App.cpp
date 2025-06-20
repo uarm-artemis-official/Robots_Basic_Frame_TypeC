@@ -7,20 +7,14 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#ifndef __IMU_APP_C__
-#define __IMU_APP_C__
 
 #include "IMU_App.h"
 #include "apps_defines.h"
-#include "buzzer.h"
-#include "debug.h"
-#include "event_center.h"
-#include "imu.h"
-#include "message_center.h"
 #include "pid.h"
-#include "public_defines.h"
 #include "string.h"
+#include "uarm_lib.h"
 #include "uarm_math.h"
+#include "uarm_os.h"
 
 IMUApp::IMUApp(IMessageCenter& message_center_ref,
                IEventCenter& event_center_ref, IImu& imu_ref, IDebug& debug_ref)
@@ -52,28 +46,38 @@ void IMUApp::init() {
         imu_app_state.ahrs_sensor.mz = 0.0f;
     }
     imu_app_state.temp = 0.0;
-    calibrate_imu();
+    imu_app_state.prev_temp = 0.0;
+}
+
+void IMUApp::calibrate() {
+    imu_app_state.prev_temp = imu_app_state.temp;
+    imu_temp_pid_control();
+}
+
+bool IMUApp::exit_calibrate_cond() {
+    return 39.75 <= imu_app_state.prev_temp &&
+           imu_app_state.prev_temp <= 40.25 && 39.75 <= imu_app_state.temp &&
+           imu_app_state.temp <= 40.25;
 }
 
 void IMUApp::loop() {
     imu_temp_pid_control();
 
     if (imu_app_state.temp_status == NORMAL) {
-        imu.get_attitude(&attitude);
+        imu.get_attitude(attitude);
 
         message_data[0] = attitude.yaw;
-        message_data[1] = attitude.pitch;
+        message_data[1] = attitude.roll;
         message_center.pub_message(IMU_READINGS, message_data);
-    }
-}
 
-void IMUApp::calibrate_imu() {
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    while (imu_app_state.temp_status != NORMAL) {
-        imu_temp_pid_control();
-        vTaskDelayUntil(&xLastWakeTime, IMU_TASK_EXEC_TIME);
+        // Sending raw sensor data for calibration.
+        // imu.get_sensor_data(sensor_data);
+        // uint8_t uc_out_buffer[196];
+        // memset(uc_out_buffer, 0, sizeof(uint8_t) * 196);
+        // uc_out_buffer[0] = 143;
+        // memcpy(uc_out_buffer + 4, &sensor_data, sizeof(AhrsSensor_t));
+        // message_center.pub_message(UC_PACK_OUT, uc_out_buffer);
     }
-    imu.set_offset();
 }
 
 /**
@@ -132,5 +136,3 @@ int32_t IMUApp::imu_temp_pid_control() {
 
     return 0;
 }
-
-#endif

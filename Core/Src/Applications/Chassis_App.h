@@ -14,7 +14,7 @@
 #include "apps_defines.h"
 #include "apps_interfaces.h"
 #include "apps_types.h"
-#include "public_defines.h"
+#include "uarm_math.h"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
@@ -24,12 +24,12 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
     IDebug& debug;
 
     Chassis_t chassis;
-    int16_t rc_channels[4];
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = CHASSIS_TASK_EXEC_TIME;
     static constexpr float MAX_TRANSLATION = 2;  // in m/s
     static constexpr float MAX_ROTATION = PI;    // rad/s
+    static constexpr float GYRO_SPEED = PI;
 
     ChassisApp(DriveTrain& drive_train_ref, IMessageCenter& message_center_ref,
                IDebug& debug_ref);
@@ -38,23 +38,14 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
 
     void loop();
 
-    void send_swerve_angle_commands();
-
-    void chassis_update_chassis_coord(int16_t* channels);
-    void chassis_update_gimbal_coord(int16_t* channels);
+    void calc_movement_vectors();
     void chassis_brake(float* vel, float ramp_step, float stop_threshold);
-    void chassis_exec_act_mode();
 
-    void chassis_get_rc_info(int16_t* channels);
-    void chassis_get_wheel_feedback();
+    void process_commands();
     void chassis_get_gimbal_rel_angles();
 
-    /* power limit */
-    //void get_chassis_ref_power_stat(Chassis_t* chassis_hdlr, Referee_t *ref);
-    void chassis_power_limit_referee();
-    void chassis_power_limit_local(uint16_t local_power_limit);
-    void select_chassis_speed(uint8_t level);
-    //void chassis_manual_gear_set(Chassis_t* chassis_hdlr, RemoteControl_t *rc_hdlr);
+    void set_board_mode(BoardMode_t new_board_mode);
+    void set_act_mode(BoardActMode_t new_act_mode);
 };
 
 #endif /* SRC_APPLICATIONS_CHASSIS_APP_H_ */
