@@ -121,8 +121,9 @@ void OmniDrive::calc_motor_volts() {
 
         float current_limit =
             motor_angluar_vel.at(i) / angular_vel_sum * available_total_current;
-        pid2_set_limits(motor_controls.at(i).f_pid, -current_limit,
-                        current_limit);
+        // TODO: Uncomment this when we have power limit
+        // pid2_set_limits(motor_controls.at(i).f_pid, -current_limit,
+        //                 current_limit);
         pid2_single_loop_control(
             motor_controls.at(i).f_pid,
             motor_controls.at(i).sp_ramp.output * RADS_TO_RPM *

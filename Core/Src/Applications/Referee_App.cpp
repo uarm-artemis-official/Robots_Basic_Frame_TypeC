@@ -73,6 +73,10 @@ void RefereeApp::init() {
     memset(&(ref.shoot_data), 0, sizeof(shoot_data_t));
 
     ref_ui.init();  // Initialize referee UI
+    // init ui data
+    ref.ref_info_data.act_mode = INDPET_MODE;  // Default act mode
+    ref.ref_info_data.level = 1;               // Default level
+    ref.ref_info_data.super_cap_percent = 0;   // Default super cap percent
 
     ref.robot_status_data.robot_level = 1;
     ref.ref_cmd_id = IDLE_ID;
@@ -188,14 +192,32 @@ void RefereeApp::read_ref_data() {
 
 void RefereeApp::draw_all_ui() {
     // Draw all UI elements
-    // This function should be called to update the UI based on the current state
-    // of the referee data.
-    // For example, it can call functions to draw robot status, game status, etc.
-    // if (ref.robot_status_data.robot_id != 0) {
-    ref_ui.set_ui_data(UI_INFANTRY_MARK, ref.robot_status_data.robot_id);
-    ref_ui.send_ui_data(INTERA_UI_ID, UI_INFANTRY_MARK_LEN);
-    ref_ui.set_ui_data(UI_ROBOT_VAILD_INFO, ref.robot_status_data.robot_id);
-    ref_ui.send_ui_data(INTERA_UI_ID, UI_ROBOT_VAILD_INFO_LEN);
+    // get information from chassis command data
+    ChassisCommandMessage_t chassis_command;
+
+    if (message_center.peek_message(COMMAND_CHASSIS, &chassis_command, 0) ==
+        pdTRUE) {
+        // Extract act_mode from command_bits (lower 3 bits)
+        ref.ref_info_data.act_mode =
+            static_cast<BoardActMode_t>(chassis_command.command_bits & 0x7);
+    }
+
+    ref.ref_info_data.level =
+        (uint32_t) ref.robot_status_data.robot_level;  // Set the level
+
+    ui_sendig_count++;
+    if (ui_sendig_count >= 50)  // 50 * 10ms = 500ms = 0.5s sending freq = 2Hz
+    {
+        // ref_ui.set_ui_data(UI_INFANTRY_MARK, ref.robot_status_data.robot_id,
+        //                    ref.ref_info_data);
+        // ref_ui.send_ui_data(INTERA_UI_ID, UI_INFANTRY_MARK_LEN,
+        //                     UI_INFANTRY_MARK);
+        ref_ui.set_ui_data(UI_ROBOT_VAILD_INFO, ref.robot_status_data.robot_id,
+                           ref.ref_info_data);
+        ref_ui.send_ui_data(INTERA_UI_ID, UI_ROBOT_VAILD_INFO_LEN,
+                            UI_ROBOT_VAILD_INFO);
+        ui_sendig_count = 0;
+    }
     // }
 }
 

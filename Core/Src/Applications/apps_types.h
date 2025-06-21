@@ -241,6 +241,7 @@ typedef struct {
     robot_status_t robot_status_data;
     power_heat_data_t power_heat_data;
     shoot_data_t shoot_data;
+    ref_ui_info_t ref_info_data;
 
     uint8_t ref_data[MAX_REF_RX_DATA_LEN];  // MAX_REF_RX_DATA_LEN
     // rx data

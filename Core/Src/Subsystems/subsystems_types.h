@@ -272,7 +272,14 @@ typedef enum {
 } ref_ui_id_t;
 
 typedef struct {
+    uint32_t act_mode;
+    uint32_t level;
+    uint32_t super_cap_percent;
+} ref_ui_info_t;
+
+typedef struct {
     robot_interaction_data_t ui_intrect_data;
+    robot_interaction_data_t ui_intrect_data_info;
     interaction_layer_delete_t ui_del_fig_data;
     interaction_figure_t ui_figure_data;
     interaction_figure_2_t ui_figure_draw_2_data;
@@ -285,6 +292,7 @@ typedef struct {
     uint8_t first_drawing_flag_info;  // For infantry marks
     uint8_t cur_sending_count;
     referee_ui_type_t cur_sending_id;
+    ref_ui_info_t ui_info;
     uint8_t pack_seq;
 } Referee_UI_t;
 

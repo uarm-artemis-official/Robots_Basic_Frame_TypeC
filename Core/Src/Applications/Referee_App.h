@@ -39,6 +39,7 @@ class RefereeApp : public RTOSApp<RefereeApp> {
     Referee_t ref;
     uint16_t non_recv_count =
         0;  // Count the number of times referee data is not received
+    uint8_t ui_sendig_count = 0;  // Count the number of times UI data is sent
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = REFEREE_TASK_EXEC_TIME;
