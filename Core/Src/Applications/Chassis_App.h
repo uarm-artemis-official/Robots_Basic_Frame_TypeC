@@ -39,7 +39,6 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {
     void loop();
 
     void calc_movement_vectors();
-    void chassis_brake(float* vel, float ramp_step, float stop_threshold);
 
     void process_commands();
     void chassis_get_gimbal_rel_angles();

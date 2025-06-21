@@ -40,8 +40,7 @@ void ramp_set_target(Ramp& ramp, float start, float new_target) {
 
 void ramp_calc_output(Ramp& ramp, float dt) {
     float diff = ramp.target - ramp.start;
-    if (abs(ramp.max_change * ramp.cumsum_dt) < abs(diff))
-        ramp.cumsum_dt += dt;
+    ramp.cumsum_dt += dt;
 
     float temp_output =
         ramp.start + sign(diff) * ramp.max_change * ramp.cumsum_dt;

@@ -21,9 +21,11 @@
 #define CHASSIS_WHEEL_X_LENGTH (0.40f)      // meters
 #define CHASSIS_WHEEL_Y_LENGTH (0.35f)      // meters
 #define CHASSIS_OMNI_WHEEL_RADIUS (0.076f)  // meters
-#define CHASSIS_MOTOR_DEC_RATIO (19.0f)     // motor deduction ratio 19:1
+
+// TODO: Correct reduction ratio to proper one for M3508
+#define CHASSIS_MOTOR_DEC_RATIO (19.0f)  // motor deduction ratio 19:1
 #define CHASSIS_SLEF_GYRO_ANG_VEL 80
-#define CHASSIS_MAX_SPEED 16834
+#define CHASSIS_MAX_SPEED 16384
 
 /* power limit defines */
 #define CHASSIS_POWER_DANGER 20       //random value, test soon

@@ -43,6 +43,11 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Mecanum")
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS -DMECANUM_GIMBAL")
     set(CMAKE_CXX_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS -DMECANUM_GIMBAL")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Hero")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Hero)
+    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_HERO "-O0 -g3 -DHERO_CHASSIS -DHERO_GIMBAL")
+    set(CMAKE_CXX_FLAGS_HERO "-O0 -g3 -DHERO_CHASSIS -DHERO_GIMBAL")
 else()
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file

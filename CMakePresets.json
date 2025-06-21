@@ -34,6 +34,14 @@
             }
         },
         {
+            "name": "Hero",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Hero",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
             "name": "GTest",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",

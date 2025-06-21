@@ -15,15 +15,13 @@ namespace robot_config {
         constexpr uint32_t LOADER_GEAR_RATIO = 36;
 #endif
 
-#ifdef HERO
-        static_assert(false);
+#ifdef HERO_GIMBAL
         constexpr float IMU_ORIENTATION[3][3] = {
             {0.0f, 1.0f, 0.0f},
             {-1.0f, 0.0f, 0.0f},
             {0.0f, 0.0f, 1.0f},
         };
 
-        static_assert(false, "Uncalibrated Gimbal encoder centers.");
         constexpr int16_t YAW_ECD_CENTER = 0;
         constexpr int16_t PITCH_ECD_CENTER = 0;
         constexpr uint32_t LOADER_GEAR_RATIO = 1;
@@ -54,7 +52,7 @@ namespace robot_config {
 
         constexpr float KP_GIMBAL_PITCH_SPEED = 0;
         constexpr float KI_GIMBAL_PITCH_SPEED = 0;
-        constexpr float KD_GIMBAL_PITCH_SPPED = 0;
+        constexpr float KD_GIMBAL_PITCH_SPEED = 0;
         constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
@@ -224,7 +222,7 @@ namespace robot_config {
         constexpr float MIN_OUT_OMNI_DRIVE = -5000;
         constexpr float MAX_OUT_OMNI_DRIVE = 5000;
 
-        constexpr float WHEEL_RAMP_MAX_ACCEL = 5;  // rad/s^2
+        constexpr float WHEEL_RAMP_MAX_ACCEL = 10000;  // rad/s^2
 
         constexpr float KP_CHASSIS_SPIN = 1;
         constexpr float KI_CHASSIS_SPIN = 0;
@@ -234,8 +232,8 @@ namespace robot_config {
         constexpr float MIN_OUT_CHASSIS_SPIN = -2;
         constexpr float MAX_OUT_CHASSIS_SPIN = 2;
 
-        constexpr float MAX_TRANSLATION = 2;
-        constexpr float MAX_ROTATION = 2;
+        constexpr float MAX_TRANSLATION = 4;
+        constexpr float MAX_ROTATION = 4;
     }  // namespace chassis_params
 }  // namespace robot_config
 

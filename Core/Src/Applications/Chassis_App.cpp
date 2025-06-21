@@ -134,20 +134,6 @@ void ChassisApp<DriveTrain>::calc_movement_vectors() {
     chassis.wz = value_limit(chassis.wz, -chassis.max_wz, chassis.max_wz);
 }
 
-/*
- * @brief brake the chassis slowly to avoid instant power overlimt
- */
-template <class DriveTrain>
-void ChassisApp<DriveTrain>::chassis_brake(float* vel, float ramp_step,
-                                           float stop_threshold) {
-    if (*vel > 0)           // both release -> brake
-        *vel -= ramp_step;  //brake need to be quicker
-    else if (*vel < 0)
-        *vel += ramp_step;
-    if (fabs(*vel) < stop_threshold)
-        *vel = 0;
-}
-
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::chassis_get_gimbal_rel_angles() {
     float rel_angles[2];
