@@ -105,6 +105,7 @@
 #include "message_center.h"
 #include "motors.h"
 #include "rc_comm.hpp"
+#include "referee_ui.h"
 #include "robot_config.hpp"
 #include "stdio.h"
 #include "stm32f407xx.h"
@@ -167,6 +168,7 @@ static EventCenter event_center;
 static Debug debug;
 static CanComm can_comm;
 static Motors motors;
+static RefereeUI ref_ui;
 static Motors no_init_motors;
 static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
@@ -203,6 +205,7 @@ static CommApp comm_app(message_center, debug, can_comm);
 static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center, no_init_motors);
 static IMUApp imu_app(message_center, event_center, imu, debug);
+static RefereeApp referee_app(message_center, event_center, debug, ref_ui);
 static GimbalApp gimbal_app(message_center, event_center, debug,
                             no_init_motors);
 static ShootApp shoot_app(
@@ -301,8 +304,10 @@ int main(void) {
             384);
         osThreadCreate(osThread(RCTask), NULL);
 
-        //    	  osThreadDef(RefTask, Referee_Task_Func, osPriorityHigh, 0, 384);
-        //    	  RefTaskHandle = osThreadCreate(osThread(RefTask), NULL);
+        osThreadDef(
+            RefTask, [](const void* arg) { referee_app.run(arg); },
+            osPriorityHigh, 0, 384);
+        osThreadCreate(osThread(RefTask), NULL);
 
     } else if (board_status == GIMBAL_BOARD) {
         osThreadDef(
