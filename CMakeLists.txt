@@ -136,5 +136,6 @@ else()
         SUBSYSTEMS::MESSAGE_CENTER
         SUBSYSTEMS::EVENT_CENTER
         SUBSYSTEMS::IMU
+        SUBSYSTEMS::REF_UI
         stm32cubemx)
 endif()
