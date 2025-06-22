@@ -68,9 +68,9 @@ void atti_math_calc(AhrsSensor_t* ahrs, Attitude_t* atti) {
     atti->yaw += ahrs->wz * SAMPLE_DT;       // no accel cali
 
     /* for debugging */
-    atti->pitch = atti->pitch * RAD2DEGEE;
-    atti->roll = atti->roll * RAD2DEGEE;
-    atti->yaw = atti->yaw * RAD2DEGEE;
+    atti->pitch = atti->pitch * RAD2DEGREE;
+    atti->roll = atti->roll * RAD2DEGREE;
+    atti->yaw = atti->yaw * RAD2DEGREE;
 }
 
 #endif /*__ANGLE_PROCESS_C__*/
