@@ -75,9 +75,6 @@ typedef struct {
     uint8_t trailer_size;
 } Pack_Metadata_t;
 
-// INIT FUNCTIONS
-void pack_init(void* pack_struct, uint8_t data_size);
-
 UC_Checksum_t calculate_checksum(void* data, size_t size);
 
 /*
@@ -95,10 +92,10 @@ uint8_t uc_send_board_data(UC_Board_Data_Pack_t* pack);
 uint8_t uc_send(void* pack);
 uint8_t uc_send_bytes(uint8_t* bytes, size_t size);
 
-void start_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]);
-void restart_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]);
+void uc_start_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]);
+void uc_restart_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]);
 
-uint8_t get_data_size(uint8_t header_id);
+uint8_t uc_get_data_size(uint8_t header_id);
 
 #ifdef __cplusplus
 }

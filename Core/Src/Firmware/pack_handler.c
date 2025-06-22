@@ -29,17 +29,13 @@ static Pack_Metadata_t pack_metadata[] = {
     },
 };
 
-void pack_init(void* pack_struct, uint8_t data_size) {
-    memset(pack_struct, 0, data_size);
-}
-
-void start_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]) {
+void uc_start_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]) {
     HAL_UART_Receive_DMA(&huart1, pack_buffer, MAX_PACK_BUFFER_SIZE);
 }
 
-void restart_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]) {
+void uc_restart_receive(uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE]) {
     HAL_UART_AbortReceive(&huart1);
-    start_receive(pack_buffer);
+    uc_start_receive(pack_buffer);
 }
 
 UC_Checksum_t calculate_checksum(void* buffer_ptr, size_t buffer_size) {
@@ -80,7 +76,7 @@ uint8_t is_valid_header(uint8_t* input_buffer) {
 }
 
 uint8_t uc_send_board_data(UC_Board_Data_Pack_t* board_data_pack) {
-    uint8_t data_size = get_data_size((uint8_t) UC_BOARD_DATA_HEADER);
+    uint8_t data_size = uc_get_data_size((uint8_t) UC_BOARD_DATA_HEADER);
     uint8_t pack_bytes[MAX_PACK_BUFFER_SIZE];
     pack_bytes[0] = UC_BOARD_DATA_HEADER;
 
@@ -124,7 +120,7 @@ uint8_t uc_send_bytes(uint8_t* bytes, size_t size) {
     }
 }
 
-uint8_t get_data_size(uint8_t header_id) {
+uint8_t uc_get_data_size(uint8_t header_id) {
     for (size_t i = 0; i < sizeof(pack_metadata) / sizeof(Pack_Metadata_t);
          i++) {
         if (header_id == pack_metadata[i].header_id) {

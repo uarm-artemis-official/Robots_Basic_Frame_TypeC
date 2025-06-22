@@ -10,7 +10,6 @@
 #include "PC_UART_App.h"
 #include <cstring>
 #include "apps_defines.h"
-#include "pack_handler.h"  // TODO: Remove
 #include "pc_comm.h"
 #include "uarm_lib.h"
 #include "uarm_math.h"
@@ -22,7 +21,7 @@ PCUARTApp::PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_)
 }
 
 void PCUARTApp::init() {
-    start_receive(new_pack_buffer);
+    PCComm::start_receive(new_pack_buffer);
 }
 
 void PCUARTApp::loop() {
@@ -39,7 +38,7 @@ void PCUARTApp::loop() {
     // send_pack.wheel_rpm[3] = 0.4f;
 
     if (idle_count == 200) {
-        restart_receive(new_pack_buffer);
+        PCComm::restart_receive(new_pack_buffer);
         idle_count = 0;
     }
 

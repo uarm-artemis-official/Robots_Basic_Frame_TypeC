@@ -6,7 +6,7 @@
 #include <array>
 #include "attitude_types.h"
 #include "motor_types.h"
-#include "referee_data.h"
+// #include "referee_data.h"
 #include "subsystems_defines.h"
 #include "uarm_os.h"
 #include "uarm_types.h"
@@ -245,57 +245,61 @@ typedef enum Sync_Event_t {
 /* =========================================================================
  * REFEREE UI SYSTEM TYPES
  * ====================================================================== */
-typedef enum {
-    UI_TYPE_IDLE_ID = 0,
-    /* General UI */
-    UI_ROBOT_VAILD_INFO,
-    UI_ROBOT_ACT_MODE,
-    UI_ROBOT_LEVEL,
-    UI_SUPCAP_PERCENT,
+// TODO: Re-enable later.
+// typedef enum {
+//     UI_TYPE_IDLE_ID = 0,
+//     /* General UI */
+//     UI_ROBOT_VAILD_INFO,
+//     UI_ROBOT_ACT_MODE,
+//     UI_ROBOT_LEVEL,
+//     UI_SUPCAP_PERCENT,
 
-    /* Infantry only */
-    UI_INFANTRY_MARK,
+//     /* Infantry only */
+//     UI_INFANTRY_MARK,
 
-    /* Hero only */
-    UI_HERO_MARK,
-} referee_ui_type_t;
+//     /* Hero only */
+//     UI_HERO_MARK,
+// } referee_ui_type_t;
 
-typedef enum {
-    UI_IDLE_ID = 0x0000,  // No interaction
-    // Sub cmd id
-    SUB_UI_LAYER_DEL_ID = 0x0100,
-    SUB_UI_DRAW_1_ID = 0x0101,
-    SUB_UI_DRAW_2_ID = 0x0102,
-    SUB_UI_DRAW_5_ID = 0x0103,
-    SUB_UI_DRAW_7_ID = 0x0104,
-    SUB_UI_EXT_CUSTOM_ID = 0x0110
-} ref_ui_id_t;
+// typedef enum {
+//     UI_IDLE_ID = 0x0000,  // No interaction
+//     // Sub cmd id
+//     SUB_UI_LAYER_DEL_ID = 0x0100,
+//     SUB_UI_DRAW_1_ID = 0x0101,
+//     SUB_UI_DRAW_2_ID = 0x0102,
+//     SUB_UI_DRAW_5_ID = 0x0103,
+//     SUB_UI_DRAW_7_ID = 0x0104,
+//     SUB_UI_EXT_CUSTOM_ID = 0x0110
+// } ref_ui_id_t;
 
-typedef struct {
-    uint32_t act_mode;
-    uint32_t level;
-    uint32_t super_cap_percent;
-} ref_ui_info_t;
+// typedef struct {
+//     uint32_t act_mode;
+//     uint32_t level;
+//     uint32_t super_cap_percent;
+// } ref_ui_info_t;
 
-typedef struct {
-    robot_interaction_data_t ui_intrect_data;
-    robot_interaction_data_t ui_intrect_data_info;
-    interaction_layer_delete_t ui_del_fig_data;
-    interaction_figure_t ui_figure_data;
-    interaction_figure_2_t ui_figure_draw_2_data;
-    interaction_figure_5_t ui_figure_draw_5_data;
-    interaction_figure_7_t ui_draw_marks_data;
-    interaction_figure_7_t ui_draw_info_data;
-    ext_client_custom_character_t ui_custom_data;
+// typedef struct {
+//     robot_interaction_data_t ui_intrect_data;
+//     robot_interaction_data_t ui_intrect_data_info;
+//     interaction_layer_delete_t ui_del_fig_data;
+//     interaction_figure_t ui_figure_data;
+//     interaction_figure_2_t ui_figure_draw_2_data;
+//     interaction_figure_5_t ui_figure_draw_5_data;
+//     interaction_figure_7_t ui_draw_marks_data;
+//     interaction_figure_7_t ui_draw_info_data;
+//     ext_client_custom_character_t ui_custom_data;
 
-    uint8_t first_drawing_flag;
-    uint8_t first_drawing_flag_info;  // For infantry marks
-    uint8_t cur_sending_count;
-    referee_ui_type_t cur_sending_id;
-    ref_ui_info_t ui_info;
-    uint8_t pack_seq;
-} Referee_UI_t;
+//     uint8_t first_drawing_flag;
+//     uint8_t first_drawing_flag_info;  // For infantry marks
+//     uint8_t cur_sending_count;
+//     referee_ui_type_t cur_sending_id;
+//     ref_ui_info_t ui_info;
+//     uint8_t pack_seq;
+// } Referee_UI_t;
 
+/* =========================================================================
+ * RC COMM TYPES
+ * ====================================================================== */
 constexpr uint32_t DBUS_BUFFER_LENGTH = 18;
 constexpr uint16_t CHANNEL_CENTER = 1024;
 constexpr uint16_t MOUSE_MAX_SPEED = 15000;

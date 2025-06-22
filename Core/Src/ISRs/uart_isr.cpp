@@ -1,9 +1,9 @@
 #include "uart_isr.h"
+#include "cmsis_os.h"
 #include "message_center.h"
 #include "pack_handler.h"
 #include "referee_data.h"
 #include "usart.h"
-#include "cmsis_os.h"
 
 static MessageCenter& message_center = MessageCenter::get_instance();
 static UART_Config_t system_config = UART_NONE;
@@ -36,18 +36,20 @@ void init_uart_isr(UART_Config_t config) {
     switch (config) {
         case CHASSIS: {
             // Initialize UART with error handling
-            if (HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN) != HAL_OK) {
+            if (HAL_UART_Receive_DMA(&huart3, rc_frame_buffer,
+                                     DBUS_BUFFER_LEN) != HAL_OK) {
                 // Handle error
                 Error_Handler();
             }
-            if (HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame)) != HAL_OK) {
+            if (HAL_UART_Receive_DMA(&huart1, ref_rx_frame,
+                                     sizeof(ref_rx_frame)) != HAL_OK) {
                 // Handle error
                 Error_Handler();
             }
             break;
         }
         case GIMBAL: {
-            start_receive(pack_buffer);
+            uc_start_receive(pack_buffer);
             break;
         }
         default: {
@@ -68,16 +70,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
 
     if (huart == &huart1 && system_config == CHASSIS) {
         // Check if we can take the semaphore
-        if (xSemaphoreTakeFromISR(ref_rx_semaphore, &xHigherPriorityTaskWoken) == pdTRUE) {
+        if (xSemaphoreTakeFromISR(ref_rx_semaphore,
+                                  &xHigherPriorityTaskWoken) == pdTRUE) {
             // Publish message and restart DMA
             message_center.pub_message_from_isr(REFEREE_IN, ref_rx_frame, NULL);
             // Clear buffer before restarting DMA
             memset(ref_rx_frame, 0, sizeof(ref_rx_frame));
-            if (HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame)) != HAL_OK) {
+            if (HAL_UART_Receive_DMA(&huart1, ref_rx_frame,
+                                     sizeof(ref_rx_frame)) != HAL_OK) {
                 // Handle error
                 Error_Handler();
             }
-            
+
             // Give back the semaphore
             xSemaphoreGiveFromISR(ref_rx_semaphore, &xHigherPriorityTaskWoken);
         }
@@ -104,25 +108,28 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
     } else if (huart == &huart1) {
         // Handle huart1 errors
         HAL_UART_DMAStop(huart);
-        
+
         // Clear error flags
-        __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_ORE | UART_FLAG_FE | UART_FLAG_NE | UART_FLAG_PE);
-        
+        __HAL_UART_CLEAR_FLAG(
+            huart, UART_FLAG_ORE | UART_FLAG_FE | UART_FLAG_NE | UART_FLAG_PE);
+
         if (system_config == CHASSIS) {
             // Clear buffer
             memset(ref_rx_frame, 0, sizeof(ref_rx_frame));
-            
+
             // Restart DMA
-            if (HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame)) != HAL_OK) {
+            if (HAL_UART_Receive_DMA(&huart1, ref_rx_frame,
+                                     sizeof(ref_rx_frame)) != HAL_OK) {
                 // Handle error
                 Error_Handler();
             }
         } else if (system_config == GIMBAL) {
             // Clear buffer
             memset(pack_buffer, 0, MAX_PACK_BUFFER_SIZE);
-            
+
             // Restart DMA
-            if (HAL_UART_Receive_DMA(&huart1, pack_buffer, MAX_PACK_BUFFER_SIZE) != HAL_OK) {
+            if (HAL_UART_Receive_DMA(&huart1, pack_buffer,
+                                     MAX_PACK_BUFFER_SIZE) != HAL_OK) {
                 // Handle error
                 Error_Handler();
             }

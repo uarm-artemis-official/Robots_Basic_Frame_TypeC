@@ -36,7 +36,8 @@ add_library(GENERIC_APPS
         RC_App.cpp
         IMU_App.cpp
         PC_UART_App.cpp
-        Referee_App.cpp
+        # TODO: Reenable referee app after pull.
+        # Referee_App.cpp
         Timer_App.cpp
         WatchDog_App.c)
 target_include_directories(GENERIC_APPS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

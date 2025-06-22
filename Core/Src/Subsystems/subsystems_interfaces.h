@@ -38,16 +38,17 @@ class IImu {
     virtual void gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) = 0;
 };
 
-class IRefUI {
-   public:
-    virtual void init() = 0;
-    virtual void set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id,
-                             ref_ui_info_t ref_ui_info) = 0;
-    virtual void send_ui_data(uint16_t cmd_id, uint16_t len,
-                              referee_ui_type_t ui_type) = 0;
-    virtual void draw_marks() = 0;
-    virtual void draw_vaild_info(uint32_t act_mode, uint32_t level) = 0;
-};
+// TODO: Re-enable later.
+// class IRefUI {
+//    public:
+//     virtual void init() = 0;
+//     virtual void set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id,
+//                              ref_ui_info_t ref_ui_info) = 0;
+//     virtual void send_ui_data(uint16_t cmd_id, uint16_t len,
+//                               referee_ui_type_t ui_type) = 0;
+//     virtual void draw_marks() = 0;
+//     virtual void draw_vaild_info(uint32_t act_mode, uint32_t level) = 0;
+// };
 
 class IEventCenter {
    public:

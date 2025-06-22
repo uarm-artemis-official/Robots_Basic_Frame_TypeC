@@ -29,3 +29,15 @@ uint8_t PCComm::uc_check_pack_integrity(uint8_t* pack_bytes,
 void PCComm::send_bytes(uint8_t* bytes, uint32_t size) {
     uc_send_bytes(bytes, size);
 }
+
+uint8_t PCComm::get_data_size(uint8_t header_id) {
+    return uc_get_data_size(header_id);
+}
+
+void PCComm::start_receive(uint8_t* pack_buffer) {
+    uc_start_receive(pack_buffer);
+}
+
+void PCComm::restart_receive(uint8_t* pack_buffer) {
+    uc_restart_receive(pack_buffer);
+}
