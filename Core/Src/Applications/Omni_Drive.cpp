@@ -132,7 +132,7 @@ void OmniDrive::calc_power_limits() {
             allocated_motor_power = power_limit / 4;
         } else {
             allocated_motor_power =
-                fabs(motor_angular_vel.at(i)) / vel_sum * power_limit;
+                fabs(motor_angular_vel.at(i)) / vel_sum * power_limit / 2;
         }
         float angular_speed = motor_controls.at(i).feedback.rx_rpm == 0
                                   ? 0.01
