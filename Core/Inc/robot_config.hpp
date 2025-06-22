@@ -33,6 +33,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_YAW_ANGLE = 1;
         constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = 0;
         constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 0;
+        static_assert(MAX_OUT_GIMBAL_YAW_ANGLE >= MIN_OUT_GIMBAL_YAW_ANGLE);
 
         constexpr float KP_GIMBAL_YAW_SPEED = 0;
         constexpr float KI_GIMBAL_YAW_SPEED = 0;
@@ -41,6 +42,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_YAW_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 0;
+        static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
         constexpr float KP_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
@@ -49,6 +51,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_ANGLE = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = 0;
         constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 0;
+        static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
         constexpr float KP_GIMBAL_PITCH_SPEED = 0;
         constexpr float KI_GIMBAL_PITCH_SPEED = 0;
@@ -57,6 +60,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
+        static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 #endif
 
 #ifdef SWERVE_GIMBAL
@@ -80,6 +84,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_YAW_ANGLE = 0;
         constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = -800;
         constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 800;
+        static_assert(MAX_OUT_GIMBAL_YAW_ANGLE >= MIN_OUT_GIMBAL_YAW_ANGLE);
 
         constexpr float KP_GIMBAL_YAW_SPEED = 240;
         constexpr float KI_GIMBAL_YAW_SPEED = 10;
@@ -88,6 +93,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_YAW_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
+        static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
         constexpr float KP_GIMBAL_PITCH_ANGLE = 80;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 10;
@@ -96,6 +102,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
         constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
+        static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
         constexpr float KP_GIMBAL_PITCH_SPEED = 200;
         constexpr float KI_GIMBAL_PITCH_SPEED = 10;
@@ -104,6 +111,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
+        static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 #endif
 
 #ifdef GTEST
@@ -118,6 +126,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_YAW_ANGLE = 1;
         constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = 0;
         constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 0;
+        static_assert(MAX_OUT_GIMBAL_YAW_ANGLE >= MIN_OUT_GIMBAL_YAW_ANGLE);
 
         constexpr float KP_GIMBAL_YAW_SPEED = 0;
         constexpr float KI_GIMBAL_YAW_SPEED = 0;
@@ -126,6 +135,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_YAW_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 0;
+        static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
         constexpr float KP_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
@@ -134,6 +144,7 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_ANGLE = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = 0;
         constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 0;
+        static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
         constexpr float KP_GIMBAL_PITCH_SPEED = 0;
         constexpr float KI_GIMBAL_PITCH_SPEED = 0;
@@ -142,12 +153,14 @@ namespace robot_config {
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
+        static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 #endif
 
         // OTHER PARAMETERS
         // How close does gimbal yaw have to be to 0 during calibration phase to
         // exit calibration?
         constexpr float EXIT_CALIBRATION_YAW_ANGLE_DELTA = 2.0;  // degrees
+        static_assert(EXIT_CALIBRATION_YAW_ANGLE_DELTA >= 0);
 
         // (WIP) Software lockout limits on pitch target to prevent hitting mechanical
         // hard-stops.
@@ -168,6 +181,7 @@ namespace robot_config {
         constexpr float YETA_LOADER_SPEED = 0;
         constexpr float MIN_OUT_LOADER_SPEED = 0;
         constexpr float MAX_OUT_LOADER_SPEED = 0;
+        static_assert(MAX_OUT_LOADER_SPEED >= MIN_OUT_LOADER_SPEED);
 
         constexpr float KP_FLYWHEEL_SPEED = 0;
         constexpr float KI_FLYWHEEL_SPEED = 0;
@@ -176,6 +190,7 @@ namespace robot_config {
         constexpr float YETA_FLYWHEEL_SPEED = 0;
         constexpr float MIN_OUT_FLYWHEEL_SPEED = 0;
         constexpr float MAX_OUT_FLYWHEEL_SPEED = 0;
+        static_assert(MAX_OUT_FLYWHEEL_SPEED >= MIN_OUT_FLYWHEEL_SPEED);
 #else
         constexpr float KP_LOADER_SPEED = 12;
         constexpr float KI_LOADER_SPEED = 0;
@@ -184,6 +199,7 @@ namespace robot_config {
         constexpr float YETA_LOADER_SPEED = 0;
         constexpr float MIN_OUT_LOADER_SPEED = -5000;
         constexpr float MAX_OUT_LOADER_SPEED = 5000;
+        static_assert(MAX_OUT_LOADER_SPEED >= MIN_OUT_LOADER_SPEED);
 
         constexpr float KP_FLYWHEEL_SPEED = 27;
         constexpr float KI_FLYWHEEL_SPEED = 5;
@@ -192,17 +208,23 @@ namespace robot_config {
         constexpr float YETA_FLYWHEEL_SPEED = 0;
         constexpr float MIN_OUT_FLYWHEEL_SPEED = -5000;
         constexpr float MAX_OUT_FLYWHEEL_SPEED = 5000;
+        static_assert(MAX_OUT_FLYWHEEL_SPEED >= MIN_OUT_FLYWHEEL_SPEED);
 #endif
 
         // OTHER PARAMETERS
         constexpr float LOADER_ACTIVE_RPM = 75;
         constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
         constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
+        static_assert(MAX_FLYWHEEL_ACCEL >= 0);
 
         constexpr float JAM_STALL_DURATION_THRESHOLD = 0.1;  // seconds
         constexpr int16_t JAM_LOADER_RPM_THRESHOLD = 5;      // rpm
         constexpr float JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD = 0.1;
         constexpr float JAM_NO_STALL_DURATION_THRESHOLD = 0.5;  // seconds
+        static_assert(JAM_STALL_DURATION_THRESHOLD >= 0);
+        static_assert(JAM_LOADER_RPM_THRESHOLD >= 0);
+        static_assert(JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD >= 0);
+        static_assert(JAM_NO_STALL_DURATION_THRESHOLD >= 0);
     }  // namespace shoot_params
 
     namespace chassis_params {
@@ -213,6 +235,7 @@ namespace robot_config {
         constexpr float YETA_SWERVE_DRIVE = 0;
         constexpr float MIN_OUT_SWERVE_DRIVE = -2000;
         constexpr float MAX_OUT_SWERVE_DRIVE = 2000;
+        static_assert(MAX_OUT_SWERVE_DRIVE >= MIN_OUT_SWERVE_DRIVE);
 
         constexpr float KP_OMNI_DRIVE = 5;
         constexpr float KI_OMNI_DRIVE = 0;
@@ -221,8 +244,10 @@ namespace robot_config {
         constexpr float YETA_OMNI_DRIVE = 0;
         constexpr float MIN_OUT_OMNI_DRIVE = -5000;
         constexpr float MAX_OUT_OMNI_DRIVE = 5000;
+        static_assert(MAX_OUT_OMNI_DRIVE >= MIN_OUT_OMNI_DRIVE);
 
         constexpr float WHEEL_RAMP_MAX_ACCEL = 10000;  // rad/s^2
+        static_assert(WHEEL_RAMP_MAX_ACCEL >= 0);
 
         constexpr float KP_CHASSIS_SPIN = 1;
         constexpr float KI_CHASSIS_SPIN = 0;
@@ -231,9 +256,14 @@ namespace robot_config {
         constexpr float YETA_CHASSIS_SPIN = 0;
         constexpr float MIN_OUT_CHASSIS_SPIN = -2;
         constexpr float MAX_OUT_CHASSIS_SPIN = 2;
+        static_assert(MAX_OUT_OMNI_DRIVE >= MIN_OUT_OMNI_DRIVE);
 
-        constexpr float MAX_TRANSLATION = 4;
-        constexpr float MAX_ROTATION = 4;
+        constexpr float MAX_TRANSLATION = 4;      // m/s
+        constexpr float MAX_ROTATION = 6.283185;  // rad/s
+        constexpr float GYRO_SPEED = 6.283185;    // rad/s
+        static_assert(MAX_TRANSLATION >= 0);
+        static_assert(MAX_ROTATION >= 0);
+        static_assert(MAX_ROTATION >= GYRO_SPEED);
     }  // namespace chassis_params
 }  // namespace robot_config
 
