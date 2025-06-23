@@ -6,13 +6,13 @@ namespace robot_config {
 #ifdef MECANUM_GIMBAL
         constexpr int16_t YAW_ECD_CENTER = 3350;
         constexpr int16_t PITCH_ECD_CENTER = 2035;
-        constexpr uint32_t LOADER_GEAR_RATIO = 36;
+        constexpr float LOADER_GEAR_RATIO = 36;
 #endif
 
 #ifdef OMNI_GIMBAL
         constexpr int16_t YAW_ECD_CENTER = 1025;
         constexpr int16_t PITCH_ECD_CENTER = 4800;
-        constexpr uint32_t LOADER_GEAR_RATIO = 36;
+        constexpr float LOADER_GEAR_RATIO = 36;
 #endif
 
 #ifdef HERO_GIMBAL
@@ -22,51 +22,51 @@ namespace robot_config {
             {0.0f, 0.0f, 1.0f},
         };
 
-        constexpr int16_t YAW_ECD_CENTER = 0;
-        constexpr int16_t PITCH_ECD_CENTER = 0;
-        constexpr uint32_t LOADER_GEAR_RATIO = 1;
+        constexpr int16_t YAW_ECD_CENTER = 3100;
+        constexpr int16_t PITCH_ECD_CENTER = 6800;
+        constexpr float LOADER_GEAR_RATIO = 3591 / 187;
 
-        constexpr float KP_GIMBAL_YAW_ANGLE = 0;
+        constexpr float KP_GIMBAL_YAW_ANGLE = 130;
         constexpr float KI_GIMBAL_YAW_ANGLE = 0;
         constexpr float KD_GIMBAL_YAW_ANGLE = 0;
         constexpr float BETA_GIMBAL_YAW_ANGLE = 1;
-        constexpr float YETA_GIMBAL_YAW_ANGLE = 1;
-        constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = 0;
-        constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 0;
+        constexpr float YETA_GIMBAL_YAW_ANGLE = 0;
+        constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = -800;
+        constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 800;
         static_assert(MAX_OUT_GIMBAL_YAW_ANGLE >= MIN_OUT_GIMBAL_YAW_ANGLE);
 
-        constexpr float KP_GIMBAL_YAW_SPEED = 0;
-        constexpr float KI_GIMBAL_YAW_SPEED = 0;
+        constexpr float KP_GIMBAL_YAW_SPEED = 300;
+        constexpr float KI_GIMBAL_YAW_SPEED = 60;
         constexpr float KD_GIMBAL_YAW_SPEED = 0;
         constexpr float BETA_GIMBAL_YAW_SPEED = 1;
         constexpr float YETA_GIMBAL_YAW_SPEED = 1;
-        constexpr float MIN_OUT_GIMBAL_YAW_SPEED = 0;
-        constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 0;
+        constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
+        constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
         static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
-        constexpr float KP_GIMBAL_PITCH_ANGLE = 0;
+        constexpr float KP_GIMBAL_PITCH_ANGLE = 200;
         constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
         constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
         constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
-        constexpr float YETA_GIMBAL_PITCH_ANGLE = 1;
-        constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = 0;
-        constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 0;
+        constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
+        constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -500;
+        constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 500;
         static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
-        constexpr float KP_GIMBAL_PITCH_SPEED = 0;
-        constexpr float KI_GIMBAL_PITCH_SPEED = 0;
+        constexpr float KP_GIMBAL_PITCH_SPEED = 280;
+        constexpr float KI_GIMBAL_PITCH_SPEED = 70;
         constexpr float KD_GIMBAL_PITCH_SPEED = 0;
         constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
-        constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
-        constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
+        constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
+        constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
         static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 #endif
 
 #ifdef SWERVE_GIMBAL
         constexpr int16_t YAW_ECD_CENTER = 0;
         constexpr int16_t PITCH_ECD_CENTER = 0;
-        constexpr uint32_t LOADER_GEAR_RATIO = 36;
+        constexpr float LOADER_GEAR_RATIO = 36;
 #endif
 
 #if defined(SWERVE_GIMBAL) || defined(OMNI_GIMBAL) || defined(MECANUM_GIMBAL)
@@ -117,7 +117,7 @@ namespace robot_config {
 #ifdef GTEST
         constexpr int16_t YAW_ECD_CENTER = 0;
         constexpr int16_t PITCH_ECD_CENTER = 0;
-        constexpr uint32_t LOADER_GEAR_RATIO = 1;
+        constexpr float LOADER_GEAR_RATIO = 1;
 
         constexpr float KP_GIMBAL_YAW_ANGLE = 0;
         constexpr float KI_GIMBAL_YAW_ANGLE = 0;

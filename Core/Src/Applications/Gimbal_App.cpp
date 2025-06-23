@@ -477,7 +477,8 @@ void GimbalApp::update_targets() {
         if (gimbal.yaw_target_angle < -PI)
             gimbal.yaw_target_angle += 2.0f * PI;
 
-        gimbal.pitch_target_angle -= command_deltas[1];
+        gimbal.pitch_target_angle =
+            value_limit(gimbal.pitch_target_angle - command_deltas[1], -PI, PI);
     } else {
         gimbal.yaw_target_angle = 0;
         gimbal.pitch_target_angle = 0;
