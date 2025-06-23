@@ -50,6 +50,26 @@ TEST(PidCorrectness, Pid2InitBasic) {
     EXPECT_FLOAT_EQ(pid2.total_out, 0.f);
 }
 
+TEST(PidCorrectness, Pid2PFuncBasic) {
+    PID2_t pid;
+    pid2_init(pid, 5, 0, 0, 1, 1, -1000, 1000);
+    pid2_calculate(pid, 100, 0, 1);
+    EXPECT_FLOAT_EQ(pid.total_out, 500);
+
+    pid2_calculate(pid, -100, 0, 1);
+    EXPECT_FLOAT_EQ(pid.total_out, -500);
+
+    pid2_calculate(pid, 500, 0, 1);
+    EXPECT_FLOAT_EQ(pid.total_out, 1000);
+
+    pid2_calculate(pid, -500, 0, 1);
+    EXPECT_FLOAT_EQ(pid.total_out, -1000);
+
+    // P controller is time-independent.
+    pid2_calculate(pid, 100, 0, 0);
+    EXPECT_FLOAT_EQ(pid.total_out, 500);
+}
+
 TEST(PidFuzz, PidInitInvalidMaxes) {
     PID_t pid;
     EXPECT_DEATH(pid_param_init(&pid, -10.f, 100.f, 50.f, 1.f, 2.f, 3.f), "")

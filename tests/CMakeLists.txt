@@ -15,8 +15,15 @@ target_link_libraries(UARM_MATH_TEST
         GTest::gtest_main
         LIB::UARM_MATH)
 
+add_executable(RAMP_TEST ramp_test.cpp)
+target_link_libraries(RAMP_TEST 
+    PRIVATE
+        GTest::gtest_main
+        ALGORITHMS::CONTROL_LIB)
+
 
 include(GoogleTest)
 gtest_discover_tests(FIRST_TEST)
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)
+gtest_discover_tests(RAMP_TEST)
