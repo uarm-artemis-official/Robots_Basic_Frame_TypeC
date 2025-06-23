@@ -424,7 +424,6 @@ void BMI088_gyro_read(uint8_t* rx_buf, float gyro[3]) {
     gyro[2] = bmi088_raw_temp * BMI088_GYRO_SEN;
 }
 
-static int16_t gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
 static uint8_t gyro_read_status = 100;
 void BMI088_Read(float gyro[3], float accel[3], float* temperature) {
     uint8_t buf[6] = {0, 0, 0, 0, 0, 0};

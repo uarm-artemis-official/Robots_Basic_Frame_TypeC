@@ -55,6 +55,14 @@
 /* =========================================================================
  * REFEREE UI DEFINES
  * ====================================================================== */
+#define SOF_ID 0xA5                        //fixed sof value
+#define HEADER_LEN sizeof(frame_header_t)  // 5
+#define CMD_LEN 2                          //cmd_id bytes
+#define CRC_LEN 2                          //crc16 bytes
+#define MAX_REF_BUFFER_SIZE 256
+#define MAX_REF_TX_DATA_LEN 128
+#define MAX_REF_RX_DATA_LEN 41
+
 #define UI_HEADER_LEN 6
 #define UI_SEVEN_DRAWS_LEN 105  // 7 * sizeof(interaction_figure_t)=15
 #define UI_HERO_MARK_LEN UI_HEADER_LEN + UI_SEVEN_DRAWS_LEN
@@ -62,5 +70,18 @@
 #define UI_STRING_DRAWS_LEN 45  // 15 + 30
 #define UI_ACT_MODE_LEN UI_HEADER_LEN + UI_STRING_DRAWS_LEN
 #define UI_ROBOT_VAILD_INFO_LEN UI_HEADER_LEN + UI_SEVEN_DRAWS_LEN
+
+/* =========================================================================
+ * PC COMM DEFINES
+ * ====================================================================== */
+// PACK HEADERS
+#define UC_AUTO_AIM_HEADER 0x01
+#define UC_BOARD_DATA_HEADER 0x02
+#define UC_FLOW_CONTROL_HEADER 0x04
+
+// PACK DEFINITIONS
+#define MAX_PACK_BUFFER_SIZE 64  // Measured in bytes.
+#define PACK_HEADER_SIZE 4
+#define PACK_TRAILER_SIZE 4
 
 #endif

@@ -231,25 +231,24 @@ typedef struct {
 /* =========================================================================
  * REFEREE SYSTEM TYPES
  * ====================================================================== */
-// TODO: Re-enable later.
-// typedef struct {
-//     frame_header_t header;
-//     referee_id_t id;
-//     game_status_t game_status_data;
-//     game_result_t game_result_data;
-//     game_robot_HP_t robot_HP_data;
-//     robot_status_t robot_status_data;
-//     power_heat_data_t power_heat_data;
-//     shoot_data_t shoot_data;
-//     ref_ui_info_t ref_info_data;
+typedef struct {
+    frame_header_t header;
+    referee_id_t id;
+    game_status_t game_status_data;
+    game_result_t game_result_data;
+    game_robot_HP_t robot_HP_data;
+    robot_status_t robot_status_data;
+    power_heat_data_t power_heat_data;
+    shoot_data_t shoot_data;
+    ref_ui_info_t ref_info_data;
 
-//     uint8_t ref_data[MAX_REF_RX_DATA_LEN];  // MAX_REF_RX_DATA_LEN
-//     // rx data
-//     uint8_t ref_rx_frame[MAX_REF_BUFFER_SIZE];  // MAX_REF_BUFFER_SIZE
-//     uint16_t ref_cmd_id;
-//     robot_color_t robot_color;
+    uint8_t ref_data[MAX_REF_RX_DATA_LEN];  // MAX_REF_RX_DATA_LEN
+    // rx data
+    uint8_t ref_rx_frame[MAX_REF_BUFFER_SIZE];  // MAX_REF_BUFFER_SIZE
+    uint16_t ref_cmd_id;
+    robot_color_t robot_color;
 
-// } Referee_t;
+} Referee_t;
 
 /* =========================================================================
  * RC TYPES

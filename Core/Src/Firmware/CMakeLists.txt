@@ -1,3 +1,6 @@
+# TODO: Rename to Middleware and make middleware for essential components.
+# Maybe define a interface for easier testing?
+
 add_subdirectory(Device)
 
 add_library(DWT STATIC dwt.c)

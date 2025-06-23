@@ -10,18 +10,18 @@
 #include "PC_UART_App.h"
 #include <cstring>
 #include "apps_defines.h"
-#include "pc_comm.h"
 #include "uarm_lib.h"
 #include "uarm_math.h"
 #include "uarm_os.h"
 
-PCUARTApp::PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_)
-    : message_center(message_center_ref), motors(motors_) {
+PCUARTApp::PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_,
+                     IPCComm& pc_comm_)
+    : message_center(message_center_ref), motors(motors_), pc_comm(pc_comm_) {
     memset(new_pack_buffer, 0, sizeof(uint8_t) * 64);
 }
 
 void PCUARTApp::init() {
-    PCComm::start_receive(new_pack_buffer);
+    pc_comm.start_receive(new_pack_buffer);
 }
 
 void PCUARTApp::loop() {
@@ -38,19 +38,19 @@ void PCUARTApp::loop() {
     // send_pack.wheel_rpm[3] = 0.4f;
 
     if (idle_count == 200) {
-        PCComm::restart_receive(new_pack_buffer);
+        pc_comm.restart_receive(new_pack_buffer);
         idle_count = 0;
     }
 
     while (message_center.get_message(UC_PACK_IN, new_pack_buffer, 0) ==
            pdTRUE) {
-        if (PCComm::uc_check_pack_integrity(new_pack_buffer,
+        if (pc_comm.uc_check_pack_integrity(new_pack_buffer,
                                             MAX_PACK_BUFFER_SIZE) == 0) {
             switch (new_pack_buffer[0]) {
                 case UC_AUTO_AIM_HEADER: {
                     UC_Auto_Aim_Pack_t aim_pack;
                     std::memcpy(&aim_pack, new_pack_buffer + PACK_HEADER_SIZE,
-                                get_data_size(new_pack_buffer[0]));
+                                pc_comm.get_data_size(new_pack_buffer[0]));
                     if (aim_pack.target_num > 0) {
                         float deltas[] = {value_limit(aim_pack.delta_yaw,
                                                       -(15.f * DEGREE2RAD),
@@ -84,7 +84,7 @@ void PCUARTApp::loop() {
 #ifndef SWERVE_CHASSIS
     while (message_center.get_message(UC_PACK_OUT, new_send_buffer, 0) ==
            pdTRUE) {
-        PCComm::send_bytes(new_send_buffer, 196);
+        pc_comm.send_bytes(new_send_buffer, 196);
     }
 #else
     send_swerve_data();

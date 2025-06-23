@@ -67,6 +67,7 @@ add_library(SUBSYSTEMS::MOTORS ALIAS MOTORS)
 add_library(PC_COMM STATIC pc_comm.cpp)
 target_link_libraries(PC_COMM
     PUBLIC
+        SUBSYSTEMS_INCLUDE
         LIB::UARM_LIB
         LIB::UARM_INCLUDE
         FW::PACK_HANDLER)

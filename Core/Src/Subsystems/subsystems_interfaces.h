@@ -38,17 +38,16 @@ class IImu {
     virtual void gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) = 0;
 };
 
-// TODO: Re-enable later.
-// class IRefUI {
-//    public:
-//     virtual void init() = 0;
-//     virtual void set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id,
-//                              ref_ui_info_t ref_ui_info) = 0;
-//     virtual void send_ui_data(uint16_t cmd_id, uint16_t len,
-//                               referee_ui_type_t ui_type) = 0;
-//     virtual void draw_marks() = 0;
-//     virtual void draw_vaild_info(uint32_t act_mode, uint32_t level) = 0;
-// };
+class IRefUI {
+   public:
+    virtual void init() = 0;
+    virtual void set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id,
+                             ref_ui_info_t ref_ui_info) = 0;
+    virtual void send_ui_data(uint16_t cmd_id, uint16_t len,
+                              referee_ui_type_t ui_type) = 0;
+    virtual void draw_marks() = 0;
+    virtual void draw_vaild_info(uint32_t act_mode, uint32_t level) = 0;
+};
 
 class IEventCenter {
    public:
@@ -95,6 +94,18 @@ class IRCComm {
     virtual void parse_pc(Buffer& buffer, PC& pc) = 0;
     virtual void key_scan(KeyObject& key, uint16_t key_buffer,
                           EKeyBitIndex key_bit_index) = 0;
+};
+
+class IPCComm {
+   public:
+    virtual uint8_t uc_check_pack_integrity(uint8_t* pack_bytes,
+                                            uint8_t pack_size);
+    virtual void send_bytes(uint8_t* bytes, uint32_t size);
+    virtual uint8_t get_data_size(uint8_t header_id);
+    virtual void start_receive(uint8_t* pack_buffer);
+    virtual void restart_receive(uint8_t* pack_buffer);
+    virtual UC_Checksum_t calc_checksum(void* buffer_ptr, size_t buffer_size);
+    virtual uint8_t is_valid_header(uint8_t* input_buffer);
 };
 
 #endif

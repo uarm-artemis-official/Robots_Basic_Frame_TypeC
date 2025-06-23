@@ -49,7 +49,7 @@ void init_uart_isr(UART_Config_t config) {
             break;
         }
         case GIMBAL: {
-            uc_start_receive(pack_buffer);
+            uc_start_receive(pack_buffer, MAX_PACK_BUFFER_SIZE);
             break;
         }
         default: {

@@ -76,9 +76,6 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     enable_testing()
 
     add_library(COMMON_INCLUDES INTERFACE)
-    target_include_directories(COMMON_INCLUDES
-        INTERFACE
-            ${PROJECT_SOURCE_DIR}/Core/Inc)
     target_compile_definitions(COMMON_INCLUDES 
         INTERFACE 
             GTEST)

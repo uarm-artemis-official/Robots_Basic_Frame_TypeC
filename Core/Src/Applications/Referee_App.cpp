@@ -21,9 +21,9 @@
 #include "Referee_App.h"
 #include "crc.h"
 #include "message_center.h"
-#include "referee_data.h"
+// #include "referee_data.h"
 #include "string.h"
-#include "usart.h"
+// #include "usart.h"
 
 // Referee_t referee;
 
@@ -221,16 +221,16 @@ void RefereeApp::draw_all_ui() {
     // }
 }
 
-void RefereeApp::reset() {
-    /* Reset DMA */
-    HAL_UART_DMAStop(&huart1);
+// void RefereeApp::reset() {
+//     /* Reset DMA */
+//     HAL_UART_DMAStop(&huart1);
 
-    /* Clear rx buffer */
-    // memset(ref.ref_rx_frame, 0, 256);
+//     /* Clear rx buffer */
+//     // memset(ref.ref_rx_frame, 0, 256);
 
-    /* Resume UART DMA Receive */
-    HAL_UART_Receive_DMA(&huart1, ref.ref_rx_frame, sizeof(ref.ref_rx_frame));
-}
+//     /* Resume UART DMA Receive */
+//     HAL_UART_Receive_DMA(&huart1, ref.ref_rx_frame, sizeof(ref.ref_rx_frame));
+// }
 
 // /* Drawing the UI */
 // uint8_t pack_seq = 0;

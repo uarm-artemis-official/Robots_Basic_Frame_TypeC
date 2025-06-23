@@ -104,6 +104,7 @@
 #include "imu.h"
 #include "message_center.h"
 #include "motors.h"
+#include "pc_comm.h"
 #include "rc_comm.hpp"
 #include "referee_ui.h"
 #include "robot_config.hpp"
@@ -174,6 +175,7 @@ static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
 static AmmoLid ammo_lid;
 static RCComm rc_comm;
+static PCComm pc_comm;
 
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
@@ -203,10 +205,9 @@ static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 static RCApp rc_app(message_center, rc_comm);
 static CommApp comm_app(message_center, debug, can_comm);
 static TimerApp timer_app(motors, message_center, debug);
-static PCUARTApp pc_uart_app(message_center, no_init_motors);
+static PCUARTApp pc_uart_app(message_center, no_init_motors, pc_comm);
 static IMUApp imu_app(message_center, event_center, imu, debug);
-// TODO: Reenable later.
-// static RefereeApp referee_app(message_center, event_center, debug, ref_ui);
+static RefereeApp referee_app(message_center, event_center, debug, ref_ui);
 static GimbalApp gimbal_app(message_center, event_center, debug,
                             no_init_motors);
 static ShootApp shoot_app(
@@ -305,11 +306,10 @@ int main(void) {
             384);
         osThreadCreate(osThread(RCTask), NULL);
 
-        // TODO: Reenable later.
-        // osThreadDef(
-        //     RefTask, [](const void* arg) { referee_app.run(arg); },
-        //     osPriorityHigh, 0, 384);
-        // osThreadCreate(osThread(RefTask), NULL);
+        osThreadDef(
+            RefTask, [](const void* arg) { referee_app.run(arg); },
+            osPriorityHigh, 0, 384);
+        osThreadCreate(osThread(RefTask), NULL);
 
     } else if (board_status == GIMBAL_BOARD) {
         osThreadDef(

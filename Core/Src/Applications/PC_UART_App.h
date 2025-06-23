@@ -17,16 +17,19 @@
 
 class PCUARTApp : public RTOSApp<PCUARTApp> {
    private:
-    uint8_t new_pack_buffer[64];  // TODO: Make same as MAX_PACK_BUFFER_SIZE.
-    uint8_t new_send_buffer[196];
     IMessageCenter& message_center;
     IMotors& motors;
+    IPCComm& pc_comm;
+
     uint32_t idle_count = 0;
+    uint8_t new_pack_buffer[64];  // TODO: Make same as MAX_PACK_BUFFER_SIZE.
+    uint8_t new_send_buffer[196];
     float recent_deltas[2];
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = PC_UART_TASK_EXEC_TIME;
-    PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_);
+    PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_,
+              IPCComm& pc_comm_);
     void init();
     void loop();
     void send_swerve_data();

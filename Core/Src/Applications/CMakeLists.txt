@@ -1,7 +1,7 @@
 add_library(APPS_INCLUDE INTERFACE)
 target_include_directories(APPS_INCLUDE
     INTERFACE
-        ${PROJECT_SOURCE_DIR}/Core/Inc
+        ${PROJECT_SOURCE_DIR}/Core/Src
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${ALGORITHMS_PATH}/control
         ${ALGORITHMS_PATH}/attitude
@@ -17,7 +17,6 @@ target_link_libraries(CHASSIS_DRIVES
         LIB::UARM_OS
         LIB::UARM_MATH)
 
-# Add Shoot_App.c back again later
 add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp Shoot_App.cpp)
 target_link_libraries(BASIC_APPS
     PUBLIC
@@ -36,8 +35,7 @@ add_library(GENERIC_APPS
         RC_App.cpp
         IMU_App.cpp
         PC_UART_App.cpp
-        # TODO: Reenable referee app after pull.
-        # Referee_App.cpp
+        Referee_App.cpp
         Timer_App.cpp
         WatchDog_App.c)
 target_include_directories(GENERIC_APPS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
