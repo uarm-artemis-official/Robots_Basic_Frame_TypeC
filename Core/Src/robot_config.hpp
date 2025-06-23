@@ -174,22 +174,22 @@ namespace robot_config {
     namespace shoot_params {
         // PID
 #ifdef HERO_GIMBAL
-        constexpr float KP_LOADER_SPEED = 0;
+        constexpr float KP_LOADER_SPEED = 15;
         constexpr float KI_LOADER_SPEED = 0;
         constexpr float KD_LOADER_SPEED = 0;
-        constexpr float BETA_LOADER_SPEED = 0;
+        constexpr float BETA_LOADER_SPEED = 1;
         constexpr float YETA_LOADER_SPEED = 0;
-        constexpr float MIN_OUT_LOADER_SPEED = 0;
-        constexpr float MAX_OUT_LOADER_SPEED = 0;
+        constexpr float MIN_OUT_LOADER_SPEED = -5000;
+        constexpr float MAX_OUT_LOADER_SPEED = 5000;
         static_assert(MAX_OUT_LOADER_SPEED >= MIN_OUT_LOADER_SPEED);
 
-        constexpr float KP_FLYWHEEL_SPEED = 0;
-        constexpr float KI_FLYWHEEL_SPEED = 0;
+        constexpr float KP_FLYWHEEL_SPEED = 27;
+        constexpr float KI_FLYWHEEL_SPEED = 5;
         constexpr float KD_FLYWHEEL_SPEED = 0;
-        constexpr float BETA_FLYWHEEL_SPEED = 0;
+        constexpr float BETA_FLYWHEEL_SPEED = 1;
         constexpr float YETA_FLYWHEEL_SPEED = 0;
-        constexpr float MIN_OUT_FLYWHEEL_SPEED = 0;
-        constexpr float MAX_OUT_FLYWHEEL_SPEED = 0;
+        constexpr float MIN_OUT_FLYWHEEL_SPEED = -5000;
+        constexpr float MAX_OUT_FLYWHEEL_SPEED = 5000;
         static_assert(MAX_OUT_FLYWHEEL_SPEED >= MIN_OUT_FLYWHEEL_SPEED);
 #else
         constexpr float KP_LOADER_SPEED = 12;
@@ -211,12 +211,18 @@ namespace robot_config {
         static_assert(MAX_OUT_FLYWHEEL_SPEED >= MIN_OUT_FLYWHEEL_SPEED);
 #endif
 
-        // OTHER PARAMETERS
+// OTHER PARAMETERS
+#ifdef HERO_GIMBAL
+        constexpr float LOADER_ACTIVE_RPM = 33;
+        constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 5000;
+        constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
+        static_assert(MAX_FLYWHEEL_ACCEL >= 0);
+#else
         constexpr float LOADER_ACTIVE_RPM = 75;
         constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
         constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
         static_assert(MAX_FLYWHEEL_ACCEL >= 0);
-
+#endif
         constexpr float JAM_STALL_DURATION_THRESHOLD = 0.1;  // seconds
         constexpr int16_t JAM_LOADER_RPM_THRESHOLD = 5;      // rpm
         constexpr float JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD = 0.1;
