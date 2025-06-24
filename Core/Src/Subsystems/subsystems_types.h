@@ -558,6 +558,7 @@ enum class EAmmoLidStatus {
 // upper computer -> MCU
 typedef struct {
     uint8_t target_num;
+    uint8_t should_shoot;
     float delta_yaw;
     float delta_pitch;
 } UC_Auto_Aim_Pack_t;

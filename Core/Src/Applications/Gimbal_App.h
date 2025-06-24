@@ -80,6 +80,8 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     void update_headings();
     void update_targets();
 
+    void limit_pitch_target();
+
     void cmd_exec();
 
     void send_motor_volts();

@@ -25,18 +25,6 @@ void PCUARTApp::init() {
 }
 
 void PCUARTApp::loop() {
-    // UC_Board_Data_Pack_t send_pack;
-    // pack_init(&send_pack, get_data_size(UC_BOARD_DATA_HEADER));
-    // send_pack.robot_color = 2;
-    // send_pack.pitch = 1.111f;
-    // send_pack.yaw = 2.222f;
-    // send_pack.accel_x = 0.999f;
-    // send_pack.accel_y = 0.888f;
-    // send_pack.wheel_rpm[0] = 0.1f;
-    // send_pack.wheel_rpm[1] = 0.2f;
-    // send_pack.wheel_rpm[2] = 0.3f;
-    // send_pack.wheel_rpm[3] = 0.4f;
-
     if (idle_count == 200) {
         pc_comm.restart_receive(new_pack_buffer);
         idle_count = 0;
@@ -60,6 +48,17 @@ void PCUARTApp::loop() {
                         recent_deltas[1] = aim_pack.delta_pitch;
                         message_center.pub_message(AUTO_AIM, deltas);
                     }
+
+                    ShootCommandMessage_t shoot_command;
+                    shoot_command.extra_bits = 0;
+                    if (aim_pack.should_shoot == 1) {
+                        shoot_command.command_bits =
+                            static_cast<uint8_t>(SHOOT_CONT);
+                    } else {
+                        shoot_command.command_bits =
+                            static_cast<uint8_t>(SHOOT_CEASE);
+                    }
+                    message_center.pub_message(COMMAND_SHOOT, &shoot_command);
                     break;
                 }
                 case UC_FLOW_CONTROL_HEADER: {

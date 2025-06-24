@@ -9,6 +9,7 @@
 *******************************************************************************/
 #include "Gimbal_App.h"
 #include <string.h>
+#include <algorithm>
 #include "apps_defines.h"
 #include "motors.h"
 #include "pid.h"
@@ -92,12 +93,12 @@ void GimbalApp::set_initial_state() {
     gimbal.yaw_ecd_center = robot_config::gimbal_params::YAW_ECD_CENTER;
     gimbal.pitch_ecd_center = robot_config::gimbal_params::PITCH_ECD_CENTER;
 
+    // TODO: Move 'a' constants to robot_config.
     init_folp_filter(&(gimbal.folp_f_yaw), 0.90f);
-    init_folp_filter(&(gimbal.folp_f_pitch), 0.90f);
+    init_folp_filter(&(gimbal.folp_f_pitch), 1.0f);
 }
 
 bool GimbalApp::exit_calibrate_cond() {
-    // TODO: Add speed condition (e.g. rpm has to be lower than 5)?
     return fabs(gimbal.yaw_rel_angle) <
                (robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA *
                 DEGREE2RAD) &&
@@ -337,7 +338,7 @@ void GimbalApp::update_ecd_angles() {
     // Negated pitch angle due to mounting of GM6020 on left side.
     // Left-side mounting flips rotation sign convention (i.e. CCW is negative).
     // Negating pitch restores regular sign convention.
-    int16_t pitch_ecd_rel_angle = -GimbalApp::calc_ecd_rel_angle(
+    int16_t pitch_ecd_rel_angle = GimbalApp::calc_ecd_rel_angle(
         motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_angle,
         gimbal.pitch_ecd_center);
 
@@ -432,8 +433,10 @@ void GimbalApp::send_rel_angles() {
 }
 
 void GimbalApp::update_headings() {
-    gimbal.yaw_imu_angle =
-        GimbalApp::calc_rel_angle(gimbal.yaw_imu_center, gimbal.yaw_imu_angle);
+    if (is_imu_calibrated()) {
+        gimbal.yaw_imu_angle = GimbalApp::calc_rel_angle(gimbal.yaw_imu_center,
+                                                         gimbal.yaw_imu_angle);
+    }
     update_ecd_angles();
 
     if (gimbal.gimbal_motor_mode == GYRO_MODE) {
@@ -464,6 +467,7 @@ void GimbalApp::update_targets() {
             if (gimbal.yaw_target_angle < -PI)
                 gimbal.yaw_target_angle += 2.0f * PI;
         }
+
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                gimbal.gimbal_act_mode == INDPET_MODE) {
         gimbal.yaw_target_angle = 0;
@@ -477,18 +481,28 @@ void GimbalApp::update_targets() {
         if (gimbal.yaw_target_angle < -PI)
             gimbal.yaw_target_angle += 2.0f * PI;
 
-        gimbal.pitch_target_angle =
-            value_limit(gimbal.pitch_target_angle - command_deltas[1], -PI, PI);
+        gimbal.pitch_target_angle = value_limit(
+            gimbal.pitch_target_angle - command_deltas[1], -PI / 2, PI / 2);
+        if (fabs(command_deltas[1]) > 0.001) {
+            limit_pitch_target();
+        }
     } else {
         gimbal.yaw_target_angle = 0;
         gimbal.pitch_target_angle = 0;
         // ASSERT(false, "Unknown state");
     }
+}
 
-    // Software limit pitch target range to prevent hitting mechanical hard-stops.
-    // gimbal.pitch_target_angle =
-    //     value_limit(gimbal.pitch_target_angle, GimbalApp::PITCH_LOWER_LIMIT,
-    //                 GimbalApp::PITCH_UPPER_LIMIT);
+// TODO: Small shaking/doesn't fully limit pitch within range.
+void GimbalApp::limit_pitch_target() {
+    static_assert(-PI / 2 <= robot_config::gimbal_params::PITCH_MIN_ANGLE);
+    static_assert(robot_config::gimbal_params::PITCH_MAX_ANGLE <= PI / 2);
+    gimbal.pitch_target_angle =
+        value_limit(gimbal.pitch_target_angle,
+                    robot_config::gimbal_params::PITCH_MIN_ANGLE -
+                        (gimbal.pitch_rel_angle - gimbal.pitch_ecd_angle),
+                    robot_config::gimbal_params::PITCH_MAX_ANGLE -
+                        (gimbal.pitch_rel_angle - gimbal.pitch_ecd_angle));
 }
 
 /*
@@ -504,8 +518,8 @@ void GimbalApp::cmd_exec() {
     // Inverted relative angle calculation (i.e. find target relative to angle instead of reverse)
     // due to mounting of GM6020 on left side of gimbal instead of right side. The left side has
     // opposite rotation sign convention (i.e. rotating CCW is negative) than right side.
-    float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_rel_angle,
-                                                 gimbal.pitch_target_angle);
+    float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_target_angle,
+                                                 gimbal.pitch_rel_angle);
 
     pid2_dual_loop_control(
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,

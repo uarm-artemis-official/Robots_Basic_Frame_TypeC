@@ -7,12 +7,21 @@ namespace robot_config {
         constexpr int16_t YAW_ECD_CENTER = 3350;
         constexpr int16_t PITCH_ECD_CENTER = 2035;
         constexpr float LOADER_GEAR_RATIO = 36;
+
+        constexpr float PITCH_MIN_ANGLE = 0;
+        constexpr float PITCH_MAX_ANGLE = 0;
+        static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 #endif
 
 #ifdef OMNI_GIMBAL
         constexpr int16_t YAW_ECD_CENTER = 1025;
         constexpr int16_t PITCH_ECD_CENTER = 4800;
         constexpr float LOADER_GEAR_RATIO = 36;
+
+        static_assert(false);
+        constexpr float PITCH_MIN_ANGLE = 0;
+        constexpr float PITCH_MAX_ANGLE = 0;
+        static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 #endif
 
 #ifdef HERO_GIMBAL
@@ -25,6 +34,10 @@ namespace robot_config {
         constexpr int16_t YAW_ECD_CENTER = 3100;
         constexpr int16_t PITCH_ECD_CENTER = 6800;
         constexpr float LOADER_GEAR_RATIO = 3591 / 187;
+
+        constexpr float PITCH_MIN_ANGLE = -0.3;
+        constexpr float PITCH_MAX_ANGLE = 0.1;
+        static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 
         constexpr float KP_GIMBAL_YAW_ANGLE = 130;
         constexpr float KI_GIMBAL_YAW_ANGLE = 0;
@@ -44,32 +57,78 @@ namespace robot_config {
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
         static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
-        constexpr float KP_GIMBAL_PITCH_ANGLE = 200;
-        constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
-        constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
+        constexpr float KP_GIMBAL_PITCH_ANGLE = 180;
+        constexpr float KI_GIMBAL_PITCH_ANGLE = 40;
+        constexpr float KD_GIMBAL_PITCH_ANGLE = 1;
         constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
         constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
-        constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -500;
-        constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 500;
+        constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
+        constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
         static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
-        constexpr float KP_GIMBAL_PITCH_SPEED = 280;
-        constexpr float KI_GIMBAL_PITCH_SPEED = 70;
+        constexpr float KP_GIMBAL_PITCH_SPEED = 240;
+        constexpr float KI_GIMBAL_PITCH_SPEED = 60;
         constexpr float KD_GIMBAL_PITCH_SPEED = 0;
         constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
-        constexpr float YETA_GIMBAL_PITCH_SPEED = 1;
+        constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
         static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 #endif
 
 #ifdef SWERVE_GIMBAL
-        constexpr int16_t YAW_ECD_CENTER = 0;
-        constexpr int16_t PITCH_ECD_CENTER = 0;
+        constexpr int16_t YAW_ECD_CENTER = 4430;
+        constexpr int16_t PITCH_ECD_CENTER = 4050;
         constexpr float LOADER_GEAR_RATIO = 36;
+
+        constexpr float IMU_ORIENTATION[3][3] = {
+            {1.0f, 0.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f},
+        };
+
+        constexpr float PITCH_MIN_ANGLE = -0.2;
+        constexpr float PITCH_MAX_ANGLE = 0.1;
+        static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
+
+        constexpr float KP_GIMBAL_YAW_ANGLE = 105;
+        constexpr float KI_GIMBAL_YAW_ANGLE = 0;  // Not allowed.
+        constexpr float KD_GIMBAL_YAW_ANGLE = 0.05;
+        constexpr float BETA_GIMBAL_YAW_ANGLE = 1;
+        constexpr float YETA_GIMBAL_YAW_ANGLE = 0;
+        constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = -800;
+        constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 800;
+        static_assert(MAX_OUT_GIMBAL_YAW_ANGLE >= MIN_OUT_GIMBAL_YAW_ANGLE);
+
+        constexpr float KP_GIMBAL_YAW_SPEED = 240;
+        constexpr float KI_GIMBAL_YAW_SPEED = 10;
+        constexpr float KD_GIMBAL_YAW_SPEED = 0;
+        constexpr float BETA_GIMBAL_YAW_SPEED = 1;
+        constexpr float YETA_GIMBAL_YAW_SPEED = 1;
+        constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
+        constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
+        static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
+
+        constexpr float KP_GIMBAL_PITCH_ANGLE = 80;
+        constexpr float KI_GIMBAL_PITCH_ANGLE = 10;
+        constexpr float KD_GIMBAL_PITCH_ANGLE = 0.05;
+        constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
+        constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
+        constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
+        constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
+        static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
+
+        constexpr float KP_GIMBAL_PITCH_SPEED = 200;
+        constexpr float KI_GIMBAL_PITCH_SPEED = 10;
+        constexpr float KD_GIMBAL_PITCH_SPEED = 0;
+        constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
+        constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
+        constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
+        constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
+        static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 #endif
 
-#if defined(SWERVE_GIMBAL) || defined(OMNI_GIMBAL) || defined(MECANUM_GIMBAL)
+#if defined(OMNI_GIMBAL) || defined(MECANUM_GIMBAL)
         // TODO: Move to front-right-up (x-y-z) reference frame???
         constexpr float IMU_ORIENTATION[3][3] = {
             {1.0f, 0.0f, 0.0f},
@@ -118,6 +177,10 @@ namespace robot_config {
         constexpr int16_t YAW_ECD_CENTER = 0;
         constexpr int16_t PITCH_ECD_CENTER = 0;
         constexpr float LOADER_GEAR_RATIO = 1;
+
+        constexpr float PITCH_MIN_ANGLE = 0;
+        constexpr float PITCH_MAX_ANGLE = 0;
+        static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 
         constexpr float KP_GIMBAL_YAW_ANGLE = 0;
         constexpr float KI_GIMBAL_YAW_ANGLE = 0;
