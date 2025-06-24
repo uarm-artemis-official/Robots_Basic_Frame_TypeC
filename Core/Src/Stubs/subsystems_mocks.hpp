@@ -1,3 +1,6 @@
+#ifndef __SUBSYSTEMS_MOCKS_HPP
+#define __SUBSYSTEMS_MOCKS_HPP
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "subsystems_interfaces.h"
@@ -30,6 +33,9 @@ class MockMotors : public IMotors {
                 (override));
     MOCK_METHOD(void, send_motor_voltage, (), (override));
     MOCK_METHOD(void, request_feedback, (Motor_CAN_ID_t can_id), (override));
+    MOCK_METHOD(void, get_raw_feedback,
+                (uint32_t stdid, uint8_t data[8], void* feedback), (override));
+    MOCK_METHOD(Motor_Brand_t, get_motor_brand, (uint32_t stdid));
 };
 
 class MockImu : public IImu {
@@ -75,3 +81,5 @@ class MockAmmoLid : public IAmmoLid {
     MOCK_METHOD(void, init, (), (override));
     MOCK_METHOD(void, set_lid_status, (EAmmoLidStatus new_status), (override));
 };
+
+#endif

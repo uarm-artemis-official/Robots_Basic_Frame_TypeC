@@ -13,6 +13,7 @@ add_library(CHASSIS_DRIVES STATIC Omni_Drive.cpp Swerve_Drive.cpp)
 target_link_libraries(CHASSIS_DRIVES 
     PUBLIC
         APPS_INCLUDE
+        ALGORITHMS::CONTROL_LIB
         LIB::UARM_LIB
         LIB::UARM_OS
         LIB::UARM_MATH)
