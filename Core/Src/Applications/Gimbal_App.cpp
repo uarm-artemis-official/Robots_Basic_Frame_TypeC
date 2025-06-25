@@ -335,12 +335,20 @@ void GimbalApp::update_ecd_angles() {
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_angle,
         gimbal.yaw_ecd_center);
 
-    // Negated pitch angle due to mounting of GM6020 on left side.
-    // Left-side mounting flips rotation sign convention (i.e. CCW is negative).
-    // Negating pitch restores regular sign convention.
+// Negated pitch angle due to mounting of GM6020 on left side.
+// Left-side mounting flips rotation sign convention (i.e. CCW is negative).
+// Negating pitch restores regular sign convention.
+
+// TODO: Find better way...
+#if !defined(HERO_GIMBAL)
+    int16_t pitch_ecd_rel_angle = -GimbalApp::calc_ecd_rel_angle(
+        motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_angle,
+        gimbal.pitch_ecd_center);
+#else
     int16_t pitch_ecd_rel_angle = GimbalApp::calc_ecd_rel_angle(
         motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_angle,
         gimbal.pitch_ecd_center);
+#endif
 
     gimbal.yaw_ecd_angle = in_out_map(yaw_ecd_rel_angle, -4095, 4096, -PI, PI);
     gimbal.pitch_ecd_angle =
@@ -515,11 +523,20 @@ void GimbalApp::cmd_exec() {
     float yaw_diff = GimbalApp::calc_rel_angle(gimbal.yaw_target_angle,
                                                gimbal.yaw_rel_angle);
 
-    // Inverted relative angle calculation (i.e. find target relative to angle instead of reverse)
-    // due to mounting of GM6020 on left side of gimbal instead of right side. The left side has
-    // opposite rotation sign convention (i.e. rotating CCW is negative) than right side.
+// Inverted relative angle calculation (i.e. find target relative to angle instead of reverse)
+// due to mounting of GM6020 on left side of gimbal instead of right side. The left side has
+// opposite rotation sign convention (i.e. rotating CCW is negative) than right side.
+// float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_target_angle,
+//                                              gimbal.pitch_rel_angle);
+
+// TODO: Find better way...
+#if !defined(HERO_GIMBAL)
+    float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_rel_angle,
+                                                 gimbal.pitch_target_angle);
+#else
     float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_target_angle,
                                                  gimbal.pitch_rel_angle);
+#endif
 
     pid2_dual_loop_control(
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,

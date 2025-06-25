@@ -34,12 +34,12 @@ namespace robot_config {
         constexpr int16_t PITCH_ECD_CENTER = 6800;
         constexpr float LOADER_GEAR_RATIO = 3591 / 187;
 
-        constexpr float PITCH_MIN_ANGLE = -0.3;
+        constexpr float PITCH_MIN_ANGLE = -0.20;
         constexpr float PITCH_MAX_ANGLE = 0.1;
         static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 
-        constexpr float KP_GIMBAL_YAW_ANGLE = 130;
-        constexpr float KI_GIMBAL_YAW_ANGLE = 0;
+        constexpr float KP_GIMBAL_YAW_ANGLE = 250;
+        constexpr float KI_GIMBAL_YAW_ANGLE = 60;
         constexpr float KD_GIMBAL_YAW_ANGLE = 0;
         constexpr float BETA_GIMBAL_YAW_ANGLE = 1;
         constexpr float YETA_GIMBAL_YAW_ANGLE = 0;
@@ -47,7 +47,7 @@ namespace robot_config {
         constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 800;
         static_assert(MAX_OUT_GIMBAL_YAW_ANGLE >= MIN_OUT_GIMBAL_YAW_ANGLE);
 
-        constexpr float KP_GIMBAL_YAW_SPEED = 300;
+        constexpr float KP_GIMBAL_YAW_SPEED = 200;
         constexpr float KI_GIMBAL_YAW_SPEED = 60;
         constexpr float KD_GIMBAL_YAW_SPEED = 0;
         constexpr float BETA_GIMBAL_YAW_SPEED = 1;
@@ -56,8 +56,8 @@ namespace robot_config {
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
         static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
-        constexpr float KP_GIMBAL_PITCH_ANGLE = 180;
-        constexpr float KI_GIMBAL_PITCH_ANGLE = 40;
+        constexpr float KP_GIMBAL_PITCH_ANGLE = 220;
+        constexpr float KI_GIMBAL_PITCH_ANGLE = 80;
         constexpr float KD_GIMBAL_PITCH_ANGLE = 1;
         constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
         constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
@@ -65,7 +65,7 @@ namespace robot_config {
         constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
         static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
-        constexpr float KP_GIMBAL_PITCH_SPEED = 240;
+        constexpr float KP_GIMBAL_PITCH_SPEED = 180;
         constexpr float KI_GIMBAL_PITCH_SPEED = 60;
         constexpr float KD_GIMBAL_PITCH_SPEED = 0;
         constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
