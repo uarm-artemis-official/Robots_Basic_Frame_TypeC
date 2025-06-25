@@ -191,10 +191,11 @@ void ShootApp::calc_targets() {
         case SHOOT_CONT:
             shoot.loader_delay_counter =
                 value_limit(shoot.loader_delay_counter + 1, 0, 1000);
-            if (shoot.shoot_state == ShootState::NORMAL &&
-                shoot.loader_delay_counter >= 20) {
-                set_loader_target(LOADER_ACTIVE_RPM);
-                set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
+            if (shoot.shoot_state == ShootState::NORMAL) {
+                if (shoot.loader_delay_counter >= 20) {
+                    set_loader_target(LOADER_ACTIVE_RPM);
+                    set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
+                }
             } else if (shoot.shoot_state == ShootState::ANTIJAM) {
                 set_loader_target(shoot.antijam_direction * LOADER_ACTIVE_RPM);
             } else {

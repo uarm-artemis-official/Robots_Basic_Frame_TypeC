@@ -6,8 +6,8 @@
 
 class AmmoLid : public IAmmoLid {
    private:
-    static constexpr uint16_t CLOSED_PWM_CMP = 366;
-    static constexpr uint16_t OPEN_PWM_CMP = 170;
+    static constexpr uint16_t CLOSED_PWM_CMP = 503;
+    static constexpr uint16_t OPEN_PWM_CMP = 365;
     EAmmoLidStatus lid_status;
 
    public:

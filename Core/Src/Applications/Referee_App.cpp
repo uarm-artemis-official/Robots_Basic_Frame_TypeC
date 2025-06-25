@@ -81,9 +81,8 @@ void RefereeApp::init() {
     ref.robot_status_data.robot_level = 1;
     ref.ref_cmd_id = IDLE_ID;
     ref.robot_color = UNKOWN;
-
-    // UI sending initialization
 }
+
 void RefereeApp::loop() {
     // Main loop for referee app
     // outlines:
@@ -186,7 +185,6 @@ void RefereeApp::read_ref_data() {
         }
     } else {
         ref.ref_cmd_id = IDLE_ID;
-        // reset();
     }
 }
 
@@ -220,120 +218,4 @@ void RefereeApp::draw_all_ui() {
     }
     // }
 }
-
-// void RefereeApp::reset() {
-//     /* Reset DMA */
-//     HAL_UART_DMAStop(&huart1);
-
-//     /* Clear rx buffer */
-//     // memset(ref.ref_rx_frame, 0, 256);
-
-//     /* Resume UART DMA Receive */
-//     HAL_UART_Receive_DMA(&huart1, ref.ref_rx_frame, sizeof(ref.ref_rx_frame));
-// }
-
-// /* Drawing the UI */
-// uint8_t pack_seq = 0;
-// /**
-//  * @brief     Referee UI send
-//  * @param[in] cmd_id The id sent , usually the ui id 0x0301
-//  * @param[in] pdata the data frame to be sent
-//  * @param[in] len The length of the actual data frame
-//  * @retval    None
-//  */
-// void referee_send_ui_data(uint16_t cmd_id, uint8_t* p_data, uint16_t len) {
-
-//     uint16_t frame_length =
-//         HEADER_LEN + CMD_LEN + len + CRC_LEN;  // length of data frame
-
-//     memset(ref_tx_frame, 0, frame_length);  // Refresh the tx data buffer
-
-//     /* Packing the tx header */
-//     ref_tx_frame[0] = SOF_ID;  // First byte of the data pool, 1 byte
-//     memcpy(&ref_tx_frame[1], (uint8_t*) &len,
-//            sizeof(len));         // Actual data len in the data pool, 2 bytes
-//     ref_tx_frame[3] = pack_seq;  // Pack sequence, start from 3, 1 byte
-//     Append_CRC8_Check_Sum(
-//         ref_tx_frame,
-//         HEADER_LEN);  // CRC8 Calibration required by referee system
-
-//     /* Pack cmd id */
-//     memcpy(&ref_tx_frame[HEADER_LEN], (uint8_t*) &cmd_id, CMD_LEN);
-
-//     /* Pack actual data frame */
-//     memcpy(&ref_tx_frame[HEADER_LEN + CMD_LEN], p_data, len);
-//     Append_CRC16_Check_Sum(ref_tx_frame, frame_length);  // CRC16 Calibration
-
-//     if (pack_seq == 0xff)
-//         pack_seq = 0;
-//     else
-//         pack_seq++;
-
-//     HAL_UART_Transmit_DMA(&huart1, ref_tx_frame, frame_length);
-// }
-
-// void referee_set_ui_data(Referee_t* ref, referee_ui_t ui_type) {
-
-//     if (ref->robot_status_data.robot_id == 3 ||
-//         ref->robot_status_data.robot_id == 4 ||
-//         ref->robot_status_data.robot_id == 103 ||
-//         ref->robot_status_data.robot_id == 104) {  // Infantry
-//         ref->ui_intrect_data.sender_id = ref->robot_status_data.robot_id;
-//         switch (ref->robot_status_data.robot_id) {
-//             case 3:
-//                 ref->ui_intrect_data.receiver_id = 0x0103;
-//                 break;  // Red team #3 infantry client
-//             case 4:
-//                 ref->ui_intrect_data.receiver_id = 0x0104;
-//                 break;  // Red team #4 infantry client
-//             case 103:
-//                 ref->ui_intrect_data.receiver_id = 0x0167;
-//                 break;  // Blue team #3 infantry client
-//             case 104:
-//                 ref->ui_intrect_data.receiver_id = 0x0168;
-//                 break;  // Blue team #4 infantry client
-//         }
-
-//         switch (ui_type) {
-//             case UI_ROBOT_ACT_MODE:
-//                 referee_general_draw_act_mode(ref);
-//                 break;
-//             /* Hero Draw marks */
-//             case UI_INFANTRY_MARK:
-//                 referee_infantry_draw_marks(ref);
-//                 break;
-//             default:
-//                 break;
-//         }
-//     } else if (ref->robot_status_data.robot_id == 1 ||
-//                ref->robot_status_data.robot_id == 101) {  // Hero
-//         /* Set up */
-//         ref->ui_intrect_data.sender_id = ref->robot_status_data.robot_id;
-//         /* Set up client ID */
-//         switch (ref->robot_status_data.robot_id) {
-//             case 1:
-//                 ref->ui_intrect_data.receiver_id = 0x0101;
-//                 break;  // Red team #1 Hero client
-//             case 101:
-//                 ref->ui_intrect_data.receiver_id = 0x0165;
-//                 break;  // Blue team #1 Hero client
-//         }
-
-//         switch (ui_type) {
-//             case UI_ROBOT_ACT_MODE:
-//                 referee_general_draw_act_mode(ref);
-//                 break;
-//             /* Hero Draw marks */
-//             case UI_HERO_MARK:
-//                 referee_hero_draw_marks(ref);
-//                 break;
-//             default:
-//                 break;
-//         }
-//     }
-// }
-
-// #ifdef __cplusplus
-// }
-// #endif
 #endif

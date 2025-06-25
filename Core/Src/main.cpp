@@ -189,7 +189,7 @@ static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 #ifdef OMNI_CHASSIS
 static constexpr float omni_chassis_width = 0.40f;
 static OmniDrive omni_drive(message_center, no_init_motors, omni_chassis_width,
-                            omni_chassis_width, 50,
+                            omni_chassis_width, 80,
                             ChassisApp<OmniDrive>::LOOP_PERIOD_MS * 0.001);
 #else
 static constexpr float mecanum_chassis_width = 0.41f;

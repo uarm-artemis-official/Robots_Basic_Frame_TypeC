@@ -53,6 +53,7 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
               IDebug& debug_ref, IMotors& motors_ref);
     void init();
     void set_initial_state();
+    bool calibrate_start_precondition();
     void wait_for_motors();
 
     bool exit_calibrate_cond();

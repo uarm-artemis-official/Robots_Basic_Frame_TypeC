@@ -335,9 +335,13 @@ namespace robot_config {
         constexpr float MAX_OUT_CHASSIS_SPIN = 2;
         static_assert(MAX_OUT_OMNI_DRIVE >= MIN_OUT_OMNI_DRIVE);
 
-        constexpr float MAX_TRANSLATION = 4;      // m/s
-        constexpr float MAX_ROTATION = 3.141527;  // rad/s
-        constexpr float GYRO_SPEED = 3.141527;    // rad/s
+        // constexpr float MAX_TRANSLATION = 4;      // m/s
+        // constexpr float MAX_ROTATION = 3.141527;  // rad/s
+        // constexpr float GYRO_SPEED = 3.141527;    // rad/s
+
+        constexpr float MAX_TRANSLATION = 8;  // m/s
+        constexpr float MAX_ROTATION = 5;     // rad/s
+        constexpr float GYRO_SPEED = 5;       // rad/s
         static_assert(MAX_TRANSLATION >= 0);
         static_assert(MAX_ROTATION >= 0);
         static_assert(MAX_ROTATION >= GYRO_SPEED);

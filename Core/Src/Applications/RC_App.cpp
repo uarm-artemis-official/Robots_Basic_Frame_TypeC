@@ -288,8 +288,10 @@ void RCApp::pub_command_messages() {
             }
         }
 
-        if (rc.pc.keyboard.R.status == EKeyStatus::PRESSED_TO_RELEASE) {
-            // TODO: Toggle ammo lid.
+        if (rc.pc.keyboard.R.status == EKeyStatus::PRESSED) {
+            pc_ammo_status = EAmmoLidStatus::OPEN;
+        } else {
+            pc_ammo_status = EAmmoLidStatus::CLOSED;
         }
 
         if (rc.pc.keyboard.Shift.status == EKeyStatus::PRESSED_TO_RELEASE) {

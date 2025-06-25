@@ -38,14 +38,33 @@ void GimbalApp::init() {
     wait_for_motors();
 }
 
-void GimbalApp::wait_for_motors() {
+bool GimbalApp::calibrate_start_precondition() {
     MotorReadMessage_t read_message;
-    while (message_center.peek_message(MOTOR_READ, &read_message, 0) == 0) {
+    uint8_t new_motor_message =
+        message_center.peek_message(MOTOR_READ, &read_message, 0);
+    if (new_motor_message == pdTRUE) {
+        bool yaw_motor = false;
+        bool pitch_motor = false;
+        for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
+            yaw_motor = yaw_motor ||
+                        (read_message.can_ids[i] == Motor_CAN_ID_t::GIMBAL_YAW);
+            pitch_motor = pitch_motor || (read_message.can_ids[i] ==
+                                          Motor_CAN_ID_t::GIMBAL_PITCH);
+        }
+        return yaw_motor && pitch_motor;
+    }
+    return false;
+}
+
+void GimbalApp::wait_for_motors() {
+    while (!calibrate_start_precondition()) {
         vTaskDelay(100);
     }
-
+    vTaskDelay(200);
     get_motor_feedback();
-    update_headings();
+    update_ecd_angles();
+    gimbal.yaw_rel_angle = gimbal.yaw_ecd_angle;
+    gimbal.pitch_rel_angle = gimbal.pitch_ecd_angle;
 }
 
 void GimbalApp::set_initial_state() {
@@ -102,7 +121,9 @@ bool GimbalApp::exit_calibrate_cond() {
     return fabs(gimbal.yaw_rel_angle) <
                (robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA *
                 DEGREE2RAD) &&
-           motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm < 10;
+           abs(motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm) < 2 &&
+           fabs(gimbal.pitch_rel_angle) < (2.0f * DEGREE2RAD) &&
+           abs(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_rpm) < 2;
 }
 
 void GimbalApp::calibrate() {
@@ -113,8 +134,15 @@ void GimbalApp::calibrate() {
 
     float yaw_diff =
         calc_rel_angle(gimbal.yaw_target_angle, gimbal.yaw_rel_angle);
-    float pitch_diff =
-        calc_rel_angle(gimbal.pitch_rel_angle, gimbal.pitch_target_angle);
+
+    // TODO: Find a better way...
+#if !defined(HERO_GIMBAL)
+    float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_rel_angle,
+                                                 gimbal.pitch_target_angle);
+#else
+    float pitch_diff = GimbalApp::calc_rel_angle(gimbal.pitch_target_angle,
+                                                 gimbal.pitch_rel_angle);
+#endif
 
     pid2_dual_loop_control(
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,
@@ -367,7 +395,7 @@ void GimbalApp::safe_mode_switch() {
 }
 
 bool GimbalApp::is_imu_calibrated() {
-    return gimbal.yaw_imu_center != 0.0f;
+    return fabs(gimbal.yaw_imu_center) > 0.0001;
 }
 
 void GimbalApp::calc_imu_center() {
@@ -475,7 +503,6 @@ void GimbalApp::update_targets() {
             if (gimbal.yaw_target_angle < -PI)
                 gimbal.yaw_target_angle += 2.0f * PI;
         }
-
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                gimbal.gimbal_act_mode == INDPET_MODE) {
         gimbal.yaw_target_angle = 0;

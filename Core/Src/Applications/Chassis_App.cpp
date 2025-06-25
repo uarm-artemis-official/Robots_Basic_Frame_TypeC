@@ -121,7 +121,12 @@ void ChassisApp<DriveTrain>::calc_movement_vectors() {
             chassis.vy =
                 chassis.v_perp * arm_sin_f32(chassis.gimbal_yaw_rel_angle) +
                 chassis.v_parallel * arm_cos_f32(chassis.gimbal_yaw_rel_angle);
-            chassis.wz = robot_config::chassis_params::GYRO_SPEED;
+
+            if (fabs(chassis.v_perp) > 0.1 || fabs(chassis.v_parallel) > 0.1) {
+                chassis.wz = robot_config::chassis_params::GYRO_SPEED / 2;
+            } else {
+                chassis.wz = robot_config::chassis_params::GYRO_SPEED;
+            }
             break;
         default:
             chassis.vx = 0;
