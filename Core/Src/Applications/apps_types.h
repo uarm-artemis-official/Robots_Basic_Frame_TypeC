@@ -206,6 +206,8 @@ struct Shoot {
     float stall_duration;
     float no_stall_duration;
     float antijam_direction;
+
+    uint32_t loader_delay_counter;
 };
 
 struct LoaderControl {

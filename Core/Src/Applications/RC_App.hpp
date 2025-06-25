@@ -36,6 +36,7 @@ class RCApp : public RTOSApp<RCApp> {
     BoardMode_t pc_board_mode;
     BoardActMode_t pc_act_mode;
     ShootActMode_t pc_shoot_mode;
+    EAmmoLidStatus pc_ammo_status;
 
    public:
     static constexpr uint32_t LOOP_PERIOD_MS = RC_TASK_EXEC_TIME;
@@ -54,7 +55,8 @@ class RCApp : public RTOSApp<RCApp> {
                               BoardActMode_t act_mode);
     void send_chassis_command(float v_parallel, float v_perp, float wz,
                               BoardMode_t board_mode, BoardActMode_t act_mode);
-    void send_shoot_command(ShootActMode_t shoot_mode);
+    void send_shoot_command(ShootActMode_t shoot_mode,
+                            EAmmoLidStatus ammo_lid_status);
 
     void pub_command_messages();
 };

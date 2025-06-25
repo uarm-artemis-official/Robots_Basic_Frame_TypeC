@@ -112,6 +112,13 @@ void ShootApp::process_commands() {
         ShootActMode_t shoot_mode =
             static_cast<ShootActMode_t>(shoot_command.command_bits);
         set_shoot_mode(shoot_mode);
+
+        uint8_t open_ammo_lid = static_cast<uint8_t>(shoot_command.extra_bits);
+        if (open_ammo_lid == 1) {
+            ammo_lid.set_lid_status(EAmmoLidStatus::OPEN);
+        } else {
+            ammo_lid.set_lid_status(EAmmoLidStatus::CLOSED);
+        }
     }
 }
 
@@ -175,11 +182,17 @@ void ShootApp::detect_loader_stall() {
 void ShootApp::calc_targets() {
     switch (shoot.shoot_act_mode) {
         case SHOOT_CEASE:
+            shoot.shoot_state = ShootState::NORMAL;
+            shoot.antijam_direction = -1;
             set_loader_target(0);
             set_flywheel_target(0);
+            shoot.loader_delay_counter = 0;
             break;
         case SHOOT_CONT:
-            if (shoot.shoot_state == ShootState::NORMAL) {
+            shoot.loader_delay_counter =
+                value_limit(shoot.loader_delay_counter + 1, 0, 1000);
+            if (shoot.shoot_state == ShootState::NORMAL &&
+                shoot.loader_delay_counter >= 20) {
                 set_loader_target(LOADER_ACTIVE_RPM);
                 set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
             } else if (shoot.shoot_state == ShootState::ANTIJAM) {
@@ -191,6 +204,7 @@ void ShootApp::calc_targets() {
         default:
             set_loader_target(0);
             set_flywheel_target(0);
+            shoot.loader_delay_counter = 0;
     }
 }
 
@@ -211,7 +225,6 @@ void ShootApp::calc_motor_outputs() {
     pid2_single_loop_control(
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp.output,
-
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
         LOOP_PERIOD_MS * 0.001f);
 

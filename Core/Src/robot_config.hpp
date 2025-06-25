@@ -8,19 +8,18 @@ namespace robot_config {
         constexpr int16_t PITCH_ECD_CENTER = 2035;
         constexpr float LOADER_GEAR_RATIO = 36;
 
-        constexpr float PITCH_MIN_ANGLE = 0;
-        constexpr float PITCH_MAX_ANGLE = 0;
+        constexpr float PITCH_MIN_ANGLE = -0.4;
+        constexpr float PITCH_MAX_ANGLE = 0.1;
         static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 #endif
 
 #ifdef OMNI_GIMBAL
-        constexpr int16_t YAW_ECD_CENTER = 1025;
+        constexpr int16_t YAW_ECD_CENTER = 5750;
         constexpr int16_t PITCH_ECD_CENTER = 4800;
         constexpr float LOADER_GEAR_RATIO = 36;
 
-        static_assert(false);
-        constexpr float PITCH_MIN_ANGLE = 0;
-        constexpr float PITCH_MAX_ANGLE = 0;
+        constexpr float PITCH_MIN_ANGLE = -0.4;
+        constexpr float PITCH_MAX_ANGLE = 0.1;
         static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 #endif
 
@@ -275,17 +274,34 @@ namespace robot_config {
 #endif
 
 // OTHER PARAMETERS
-#ifdef HERO_GIMBAL
-        constexpr float LOADER_ACTIVE_RPM = 33;
-        constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 5000;
-        constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
-        static_assert(MAX_FLYWHEEL_ACCEL >= 0);
-#else
+#ifdef MECANUM_GIMBAL
         constexpr float LOADER_ACTIVE_RPM = 75;
         constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
         constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
         static_assert(MAX_FLYWHEEL_ACCEL >= 0);
 #endif
+
+#ifdef HERO_GIMBAL
+        constexpr float LOADER_ACTIVE_RPM = 33;
+        constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 10000;
+        constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
+        static_assert(MAX_FLYWHEEL_ACCEL >= 0);
+#endif
+
+#ifdef OMNI_GIMBAL
+        constexpr float LOADER_ACTIVE_RPM = 75;
+        constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
+        constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
+        static_assert(MAX_FLYWHEEL_ACCEL >= 0);
+#endif
+
+#ifdef SWERVE_GIMBAL
+        constexpr float LOADER_ACTIVE_RPM = 75;
+        constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
+        constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
+        static_assert(MAX_FLYWHEEL_ACCEL >= 0);
+#endif
+
         constexpr float JAM_STALL_DURATION_THRESHOLD = 0.1;  // seconds
         constexpr int16_t JAM_LOADER_RPM_THRESHOLD = 5;      // rpm
         constexpr float JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD = 0.1;
@@ -328,8 +344,8 @@ namespace robot_config {
         static_assert(MAX_OUT_OMNI_DRIVE >= MIN_OUT_OMNI_DRIVE);
 
         constexpr float MAX_TRANSLATION = 4;      // m/s
-        constexpr float MAX_ROTATION = 6.283185;  // rad/s
-        constexpr float GYRO_SPEED = 6.283185;    // rad/s
+        constexpr float MAX_ROTATION = 3.141527;  // rad/s
+        constexpr float GYRO_SPEED = 3.141527;    // rad/s
         static_assert(MAX_TRANSLATION >= 0);
         static_assert(MAX_ROTATION >= 0);
         static_assert(MAX_ROTATION >= GYRO_SPEED);

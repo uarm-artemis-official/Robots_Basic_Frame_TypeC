@@ -118,6 +118,7 @@ void RCApp::init() {
     pc_board_mode = PATROL_MODE;
     pc_act_mode = GIMBAL_CENTER;
     pc_shoot_mode = SHOOT_CEASE;
+    pc_ammo_status = EAmmoLidStatus::CLOSED;
 }
 
 void RCApp::loop() {
@@ -256,10 +257,16 @@ void RCApp::send_chassis_command(float v_parallel, float v_perp, float wz,
     message_center.pub_message(COMMAND_CHASSIS, &chassis_command);
 }
 
-void RCApp::send_shoot_command(ShootActMode_t shoot_mode) {
+void RCApp::send_shoot_command(ShootActMode_t shoot_mode,
+                               EAmmoLidStatus ammo_lid_status) {
     ShootCommandMessage_t shoot_command;
     shoot_command.command_bits = static_cast<uint8_t>(shoot_mode);
-    shoot_command.extra_bits = 0;
+
+    if (ammo_lid_status == EAmmoLidStatus::OPEN) {
+        shoot_command.extra_bits = 1;
+    } else {
+        shoot_command.extra_bits = 0;
+    }
 
     CANCommMessage_t can_comm_message;
     can_comm_message.topic_name = COMMAND_SHOOT;
@@ -319,7 +326,7 @@ void RCApp::pub_command_messages() {
                        -MAX_MOUSE_PITCH_OUT, MAX_MOUSE_PITCH_OUT);
 
         send_gimbal_can_comm(yaw, pitch, pc_board_mode, pc_act_mode);
-        send_shoot_command(pc_shoot_mode);
+        send_shoot_command(pc_shoot_mode, pc_ammo_status);
     } else {
         BoardMode_t board_mode;
         BoardActMode_t act_mode;
@@ -352,7 +359,11 @@ void RCApp::pub_command_messages() {
 
         send_gimbal_can_comm(yaw, pitch, board_mode, act_mode);
 
-        send_shoot_command(shoot_mode);
+        if (rc.ctrl.wheel > 0) {
+            send_shoot_command(shoot_mode, EAmmoLidStatus::OPEN);
+        } else {
+            send_shoot_command(shoot_mode, EAmmoLidStatus::CLOSED);
+        }
     }
 }
 
