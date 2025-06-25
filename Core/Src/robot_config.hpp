@@ -8,8 +8,8 @@ namespace robot_config {
         constexpr int16_t PITCH_ECD_CENTER = 2035;
         constexpr float LOADER_GEAR_RATIO = 36;
 
-        constexpr float PITCH_MIN_ANGLE = -0.4;
-        constexpr float PITCH_MAX_ANGLE = 0.1;
+        constexpr float PITCH_MIN_ANGLE = -0.25;
+        constexpr float PITCH_MAX_ANGLE = 0.50;
         static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 #endif
 
@@ -18,8 +18,8 @@ namespace robot_config {
         constexpr int16_t PITCH_ECD_CENTER = 4800;
         constexpr float LOADER_GEAR_RATIO = 36;
 
-        constexpr float PITCH_MIN_ANGLE = -0.4;
-        constexpr float PITCH_MAX_ANGLE = 0.1;
+        constexpr float PITCH_MIN_ANGLE = -0.25;
+        constexpr float PITCH_MAX_ANGLE = 0.50;
         static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 #endif
 
@@ -223,14 +223,6 @@ namespace robot_config {
         // exit calibration?
         constexpr float EXIT_CALIBRATION_YAW_ANGLE_DELTA = 2.0;  // degrees
         static_assert(EXIT_CALIBRATION_YAW_ANGLE_DELTA >= 0);
-
-        // (WIP) Software lockout limits on pitch target to prevent hitting mechanical
-        // hard-stops.
-        // Important for PID to remain in controllable linear region. Hard-stops
-        // are non-linear uncontrollable regions.
-        // TODO: Implement pitch software locks.
-        constexpr float LOCKOUT_BOTTOM_PITCH_ANGLE = 0;
-        constexpr float LOCKOUT_TOP_PITCH_ANGLE = 0;
     }  // namespace gimbal_params
 
     namespace shoot_params {
