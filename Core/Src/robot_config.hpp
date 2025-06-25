@@ -18,8 +18,8 @@ namespace robot_config {
         constexpr int16_t PITCH_ECD_CENTER = 4800;
         constexpr float LOADER_GEAR_RATIO = 36;
 
-        constexpr float PITCH_MIN_ANGLE = -0.25;
-        constexpr float PITCH_MAX_ANGLE = 0.50;
+        constexpr float PITCH_MIN_ANGLE = -0.14;
+        constexpr float PITCH_MAX_ANGLE = 0.35;
         static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 #endif
 
