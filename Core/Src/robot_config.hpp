@@ -57,8 +57,8 @@ namespace robot_config {
         static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
         constexpr float KP_GIMBAL_PITCH_ANGLE = 220;
-        constexpr float KI_GIMBAL_PITCH_ANGLE = 80;
-        constexpr float KD_GIMBAL_PITCH_ANGLE = 1;
+        constexpr float KI_GIMBAL_PITCH_ANGLE = 70;
+        constexpr float KD_GIMBAL_PITCH_ANGLE = 0;
         constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
         constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
@@ -294,9 +294,9 @@ namespace robot_config {
         static_assert(MAX_FLYWHEEL_ACCEL >= 0);
 #endif
 
-        constexpr float JAM_STALL_DURATION_THRESHOLD = 0.1;  // seconds
+        constexpr float JAM_STALL_DURATION_THRESHOLD = 0.5;  // seconds
         constexpr int16_t JAM_LOADER_RPM_THRESHOLD = 5;      // rpm
-        constexpr float JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD = 0.1;
+        constexpr float JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD = 0.05;
         constexpr float JAM_NO_STALL_DURATION_THRESHOLD = 0.5;  // seconds
         static_assert(JAM_STALL_DURATION_THRESHOLD >= 0);
         static_assert(JAM_LOADER_RPM_THRESHOLD >= 0);

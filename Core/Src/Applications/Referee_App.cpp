@@ -91,8 +91,15 @@ void RefereeApp::loop() {
         // Process received data
         read_ref_data();
         non_recv_count = 0;
-        // TODO: public referee data as needed
-        // message_center.pub_message(REFEREE_OUT, ref.robot_status_data, 0);
+
+        RefereeInfoMessage_t ref_message;
+        ref_message.robot_id = ref.robot_status_data.robot_id;
+        ref_message.robot_level = ref.robot_status_data.robot_level;
+        ref_message.shoot_barrel_cooling_rate =
+            ref.robot_status_data.shooter_barrel_cooling_value;
+        ref_message.chassis_power_limit =
+            ref.robot_status_data.chassis_power_limit;
+        message_center.pub_message(REFEREE_OUT, &ref_message);
     } else {
         // If no data received, increment non-receive count
         non_recv_count++;

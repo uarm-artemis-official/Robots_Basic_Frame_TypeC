@@ -108,8 +108,12 @@ void ChassisApp<DriveTrain>::calc_movement_vectors() {
             chassis.vy = chassis.v_parallel;
             break;
         case GIMBAL_CENTER:
-            chassis.vx = chassis.v_perp;
-            chassis.vy = chassis.v_parallel;
+            chassis.vx =
+                chassis.v_perp * arm_cos_f32(chassis.gimbal_yaw_rel_angle) -
+                chassis.v_parallel * arm_sin_f32(chassis.gimbal_yaw_rel_angle);
+            chassis.vy =
+                chassis.v_perp * arm_sin_f32(chassis.gimbal_yaw_rel_angle) +
+                chassis.v_parallel * arm_cos_f32(chassis.gimbal_yaw_rel_angle);
             chassis.wz = pid2_single_loop_control(
                 chassis.spin_pid, 0, chassis.gimbal_yaw_rel_angle,
                 ChassisApp::LOOP_PERIOD_MS * 0.001);

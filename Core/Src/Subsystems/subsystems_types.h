@@ -199,6 +199,14 @@ typedef struct {
     uint32_t extra_bits;
 } ShootCommandMessage_t;
 
+typedef struct {
+    uint8_t robot_id;
+    uint8_t robot_level;
+    uint16_t shoot_barrel_cooling_rate;
+    uint16_t shoot_barrel_heat_limit;
+    uint16_t chassis_power_limit;
+} RefereeInfoMessage_t;
+
 /* =========================================================================
  * DEBUG TYPES
  * ====================================================================== */
