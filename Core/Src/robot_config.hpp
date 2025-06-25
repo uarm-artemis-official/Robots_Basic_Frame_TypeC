@@ -77,9 +77,9 @@ namespace robot_config {
             {0.0f, 0.0f, 1.0f},
         };
 
-        constexpr float KP_GIMBAL_YAW_ANGLE = 105;
+        constexpr float KP_GIMBAL_YAW_ANGLE = 76;
         constexpr float KI_GIMBAL_YAW_ANGLE = 0;  // Not allowed.
-        constexpr float KD_GIMBAL_YAW_ANGLE = 0.05;
+        constexpr float KD_GIMBAL_YAW_ANGLE = 0.3;
         constexpr float BETA_GIMBAL_YAW_ANGLE = 1;
         constexpr float YETA_GIMBAL_YAW_ANGLE = 0;
         constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = -800;
@@ -88,25 +88,25 @@ namespace robot_config {
 
         constexpr float KP_GIMBAL_YAW_SPEED = 240;
         constexpr float KI_GIMBAL_YAW_SPEED = 10;
-        constexpr float KD_GIMBAL_YAW_SPEED = 0;
+        constexpr float KD_GIMBAL_YAW_SPEED = 0.1;
         constexpr float BETA_GIMBAL_YAW_SPEED = 1;
         constexpr float YETA_GIMBAL_YAW_SPEED = 1;
         constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
         constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
         static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
-        constexpr float KP_GIMBAL_PITCH_ANGLE = 80;
-        constexpr float KI_GIMBAL_PITCH_ANGLE = 10;
-        constexpr float KD_GIMBAL_PITCH_ANGLE = 0.05;
+        constexpr float KP_GIMBAL_PITCH_ANGLE = 220;
+        constexpr float KI_GIMBAL_PITCH_ANGLE = 12;
+        constexpr float KD_GIMBAL_PITCH_ANGLE = 2;
         constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
         constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
         constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
         static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
-        constexpr float KP_GIMBAL_PITCH_SPEED = 200;
+        constexpr float KP_GIMBAL_PITCH_SPEED = 80;
         constexpr float KI_GIMBAL_PITCH_SPEED = 10;
-        constexpr float KD_GIMBAL_PITCH_SPEED = 0;
+        constexpr float KD_GIMBAL_PITCH_SPEED = 0.05;
         constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
         constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
         constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
@@ -252,7 +252,7 @@ namespace robot_config {
         constexpr float MAX_OUT_OMNI_DRIVE = 5000;
         static_assert(MAX_OUT_OMNI_DRIVE >= MIN_OUT_OMNI_DRIVE);
 
-        constexpr float WHEEL_RAMP_MAX_ACCEL = 10000;  // rad/s^2
+        constexpr float WHEEL_RAMP_MAX_ACCEL = 400;  // rad/s^2
         static_assert(WHEEL_RAMP_MAX_ACCEL >= 0);
 
         constexpr float KP_CHASSIS_SPIN = 1;
