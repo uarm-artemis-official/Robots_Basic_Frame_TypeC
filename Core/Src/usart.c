@@ -21,11 +21,6 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-static uint8_t rc_frame_buffer[DBUS_BUFFER_LEN];
-static int uart_error_count = 0;
-static int uart_complete_count = 0;
-
-extern BoardStatus_t board_status;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -62,9 +57,6 @@ void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-  if(board_status == GIMBAL_BOARD) {
-  }
-//	  HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame));
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -93,7 +85,6 @@ void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-  HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
   /* USER CODE END USART3_Init 2 */
 
 }
@@ -382,35 +373,4 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
-/*
- * @brief  UART DMA Callback function, update all the dma transmission IT here
- * @note   This function is called when：
- * 			 Referee system recv: UART3_DMA1_Stream1
- * 			 Mini PC recv: 		  UART6_DMA2_Stream1
- *
- * */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	if(huart == &huart1 && board_status == CHASSIS_BOARD){
-	/* re-activate DMA */
-	//		referee_parsed_flag = 1;
-	} else if (huart == &huart1 && board_status == GIMBAL_BOARD) {
-		uint8_t *next_buffer;
-		uint8_t next_size;
-		process_pack_bytes(&next_buffer, &next_size);
-		HAL_UART_Receive_DMA(&huart1, next_buffer, next_size);
-	} else if (huart == &huart3 && board_status == CHASSIS_BOARD) {
-		uart_complete_count = (uart_complete_count + 1) % 1000000;
-		pub_message_from_isr(RC_RAW, rc_frame_buffer, NULL);
-		HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
-	}
-}
-
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-	if (huart == &huart3 && board_status == CHASSIS_BOARD) {
-		uart_error_count = (uart_error_count + 1) % 100000;
-		HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
-		// TODO: Implement error handling.
-	}
-}
 /* USER CODE END 1 */

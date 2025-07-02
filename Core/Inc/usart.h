@@ -30,13 +30,12 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 #include "stdint.h"
-#include "public_defines.h"
-#include "message_center.h"
-#include "pack_handler.h"
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart1;
+
 extern UART_HandleTypeDef huart3;
+
 extern UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN Private defines */

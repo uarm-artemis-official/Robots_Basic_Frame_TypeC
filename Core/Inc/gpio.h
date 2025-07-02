@@ -30,7 +30,6 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 #include "stm32f4xx_hal.h"
-#include "public_defines.h"
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
@@ -73,7 +72,6 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-BoardStatus_t get_board_status(void);
 
 /* USER CODE END Prototypes */
 

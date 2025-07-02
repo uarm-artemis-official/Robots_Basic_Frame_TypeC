@@ -1,0 +1,4 @@
+add_library(IST8310_DRIVER STATIC ist8310driver_middleware.c ist8310driver.c)
+target_include_directories(IST8310_DRIVER PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(IST8310_DRIVER PUBLIC COMMON_INCLUDES)
+add_library(FW::DEVICE::IST8310_DRIVER ALIAS IST8310_DRIVER)

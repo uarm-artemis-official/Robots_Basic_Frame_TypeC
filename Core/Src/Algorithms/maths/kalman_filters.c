@@ -12,6 +12,8 @@
 #define __KALMAN_FILTERS_C__
 
 #include "kalman_filters.h"
+#include "uarm_lib.h"
+#include "string.h"
 
 /****************************************************************************************************
 * Kalman filter explanation and examples for gyroscope (assumed to be linear) by Haoran
@@ -102,88 +104,88 @@ void kf_param_init(KalmanFilter_t *kf, uint8_t xSize, uint8_t uSize, uint8_t zSi
 	*/
 
 	/* initialize vectors */
-	kf->x.pData = (float32_t *)pvPortMalloc(xSize * sizeof(float32_t));
+	kf->x.pData = (float32_t *) MALLOC(xSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->x, xSize, 1, kf->x.pData);
 	kf_mat_reset(&kf->x, xSize, 1);
 
-	kf->xhat.pData = (float32_t *)pvPortMalloc(xSize * sizeof(float32_t));
+	kf->xhat.pData = (float32_t *)MALLOC(xSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->xhat, xSize, 1, kf->xhat.pData);
 	kf_mat_reset(&kf->xhat, xSize, 1);
 
-	kf->xhat_pri.pData = (float32_t *)pvPortMalloc(xSize * sizeof(float32_t));
+	kf->xhat_pri.pData = (float32_t *)MALLOC(xSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->xhat_pri, xSize, 1, kf->xhat_pri.pData);
 	kf_mat_reset(&kf->xhat_pri, xSize, 1);
 
-	kf->u.pData = (float32_t *)pvPortMalloc(uSize * sizeof(float32_t));
+	kf->u.pData = (float32_t *)MALLOC(uSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->u, uSize, 1, kf->u.pData);
 	kf_mat_reset(&kf->u, uSize, 1);
 
-	kf->z.pData = (float32_t *)pvPortMalloc(zSize * sizeof(float32_t));
+	kf->z.pData = (float32_t *)MALLOC(zSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->z, zSize, 1, kf->z.pData);
 	kf_mat_reset(&kf->z, zSize, 1);
 
 	/* state space representation - matrix */
-	kf->A.pData = (float32_t *)pvPortMalloc(xSize * xSize * sizeof(float32_t));
+	kf->A.pData = (float32_t *)MALLOC(xSize * xSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->A, xSize, xSize, kf->A.pData);
 	kf_mat_reset(&kf->A, xSize, xSize);
 
-	kf->B.pData = (float32_t *)pvPortMalloc(xSize * uSize * sizeof(float32_t));
+	kf->B.pData = (float32_t *)MALLOC(xSize * uSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->B, xSize, uSize, kf->B.pData);
 	kf_mat_reset(&kf->B, xSize, uSize);
 
-	kf->H.pData = (float32_t *)pvPortMalloc(zSize * xSize * sizeof(float32_t));
+	kf->H.pData = (float32_t *)MALLOC(zSize * xSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->H, zSize, xSize, kf->H.pData);
 	kf_mat_reset(&kf->H, zSize, xSize);
 
 	/* noises (the actual noise already included in the input) */
-	kf->Q.pData = (float32_t *)pvPortMalloc(xSize * xSize * sizeof(float32_t));
+	kf->Q.pData = (float32_t *)MALLOC(xSize * xSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->Q, xSize, xSize, kf->Q.pData);
 	kf_mat_reset(&kf->Q, xSize, xSize);
 
-	kf->R.pData = (float32_t *)pvPortMalloc(zSize * zSize * sizeof(float32_t));
+	kf->R.pData = (float32_t *)MALLOC(zSize * zSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->R, zSize, zSize, kf->R.pData);
 	kf_mat_reset(&kf->R, zSize, zSize);
 
 	/* error */
-	kf->P.pData = (float32_t *)pvPortMalloc(xSize * xSize * sizeof(float32_t));
+	kf->P.pData = (float32_t *)MALLOC(xSize * xSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->P, xSize, xSize, kf->P.pData);
 	kf_mat_reset(&kf->P, xSize, xSize);
 
-	kf->P_pri.pData = (float32_t *)pvPortMalloc(xSize * xSize * sizeof(float32_t));
+	kf->P_pri.pData = (float32_t *)MALLOC(xSize * xSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->P_pri, xSize, xSize, kf->P_pri.pData);
 	kf_mat_reset(&kf->P_pri, xSize, xSize);
 
 	/* kalman gain */
-	kf->K.pData = (float32_t *)pvPortMalloc(xSize * zSize * sizeof(float32_t));
+	kf->K.pData = (float32_t *)MALLOC(xSize * zSize * sizeof(float32_t));
 	arm_mat_init_f32(&kf->K, xSize, zSize, kf->K.pData);
 	kf_mat_reset(&kf->K, xSize, zSize);
 
 	/* intermediate temporary mat/vectors, make sure to apply max value  */
-	kf->temp_mat0.pData = (float32_t *)pvPortMalloc(max_size * max_size * sizeof(float32_t));
+	kf->temp_mat0.pData = (float32_t *)MALLOC(max_size * max_size * sizeof(float32_t));
 	arm_mat_init_f32(&kf->temp_mat0, max_size, max_size, kf->temp_mat0.pData);
 	kf_mat_reset(&kf->temp_mat0, max_size, max_size);
 
-	kf->temp_mat1.pData = (float32_t *)pvPortMalloc(max_size * max_size * sizeof(float32_t));
+	kf->temp_mat1.pData = (float32_t *)MALLOC(max_size * max_size * sizeof(float32_t));
 	arm_mat_init_f32(&kf->temp_mat1, max_size, max_size, kf->temp_mat1.pData);
 	kf_mat_reset(&kf->temp_mat1, max_size, max_size);
 
-	kf->temp_mat2.pData = (float32_t *)pvPortMalloc(max_size * max_size * sizeof(float32_t));
+	kf->temp_mat2.pData = (float32_t *)MALLOC(max_size * max_size * sizeof(float32_t));
 	arm_mat_init_f32(&kf->temp_mat2, max_size, max_size, kf->temp_mat2.pData);
 	kf_mat_reset(&kf->temp_mat2, max_size, max_size);
 
-	kf->temp_mat3.pData = (float32_t *)pvPortMalloc(max_size * max_size * sizeof(float32_t));
+	kf->temp_mat3.pData = (float32_t *)MALLOC(max_size * max_size * sizeof(float32_t));
 	arm_mat_init_f32(&kf->temp_mat3, max_size, max_size, kf->temp_mat3.pData);
 	kf_mat_reset(&kf->temp_mat3, max_size, max_size);
 
-	kf->temp_vector0.pData = (float32_t *)pvPortMalloc(max_size * sizeof(float32_t));
+	kf->temp_vector0.pData = (float32_t *)MALLOC(max_size * sizeof(float32_t));
 	arm_mat_init_f32(&kf->temp_vector0, max_size, 1, kf->temp_vector0.pData);
 	kf_mat_reset(&kf->temp_vector0, max_size, 1);
 
-	kf->temp_vector1.pData = (float32_t *)pvPortMalloc(max_size * sizeof(float32_t));
+	kf->temp_vector1.pData = (float32_t *)MALLOC(max_size * sizeof(float32_t));
 	arm_mat_init_f32(&kf->temp_vector1, max_size, 1, kf->temp_vector1.pData);
 	kf_mat_reset(&kf->temp_vector1, max_size, 1);
 
-	kf->temp_vector2.pData = (float32_t *)pvPortMalloc(max_size * sizeof(float32_t));
+	kf->temp_vector2.pData = (float32_t *)MALLOC(max_size * sizeof(float32_t));
 	arm_mat_init_f32(&kf->temp_vector2, max_size, 1, kf->temp_vector2.pData);
 	kf_mat_reset(&kf->temp_vector2, max_size, 1);
 
@@ -201,8 +203,8 @@ void kf_param_init(KalmanFilter_t *kf, uint8_t xSize, uint8_t uSize, uint8_t zSi
 void kf_update_input(KalmanFilter_t *kf, mat *input){
 	/* if dimensions are different, reallocate memory */
 	if(kf->u.numRows != input->numRows || kf->u.numCols != input->numCols){
-	        vPortFree(kf->u.pData);  // Free old memory
-	        kf->u.pData = (float32_t *)pvPortMalloc(sizeof(float32_t) * input->numRows * input->numCols);  // Allocate new memory
+	        FREE(kf->u.pData);  // Free old memory
+	        kf->u.pData = (float32_t *)MALLOC(sizeof(float32_t) * input->numRows * input->numCols);  // Allocate new memory
 	        kf->u.numRows = input->numRows;  // Update dimensions
 	        kf->u.numCols = input->numCols;
 	    }
@@ -218,7 +220,7 @@ void kf_update_input(KalmanFilter_t *kf, mat *input){
   * @retval    None
 */
 void kf_set_mat(mat *mat_target, mat *mat_source){
-	assert(mat_target->numRows == mat_source->numRows && mat_target->numCols == mat_source->numCols);
+	ASSERT(mat_target->numRows == mat_source->numRows && mat_target->numCols == mat_source->numCols, "Incompatible matrix dimensions.");
 
 	/* set value for target mat */
 	memcpy(mat_target->pData, mat_source->pData, mat_source->numRows * mat_source->numCols * sizeof(float));
@@ -314,26 +316,26 @@ KFStatus_t kf_execute(KalmanFilter_t *kf, mat *input){
   */
 void kf_param_deinit(KalmanFilter_t *kf){
 	/* release all of the memories set before*/
-    vPortFree(kf->x.pData);
-    vPortFree(kf->xhat.pData);
-    vPortFree(kf->xhat_pri.pData);
-    vPortFree(kf->u.pData);
-    vPortFree(kf->z.pData);
-    vPortFree(kf->A.pData);
-    vPortFree(kf->B.pData);
-    vPortFree(kf->H.pData);
-    vPortFree(kf->Q.pData);
-    vPortFree(kf->R.pData);
-    vPortFree(kf->P.pData);
-    vPortFree(kf->P_pri.pData);
-    vPortFree(kf->K.pData);
-    vPortFree(kf->temp_mat0.pData);
-    vPortFree(kf->temp_mat1.pData);
-    vPortFree(kf->temp_mat2.pData);
-    vPortFree(kf->temp_mat3.pData);
-    vPortFree(kf->temp_vector0.pData);
-    vPortFree(kf->temp_vector1.pData);
-    vPortFree(kf->temp_vector2.pData);
+    FREE(kf->x.pData);
+    FREE(kf->xhat.pData);
+    FREE(kf->xhat_pri.pData);
+    FREE(kf->u.pData);
+    FREE(kf->z.pData);
+    FREE(kf->A.pData);
+    FREE(kf->B.pData);
+    FREE(kf->H.pData);
+    FREE(kf->Q.pData);
+    FREE(kf->R.pData);
+    FREE(kf->P.pData);
+    FREE(kf->P_pri.pData);
+    FREE(kf->K.pData);
+    FREE(kf->temp_mat0.pData);
+    FREE(kf->temp_mat1.pData);
+    FREE(kf->temp_mat2.pData);
+    FREE(kf->temp_mat3.pData);
+    FREE(kf->temp_vector0.pData);
+    FREE(kf->temp_vector1.pData);
+    FREE(kf->temp_vector2.pData);
 }
 
 

@@ -1,84 +1,20 @@
 /* USER CODE BEGIN Header */
-/*
- ************************************************************************************************
- * 	  	    		2023 UARM ELECTRICAL&CONTROL TEAM ROBOTS BASIC FRAME TTPE-C     		     *
- ************************************************************************************************
- * 							   Project Copyright (c) 2023 UARM Artemis.
- *
- *
- *                                         .]]]@@@@@@@@@@@@\]`.
- *                                   ,]@@@@[[..            .,[\@@@\].
- *                               ,/@@[`                           .[\@@].
- *                         ,/\]@@/.                                    ,\@\`
- *                       ,@@@@/.                                          ,\@\..`
- *                     /@@@/`           .@@^                                 ,@@`\`
- *                   ,@@@/.          \@/                                       ,@@`\`
- *                 ,@@@@.         @@/        ]]]]]@@@@@@@@@@@@@@.                ,@\.\
- *                  /@`        =@@.    ]]]]]]@@@@@@@@@@@/[[[[[[[                  .\@`=`
- *                .@@.       ]]...     @@       =@@@@.=@^                           ,@\/.
- *               .@/        .\@`       @@       ..... =@^                            ,@\
- *              .@/       .@@^         @@@@^          =@^                             ,@\
- *            =[@@.      ,].           [@@@@@@@@@.    =@\...,@@@@@@@@@@@@@@.           ,@^
- *           ,^=@`       \@^           .@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.            =@`
- *           /.@^       /@^            .@@@@@@@@@@@@@@@                     .       .`  .@\
- *          .[\@.       ,[..]]]]]]`    .@@@@@@@@@@@@@@@                   ,@@        @.  =@^
- *            @/           =@\]].     @@@@@@@@@@@@@@@@@@\.=@@@./@@@@\`  ,@@@@        @^  .@^
- *           ,@^           ,[@@@^   =@/[[[[[[[@@@@@@@@@=@\/@@@.@@@@@@^,@@``@@       .@@   @@@^
- *           =@^            /@=@^ ,`=@^       @@\]]]]]]@@@@@@@.@@@@@@^O`/@^@@       /@@   \@@^
- *           =@^           /@.,[` =^=@^       @@@@@/@@@@@@@@^]]]]]]]]]]]]]`@@      /@@@   =@@^
- *           =@^          =@.@@@^ =\=@^       .]/@O.[\@@@@@@/[[[[[[[[[[[[[[[[    .@@@@@   @@@^
- *           .@^         .@^/@@@\]...=@@@@@@\@[]@\`\@=@.      .,]]].             =@@@@^  .@@@`
- *            \@.        .@@@[....,@\.@@/[\@@^@@@@@@=@@@@@@@@@[....,\@.          @@@@@`  =@@@
- *            ,@^        .@^,@`  ,@`,@\@` =@@^\@@@@^/@@@@@@@/.@[. ,\\.@`        =@@@@/   /@@^
- *             \@.       =@ @.=@@^ @.\^   =@^,@\]]/@`,[[[[[@`=^.@@^ =^=^       ,@@@@@.  =@^
- *            \.@\       .@^=\.  .//.@`   =@@@@@@@@@@      \^,@`   ,@.@^      ,@@@@@`  .@/
- *             \,@^       .@\.,[[`.]@`                      \\`,[[[.,@`      =@@@@@`  .@@
- *             .\,@\        .,\@@/[.                          ,[@@@[.      ./@@@@@`  .@@.
- *              .\,@\.   ..                                               /@@@@@/.  ,@/.
- *                [.@@`   ,\.                                          ./@@@@@@`   =@^
- *                   =@\.  .\@].                                     ,@.,@@@@/   .@@`
- *                    .\@`   .\@@@@@@@\`.                        .]@@@@\.=@`   ./@`
- *                      .\@\.   ,@@@@@@@@@@\`.             ..]/@@@@@@@@@/.   ./@[
- *                       ,@@@\`    ,\@@@@@@@@@@@@@@@@@@@@@@@@@  \@@@@[.    ]@@`=`
- *                         [@@@@\`     .[\@@@@@@@@@@@@@@@@@@@@@@/[      ]@@[./`
- *                            [@@@@@\`        .[[[[[[[[[[[`        .]/@@[\/`
- *                               ,\..[@@@\]`                 .]]@@@/`.
- *                                       .,[\@@@@@@@@@@@@@@@@@@@@@^
- *                                                .@@@@@@@[[[.
- *
- *           /@@@@@\     =@@@@@O@@@@@@@@@@@@@@@@@@^@@@@@@@@@@@@@@@@@].,/@@@@@@@@@@@@@@@@@@@]`.
- *           @@@@@@@     =@@@@@ @@@@@@@@@@@@@@@@@@^@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@@@@@@@^
- *           @@@@@@@     =@@@@@ @@@@@@       @@@@@^@@@@*      =@@@@@ @@@@@@[[[[[\@@/[[[[\@@@@^
- *          @@@@@@@     =@@@@@@ @@@@@]]]]]]]@@@@@^@@@@\]]]]]]/@@@@@@ @@@@@     =@@^    =@@@@^
- *           @@@@@@@     =@@@@@ @@@@@@@@@@@@@@@@@@^@@@@@@@@@@@@@@@@@ @@@@@@     =@@^    =@@@@^
- *           @@@@@@@     =@@@@@ @@@@@@@@@@@@@@@@@@^@@@@@@@@@@@@@@@/@ @@@@@@     =@@^    =@@@@^
- *           @@@@@@@@@@@@@@@@@@ @@@@@@       @@@@@^@@@@^      =@@@@@@@@@@@@     =@@^    =@@@@^
- *          @@@@@@@@@@@@@@@@@@@ @@@@@       @@@@@^@@@@^      =@@@@@@@@@@@     =@@^    =@@@@^
- *
- *
- *
- *	@time 		Nov, 2023
- *	@version 	v1.0(Alpha test)
- *
- *
- * @attention
- * Code Frame Copyright (c) 2023 STMicroelectronics.
- * All rights reserved.
- *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- * @attention
- * if you regenerate the code using cubemx, make sure:
- * 	1. set #define INCLUDE_vTaskDelayUntil 1 in the FreeRTOSConfig.h
- * 	2. delete the generated SPI NSS GPIO part in spi.c
- * 	3. delete the generated MX_IWDG_Init().(if you want to deactivate IWDG, just
- * 	   go to main.h and comment #define USE_IWDG 1)
- *
- * 	ENJOY!
- *
- * */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2025 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -94,13 +30,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "motor.h"
-#include "stdio.h"
-#include "dwt.h"
-#include "buzzer.h"
-#include "self_check.h"
-#include "message_center.h"
-#include "Control_App.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,6 +40,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -132,25 +63,6 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int16_t referee_parsed_flag = 0;
-uint8_t referee_timeout_counter = 0;
-uint8_t referee_timeout_check_flag = 0;
-uint32_t prev_uart_timestamp = 0;
-
-/* new defined variables*/
-uint32_t debugger_signal_counter = 0;//count the idle time
-uint32_t debugger_signal_flag = 0; //mark the debugger task
-uint8_t ref_rx_frame[256]={0}; //referee temp frame buffer
-//uint8_t ref_rx_frame[MAX_REF_BUFFER_SZIE]={0}; //referee temp frame buffer
-//uint8_t rc_rx_buffer[DBUS_BUFFER_LEN]; //rc temporary buffer
-uint16_t chassis_gyro_counter = 0; // used for backup robots without slipring
-uint8_t chassis_gyro_flag = 0;	   // used for backup robots without slipring
-
-extern Motor_t motor_data[MOTOR_COUNT]; //MOTOR_COUNT
-extern Buzzer_t buzzer;
-
-// TODO: Find better way
-BoardStatus_t board_status;
 
 /* USER CODE END 0 */
 
@@ -158,73 +70,6 @@ BoardStatus_t board_status;
   * @brief  The application entry point.
   * @retval int
   */
-int main(void)
-{
-  /* USER CODE BEGIN 1 */
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* USER CODE BEGIN Init */
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_CAN1_Init();
-  MX_CAN2_Init();
-  MX_TIM4_Init();
-  MX_TIM8_Init();
-  MX_TIM10_Init();
-  MX_TIM13_Init();
-  MX_USART1_UART_Init();
-  MX_USART3_UART_Init();
-  MX_SPI1_Init();
-  MX_I2C3_Init();
-//  MX_IWDG_Init();
-  MX_TIM5_Init();
-  MX_USART6_UART_Init();
-  MX_TIM1_Init();
-  /* USER CODE BEGIN 2 */
-#ifdef USE_IWDG
-/*To deactivate IWDG, go to main.h and comment #define USE_IWDG 1 */
-  MX_IWDG_Init();//enable IWDG, period 2s
-#endif
-	HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);// turn off the green led
-	if(firmware_and_system_init() != HAL_OK){
-		Error_Handler();
-	} else {
-		HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);// turn on the green led
-	}
-
-  /* USER CODE END 2 */
-
-  /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
-}
 
 /**
   * @brief System Clock Configuration
@@ -239,6 +84,7 @@ void SystemClock_Config(void)
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -255,6 +101,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -271,66 +118,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-HAL_StatusTypeDef firmware_and_system_init(void){
-	/* CAN1 & CAN2 Init */
-	if( HAL_CAN_Start(&hcan1) != HAL_OK){
-		return HAL_ERROR;
-	}
-	if( HAL_CAN_Start(&hcan2) != HAL_OK){
-		return HAL_ERROR;
-	}
-	/* CAN1 & CAN2 filter Init */
-	can_filter_enable(&hcan1);
-	can_filter_enable(&hcan2);
-
-	/* Timer 13 IT Init */
-	if( HAL_TIM_Base_Start_IT(&htim13) != HAL_OK){
-		return HAL_ERROR;
-	}
-	/* Heat PWM signal Init */
-	if( HAL_TIM_PWM_Start(&htim10,TIM_CHANNEL_1) != HAL_OK){
-		return HAL_ERROR;
-	}
-	// referee_init(&referee);
-	buzzer_init(&buzzer);
-	dwt_init();
-
-	board_status = get_board_status();
-
-	message_center_init();
-
-	return HAL_OK;
-}
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM5 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
-	if(htim->Instance == TIM13)
-	{
-		if(debugger_signal_flag == 1)
-			++debugger_signal_counter;
-//		if(shoot_reserve_flag == 1)
-//			++shoot_reserve_counter;
-//		if(shoot_check_flag == 1)
-//			++shoot_check_counter;
-		if(chassis_gyro_flag ==1)
-			++chassis_gyro_counter;
-	}
-	  /* USER CODE END Callback 0 */
-	  if (htim->Instance == TIM5) {
-		  HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
-}
 
 /* USER CODE END 4 */
 
@@ -365,4 +152,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-

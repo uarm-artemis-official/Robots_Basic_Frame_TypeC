@@ -11,15 +11,20 @@
 #ifndef __KALMAN_FILTERS_H__
 #define __KALMAN_FILTERS_H__
 
-#include "stdlib.h"
-#include "arm_math.h"
-/* define general declarations for gimbal task here */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "uarm_types.h"
+#include "uarm_math.h"
+
 #define sys_dim 2 // the dimension of state vector
 #ifdef sys_dim
 #endif
 
 /* define matrix operation functions */
-#define mat 	  arm_matrix_instance_f32
+#define mat arm_matrix_instance_f32
+
 #define mat_init  arm_mat_init_f32
 #define mat_add   arm_mat_add_f32
 #define mat_sub   arm_mat_sub_f32
@@ -29,11 +34,10 @@
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-/* define user structure here */
 typedef enum {
 	KF_OK = 0,
 	KF_ERR = 1
-}KFStatus_t;
+} KFStatus_t;
 
 typedef struct {
 	arm_status mat_status;
@@ -79,11 +83,6 @@ typedef struct {
 
 }KalmanFilter_t;
 
-
-typedef struct {
- /* Not implement yet */
-}ExtendKalmanFilter_t;
-
 /** ******************************************************************************
   * @file    first order kalman main structure                                                            *
   * @author  Liu heng                                                            *
@@ -105,12 +104,6 @@ typedef struct {
     float H;      // Measurement matrix
 }kalman_filter_t;
 
-/* extern global variables here */
-
-
-/* define user created variables here */
-
-
 /* functions declaration here */
 void kf_mat_restruct(mat *mat, uint8_t rows, uint8_t cols);
 void kf_mat_reset(mat *mat, uint8_t rows, uint8_t cols);
@@ -125,9 +118,8 @@ void kf_param_deinit(KalmanFilter_t *kf);
 void kalmanCreate(kalman_filter_t *p,float T_Q,float T_R);
 float KalmanFilter(kalman_filter_t* p,float dat);
 
-
-
-
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*__KALMAN_FILTERS_H__*/

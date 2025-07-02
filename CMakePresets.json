@@ -1,0 +1,73 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake",
+            "cacheVariables": {}
+        },
+        {
+            "name": "Mecanum",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Mecanum",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
+            "name": "Omni",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Omni",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
+            "name": "Swerve",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Swerve",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
+            "name": "Hero",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Hero",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
+            "name": "GTest",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "GTest",
+                "CMAKE_VERBOSE_MAKEFILE": "ON",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw64-gcc.cmake"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Omni",
+            "configurePreset": "Omni"
+        },
+        {
+            "name": "Mecanum",
+            "configurePreset": "Mecanum"
+        },
+        {
+            "name": "Swerve",
+            "configurePreset": "Swerve"
+        },
+        {
+            "name": "GTest",
+            "configurePreset": "GTest"
+        }
+    ]
+}

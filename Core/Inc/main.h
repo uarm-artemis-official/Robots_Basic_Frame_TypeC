@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "cmsis_os.h"
+#include "stm32f407xx.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -65,14 +65,8 @@ void Error_Handler(void);
 #define RSTN_IST8310_GPIO_Port GPIOG
 #define IMU_Heat_Pin_Pin GPIO_PIN_6
 #define IMU_Heat_Pin_GPIO_Port GPIOF
-#define LED_Red_Pin GPIO_PIN_12
-#define LED_Red_GPIO_Port GPIOH
 #define DRDY_IST8310_Pin GPIO_PIN_3
 #define DRDY_IST8310_GPIO_Port GPIOG
-#define LED_Green_Pin GPIO_PIN_11
-#define LED_Green_GPIO_Port GPIOH
-#define LED_Blue_Pin GPIO_PIN_10
-#define LED_Blue_GPIO_Port GPIOH
 #define Buzzer_Pin_Pin GPIO_PIN_14
 #define Buzzer_Pin_GPIO_Port GPIOD
 #define CS1_ACCEL_Pin GPIO_PIN_4
@@ -90,16 +84,13 @@ void Error_Handler(void);
 #define CS1_GYRO_GPIO_Port GPIOB
 #define HIGH_VOLT_Pin GPIO_PIN_15
 #define HIGH_VOLT_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
-typedef _Bool bool_t;
+// typedef _Bool bool_t;
 
 /* declare init function */
+void MX_FREERTOS_Init();
 HAL_StatusTypeDef firmware_and_system_init(void);
-
-extern char pdata[32]; //PACKLEN
-extern int16_t referee_parsed_flag;
-extern QueueHandle_t Ref_Pack_Queue;
-//extern uint8_t rc_rx_buffer[18];
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
