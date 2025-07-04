@@ -21,6 +21,16 @@ jobs:
     - uses: awalsh128/cache-apt-pkgs-action@v1
       with:
         packages: gcc-arm-none-eabi gcc
+        version: 1.0
+        execute_install_scripts: true
+
+    - name: Verify compiler availability
+      shell: bash
+      run: |
+        gcc --version
+        g++ --version
+        gcc-arm-none-eabi --version
+        g++-arm-none-eabi --version
 
     - name: Set reusable strings
       id: strings
