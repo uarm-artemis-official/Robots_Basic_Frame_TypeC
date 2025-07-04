@@ -19,7 +19,7 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
             toolchain_install: |
-              choco install mingw -y
+              choco install ninja mingw -y
               echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin" >> $env:GITHUB_PATH
 
           - build_type: Mecanum
@@ -28,28 +28,28 @@ jobs:
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
               sudo apt-get update -qq
-              sudo apt-get install -y gcc-arm-none-eabi g++-arm-none-eabi
+              sudo apt-get install -y gcc-arm-none-eabi ninja-build
           - build_type: Omni
             os: ubuntu-latest
             c_compiler: arm-none-eabi-gcc
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
               sudo apt-get update -qq
-              sudo apt-get install -y gcc-arm-none-eabi g++-arm-none-eabi
+              sudo apt-get install -y gcc-arm-none-eabi ninja-build
           - build_type: Swerve
             os: ubuntu-latest
             c_compiler: arm-none-eabi-gcc
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
               sudo apt-get update -qq
-              sudo apt-get install -y gcc-arm-none-eabi g++-arm-none-eabi
+              sudo apt-get install -y gcc-arm-none-eabi ninja-build
           - build_type: Hero
             os: ubuntu-latest
             c_compiler: arm-none-eabi-gcc
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
               sudo apt-get update -qq
-              sudo apt-get install -y gcc-arm-none-eabi g++-arm-none-eabi
+              sudo apt-get install -y gcc-arm-none-eabi ninja-build
 
     steps:
     - uses: actions/checkout@v4
@@ -72,7 +72,7 @@ jobs:
 
     - name: Configure CMake
       run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        cmake -G Ninja -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
 
