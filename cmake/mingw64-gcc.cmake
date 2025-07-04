@@ -4,17 +4,12 @@ set(CMAKE_SYSTEM_PROCESSOR          AMD64)
 set(CMAKE_C_COMPILER_ID GNU)
 set(CMAKE_CXX_COMPILER_ID GNU)
 
-# Some default GCC settings
-# arm-none-eabi- must be part of path environment
-# set(TOOLCHAIN_PREFIX                arm-none-eabi-)
-set(TOOLCHAIN_PREFIX C:/msys64/ucrt64/bin/)
-
-set(CMAKE_C_COMPILER                gcc.exe)
+set(CMAKE_C_COMPILER                gcc)
 set(CMAKE_ASM_COMPILER              ${CMAKE_C_COMPILER})
-set(CMAKE_CXX_COMPILER              g++.exe)
-set(CMAKE_LINKER                    g++.exe)
-set(CMAKE_OBJCOPY                   objcopy.exe)
-set(CMAKE_SIZE                      size.exe)
+set(CMAKE_CXX_COMPILER              g++)
+set(CMAKE_LINKER                    g++)
+set(CMAKE_OBJCOPY                   objcopy)
+set(CMAKE_SIZE                      size)
 
 set(CMAKE_EXECUTABLE_SUFFIX_ASM     ".exe")
 set(CMAKE_EXECUTABLE_SUFFIX_C       ".exe")
