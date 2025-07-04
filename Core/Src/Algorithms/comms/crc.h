@@ -11,7 +11,11 @@
 #ifndef __INC_CRC8_H__
 #define __INC_CRC8_H__
 
-#include "main.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "uarm_types.h"
 
 #ifndef __FALSE
 	#define __FALSE 0
@@ -23,8 +27,8 @@
 	void Append_CRC16_Check_Sum(uint8_t * pchMessage,uint32_t dwLength);
 #endif
 
-
-
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif 	/*__INC_CRC8_H__*/

@@ -29,16 +29,17 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-//FIXME: don't why it cannot detect MOTOR_COUNT and TOTAL_COMM_ID
-uint8_t can_rx_buffer[16][8]; // Motor count + maximum once sending bytes
-typedef struct{
-	uint32_t comm_id;
-	uint8_t comm_rx_buffer[8];
-}can_comm_rx_t;
-extern can_comm_rx_t can_comm_rx[7];
+#include "stm32f407xx.h"
+#include "stm32f4xx_hal.h"
+
+typedef struct {
+    uint32_t comm_id;
+    uint8_t comm_rx_buffer[8];
+} can_comm_rx_t;
 /* USER CODE END Includes */
 
 extern CAN_HandleTypeDef hcan1;
+
 extern CAN_HandleTypeDef hcan2;
 
 /* USER CODE BEGIN Private defines */

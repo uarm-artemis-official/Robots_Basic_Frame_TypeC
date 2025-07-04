@@ -1,0 +1,8 @@
+.settings/
+build/
+Debug
+CmakeFiles/
+CMakeCache.txt
+config_default/
+compile_commands.json
+build.ninja
