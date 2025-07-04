@@ -37,8 +37,8 @@ jobs:
       run: |
         gcc --version
         g++ --version
-        gcc-arm-none-eabi --version
-        g++-arm-none-eabi --version
+        arm-none-eabi-gcc --version
+        arm-none-eabi-g++ --version
 
     - name: Set reusable strings
       id: strings
