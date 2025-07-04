@@ -22,18 +22,6 @@ jobs:
       with:
         packages: gcc-arm-none-eabi gcc
 
-    - name: Install toolchain
-      shell: bash
-      run: ${{ matrix.toolchain_install }}
-
-    - name: Verify compiler availability
-      shell: bash
-      run: |
-        gcc --version
-        g++ --version
-        gcc-arm-none-eabi --version
-        g++-arm-none-eabi --version
-
     - name: Set reusable strings
       id: strings
       shell: bash
