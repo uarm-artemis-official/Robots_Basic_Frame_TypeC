@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         build_type: [Mecanum, Omni, Swerve, Hero, GTest]
-        # Add your custom toolchain configurations here
+
         include:
           - os: ubuntu-latest
             toolchain_name: "ARM-GCC"
@@ -23,7 +23,7 @@ jobs:
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
               sudo apt-get update -qq
-              sudo apt-get install -y gcc-arm-none-eabi
+              sudo apt-get install -y gcc-arm-none-eabi gcc
 
     steps:
     - uses: actions/checkout@v4
@@ -35,8 +35,10 @@ jobs:
     - name: Verify compiler availability
       shell: bash
       run: |
-        ${{ matrix.c_compiler }} --version
-        ${{ matrix.cpp_compiler }} --version
+        gcc --version
+        g++ --version
+        arm-none-eabi-gcc --version
+        arm-none-eabi-g++ --version
 
     - name: Set reusable strings
       id: strings
