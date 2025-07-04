@@ -1,0 +1,58 @@
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Mecanum, Omni, Swerve, Hero, GTest]
+        # Add your custom toolchain configurations here
+        include:
+          - os: ubuntu-latest
+            toolchain_name: "ARM GCC"
+            c_compiler: arm-none-eabi-gcc
+            cpp_compiler: arm-none-eabi-g++
+            toolchain_install: |
+              sudo apt-get update -qq
+              sudo apt-get install -y gcc-arm-none-eabi g++-arm-none-eabi
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install toolchain
+      shell: bash
+      run: ${{ matrix.toolchain_install }}
+
+    - name: Verify compiler availability
+      shell: bash
+      run: |
+        ${{ matrix.c_compiler }} --version
+        ${{ matrix.cpp_compiler }} --version
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build-${{ matrix.toolchain_name }}" >> "$GITHUB_OUTPUT"
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: ctest --build-config ${{ matrix.build_type }}
