@@ -16,13 +16,29 @@ jobs:
         os: [ubuntu-latest]
         build_type: [Mecanum, Omni, Swerve, Hero, GTest]
 
+        include:
+          - os: ubuntu-latest
+            toolchain_name: "ARM-GCC"
+            c_compiler: arm-none-eabi-gcc
+            cpp_compiler: arm-none-eabi-g++
+            toolchain_install: |
+              sudo apt-get update -qq
+              sudo apt-get install -y gcc-arm-none-eabi gcc
+
     steps:
     - uses: actions/checkout@v4
-    - uses: awalsh128/cache-apt-pkgs-action@v1
-      with:
-        packages: gcc-arm-none-eabi gcc
-        version: 1.0
-        execute_install_scripts: true
+
+    - name: Install toolchain
+      shell: bash
+      run: ${{ matrix.toolchain_install }}
+
+    - name: Verify compiler availability
+      shell: bash
+      run: |
+        gcc --version
+        g++ --version
+        gcc-arm-none-eabi --version
+        g++-arm-none-eabi --version
 
     - name: Set reusable strings
       id: strings
