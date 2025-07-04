@@ -18,7 +18,7 @@ jobs:
         # Add your custom toolchain configurations here
         include:
           - os: ubuntu-latest
-            toolchain_name: "ARM GCC"
+            toolchain_name: "ARM-GCC"
             c_compiler: arm-none-eabi-gcc
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
@@ -42,7 +42,7 @@ jobs:
       id: strings
       shell: bash
       run: |
-        echo "build-output-dir=${{ github.workspace }}/build-${{ matrix.toolchain_name }}" >> "$GITHUB_OUTPUT"
+        echo "build-output-dir=${{ github.workspace }}/build-${{ matrix.build_type }}" >> "$GITHUB_OUTPUT"
 
     - name: Configure CMake
       run: >
