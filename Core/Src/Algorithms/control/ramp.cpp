@@ -16,6 +16,7 @@
  ***************************************************************************/
 #include "ramp.hpp"
 #include <algorithm>
+#include "uarm_lib.h"
 #include "uarm_math.h"
 
 namespace {
@@ -23,6 +24,9 @@ namespace {
 }
 
 void ramp_init(Ramp& ramp, float max_change_) {
+    ASSERT(
+        max_change_ >= 0,
+        "max_change_ is the magnitude of max change and must be non-negative.");
     ramp.target = 0;
     ramp.max_change = max_change_;
     ramp.output = 0;

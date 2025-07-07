@@ -157,6 +157,7 @@ void pid2_set_limits(PID2_t& pid, float new_min_out, float new_max_out) {
 }
 
 float pid2_calculate(PID2_t& pid, float sp, float pv, float dt) {
+    ASSERT(dt > 0, "PID must have a timestep.");
     pid.plant_value = pv;
     pid.setpoint = sp;
     pid.prev_d_error = pid.d_error;

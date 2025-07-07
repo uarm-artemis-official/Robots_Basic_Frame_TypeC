@@ -64,10 +64,6 @@ TEST(PidCorrectness, Pid2PFuncBasic) {
 
     pid2_calculate(pid, -500, 0, 1);
     EXPECT_FLOAT_EQ(pid.total_out, -1000);
-
-    // P controller is time-independent.
-    pid2_calculate(pid, 100, 0, 0);
-    EXPECT_FLOAT_EQ(pid.total_out, 500);
 }
 
 TEST(PidFuzz, PidInitInvalidMaxes) {
