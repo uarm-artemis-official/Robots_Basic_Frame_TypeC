@@ -23,13 +23,13 @@ void OmniDrive::init_impl() {
         std::memset(&(motor_controls.at(i)), 0,
                     sizeof(Chassis_Wheel_Control_t));
         pid2_init(motor_controls.at(i).f_pid,
-                  robot_config::chassis_params::KP_OMNI_DRIVE,
-                  robot_config::chassis_params::KI_OMNI_DRIVE,
-                  robot_config::chassis_params::KD_OMNI_DRIVE,
-                  robot_config::chassis_params::BETA_OMNI_DRIVE,
-                  robot_config::chassis_params::YETA_OMNI_DRIVE,
-                  robot_config::chassis_params::MIN_OUT_OMNI_DRIVE,
-                  robot_config::chassis_params::MAX_OUT_OMNI_DRIVE);
+                  robot_config::chassis_params::KP_DRIVE_WHEEL,
+                  robot_config::chassis_params::KI_DRIVE_WHEEL,
+                  robot_config::chassis_params::KD_DRIVE_WHEEL,
+                  robot_config::chassis_params::BETA_DRIVE_WHEEL,
+                  robot_config::chassis_params::YETA_DRIVE_WHEEL,
+                  robot_config::chassis_params::MIN_OUT_DRIVE_WHEEL,
+                  robot_config::chassis_params::MAX_OUT_DRIVE_WHEEL);
         ramp_init(motor_controls.at(i).sp_ramp,
                   robot_config::chassis_params::WHEEL_RAMP_MAX_ACCEL);
     }

@@ -1,6 +1,7 @@
 add_library(APPS_INCLUDE INTERFACE)
 target_include_directories(APPS_INCLUDE
     INTERFACE
+        ${PROJECT_SOURCE_DIR}/Core/Src/Configs
         ${PROJECT_SOURCE_DIR}/Core/Src
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${ALGORITHMS_PATH}/control

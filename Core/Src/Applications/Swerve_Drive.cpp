@@ -33,13 +33,13 @@ void SwerveDrive::init_impl() {
     for (size_t i = 0; i < drive_motors.size(); i++) {
         drive_motors.at(i).stdid = 0;
         pid2_init(drive_motors.at(i).f_pid,
-                  robot_config::chassis_params::KP_SWERVE_DRIVE,
-                  robot_config::chassis_params::KI_SWERVE_DRIVE,
-                  robot_config::chassis_params::KD_SWERVE_DRIVE,
-                  robot_config::chassis_params::BETA_SWERVE_DRIVE,
-                  robot_config::chassis_params::YETA_SWERVE_DRIVE,
-                  robot_config::chassis_params::MIN_OUT_SWERVE_DRIVE,
-                  robot_config::chassis_params::MAX_OUT_SWERVE_DRIVE);
+                  robot_config::chassis_params::KP_DRIVE_WHEEL,
+                  robot_config::chassis_params::KI_DRIVE_WHEEL,
+                  robot_config::chassis_params::KD_DRIVE_WHEEL,
+                  robot_config::chassis_params::BETA_DRIVE_WHEEL,
+                  robot_config::chassis_params::YETA_DRIVE_WHEEL,
+                  robot_config::chassis_params::MIN_OUT_DRIVE_WHEEL,
+                  robot_config::chassis_params::MAX_OUT_DRIVE_WHEEL);
         drive_motors.at(i).feedback.rx_angle = 0;
         drive_motors.at(i).feedback.rx_current = 0;
         drive_motors.at(i).feedback.rx_rpm = 0;
