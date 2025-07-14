@@ -17,7 +17,7 @@ This project serves as the foundational embedded code framework for the *UARM 20
 
 ## Layout
 
-![code fame layout](./Figs/codeFrameLayoutPNG.png)
+![code fame layout](./docs/figures/codeFrameLayoutPNG.png)
 
 
 
@@ -52,15 +52,15 @@ This project serves as the foundational embedded code framework for the *UARM 20
 
 * Gimbal Follow（Encoder Mode）
 
-  ![](./Figs/gimbal_follow.gif)
+  ![](./docs/figures/gimbal_follow.gif)
 
 * Self-Gyro（Gyro or Encoder Mode）
 
-  <img src="./Figs/self-gyro.gif" alt="self-gyro" style="zoom:150%;" />
+  <img src="./docs/figures/self-gyro.gif" alt="self-gyro" style="zoom:150%;" />
 
 * Gimbal Center(Gyro mode)
 
-  ![gimbal_center](./Figs/gimbal_center.gif)
+  ![gimbal_center](./docs/figures/gimbal_center.gif)
 
 * Ground mode(Encoder Mode)
 
