@@ -71,6 +71,48 @@
                 "--html",
                 "./out/coverage/"
             ]
+        },
+        {
+            "label": "Build All Presets",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build Mecanum",
+                "Build Omni",
+                "Build Swerve",
+                "Build Hero",
+                "Build GTest"
+            ]
+        },
+        // Tasks are only intended for use in build all presets.
+        {
+            "label": "Build Mecanum",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=Mecanum"
+        },
+        {
+            "label": "Build Omni",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=Omni",
+        },
+        {
+            "label": "Build Swerve",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=Swerve"
+        },
+        {
+            "label": "Build Hero",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=Hero"
+        },
+        {
+            "label": "Build GTest",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=GTest"
         }
     ]
 }

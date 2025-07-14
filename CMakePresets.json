@@ -66,6 +66,10 @@
             "configurePreset": "Swerve"
         },
         {
+            "name": "Hero",
+            "configurePreset": "Hero"
+        },
+        {
             "name": "GTest",
             "configurePreset": "GTest"
         }
