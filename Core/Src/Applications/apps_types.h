@@ -1,5 +1,7 @@
 
 // TODO: Rename to apps_types.hpp
+// TODO: Add namespaces?
+// TODO: Add injectable configuration structs apps.
 #ifndef __APP_TYPES_H
 #define __APP_TYPES_H
 

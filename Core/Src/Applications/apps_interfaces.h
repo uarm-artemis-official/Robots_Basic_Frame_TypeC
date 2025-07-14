@@ -51,6 +51,7 @@ class RTOSApp : public ExtendedRTOSApp<Derived> {
     bool exit_calibrate_cond() { return true; }
 };
 
+// TODO Make policies sub-folder and move ChassisDrive into that folder.
 template <class Derived>
 class ChassisDrive {
    public:

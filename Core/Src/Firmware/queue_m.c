@@ -10,6 +10,8 @@
 
 #include "queue_m.h"
 
+// TODO Remove and replace with more generic alternative
+
 /* Since we have multiple can comm works in the future , there is necessity that apply
  * FIFO Queue management of our CAN2 data pool. */
 /***************************** CAN COMM QUEUE ************************************/

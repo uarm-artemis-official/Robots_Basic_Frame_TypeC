@@ -155,6 +155,8 @@ void StartDefaultTask(void const* argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// TODO Remove these flags
 int16_t referee_parsed_flag = 0;
 uint8_t referee_timeout_counter = 0;
 uint8_t referee_timeout_check_flag = 0;
@@ -177,6 +179,8 @@ static AmmoLid ammo_lid;
 static RCComm rc_comm;
 static PCComm pc_comm;
 
+// TODO Move app initialization code to another file
+// TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
 static constexpr float swerve_dt =
