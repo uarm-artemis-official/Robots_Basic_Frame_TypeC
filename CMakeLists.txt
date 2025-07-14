@@ -27,6 +27,10 @@ endif()
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Test)
     include("cmake/mingw64-gcc.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_GTEST "-O0 -g3 -fprofile-arcs -ftest-coverage")
+    set(CMAKE_CXX_FLAGS_GTEST "-O0 -g3 -fprofile-arcs -ftest-coverage")
+    # set(CMAKE_C_LINKER_FLAGS_GTEST "--coverage")
+    # set(CMAKE_CXX_LINKER_FLAGS_GTEST "--coverage")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Swerve")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Swerve)
     include("cmake/gcc-arm-none-eabi.cmake") # toolchain file

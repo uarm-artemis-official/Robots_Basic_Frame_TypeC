@@ -6,3 +6,6 @@ CMakeCache.txt
 config_default/
 compile_commands.json
 build.ninja
+out
+.vscode/settings.json
+.venv
