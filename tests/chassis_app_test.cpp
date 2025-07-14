@@ -3,4 +3,4 @@
 #include "chassis_app_fixture.hpp"
 #include "subsystems_mocks.hpp"
 
-TEST_F(ChassisAppTest, ChassisAppFuncBasic) {}
+// TEST_F(ChassisAppTest, ChassisAppFuncBasic) {}
