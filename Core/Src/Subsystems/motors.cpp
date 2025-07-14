@@ -1,4 +1,4 @@
-#include "motors.h"
+#include "motors.hpp"
 #include "dji_motor.h"
 #include "lk_motor.h"
 #include "subsystems_defines.h"

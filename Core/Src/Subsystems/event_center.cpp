@@ -1,11 +1,4 @@
-/*
- * event_center.c
- *
- *  Created on: Mar 8, 2025
- *      Author: johnm
- */
-
-#include "event_center.h"
+#include "event_center.hpp"
 #include "subsystems_defines.h"
 #include "uarm_lib.h"
 

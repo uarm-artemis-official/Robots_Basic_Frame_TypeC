@@ -1,6 +1,6 @@
-#include "uart_isr.h"
+#include "uart_isr.hpp"
 #include "cmsis_os.h"
-#include "message_center.h"
+#include "message_center.hpp"
 #include "pack_handler.h"
 #include "referee_data.h"
 #include "usart.h"

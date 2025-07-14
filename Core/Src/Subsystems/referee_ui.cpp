@@ -1,7 +1,7 @@
 #ifndef SRC_REF_UI_CPP_
 #define SRC_REF_UI_CPP_
 
-#include "referee_ui.h"
+#include "referee_ui.hpp"
 #include "crc.h"
 #include "referee_data.h"
 #include "string.h"
@@ -581,8 +581,7 @@ void RefereeUI::draw_vaild_info(uint32_t act_mode, uint32_t level) {
     ref_ui.ui_draw_info_data.interaction_figure[5].start_y = 700;
     ref_ui.ui_draw_info_data.interaction_figure[5].details_a = 50;
     // ref_ui.ui_draw_info_data.interaction_figure[3].details_b = 0;
-    ref_ui.ui_draw_info_data.interaction_figure[5].details_c =
-        level;  // level
+    ref_ui.ui_draw_info_data.interaction_figure[5].details_c = level;  // level
     ref_ui.ui_draw_info_data.interaction_figure[5].details_d = 0;
     ref_ui.ui_draw_info_data.interaction_figure[5].details_e = 0;
 

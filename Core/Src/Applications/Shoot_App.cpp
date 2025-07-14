@@ -16,14 +16,6 @@
 #include "uarm_lib.h"
 #include "uarm_math.h"
 
-// static uint8_t shoot_reserve_flag = 0;
-// static uint8_t shoot_reserve_counter = 0;
-// static uint8_t shoot_check_flag = 0;
-// static uint16_t shoot_check_counter = 0;
-
-// TODO: Re-implement reverse/unjamming mechanism.
-// Possible use torque current feedback to detect jam.
-
 namespace {
     constexpr size_t LEFT_FLYWHEEL_INDEX = 0;
     constexpr size_t RIGHT_FLYWHEEL_INDEX = 1;

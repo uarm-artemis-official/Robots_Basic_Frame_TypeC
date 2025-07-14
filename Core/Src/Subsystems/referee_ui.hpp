@@ -1,10 +1,3 @@
-/*
- * referee_ui.h
- *
- *  Created on: Mar 8, 2025
- *      Author: johnm
- */
-
 #ifndef SRC_REF_UI_H_
 #define SRC_REF_UI_H_
 

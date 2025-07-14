@@ -1,7 +1,7 @@
 #ifndef __IMU_H
 #define __IMU_H
 
-#include "madgewick.h"  // TODO: move to attitude_types.h eventually.
+#include "madgewick.hpp"  // TODO: move to attitude_types.h eventually.
 #include "subsystems_interfaces.h"
 #include "subsystems_types.h"
 

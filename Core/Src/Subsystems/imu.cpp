@@ -1,4 +1,4 @@
-#include "imu.h"
+#include "imu.hpp"
 #include "ahrs.h"
 #include "bmi088_driver.h"
 #include "ist8310driver.h"

@@ -1,4 +1,4 @@
-#include "debug.h"
+#include "debug.hpp"
 
 #include "uarm_lib.h"
 

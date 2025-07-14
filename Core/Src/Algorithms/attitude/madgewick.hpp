@@ -1,5 +1,5 @@
-#ifndef __MADGEWICK_H
-#define __MADGEWICK_H
+#ifndef __MADGEWICK_HPP
+#define __MADGEWICK_HPP
 
 #include "attitude_types.h"
 #include "uarm_lib.h"

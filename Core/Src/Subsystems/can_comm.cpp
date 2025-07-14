@@ -1,4 +1,4 @@
-#include "can_comm.h"
+#include "can_comm.hpp"
 #include "can.h"
 #include "queue_m.h"
 #include "subsystems_defines.h"

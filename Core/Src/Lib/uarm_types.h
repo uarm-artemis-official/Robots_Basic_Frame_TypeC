@@ -40,4 +40,8 @@ typedef struct {
     float sum;                      // sum of the window's elements
 } sliding_mean_filter_t;
 
+/* =========================================================================
+ * UARM SI UNIT STRONG TYPES
+ * ====================================================================== */
+
 #endif

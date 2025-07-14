@@ -1,4 +1,4 @@
-#include "madgewick.h"
+#include "madgewick.hpp"
 
 // Adapted from original Madgewick Filter C implementation by Sebastian Madgewick.
 // https://x-io.co.uk/open-source-imu-and-ahrs-algorithms/
