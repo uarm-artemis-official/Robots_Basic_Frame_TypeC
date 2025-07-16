@@ -2,7 +2,7 @@
 #include "dji_motor.h"
 #include "lk_motor.h"
 #include "subsystems_defines.h"
-#include "uarm_lib.h"
+#include "uarm_lib.hpp"
 
 Motors::Motors() {
     memset(this->motors, 0, sizeof(Generic_Motor_t) * MAX_MOTOR_COUNT);

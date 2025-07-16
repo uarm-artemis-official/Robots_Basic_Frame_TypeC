@@ -5,8 +5,8 @@
  *      Author: Haoran
  */
 #include "pid.h"
-#include "uarm_lib.h"
-#include "uarm_math.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
 
 /**
   * @brief  pid parameters initialization

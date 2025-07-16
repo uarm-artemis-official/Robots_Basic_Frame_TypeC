@@ -13,8 +13,8 @@
 #include "pid.h"
 #include "ramp.hpp"
 #include "robot_config.hpp"
-#include "uarm_lib.h"
-#include "uarm_math.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
 
 namespace {
     constexpr size_t LEFT_FLYWHEEL_INDEX = 0;

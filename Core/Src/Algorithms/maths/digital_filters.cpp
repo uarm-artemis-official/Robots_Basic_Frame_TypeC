@@ -1,5 +1,5 @@
 #include "digital_filters.hpp"
-#include "uarm_lib.h"
+#include "uarm_lib.hpp"
 
 template <int TTaps>
 GenericFilter<TTaps>::GenericFilter(std::array<float, TTaps - 1> a_,

@@ -19,7 +19,7 @@
 // #endif
 
 #include "Referee_App.h"
-#include "crc.h"
+#include "crc.hpp"
 // #include "referee_data.h"
 #include "string.h"
 // #include "usart.h"

@@ -3,7 +3,7 @@
 
 #include "queue_m.h"
 #include "subsystems_interfaces.h"
-#include "uarm_types.h"
+#include "uarm_types.hpp"
 
 class CanComm : public ICanComm {
    private:

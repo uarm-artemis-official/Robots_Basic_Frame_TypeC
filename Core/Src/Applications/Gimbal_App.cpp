@@ -13,9 +13,9 @@
 #include "apps_defines.h"
 #include "pid.h"
 #include "robot_config.hpp"
-#include "uarm_lib.h"
-#include "uarm_math.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
+#include "uarm_os.hpp"
 
 GimbalApp::GimbalApp(IMessageCenter& message_center_ref,
                      IEventCenter& event_center_ref, IDebug& debug_ref,

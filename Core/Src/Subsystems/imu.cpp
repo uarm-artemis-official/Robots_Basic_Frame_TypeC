@@ -3,8 +3,8 @@
 #include "bmi088_driver.h"
 #include "ist8310driver.h"
 #include "subsystems_defines.h"
-#include "uarm_lib.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_os.hpp"
 
 Imu::Imu(uint32_t sampling_rate_, float beta_, const float orientation_[3][3])
     : madgewick(sampling_rate_, beta_),

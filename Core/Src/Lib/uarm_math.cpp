@@ -10,15 +10,11 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-
-#ifndef __MATHS_C__
-#define __MATHS_C__
-
-#include "uarm_math.h"
+#include "uarm_math.hpp"
 #include "float.h"
 #include "string.h"
-#include "uarm_defines.h"
-#include "uarm_lib.h"
+#include "uarm_defines.hpp"
+#include "uarm_lib.hpp"
 
 /*********** For genral use of the maths **********/
 
@@ -292,5 +288,3 @@ float sliding_window_mean_filter(sliding_mean_filter_t* filter,
 
     return filter->sum / filter->window_size;
 }
-
-#endif

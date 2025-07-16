@@ -1,6 +1,6 @@
 #include "debug.hpp"
 
-#include "uarm_lib.h"
+#include "uarm_lib.hpp"
 
 #include "gpio.h"
 

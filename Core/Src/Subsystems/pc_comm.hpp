@@ -1,8 +1,8 @@
-#ifndef __PC_COMM_H
-#define __PC_COMM_H
+#ifndef __PC_COMM_HPP
+#define __PC_COMM_HPP
 
 #include "subsystems_interfaces.h"
-#include "uarm_types.h"
+#include "uarm_types.hpp"
 
 class PCComm : public IPCComm {
    public:

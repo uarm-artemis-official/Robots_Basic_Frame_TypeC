@@ -1,4 +1,4 @@
-add_library(COMMS_LIB STATIC crc.c quantize.cpp)
+add_library(COMMS_LIB STATIC crc.cpp quantize.cpp)
 target_include_directories(COMMS_LIB PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(COMMS_LIB 
     PUBLIC 

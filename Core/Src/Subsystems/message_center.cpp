@@ -1,6 +1,6 @@
 #include "message_center.hpp"
-#include "uarm_lib.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_os.hpp"
 
 void MessageCenter::init() {
     if (!initialized) {

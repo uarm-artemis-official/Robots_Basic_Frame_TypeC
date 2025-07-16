@@ -23,9 +23,9 @@
 #include "apps_defines.h"
 #include "quantize.hpp"
 #include "robot_config.hpp"
-#include "uarm_lib.h"
-#include "uarm_math.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
+#include "uarm_os.hpp"
 
 /*********************************************************************************
  *  				  <   GENERAL CTRL OPERATION TABLE  >

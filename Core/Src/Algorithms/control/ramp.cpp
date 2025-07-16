@@ -16,8 +16,8 @@
  ***************************************************************************/
 #include "ramp.hpp"
 #include <algorithm>
-#include "uarm_lib.h"
-#include "uarm_math.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
 
 namespace {
     constexpr float NEW_TARGET_TOLERANCE = 0.000001;

@@ -1,7 +1,7 @@
-#ifndef __UARM_LIB_H
-#define __UARM_LIB_H
+#ifndef __UARM_LIB_HPP
+#define __UARM_LIB_HPP
 
-#include "uarm_types.h"
+#include "uarm_types.hpp"
 
 // TODO: Make type safe memcpy/memset?
 #ifdef GTEST

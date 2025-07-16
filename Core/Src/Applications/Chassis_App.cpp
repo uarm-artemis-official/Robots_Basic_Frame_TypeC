@@ -17,9 +17,9 @@
 #include "apps_defines.h"
 #include "pid.h"
 #include "robot_config.hpp"
-#include "uarm_lib.h"
-#include "uarm_math.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
+#include "uarm_os.hpp"
 
 template class ChassisApp<OmniDrive>;
 template class ChassisApp<SwerveDrive>;

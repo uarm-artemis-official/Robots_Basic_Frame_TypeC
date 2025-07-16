@@ -2,8 +2,8 @@
 #define __MADGEWICK_HPP
 
 #include "attitude_types.h"
-#include "uarm_lib.h"
-#include "uarm_math.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
 
 class Madgewick_Filter {
    private:

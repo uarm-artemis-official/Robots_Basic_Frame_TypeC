@@ -9,11 +9,7 @@
 * All rights reserved.
 *******************************************************************************/
 
-
-#ifndef __FEEDFORWARD_C__
-#define __FEEDFORWARD_C__
-
-#include "feedforward.h"
+#include "feedforward.hpp"
 
 /* define internal vars */
 /* define internal functions */
@@ -23,10 +19,10 @@
   * @param[in] ff: pointer to feed forward control struct
   * @param[in] kf: ff_gain value
   */
-void ff_param_init(FeedForward_t *ff, float kf){
-	ff->ff_gain = kf;
-	ff->last_input = 0;
-	ff->output = 0;
+void ff_param_init(FeedForward_t* ff, float kf) {
+    ff->ff_gain = kf;
+    ff->last_input = 0;
+    ff->output = 0;
 }
 /**
   * @brief     First-order feedforward control approximation to compensate
@@ -37,10 +33,8 @@ void ff_param_init(FeedForward_t *ff, float kf){
   * Understanding: Gff(S) = 1 / (Gc_fb(s))
   *
   */
-float feedforward(FeedForward_t *ff, float input){
-	ff->output = (input - ff->last_input) * ff->ff_gain + input;
-	ff->last_input = input;
-	return ff->output;
+float feedforward(FeedForward_t* ff, float input) {
+    ff->output = (input - ff->last_input) * ff->ff_gain + input;
+    ff->last_input = input;
+    return ff->output;
 }
-
-#endif /*__FEEDFORWARD_C__ */

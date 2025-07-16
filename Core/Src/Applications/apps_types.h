@@ -6,10 +6,10 @@
 #define __APP_TYPES_H
 
 #include "attitude_types.h"
-#include "control_types.h"
+#include "control_types.hpp"
 #include "subsystems_interfaces.h"
 #include "subsystems_types.h"
-#include "uarm_types.h"
+#include "uarm_types.hpp"
 
 /* =========================================================================
  * PUBLIC TYPES

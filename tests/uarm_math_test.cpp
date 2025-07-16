@@ -1,4 +1,4 @@
-#include "uarm_math.h"
+#include "uarm_math.hpp"
 #include <gtest/gtest.h>
 
 TEST(UARMMathCorrectness, AbsLimitBasic) {

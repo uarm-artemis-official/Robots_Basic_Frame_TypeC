@@ -10,9 +10,9 @@
 #include "PC_UART_App.h"
 #include <cstring>
 #include "apps_defines.h"
-#include "uarm_lib.h"
-#include "uarm_math.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
+#include "uarm_os.hpp"
 
 PCUARTApp::PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_,
                      IPCComm& pc_comm_)

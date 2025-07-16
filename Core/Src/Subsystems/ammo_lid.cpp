@@ -1,6 +1,6 @@
 #include "ammo_lid.hpp"
 #include "timers_handler.h"
-#include "uarm_lib.h"
+#include "uarm_lib.hpp"
 
 void AmmoLid::init() {
     start_pwm(AMMO_LID, CHANNEL_1);

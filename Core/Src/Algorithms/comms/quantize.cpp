@@ -1,5 +1,5 @@
 #include "quantize.hpp"
-#include "uarm_math.h"
+#include "uarm_math.hpp"
 
 int16_t quantize_float(float x, float min_x, float max_x, int16_t min_y,
                        int16_t max_y) {

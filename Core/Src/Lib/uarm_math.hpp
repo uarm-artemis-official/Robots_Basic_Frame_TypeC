@@ -11,12 +11,8 @@
 ******************************************************************************
 */
 
-#ifndef __MATHS_H__
-#define __MATHS_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef __UARM_MATH_HPP
+#define __UARM_MATH_HPP
 
 #ifdef GTEST
 #include "fake_arm_math.h"
@@ -25,8 +21,9 @@ extern "C" {
 #include "stm32f407xx.h"
 #endif
 
+// #include <cmath>
 #include "math.h"
-#include "uarm_types.h"
+#include "uarm_types.hpp"
 
 /* User defiend functions declaration */
 /* maths */
@@ -53,9 +50,5 @@ void init_ewma_filter(ewma_filter_t* ewma, float a);
 float ewma_filter(ewma_filter_t* ewma, float cur_data);
 void init_swm_filter(sliding_mean_filter_t* filter, size_t window_size);
 float sliding_window_mean_filter(sliding_mean_filter_t* filter, float new_data);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

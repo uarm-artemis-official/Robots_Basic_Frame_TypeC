@@ -38,7 +38,7 @@
 #ifndef INC_PID_H_
 #define INC_PID_H_
 
-#include "control_types.h"
+#include "control_types.hpp"
 
 //declare pid functions
 void pid_param_init(PID_t* pid, int32_t max_out, float max_i_out, float max_err,

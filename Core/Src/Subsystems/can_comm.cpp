@@ -2,8 +2,8 @@
 #include "can.h"
 #include "queue_m.h"
 #include "subsystems_defines.h"
-#include "uarm_lib.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_os.hpp"
 
 void CanComm::init() {
     memset(canQueue, 0, sizeof(CanMessage_t) * CAN_COMM_QUEUE_SIZE);

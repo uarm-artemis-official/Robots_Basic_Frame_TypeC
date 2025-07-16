@@ -1,12 +1,8 @@
-#ifndef __UARM_OS_H
-#define __UARM_OS_H
-
-#if __cplusplus
-extern "C" {
-#endif
+#ifndef __UARM_OS_HPP
+#define __UARM_OS_HPP
 
 #ifdef GTEST
-#include "uarm_types.h"
+#include "uarm_types.hpp"
 
 typedef uint32_t TickType_t;
 typedef long BaseType_t;
@@ -21,10 +17,6 @@ typedef long BaseType_t;
 
 #else
 #include "cmsis_os.h"
-#endif
-
-#if __cplusplus
-}
 #endif
 
 #endif

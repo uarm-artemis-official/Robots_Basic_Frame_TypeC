@@ -1,7 +1,7 @@
 #ifndef __APPS_INTERFACES_H
 #define __APPS_INTERFACES_H
 
-#include "uarm_os.h"
+#include "uarm_os.hpp"
 
 // TODO: Add startup events for apps so certain apps will start after certain events.
 // e.g. Chassis and Gimbal Apps only start when motors are detected to be online.

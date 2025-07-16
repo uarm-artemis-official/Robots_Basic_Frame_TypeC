@@ -12,9 +12,9 @@
 #include "apps_defines.h"
 #include "pid.h"
 #include "string.h"
-#include "uarm_lib.h"
-#include "uarm_math.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
+#include "uarm_os.hpp"
 
 IMUApp::IMUApp(IMessageCenter& message_center_ref,
                IEventCenter& event_center_ref, IImu& imu_ref, IDebug& debug_ref)

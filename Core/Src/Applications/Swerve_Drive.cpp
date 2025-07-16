@@ -6,8 +6,8 @@
 #include "apps_defines.h"
 #include "pid.h"
 #include "robot_config.hpp"
-#include "uarm_lib.h"
-#include "uarm_math.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
 
 SwerveDrive::SwerveDrive(IMessageCenter& message_center_ref,
                          IMotors& motors_ref, float width_, float dt_)

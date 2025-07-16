@@ -18,7 +18,7 @@
 #ifndef __RAMP_H__
 #define __RAMP_H__
 
-#include "control_types.h"
+#include "control_types.hpp"
 
 void ramp_init(Ramp& ramp, float max_change_);
 void ramp_set_target(Ramp& ramp, float start, float new_target);

@@ -1,9 +1,6 @@
 #ifndef __UARM_DEFINES_H
 #define __UARM_DEFINES_H
 
-#ifdef __cpluspls
-extern "C" {
-#endif
 /* =========================================================================
  * UARM MATH DEFINES
  * ====================================================================== */
@@ -12,9 +9,5 @@ extern "C" {
 #define RAD2DEGREE 57.295779513f
 
 #define MAX_WINDOW_SIZE 300
-
-#ifdef __cpluspls
-}
-#endif
 
 #endif

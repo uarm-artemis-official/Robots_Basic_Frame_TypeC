@@ -15,9 +15,9 @@
 #include "apps_defines.h"
 #include "quantize.hpp"
 #include "string.h"
-#include "uarm_lib.h"
-#include "uarm_math.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
+#include "uarm_os.hpp"
 
 CommApp::CommApp(IMessageCenter& message_center_ref, IDebug& debug_ref,
                  ICanComm& can_comm_ref)

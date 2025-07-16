@@ -13,7 +13,7 @@
 
 #include "kalman_filters.h"
 #include "string.h"
-#include "uarm_lib.h"
+#include "uarm_lib.hpp"
 
 /****************************************************************************************************
 * Kalman filter explanation and examples for gyroscope (assumed to be linear) by Haoran

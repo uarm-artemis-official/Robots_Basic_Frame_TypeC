@@ -7,8 +7,8 @@
 #include "attitude_types.h"
 #include "motor_types.h"
 #include "subsystems_defines.h"
-#include "uarm_os.h"
-#include "uarm_types.h"
+#include "uarm_os.hpp"
+#include "uarm_types.hpp"
 
 /* =========================================================================
  * MOTOR TYPES

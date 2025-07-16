@@ -14,7 +14,7 @@
 #include "apps_defines.h"
 #include "apps_interfaces.h"
 #include "apps_types.h"
-#include "uarm_math.h"
+#include "uarm_math.hpp"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>> {

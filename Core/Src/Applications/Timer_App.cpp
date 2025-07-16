@@ -15,8 +15,8 @@
 #include <cstring>
 #include "apps_defines.h"
 #include "apps_types.h"
-#include "uarm_lib.h"
-#include "uarm_os.h"
+#include "uarm_lib.hpp"
+#include "uarm_os.hpp"
 
 /**
 * @brief  Timer app used to update the CAN data

@@ -1,7 +1,7 @@
-#ifndef __CONTROL_TYPES_H
-#define __CONTROL_TYPES_H
+#ifndef __CONTROL_TYPES_HPP
+#define __CONTROL_TYPES_HPP
 
-#include "uarm_types.h"
+#include "uarm_types.hpp"
 
 /* =========================================================================
  * FEED FORWARD TYPES

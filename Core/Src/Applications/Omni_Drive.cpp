@@ -4,8 +4,8 @@
 #include "pid.h"
 #include "ramp.hpp"
 #include "robot_config.hpp"
-#include "uarm_lib.h"
-#include "uarm_math.h"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
 
 OmniDrive::OmniDrive(IMessageCenter& message_center_ref, IMotors& motors_ref,
                      float chassis_width, float chassis_length,
