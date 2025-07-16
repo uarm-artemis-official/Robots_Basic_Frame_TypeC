@@ -68,7 +68,8 @@
             "label": "GCOVR: generate test coverage (HTML)",
             "command": "gcovr ",
             "args": [
-                "--html",
+                "--html-self-contained",
+                "--html-details",
                 "./out/coverage/"
             ]
         },

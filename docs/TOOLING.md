@@ -12,7 +12,7 @@ It may be possible to use other IDEs, especially those specifically made for emb
 | --- | --- | --- |
 | STM32Cube For Visual Studio Code | Primary interface for ST software and integrates packages for compiling, flashing, and debugging code on ST32 MCUs. | This is the official VSCode extension for developing STM32 MCUs created by STMicroelectronics themselves. It is a relatively new extension that is still undergoing development, but it has most of the features which CubeIDE (STM's own Eclipse-based IDE) has, albeit with some features having limited functionality. |
 | CubeMX | No-code configuration and code generation for STM32 MCUs. | A GUI application which allows developers to easily graphically configure the various functionality of a MCU and generate the corresponding code to be used in an STM32 application. CubeMX can configure features ranging from clock speeds to middlewares (e.g. FreeRTOS) to pinouts. The tool is pretty versatile and should be learned to avoid tidious creation of set up code. |
-|||
+||||
 
 TODO finish table
 
@@ -33,7 +33,7 @@ During core development tools, tooling for wired flashing and debugging of STM32
 
 Make sure to include the `.exe` extension when setting your path otherwise the magic white boxes may not work. That's it! You have successfully finished set up of OpenOCD. To run a wireless debugging session, attach the TX box to your computer and the RX box to a MCU, navigate to `Run and Debug` on VSCode's sidebar, and select `OpenOCD` option for Run and Debug.
 
-![something](figures/running_wireless_debug.png)
+![screenshot of vscode using how to use OpenOCD](figures/running_wireless_debug.png)
 
 If you are getting errors while trying to do wireless debugging, investigate the following possible causes:
  1. The MCU is not getting power, thus the RX magic box is not being powered. You will know if the TX and RX magic boxes are connected by the blue LED on the top of the boxes. Make sure to connect the MCU to a sufficient power supply for it to power the RX magic box.
@@ -66,4 +66,10 @@ pip install -r requirements.txt
 
 Afterwards, make `out/coverage` folder in the base project directory then Gcovr should be ready for use. To set up Gcov Viewer, simply search and install the `Gcov Viewer` extension by Jacques Lucke. This extension shows tested and untested lines in the editor after we run tests. 
 
-TODO Finish
+A vscode task has already been made to generate code coverage information using gcovr. Build and run `GTest` configuration and run all tests with coverage to generate gcov files. Run command palette and search for `Tasks: Run Task`. There will a list of avaiable tasks to run, select `GCOVR: generate test coverage (HTML)`. HTML files will populate `out/coverage` and you can view coverage by openning them in a web browser (the overview page is in `coverage_details.html`). Coverage should look similar to the following.
+
+![GCOVR test coverage example](./figures/test_coverage_example.png)
+
+Each tested file will generate an individual page showing test line coverage. You can view them in the web browser or in VSCode by running `Gcov Viewer: Show` in command palette. Following the command, tested lines in their source files will be highlighed with a number showing the number of times they're ran. To turn off gcov viewer, run `Gcov Viewer: Hide`.
+
+![GCOV Viewer example](./figures/gcov_viewer_example.png)
