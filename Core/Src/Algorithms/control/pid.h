@@ -1,12 +1,4 @@
-/*
- * pid related funtions headers
- *
- * Jul, 2023
- * 		Author: Haoran
- *
- */
-
-/*
+/**
  * There are different forms of PID controllers depending on how the 
  * governing equations of the controller are defined. Here are some:
  * 
@@ -33,13 +25,14 @@
  * (Series form)
  * An older form used in pneumatic and electronic controllers. 
  * Ziegler-Nichols tuning method was developed for this form.
-*/
+ */
 
 #ifndef INC_PID_H_
 #define INC_PID_H_
 
 #include "control_types.hpp"
 
+// TODO Convert to structs or classes.
 //declare pid functions
 void pid_param_init(PID_t* pid, int32_t max_out, float max_i_out, float max_err,
                     float kp, float ki, float kd);

@@ -138,4 +138,16 @@ else()
         SUBSYSTEMS::IMU
         SUBSYSTEMS::REF_UI
         stm32cubemx)
+
+    # Doxygen
+    find_package(Doxygen)
+
+    if (Doxygen_FOUND)
+        set(DOXYGEN_GENERATE_HTML YES)
+        set(DOXYGEN_GENERATE_MAN NO)
+        set(DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/out/doxygen)
+        set(DOXYGEN_EXCLUDE_PATTERNS "*/Lib/DSP/*")
+
+        doxygen_add_docs(PROJECT_DOCS ${PROJECT_SOURCE_DIR}/Core/Src ALL)
+    endif()
 endif()
