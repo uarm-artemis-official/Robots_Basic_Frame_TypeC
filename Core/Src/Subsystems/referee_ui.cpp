@@ -2,7 +2,7 @@
 #define SRC_REF_UI_CPP_
 
 #include "referee_ui.hpp"
-#include "crc.h"
+#include "crc.hpp"
 #include "referee_data.h"
 #include "string.h"
 
