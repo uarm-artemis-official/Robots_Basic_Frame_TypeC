@@ -1,0 +1,171 @@
+var hierarchy =
+[
+    [ "AhrsSensor_t", "struct_ahrs_sensor__t.html", null ],
+    [ "AngleParameter", "struct_angle_parameter.html", null ],
+    [ "Attitude_t", "struct_attitude__t.html", null ],
+    [ "BMI088_REAL_DATA", "struct_b_m_i088___r_e_a_l___d_a_t_a.html", null ],
+    [ "Buzzer_t", "struct_buzzer__t.html", null ],
+    [ "CANCommMessage_t", "struct_c_a_n_comm_message__t.html", null ],
+    [ "CanMessage_t", "struct_can_message__t.html", null ],
+    [ "Chassis_t", "struct_chassis__t.html", null ],
+    [ "Chassis_Wheel_Control_t", "struct_chassis___wheel___control__t.html", null ],
+    [ "ChassisCommandMessage_t", "struct_chassis_command_message__t.html", null ],
+    [ "ChassisDrive< Derived >", "class_chassis_drive.html", null ],
+    [ "ChassisDrive< OmniDrive >", "class_chassis_drive.html", [
+      [ "OmniDrive", "class_omni_drive.html", null ]
+    ] ],
+    [ "ChassisDrive< SwerveDrive >", "class_chassis_drive.html", [
+      [ "SwerveDrive", "class_swerve_drive.html", null ]
+    ] ],
+    [ "ChassisPowerStat_t", "struct_chassis_power_stat__t.html", null ],
+    [ "Controller", "struct_controller.html", null ],
+    [ "Display_t", "struct_display__t.html", null ],
+    [ "DWTTime_t", "struct_d_w_t_time__t.html", null ],
+    [ "ewma_filter_t", "structewma__filter__t.html", null ],
+    [ "ExtendedRTOSApp< Derived >", "class_extended_r_t_o_s_app.html", [
+      [ "RTOSApp< Derived >", "class_r_t_o_s_app.html", null ]
+    ] ],
+    [ "ExtendedRTOSApp< ChassisApp< DriveTrain > >", "class_extended_r_t_o_s_app.html", [
+      [ "RTOSApp< ChassisApp< DriveTrain > >", "class_r_t_o_s_app.html", [
+        [ "ChassisApp< DriveTrain >", "class_chassis_app.html", null ]
+      ] ]
+    ] ],
+    [ "ExtendedRTOSApp< CommApp >", "class_extended_r_t_o_s_app.html", [
+      [ "RTOSApp< CommApp >", "class_r_t_o_s_app.html", [
+        [ "CommApp", "class_comm_app.html", null ]
+      ] ]
+    ] ],
+    [ "ExtendedRTOSApp< GimbalApp >", "class_extended_r_t_o_s_app.html", [
+      [ "GimbalApp", "class_gimbal_app.html", null ]
+    ] ],
+    [ "ExtendedRTOSApp< IMUApp >", "class_extended_r_t_o_s_app.html", [
+      [ "IMUApp", "class_i_m_u_app.html", null ]
+    ] ],
+    [ "ExtendedRTOSApp< PCUARTApp >", "class_extended_r_t_o_s_app.html", [
+      [ "RTOSApp< PCUARTApp >", "class_r_t_o_s_app.html", [
+        [ "PCUARTApp", "class_p_c_u_a_r_t_app.html", null ]
+      ] ]
+    ] ],
+    [ "ExtendedRTOSApp< RCApp >", "class_extended_r_t_o_s_app.html", [
+      [ "RTOSApp< RCApp >", "class_r_t_o_s_app.html", [
+        [ "RCApp", "class_r_c_app.html", null ]
+      ] ]
+    ] ],
+    [ "ExtendedRTOSApp< RefereeApp >", "class_extended_r_t_o_s_app.html", [
+      [ "RTOSApp< RefereeApp >", "class_r_t_o_s_app.html", [
+        [ "RefereeApp", "class_referee_app.html", null ]
+      ] ]
+    ] ],
+    [ "ExtendedRTOSApp< ShootApp >", "class_extended_r_t_o_s_app.html", [
+      [ "RTOSApp< ShootApp >", "class_r_t_o_s_app.html", [
+        [ "ShootApp", "class_shoot_app.html", null ]
+      ] ]
+    ] ],
+    [ "ExtendedRTOSApp< TimerApp >", "class_extended_r_t_o_s_app.html", [
+      [ "RTOSApp< TimerApp >", "class_r_t_o_s_app.html", [
+        [ "TimerApp", "class_timer_app.html", null ]
+      ] ]
+    ] ],
+    [ "FeedForward_t", "struct_feed_forward__t.html", null ],
+    [ "first_order_high_pass_t", "structfirst__order__high__pass__t.html", null ],
+    [ "first_order_low_pass_t", "structfirst__order__low__pass__t.html", null ],
+    [ "FlyWheelControl", "struct_fly_wheel_control.html", null ],
+    [ "Generic_Motor_t", "struct_generic___motor__t.html", null ],
+    [ "GenericFilter< TTaps >", "class_generic_filter.html", null ],
+    [ "Gimbal_Axis_t", "struct_gimbal___axis__t.html", null ],
+    [ "Gimbal_Imu_Calibration_t", "struct_gimbal___imu___calibration__t.html", null ],
+    [ "Gimbal_Motor_Control_t", "struct_gimbal___motor___control__t.html", null ],
+    [ "Gimbal_t", "struct_gimbal__t.html", null ],
+    [ "GimbalCommandMessage_t", "struct_gimbal_command_message__t.html", null ],
+    [ "HeightParameter", "struct_height_parameter.html", null ],
+    [ "IAmmoLid", "class_i_ammo_lid.html", [
+      [ "AmmoLid", "class_ammo_lid.html", null ],
+      [ "MockAmmoLid", "class_mock_ammo_lid.html", null ]
+    ] ],
+    [ "ICanComm", "class_i_can_comm.html", [
+      [ "CanComm", "class_can_comm.html", null ],
+      [ "MockCanComm", "class_mock_can_comm.html", null ]
+    ] ],
+    [ "IDebug", "class_i_debug.html", [
+      [ "Debug", "class_debug.html", null ],
+      [ "MockDebug", "class_mock_debug.html", null ]
+    ] ],
+    [ "IEventCenter", "class_i_event_center.html", [
+      [ "EventCenter", "class_event_center.html", null ],
+      [ "MockEventCenter", "class_mock_event_center.html", null ]
+    ] ],
+    [ "IImu", "class_i_imu.html", [
+      [ "Imu", "class_imu.html", null ],
+      [ "MockImu", "class_mock_imu.html", null ]
+    ] ],
+    [ "IMessageCenter", "class_i_message_center.html", [
+      [ "MessageCenter", "class_message_center.html", null ],
+      [ "MockMessageCenter", "class_mock_message_center.html", null ]
+    ] ],
+    [ "IMotors", "class_i_motors.html", [
+      [ "MockMotors", "class_mock_motors.html", null ],
+      [ "Motors", "class_motors.html", null ]
+    ] ],
+    [ "IMU_Heat_t", "struct_i_m_u___heat__t.html", null ],
+    [ "IMU_t", "struct_i_m_u__t.html", null ],
+    [ "IPCComm", "class_i_p_c_comm.html", [
+      [ "PCComm", "class_p_c_comm.html", null ]
+    ] ],
+    [ "IRCComm", "class_i_r_c_comm.html", [
+      [ "RCComm", "class_r_c_comm.html", null ]
+    ] ],
+    [ "IRefUI", "class_i_ref_u_i.html", [
+      [ "RefereeUI", "class_referee_u_i.html", null ]
+    ] ],
+    [ "ist8310_real_data_t", "structist8310__real__data__t.html", null ],
+    [ "kalman_filter_t", "structkalman__filter__t.html", null ],
+    [ "KalmanFilter_t", "struct_kalman_filter__t.html", null ],
+    [ "Keyboard", "struct_keyboard.html", null ],
+    [ "KeyObject", "struct_key_object.html", null ],
+    [ "LengthParameter", "struct_length_parameter.html", null ],
+    [ "LK_Motor_Torque_Feedback_t", "struct_l_k___motor___torque___feedback__t.html", null ],
+    [ "LoaderControl", "struct_loader_control.html", null ],
+    [ "Madgewick_Filter", "class_madgewick___filter.html", null ],
+    [ "Madgewick_t", "struct_madgewick__t.html", null ],
+    [ "Message_t", "struct_message__t.html", null ],
+    [ "MeterParameter", "struct_meter_parameter.html", null ],
+    [ "MetersPerSecondParameter", "struct_meters_per_second_parameter.html", null ],
+    [ "MetersPerSecondSecondParameter", "struct_meters_per_second_second_parameter.html", null ],
+    [ "Motor_Feedback_t", "struct_motor___feedback__t.html", null ],
+    [ "MotorReadMessage_t", "struct_motor_read_message__t.html", null ],
+    [ "MotorSetMessage_t", "struct_motor_set_message__t.html", null ],
+    [ "Mouse", "struct_mouse.html", null ],
+    [ "NamedType< T, Parameter >", "class_named_type.html", null ],
+    [ "pack_checksum", "unionpack__checksum.html", null ],
+    [ "Pack_Metadata_t", "struct_pack___metadata__t.html", null ],
+    [ "PC", "struct_p_c.html", null ],
+    [ "PID2_t", "struct_p_i_d2__t.html", null ],
+    [ "PID3_t", "struct_p_i_d3__t.html", null ],
+    [ "PID_t", "struct_p_i_d__t.html", null ],
+    [ "power_heat_data_t", "structpower__heat__data__t.html", null ],
+    [ "Prescaled_PID2_t", "struct_prescaled___p_i_d2__t.html", null ],
+    [ "QueueManage_t", "struct_queue_manage__t.html", null ],
+    [ "RadianParameter", "struct_radian_parameter.html", null ],
+    [ "RadiansPerSecondParameter", "struct_radians_per_second_parameter.html", null ],
+    [ "RadiansPerSecondSecondParameter", "struct_radians_per_second_second_parameter.html", null ],
+    [ "Ramp", "struct_ramp.html", null ],
+    [ "RCInfoMessage_t", "struct_r_c_info_message__t.html", null ],
+    [ "ref_ui_info_t", "structref__ui__info__t.html", null ],
+    [ "Referee_t", "struct_referee__t.html", null ],
+    [ "Referee_UI_t", "struct_referee___u_i__t.html", null ],
+    [ "RefereeInfoMessage_t", "struct_referee_info_message__t.html", null ],
+    [ "RemoteControl_t", "struct_remote_control__t.html", null ],
+    [ "Shoot", "struct_shoot.html", null ],
+    [ "ShootCommandMessage_t", "struct_shoot_command_message__t.html", null ],
+    [ "sliding_mean_filter_t", "structsliding__mean__filter__t.html", null ],
+    [ "Swerve_Drive_Control_t", "struct_swerve___drive___control__t.html", null ],
+    [ "Swerve_Steer_Control_t", "struct_swerve___steer___control__t.html", null ],
+    [ "Swerve_Wheel_Control_t", "struct_swerve___wheel___control__t.html", null ],
+    [ "Sync_group_t", "struct_sync__group__t.html", null ],
+    [ "System_Motors_t", "struct_system___motors__t.html", null ],
+    [ "Topic_Handle_t", "struct_topic___handle__t.html", null ],
+    [ "UC_Auto_Aim_Pack_t", "struct_u_c___auto___aim___pack__t.html", null ],
+    [ "UC_Board_Data_Pack_t", "struct_u_c___board___data___pack__t.html", null ],
+    [ "UC_Flow_Control_Pack_t", "struct_u_c___flow___control___pack__t.html", null ],
+    [ "WidthParameter", "struct_width_parameter.html", null ]
+];
