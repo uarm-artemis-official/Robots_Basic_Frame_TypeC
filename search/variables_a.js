@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['onebyfftlen_0',['onebyfftLen',['../structarm__cfft__radix2__instance__f32.html#a1d3d289d47443e597d88a40effd14b8f',1,'arm_cfft_radix2_instance_f32::onebyfftLen'],['../structarm__cfft__radix4__instance__f32.html#ab9eed39e40b8d7c16381fbccf84467cd',1,'arm_cfft_radix4_instance_f32::onebyfftLen']]]
+  ['output_0',['output',['../struct_feed_forward__t.html#aed21b034bea674282188d6d2cf205601',1,'FeedForward_t::output'],['../struct_ramp.html#ae1e4ab488b9c8ce49b52b67bfb0f0cdf',1,'Ramp::output']]]
 ];

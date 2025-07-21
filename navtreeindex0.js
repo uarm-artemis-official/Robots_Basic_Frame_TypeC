@@ -76,7 +76,7 @@ var NAVTREEINDEX0 =
 "control__types_8hpp_source.html":[4,0,0,0,0,2,1],
 "crc_8hpp_source.html":[4,0,0,0,0,1,0],
 "debug_8hpp_source.html":[4,0,0,0,6,2],
-"deprecated.html":[0],
+"deprecated.html":[1],
 "digital__filters_8hpp_source.html":[4,0,0,0,0,3,0],
 "dir_4bc19b3a1955b82b7c12fc235869046e.html":[4,0,0,0,1],
 "dir_4c355f4b002cf9c48a11ff39ddec50ca.html":[4,0,0,0,0,0],
@@ -222,6 +222,9 @@ var NAVTREEINDEX0 =
 "struct_d_w_t_time__t.html":[3,0,19],
 "struct_display__t.html":[3,0,18],
 "struct_feed_forward__t.html":[3,0,23],
+"struct_feed_forward__t.html#a04082980ad11ceb19ae6646bf3dd9912":[3,0,23,0],
+"struct_feed_forward__t.html#a0c83509330c74fa0d0aabb5af5a29352":[3,0,23,1],
+"struct_feed_forward__t.html#aed21b034bea674282188d6d2cf205601":[3,0,23,2],
 "struct_fly_wheel_control.html":[3,0,26],
 "struct_generic___motor__t.html":[3,0,27],
 "struct_gimbal___axis__t.html":[3,0,29],
@@ -246,8 +249,5 @@ var NAVTREEINDEX0 =
 "struct_motor___feedback__t.html":[3,0,65],
 "struct_motor_read_message__t.html":[3,0,66],
 "struct_motor_set_message__t.html":[3,0,68],
-"struct_mouse.html":[3,0,69],
-"struct_p_c.html":[3,0,74],
-"struct_p_i_d2__t.html":[3,0,77],
-"struct_p_i_d3__t.html":[3,0,78]
+"struct_mouse.html":[3,0,69]
 };

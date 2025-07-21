@@ -92,23 +92,67 @@ $(function(){initNavTree('struct_feed_forward__t.html','','struct_feed_forward__
 </div><!--header-->
 <div class="contents">
 
-<p>feedforward main structure @Note  
+<p>Feed-forward control structure.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="control__types_8hpp_source.html">control_types.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a04082980ad11ceb19ae6646bf3dd9912" id="r_a04082980ad11ceb19ae6646bf3dd9912"><td class="memItemLeft" align="right" valign="top"><a id="a04082980ad11ceb19ae6646bf3dd9912" name="a04082980ad11ceb19ae6646bf3dd9912"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>ff_gain</b></td></tr>
-<tr class="memitem:a0c83509330c74fa0d0aabb5af5a29352" id="r_a0c83509330c74fa0d0aabb5af5a29352"><td class="memItemLeft" align="right" valign="top"><a id="a0c83509330c74fa0d0aabb5af5a29352" name="a0c83509330c74fa0d0aabb5af5a29352"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>last_input</b></td></tr>
-<tr class="memitem:aed21b034bea674282188d6d2cf205601" id="r_aed21b034bea674282188d6d2cf205601"><td class="memItemLeft" align="right" valign="top"><a id="aed21b034bea674282188d6d2cf205601" name="aed21b034bea674282188d6d2cf205601"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>output</b></td></tr>
+<tr class="memitem:a04082980ad11ceb19ae6646bf3dd9912" id="r_a04082980ad11ceb19ae6646bf3dd9912"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a04082980ad11ceb19ae6646bf3dd9912">ff_gain</a></td></tr>
+<tr class="memitem:a0c83509330c74fa0d0aabb5af5a29352" id="r_a0c83509330c74fa0d0aabb5af5a29352"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c83509330c74fa0d0aabb5af5a29352">last_input</a></td></tr>
+<tr class="memitem:aed21b034bea674282188d6d2cf205601" id="r_aed21b034bea674282188d6d2cf205601"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aed21b034bea674282188d6d2cf205601">output</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>feedforward main structure @Note </p>
-</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<div class="textblock"><p>Feed-forward control structure. </p>
+<p>Contains parameters and state variables for implementing feed-forward control. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="a04082980ad11ceb19ae6646bf3dd9912" name="a04082980ad11ceb19ae6646bf3dd9912"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04082980ad11ceb19ae6646bf3dd9912">&#9670;&#160;</a></span>ff_gain</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float FeedForward_t::ff_gain</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Feed-forward gain coefficient </p>
+
+</div>
+</div>
+<a id="a0c83509330c74fa0d0aabb5af5a29352" name="a0c83509330c74fa0d0aabb5af5a29352"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c83509330c74fa0d0aabb5af5a29352">&#9670;&#160;</a></span>last_input</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float FeedForward_t::last_input</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Previous input value </p>
+
+</div>
+</div>
+<a id="aed21b034bea674282188d6d2cf205601" name="aed21b034bea674282188d6d2cf205601"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed21b034bea674282188d6d2cf205601">&#9670;&#160;</a></span>output</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float FeedForward_t::output</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Current feed-forward output value </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following file:<ul>
 <li>Core/Src/Algorithms/control/<a class="el" href="control__types_8hpp_source.html">control_types.hpp</a></li>
 </ul>
 </div><!-- contents -->

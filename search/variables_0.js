@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['gimbal_5fyaw_5frel_5fangle_0',['gimbal_yaw_rel_angle',['../struct_chassis__t.html#acf72135a4aae1e319092fdbfcef65371',1,'Chassis_t']]]
+  ['beta_0',['beta',['../struct_p_i_d2__t.html#ae6f6da9bca5125d68f492ee58e97e49e',1,'PID2_t::beta'],['../struct_p_i_d3__t.html#a4e6e66a7957ea706859609bf08c3a791',1,'PID3_t::beta']]]
 ];

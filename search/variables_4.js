@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['gimbal_5fyaw_5frel_5fangle_0',['gimbal_yaw_rel_angle',['../struct_chassis__t.html#acf72135a4aae1e319092fdbfcef65371',1,'Chassis_t']]]
+  ['ff_5fgain_0',['ff_gain',['../struct_feed_forward__t.html#a04082980ad11ceb19ae6646bf3dd9912',1,'FeedForward_t']]]
 ];

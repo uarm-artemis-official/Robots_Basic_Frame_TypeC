@@ -21,5 +21,7 @@ var searchData=
   ['chassispowerstat_5ft_18',['ChassisPowerStat_t',['../struct_chassis_power_stat__t.html',1,'']]],
   ['cmsis_19',['CMSIS',['../group___c_m_s_i_s.html',1,'']]],
   ['commapp_20',['CommApp',['../class_comm_app.html',1,'']]],
-  ['controller_21',['Controller',['../struct_controller.html',1,'']]]
+  ['controller_21',['Controller',['../struct_controller.html',1,'']]],
+  ['cumsum_5fdt_22',['cumsum_dt',['../struct_prescaled___p_i_d2__t.html#a4db634bc6927e3afcb30c972a3b7b767',1,'Prescaled_PID2_t::cumsum_dt'],['../struct_ramp.html#abc1d013848943fcaf36774d57ffa1ffd',1,'Ramp::cumsum_dt']]],
+  ['cur_5fval_23',['cur_val',['../struct_p_i_d__t.html#a9bec0237e664b00db44868e408942e66',1,'PID_t']]]
 ];

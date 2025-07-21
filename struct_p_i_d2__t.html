@@ -91,46 +91,307 @@ $(function(){initNavTree('struct_p_i_d2__t.html','','struct_p_i_d2__t-members');
   <div class="headertitle"><div class="title">PID2_t Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Enhanced PID controller structure with additional parameters.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="control__types_8hpp_source.html">control_types.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:af436c89004a8576e6213dc66fe67a66d" id="r_af436c89004a8576e6213dc66fe67a66d"><td class="memItemLeft" align="right" valign="top"><a id="af436c89004a8576e6213dc66fe67a66d" name="af436c89004a8576e6213dc66fe67a66d"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>k_p</b></td></tr>
-<tr class="memitem:a4c3a89a5ed08d26e55502fadac0a94cd" id="r_a4c3a89a5ed08d26e55502fadac0a94cd"><td class="memItemLeft" align="right" valign="top"><a id="a4c3a89a5ed08d26e55502fadac0a94cd" name="a4c3a89a5ed08d26e55502fadac0a94cd"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>k_i</b></td></tr>
-<tr class="memitem:ab12e10fdf59ce0ef00afc61678e9fc9b" id="r_ab12e10fdf59ce0ef00afc61678e9fc9b"><td class="memItemLeft" align="right" valign="top"><a id="ab12e10fdf59ce0ef00afc61678e9fc9b" name="ab12e10fdf59ce0ef00afc61678e9fc9b"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>k_d</b></td></tr>
-<tr class="memitem:ae6f6da9bca5125d68f492ee58e97e49e" id="r_ae6f6da9bca5125d68f492ee58e97e49e"><td class="memItemLeft" align="right" valign="top"><a id="ae6f6da9bca5125d68f492ee58e97e49e" name="ae6f6da9bca5125d68f492ee58e97e49e"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>beta</b></td></tr>
-<tr class="memitem:a969641bdc9d75fa862449a625e708263" id="r_a969641bdc9d75fa862449a625e708263"><td class="memItemLeft" align="right" valign="top"><a id="a969641bdc9d75fa862449a625e708263" name="a969641bdc9d75fa862449a625e708263"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>yeta</b></td></tr>
-<tr class="memitem:a097959d011d38a1474428d73a182acac" id="r_a097959d011d38a1474428d73a182acac"><td class="memItemLeft" align="right" valign="top"><a id="a097959d011d38a1474428d73a182acac" name="a097959d011d38a1474428d73a182acac"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>plant_value</b></td></tr>
-<tr class="memitem:a9079d8653f8f8d8ddfe5fa85797e8802" id="r_a9079d8653f8f8d8ddfe5fa85797e8802"><td class="memItemLeft" align="right" valign="top"><a id="a9079d8653f8f8d8ddfe5fa85797e8802" name="a9079d8653f8f8d8ddfe5fa85797e8802"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>setpoint</b></td></tr>
-<tr class="memitem:af3417acb83e218b8369cc8b26f448cdc" id="r_af3417acb83e218b8369cc8b26f448cdc"><td class="memItemLeft" align="right" valign="top"><a id="af3417acb83e218b8369cc8b26f448cdc" name="af3417acb83e218b8369cc8b26f448cdc"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>p_error</b></td></tr>
-<tr class="memitem:a05a2afa0c3ead8fc0e1da9019538172d" id="r_a05a2afa0c3ead8fc0e1da9019538172d"><td class="memItemLeft" align="right" valign="top"><a id="a05a2afa0c3ead8fc0e1da9019538172d" name="a05a2afa0c3ead8fc0e1da9019538172d"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>i_error</b></td></tr>
-<tr class="memitem:a18e318b364202333e7b765341eb02abe" id="r_a18e318b364202333e7b765341eb02abe"><td class="memItemLeft" align="right" valign="top"><a id="a18e318b364202333e7b765341eb02abe" name="a18e318b364202333e7b765341eb02abe"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>d_error</b></td></tr>
-<tr class="memitem:a9ac7c4b06c3456230ab4ee795610d300" id="r_a9ac7c4b06c3456230ab4ee795610d300"><td class="memItemLeft" align="right" valign="top"><a id="a9ac7c4b06c3456230ab4ee795610d300" name="a9ac7c4b06c3456230ab4ee795610d300"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>prev_d_error</b></td></tr>
-<tr class="memitem:a97ba6c6d0ac465ed641b9bfdde55e633" id="r_a97ba6c6d0ac465ed641b9bfdde55e633"><td class="memItemLeft" align="right" valign="top"><a id="a97ba6c6d0ac465ed641b9bfdde55e633" name="a97ba6c6d0ac465ed641b9bfdde55e633"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>p_out</b></td></tr>
-<tr class="memitem:aa4720fc4c18bf9b22935380a89169239" id="r_aa4720fc4c18bf9b22935380a89169239"><td class="memItemLeft" align="right" valign="top"><a id="aa4720fc4c18bf9b22935380a89169239" name="aa4720fc4c18bf9b22935380a89169239"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>i_out</b></td></tr>
-<tr class="memitem:a712c047be7cc961e768652bc1be60b57" id="r_a712c047be7cc961e768652bc1be60b57"><td class="memItemLeft" align="right" valign="top"><a id="a712c047be7cc961e768652bc1be60b57" name="a712c047be7cc961e768652bc1be60b57"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>d_out</b></td></tr>
-<tr class="memitem:a19f38974cb2c94015e33d32f02e5443e" id="r_a19f38974cb2c94015e33d32f02e5443e"><td class="memItemLeft" align="right" valign="top"><a id="a19f38974cb2c94015e33d32f02e5443e" name="a19f38974cb2c94015e33d32f02e5443e"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>max_out</b></td></tr>
-<tr class="memitem:a302c4070e9e183d33e36546deffec800" id="r_a302c4070e9e183d33e36546deffec800"><td class="memItemLeft" align="right" valign="top"><a id="a302c4070e9e183d33e36546deffec800" name="a302c4070e9e183d33e36546deffec800"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>min_out</b></td></tr>
-<tr class="memitem:aa9788d9d56999fcd98937d9244342f9f" id="r_aa9788d9d56999fcd98937d9244342f9f"><td class="memItemLeft" align="right" valign="top"><a id="aa9788d9d56999fcd98937d9244342f9f" name="aa9788d9d56999fcd98937d9244342f9f"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>prev_total_out</b></td></tr>
-<tr class="memitem:a4a6014ab8ec8f3b08783187a26136615" id="r_a4a6014ab8ec8f3b08783187a26136615"><td class="memItemLeft" align="right" valign="top"><a id="a4a6014ab8ec8f3b08783187a26136615" name="a4a6014ab8ec8f3b08783187a26136615"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>total_out</b></td></tr>
+<tr class="memitem:af436c89004a8576e6213dc66fe67a66d" id="r_af436c89004a8576e6213dc66fe67a66d"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af436c89004a8576e6213dc66fe67a66d">k_p</a></td></tr>
+<tr class="memitem:a4c3a89a5ed08d26e55502fadac0a94cd" id="r_a4c3a89a5ed08d26e55502fadac0a94cd"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4c3a89a5ed08d26e55502fadac0a94cd">k_i</a></td></tr>
+<tr class="memitem:ab12e10fdf59ce0ef00afc61678e9fc9b" id="r_ab12e10fdf59ce0ef00afc61678e9fc9b"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab12e10fdf59ce0ef00afc61678e9fc9b">k_d</a></td></tr>
+<tr class="memitem:ae6f6da9bca5125d68f492ee58e97e49e" id="r_ae6f6da9bca5125d68f492ee58e97e49e"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae6f6da9bca5125d68f492ee58e97e49e">beta</a></td></tr>
+<tr class="memitem:a969641bdc9d75fa862449a625e708263" id="r_a969641bdc9d75fa862449a625e708263"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a969641bdc9d75fa862449a625e708263">yeta</a></td></tr>
+<tr class="memitem:a097959d011d38a1474428d73a182acac" id="r_a097959d011d38a1474428d73a182acac"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a097959d011d38a1474428d73a182acac">plant_value</a></td></tr>
+<tr class="memitem:a9079d8653f8f8d8ddfe5fa85797e8802" id="r_a9079d8653f8f8d8ddfe5fa85797e8802"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9079d8653f8f8d8ddfe5fa85797e8802">setpoint</a></td></tr>
+<tr class="memitem:af3417acb83e218b8369cc8b26f448cdc" id="r_af3417acb83e218b8369cc8b26f448cdc"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3417acb83e218b8369cc8b26f448cdc">p_error</a></td></tr>
+<tr class="memitem:a05a2afa0c3ead8fc0e1da9019538172d" id="r_a05a2afa0c3ead8fc0e1da9019538172d"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a05a2afa0c3ead8fc0e1da9019538172d">i_error</a></td></tr>
+<tr class="memitem:a18e318b364202333e7b765341eb02abe" id="r_a18e318b364202333e7b765341eb02abe"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a18e318b364202333e7b765341eb02abe">d_error</a></td></tr>
+<tr class="memitem:a9ac7c4b06c3456230ab4ee795610d300" id="r_a9ac7c4b06c3456230ab4ee795610d300"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9ac7c4b06c3456230ab4ee795610d300">prev_d_error</a></td></tr>
+<tr class="memitem:a97ba6c6d0ac465ed641b9bfdde55e633" id="r_a97ba6c6d0ac465ed641b9bfdde55e633"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a97ba6c6d0ac465ed641b9bfdde55e633">p_out</a></td></tr>
+<tr class="memitem:aa4720fc4c18bf9b22935380a89169239" id="r_aa4720fc4c18bf9b22935380a89169239"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa4720fc4c18bf9b22935380a89169239">i_out</a></td></tr>
+<tr class="memitem:a712c047be7cc961e768652bc1be60b57" id="r_a712c047be7cc961e768652bc1be60b57"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a712c047be7cc961e768652bc1be60b57">d_out</a></td></tr>
+<tr class="memitem:a19f38974cb2c94015e33d32f02e5443e" id="r_a19f38974cb2c94015e33d32f02e5443e"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19f38974cb2c94015e33d32f02e5443e">max_out</a></td></tr>
+<tr class="memitem:a302c4070e9e183d33e36546deffec800" id="r_a302c4070e9e183d33e36546deffec800"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a302c4070e9e183d33e36546deffec800">min_out</a></td></tr>
+<tr class="memitem:aa9788d9d56999fcd98937d9244342f9f" id="r_aa9788d9d56999fcd98937d9244342f9f"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9788d9d56999fcd98937d9244342f9f">prev_total_out</a></td></tr>
+<tr class="memitem:a4a6014ab8ec8f3b08783187a26136615" id="r_a4a6014ab8ec8f3b08783187a26136615"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4a6014ab8ec8f3b08783187a26136615">total_out</a></td></tr>
 </table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Enhanced PID controller structure with additional parameters. </p>
+<p>Implements a PID controller with beta and yeta parameters for setpoint weighting. Yeta may be used to reduce the effects of derivative kick. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="ae6f6da9bca5125d68f492ee58e97e49e" name="ae6f6da9bca5125d68f492ee58e97e49e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6f6da9bca5125d68f492ee58e97e49e">&#9670;&#160;</a></span>beta</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::beta</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Setpoint weighting coefficient </p>
+
+</div>
+</div>
+<a id="a18e318b364202333e7b765341eb02abe" name="a18e318b364202333e7b765341eb02abe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18e318b364202333e7b765341eb02abe">&#9670;&#160;</a></span>d_error</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::d_error</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Derivative error term </p>
+
+</div>
+</div>
+<a id="a712c047be7cc961e768652bc1be60b57" name="a712c047be7cc961e768652bc1be60b57"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a712c047be7cc961e768652bc1be60b57">&#9670;&#160;</a></span>d_out</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::d_out</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Derivative term output </p>
+
+</div>
+</div>
+<a id="a05a2afa0c3ead8fc0e1da9019538172d" name="a05a2afa0c3ead8fc0e1da9019538172d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05a2afa0c3ead8fc0e1da9019538172d">&#9670;&#160;</a></span>i_error</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::i_error</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Integral error term </p>
+
+</div>
+</div>
+<a id="aa4720fc4c18bf9b22935380a89169239" name="aa4720fc4c18bf9b22935380a89169239"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4720fc4c18bf9b22935380a89169239">&#9670;&#160;</a></span>i_out</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::i_out</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Integral term output </p>
+
+</div>
+</div>
+<a id="ab12e10fdf59ce0ef00afc61678e9fc9b" name="ab12e10fdf59ce0ef00afc61678e9fc9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab12e10fdf59ce0ef00afc61678e9fc9b">&#9670;&#160;</a></span>k_d</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::k_d</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Derivative gain coefficient </p>
+
+</div>
+</div>
+<a id="a4c3a89a5ed08d26e55502fadac0a94cd" name="a4c3a89a5ed08d26e55502fadac0a94cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c3a89a5ed08d26e55502fadac0a94cd">&#9670;&#160;</a></span>k_i</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::k_i</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Integral gain coefficient </p>
+
+</div>
+</div>
+<a id="af436c89004a8576e6213dc66fe67a66d" name="af436c89004a8576e6213dc66fe67a66d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af436c89004a8576e6213dc66fe67a66d">&#9670;&#160;</a></span>k_p</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::k_p</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Proportional gain coefficient </p>
+
+</div>
+</div>
+<a id="a19f38974cb2c94015e33d32f02e5443e" name="a19f38974cb2c94015e33d32f02e5443e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19f38974cb2c94015e33d32f02e5443e">&#9670;&#160;</a></span>max_out</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::max_out</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Maximum output limit </p>
+
+</div>
+</div>
+<a id="a302c4070e9e183d33e36546deffec800" name="a302c4070e9e183d33e36546deffec800"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a302c4070e9e183d33e36546deffec800">&#9670;&#160;</a></span>min_out</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::min_out</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Minimum output limit </p>
+
+</div>
+</div>
+<a id="af3417acb83e218b8369cc8b26f448cdc" name="af3417acb83e218b8369cc8b26f448cdc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3417acb83e218b8369cc8b26f448cdc">&#9670;&#160;</a></span>p_error</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::p_error</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Proportional error term </p>
+
+</div>
+</div>
+<a id="a97ba6c6d0ac465ed641b9bfdde55e633" name="a97ba6c6d0ac465ed641b9bfdde55e633"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97ba6c6d0ac465ed641b9bfdde55e633">&#9670;&#160;</a></span>p_out</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::p_out</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Proportional term output </p>
+
+</div>
+</div>
+<a id="a097959d011d38a1474428d73a182acac" name="a097959d011d38a1474428d73a182acac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a097959d011d38a1474428d73a182acac">&#9670;&#160;</a></span>plant_value</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::plant_value</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Current process value </p>
+
+</div>
+</div>
+<a id="a9ac7c4b06c3456230ab4ee795610d300" name="a9ac7c4b06c3456230ab4ee795610d300"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ac7c4b06c3456230ab4ee795610d300">&#9670;&#160;</a></span>prev_d_error</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::prev_d_error</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Previous derivative error </p>
+
+</div>
+</div>
+<a id="aa9788d9d56999fcd98937d9244342f9f" name="aa9788d9d56999fcd98937d9244342f9f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9788d9d56999fcd98937d9244342f9f">&#9670;&#160;</a></span>prev_total_out</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::prev_total_out</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Previous total output </p>
+
+</div>
+</div>
+<a id="a9079d8653f8f8d8ddfe5fa85797e8802" name="a9079d8653f8f8d8ddfe5fa85797e8802"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9079d8653f8f8d8ddfe5fa85797e8802">&#9670;&#160;</a></span>setpoint</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::setpoint</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Desired setpoint value </p>
+
+</div>
+</div>
+<a id="a4a6014ab8ec8f3b08783187a26136615" name="a4a6014ab8ec8f3b08783187a26136615"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a6014ab8ec8f3b08783187a26136615">&#9670;&#160;</a></span>total_out</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::total_out</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Current total output </p>
+
+</div>
+</div>
+<a id="a969641bdc9d75fa862449a625e708263" name="a969641bdc9d75fa862449a625e708263"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a969641bdc9d75fa862449a625e708263">&#9670;&#160;</a></span>yeta</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PID2_t::yeta</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Setpoint weighting coefficient </p>
+
+</div>
+</div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
 <li>Core/Src/Algorithms/control/<a class="el" href="control__types_8hpp_source.html">control_types.hpp</a></li>
 </ul>

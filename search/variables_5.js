@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['ifftflag_0',['ifftFlag',['../structarm__cfft__radix2__instance__q15.html#ab5c073286bdd2f6e2bf783ced36bf1de',1,'arm_cfft_radix2_instance_q15::ifftFlag'],['../structarm__cfft__radix4__instance__q15.html#a2ecff6ea735cb4d22e922d0fd5736655',1,'arm_cfft_radix4_instance_q15::ifftFlag'],['../structarm__cfft__radix2__instance__q31.html#a2607378ce64be16698bb8a3b1af8d3c8',1,'arm_cfft_radix2_instance_q31::ifftFlag'],['../structarm__cfft__radix4__instance__q31.html#adc0a62ba669ad2282ecbe43d5d96abab',1,'arm_cfft_radix4_instance_q31::ifftFlag'],['../structarm__cfft__radix2__instance__f32.html#a8dbe98d2c924e35e0a3fed2fe948176f',1,'arm_cfft_radix2_instance_f32::ifftFlag'],['../structarm__cfft__radix4__instance__f32.html#a25d1da64dd6487c291f04d226f9acc66',1,'arm_cfft_radix4_instance_f32::ifftFlag']]],
-  ['ifftflagr_1',['ifftFlagR',['../structarm__rfft__instance__q15.html#a8051ffe268c147e431e1bea7bb4c4258',1,'arm_rfft_instance_q15::ifftFlagR'],['../structarm__rfft__instance__q31.html#af5c2615e6cde15524df38fa57ea32d94',1,'arm_rfft_instance_q31::ifftFlagR'],['../structarm__rfft__instance__f32.html#a5ee6d10a934ab4b666e0bb286c3d633f',1,'arm_rfft_instance_f32::ifftFlagR']]]
+  ['gamma_0',['gamma',['../struct_p_i_d3__t.html#a2f314860399cbcd0161ced754447cb1d',1,'PID3_t']]],
+  ['gimbal_5fyaw_5frel_5fangle_1',['gimbal_yaw_rel_angle',['../struct_chassis__t.html#acf72135a4aae1e319092fdbfcef65371',1,'Chassis_t']]]
 ];

@@ -91,20 +91,99 @@ $(function(){initNavTree('struct_ramp.html','','struct_ramp-members'); });
   <div class="headertitle"><div class="title">Ramp Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><a class="el" href="struct_ramp.html" title="Ramp generator for smooth transitions.">Ramp</a> generator for smooth transitions.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="control__types_8hpp_source.html">control_types.hpp</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ad200810a2160eb05abdd4b6fdcb6c140" id="r_ad200810a2160eb05abdd4b6fdcb6c140"><td class="memItemLeft" align="right" valign="top"><a id="ad200810a2160eb05abdd4b6fdcb6c140" name="ad200810a2160eb05abdd4b6fdcb6c140"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>target</b></td></tr>
-<tr class="memitem:a6cceacb181258f69c7f1334d9c0f1036" id="r_a6cceacb181258f69c7f1334d9c0f1036"><td class="memItemLeft" align="right" valign="top"><a id="a6cceacb181258f69c7f1334d9c0f1036" name="a6cceacb181258f69c7f1334d9c0f1036"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>start</b></td></tr>
-<tr class="memitem:a319b97881984c29e1b00488ff6e009fc" id="r_a319b97881984c29e1b00488ff6e009fc"><td class="memItemLeft" align="right" valign="top"><a id="a319b97881984c29e1b00488ff6e009fc" name="a319b97881984c29e1b00488ff6e009fc"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>max_change</b></td></tr>
-<tr class="memitem:ae1e4ab488b9c8ce49b52b67bfb0f0cdf" id="r_ae1e4ab488b9c8ce49b52b67bfb0f0cdf"><td class="memItemLeft" align="right" valign="top"><a id="ae1e4ab488b9c8ce49b52b67bfb0f0cdf" name="ae1e4ab488b9c8ce49b52b67bfb0f0cdf"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>output</b></td></tr>
-<tr class="memitem:abc1d013848943fcaf36774d57ffa1ffd" id="r_abc1d013848943fcaf36774d57ffa1ffd"><td class="memItemLeft" align="right" valign="top"><a id="abc1d013848943fcaf36774d57ffa1ffd" name="abc1d013848943fcaf36774d57ffa1ffd"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>cumsum_dt</b></td></tr>
+<tr class="memitem:ad200810a2160eb05abdd4b6fdcb6c140" id="r_ad200810a2160eb05abdd4b6fdcb6c140"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad200810a2160eb05abdd4b6fdcb6c140">target</a></td></tr>
+<tr class="memitem:a6cceacb181258f69c7f1334d9c0f1036" id="r_a6cceacb181258f69c7f1334d9c0f1036"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6cceacb181258f69c7f1334d9c0f1036">start</a></td></tr>
+<tr class="memitem:a319b97881984c29e1b00488ff6e009fc" id="r_a319b97881984c29e1b00488ff6e009fc"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a319b97881984c29e1b00488ff6e009fc">max_change</a></td></tr>
+<tr class="memitem:ae1e4ab488b9c8ce49b52b67bfb0f0cdf" id="r_ae1e4ab488b9c8ce49b52b67bfb0f0cdf"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae1e4ab488b9c8ce49b52b67bfb0f0cdf">output</a></td></tr>
+<tr class="memitem:abc1d013848943fcaf36774d57ffa1ffd" id="r_abc1d013848943fcaf36774d57ffa1ffd"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abc1d013848943fcaf36774d57ffa1ffd">cumsum_dt</a></td></tr>
 </table>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p><a class="el" href="struct_ramp.html" title="Ramp generator for smooth transitions.">Ramp</a> generator for smooth transitions. </p>
+<p>Generates a ramp signal to limit rate of change between values. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a id="abc1d013848943fcaf36774d57ffa1ffd" name="abc1d013848943fcaf36774d57ffa1ffd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc1d013848943fcaf36774d57ffa1ffd">&#9670;&#160;</a></span>cumsum_dt</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Ramp::cumsum_dt</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Cumulative sum of time steps </p>
+
+</div>
+</div>
+<a id="a319b97881984c29e1b00488ff6e009fc" name="a319b97881984c29e1b00488ff6e009fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a319b97881984c29e1b00488ff6e009fc">&#9670;&#160;</a></span>max_change</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Ramp::max_change</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Maximum allowed change per time step </p>
+
+</div>
+</div>
+<a id="ae1e4ab488b9c8ce49b52b67bfb0f0cdf" name="ae1e4ab488b9c8ce49b52b67bfb0f0cdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae1e4ab488b9c8ce49b52b67bfb0f0cdf">&#9670;&#160;</a></span>output</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Ramp::output</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Current output value </p>
+
+</div>
+</div>
+<a id="a6cceacb181258f69c7f1334d9c0f1036" name="a6cceacb181258f69c7f1334d9c0f1036"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6cceacb181258f69c7f1334d9c0f1036">&#9670;&#160;</a></span>start</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Ramp::start</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Starting value of the ramp </p>
+
+</div>
+</div>
+<a id="ad200810a2160eb05abdd4b6fdcb6c140" name="ad200810a2160eb05abdd4b6fdcb6c140"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad200810a2160eb05abdd4b6fdcb6c140">&#9670;&#160;</a></span>target</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Ramp::target</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Target value to ramp to </p>
+
+</div>
+</div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
 <li>Core/Src/Algorithms/control/<a class="el" href="control__types_8hpp_source.html">control_types.hpp</a></li>
 </ul>

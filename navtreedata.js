@@ -25,8 +25,8 @@
 var NAVTREE =
 [
   [ "Basic_Frame_TypeC_2023_Omni", "index.html", [
-    [ "Deprecated List", "deprecated.html", null ],
     [ "Todo List", "todo.html", null ],
+    [ "Deprecated List", "deprecated.html", null ],
     [ "Topics", "topics.html", "topics" ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
@@ -52,7 +52,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "_chassis___app_8h_source.html",
-"struct_p_i_d__t.html"
+"struct_p_c.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';
