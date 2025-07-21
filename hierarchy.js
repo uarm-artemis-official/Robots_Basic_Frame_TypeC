@@ -79,31 +79,24 @@ var hierarchy =
     [ "GimbalCommandMessage_t", "struct_gimbal_command_message__t.html", null ],
     [ "HeightParameter", "struct_height_parameter.html", null ],
     [ "IAmmoLid", "class_i_ammo_lid.html", [
-      [ "AmmoLid", "class_ammo_lid.html", null ],
-      [ "MockAmmoLid", "class_mock_ammo_lid.html", null ]
+      [ "AmmoLid", "class_ammo_lid.html", null ]
     ] ],
     [ "ICanComm", "class_i_can_comm.html", [
-      [ "CanComm", "class_can_comm.html", null ],
-      [ "MockCanComm", "class_mock_can_comm.html", null ]
+      [ "CanComm", "class_can_comm.html", null ]
     ] ],
     [ "IDebug", "class_i_debug.html", [
-      [ "Debug", "class_debug.html", null ],
-      [ "MockDebug", "class_mock_debug.html", null ]
+      [ "Debug", "class_debug.html", null ]
     ] ],
     [ "IEventCenter", "class_i_event_center.html", [
-      [ "EventCenter", "class_event_center.html", null ],
-      [ "MockEventCenter", "class_mock_event_center.html", null ]
+      [ "EventCenter", "class_event_center.html", null ]
     ] ],
     [ "IImu", "class_i_imu.html", [
-      [ "Imu", "class_imu.html", null ],
-      [ "MockImu", "class_mock_imu.html", null ]
+      [ "Imu", "class_imu.html", null ]
     ] ],
     [ "IMessageCenter", "class_i_message_center.html", [
-      [ "MessageCenter", "class_message_center.html", null ],
-      [ "MockMessageCenter", "class_mock_message_center.html", null ]
+      [ "MessageCenter", "class_message_center.html", null ]
     ] ],
     [ "IMotors", "class_i_motors.html", [
-      [ "MockMotors", "class_mock_motors.html", null ],
       [ "Motors", "class_motors.html", null ]
     ] ],
     [ "IMU_Heat_t", "struct_i_m_u___heat__t.html", null ],

@@ -16,6 +16,5 @@ var searchData=
   ['ipccomm_13',['IPCComm',['../class_i_p_c_comm.html',1,'']]],
   ['irccomm_14',['IRCComm',['../class_i_r_c_comm.html',1,'']]],
   ['irefui_15',['IRefUI',['../class_i_ref_u_i.html',1,'']]],
-  ['ist8310_5freal_5fdata_5ft_16',['ist8310_real_data_t',['../structist8310__real__data__t.html',1,'']]],
-  ['iwdg_2ec_17',['iwdg.c',['../iwdg_8c.html',1,'']]]
+  ['ist8310_5freal_5fdata_5ft_16',['ist8310_real_data_t',['../structist8310__real__data__t.html',1,'']]]
 ];

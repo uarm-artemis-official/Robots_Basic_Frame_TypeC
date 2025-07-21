@@ -52,7 +52,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "_chassis___app_8h_source.html",
-"struct_meters_per_second_second_parameter.html"
+"struct_p_i_d__t.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';
