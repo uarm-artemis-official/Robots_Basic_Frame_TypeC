@@ -66,12 +66,38 @@
         {
             "type": "shell",
             "label": "GCOVR: generate test coverage (HTML)",
-            "command": "gcovr ",
+            "command": "gcovr",
             "args": [
                 "--html-self-contained",
                 "--html-details",
                 "./out/coverage/"
             ]
+        },
+        {
+            "type": "shell",
+            "label": "Doxygen: upload unto github",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "-m",
+                "ghp_import",
+                "-n",
+                "-p",
+                "-r",
+                "origin",
+                "-b",
+                "gh-pages",
+                "out/doxygen/html",
+            ]
+        },
+        // Make a task to open doxygen in browser
+        {
+            "type": "shell",
+            "label": "Doxygen: Open in Browser",
+            "command": "start",
+            "args": [
+                "./out/doxygen/html/index.html"
+            ],
+            "problemMatcher": []
         },
         {
             "label": "Build All Presets",
