@@ -97,9 +97,11 @@ void IMUApp::set_imu_temp_status(IMU_temp_status status) {
 }
 
 /**
-  * @brief  temperature of imu pid control
-  * @param[in]: Not used
-  * @retval 0
+  * @brief Temperature control of imu.
+  * 
+  * The temperature control is much slower than the main loop of IMUApp.
+  * This is due to the slow polling rate of temperature data from the IMU.
+  * Investigate the BMI088 datasheet for more details.
   */
 int32_t IMUApp::imu_temp_pid_control() {
     imu_app_state.temp = imu.get_temp();
