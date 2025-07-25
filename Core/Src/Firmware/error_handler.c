@@ -12,7 +12,7 @@
 // connected OLED display.
 //
 // Future Work: make fail-safe function/add ability to recover from certain error states.
-void error_handler(const char* msg) {
+_Noreturn void error_handler(const char* msg) {
     __disable_irq();
     ssd1306_init();
 

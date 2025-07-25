@@ -20,7 +20,7 @@ set(INPUT_)
 
 # Define the build type
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+    message(FATAL_ERROR "CMAKE_BUILD_TYPE must be set.")
 endif()
 
 
@@ -147,6 +147,7 @@ else()
         set(DOXYGEN_GENERATE_MAN NO)
         set(DOXYGEN_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/out/doxygen)
         set(DOXYGEN_EXCLUDE_PATTERNS "*/Lib/DSP/*")
+        set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
 
         doxygen_add_docs(PROJECT_DOCS ${PROJECT_SOURCE_DIR}/Core/Src ALL)
     endif()

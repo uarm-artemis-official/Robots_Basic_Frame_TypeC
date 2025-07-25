@@ -5,7 +5,7 @@
 
 namespace gimbal_params {
     // Motor encoder zero-position.
-    constexpr int16_t YAW_ECD_CENTER = 5750;
+    constexpr int16_t YAW_ECD_CENTER = 7815;
     constexpr int16_t PITCH_ECD_CENTER = 4800;
     constexpr float LOADER_GEAR_RATIO = 36;
 
