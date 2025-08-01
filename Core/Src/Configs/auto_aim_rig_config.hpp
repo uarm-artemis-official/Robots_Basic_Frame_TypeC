@@ -1,5 +1,5 @@
-#ifndef __OMNI_INFANTRY_CONFIG_H
-#define __OMNI_INFANTRY_CONFIG_H
+#ifndef AUTO_AIM_CONFIG_HPP
+#define AUTO_AIM_CONFIG_HPP
 
 #include <cstdint>
 

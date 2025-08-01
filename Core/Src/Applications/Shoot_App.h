@@ -13,7 +13,7 @@
 
 #include "apps_defines.h"
 #include "apps_interfaces.h"
-#include "apps_types.h"
+#include "apps_types.hpp"
 
 class ShootApp : public RTOSApp<ShootApp> {
    private:

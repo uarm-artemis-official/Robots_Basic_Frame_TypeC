@@ -47,7 +47,7 @@ typedef struct {
 } Gimbal_Axis_t;  //for remote controller set gimbal dir
 
 /* =========================================================================
- * CHASIS TYPES
+ * CHASSIS TYPES
  * ====================================================================== */
 typedef enum {
     AUTO_GEAR = 0,  //referee system up, auto-adjust chassis spd limit
@@ -267,4 +267,16 @@ typedef struct {
     BoardMode_t board_mode;
     BoardActMode_t board_act_mode;
 } RemoteControl_t;
+
+/* =========================================================================
+ * COMM TYPES
+ * ====================================================================== */
+namespace CommApp {
+    enum class OperationMode { Normal, Loopback };
+
+    struct Config {
+        OperationMode op_mode;
+    };
+}  // namespace CommApp
+
 #endif

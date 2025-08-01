@@ -16,7 +16,7 @@
 
 #include "apps_defines.h"
 #include "apps_interfaces.h"
-#include "apps_types.h"
+#include "apps_types.hpp"
 #include "referee_data.h"
 // #include "main.h"
 // #include "stm32f4xx.h"

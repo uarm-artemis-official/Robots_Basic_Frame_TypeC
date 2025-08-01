@@ -172,7 +172,16 @@ static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 #endif
 
 static RCApp rc_app(message_center, rc_comm);
-static CommApp comm_app(message_center, debug, can_comm);
+
+#ifdef AUTO_AIM_RIG
+static CommApp::Config comm_config = {.op_mode =
+                                          CommApp::OperationMode::Loopback};
+#else
+static CommApp::Config comm_config = {.op_mode =
+                                          CommApp::OperationMode::Normal};
+#endif
+
+static CommApp::CommApp comm_app(message_center, debug, can_comm, comm_config);
 static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center, no_init_motors, pc_comm);
 static IMUApp imu_app(message_center, event_center, imu, debug);
@@ -185,20 +194,7 @@ static ShootApp shoot_app(
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
     robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
 
-void main_cpp(void) {
-    message_center.init();
-    can_comm.init();
-    event_center.init();
-
-    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
-                      GPIO_PIN_RESET);  // turn off the green led
-    if (firmware_and_system_init() != HAL_OK) {
-        Error_Handler();
-    } else {
-        HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
-                          GPIO_PIN_SET);  // turn on the green led
-    }
-
+void init_robot_apps() {
     BoardStatus_t board_status = debug.get_board_status();
 
     osThreadDef(
@@ -250,6 +246,66 @@ void main_cpp(void) {
     }
 }
 
+void init_auto_aim_apps() {
+    osThreadDef(
+        GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
+        osPriorityRealtime, 0, 512);
+    osThreadCreate(osThread(GimbalTask), NULL);
+
+    osThreadDef(
+        IMUTask, [](const void* arg) { imu_app.run(arg); }, osPriorityRealtime,
+        0, 256);
+    osThreadCreate(osThread(IMUTask), NULL);
+
+    osThreadDef(
+        PCUARTTask, [](const void* arg) { pc_uart_app.run(arg); },
+        osPriorityHigh, 0, 256);
+    osThreadCreate(osThread(PCUARTTask), NULL);
+
+    osThreadDef(
+        TimerTask, [](const void* arg) { timer_app.run(arg); }, osPriorityHigh,
+        0, 256);
+    osThreadCreate(osThread(TimerTask), NULL);
+
+    osThreadDef(
+        RCTask, [](const void* arg) { rc_app.run(arg); }, osPriorityHigh, 0,
+        384);
+    osThreadCreate(osThread(RCTask), NULL);
+
+    osThreadDef(
+        CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
+        256);
+    osThreadCreate(osThread(CommTask), NULL);
+}
+
+void main_cpp(void) {
+    message_center.init();
+    can_comm.init();
+    event_center.init();
+
+    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
+                      GPIO_PIN_RESET);  // turn off the green led
+    if (firmware_and_system_init() != HAL_OK) {
+        Error_Handler();
+    } else {
+        HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
+                          GPIO_PIN_SET);  // turn on the green led
+    }
+
+    switch (robot_config::config_type) {
+        case robot_config::ConfigType::Infantry:
+        case robot_config::ConfigType::Hero:
+        case robot_config::ConfigType::Sentry:
+            init_robot_apps();
+            break;
+        case robot_config::ConfigType::AutoAim:
+            init_auto_aim_apps();
+            break;
+        default:
+            ASSERT(false, "Unrecognized config_type.");
+    }
+}
+
 HAL_StatusTypeDef firmware_and_system_init(void) {
     /* CAN1 & CAN2 Init */
     if (HAL_CAN_Start(&hcan1) != HAL_OK) {
@@ -279,7 +335,8 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     } else {
         config = GIMBAL;
     }
-    init_uart_isr(config);
+    // init_uart_isr(config);
+    init_uart_isr(CHASSIS);
 
 #ifdef SWERVE_CHASSIS
     constexpr CAN_ISR_Config can_config = CAN_ISR_Config::SWERVE;

@@ -42,6 +42,14 @@
             }
         },
         {
+            "name": "Auto_Aim_Rig",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Auto_Aim_Rig",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
             "name": "GTest",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
@@ -49,6 +57,14 @@
                 "CMAKE_BUILD_TYPE": "GTest",
                 "CMAKE_VERBOSE_MAKEFILE": "ON",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw64-gcc.cmake"
+            }
+        },
+        {
+            "name": "Doxygen",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Doxygen",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
         }
     ],

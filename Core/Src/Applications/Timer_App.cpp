@@ -14,7 +14,7 @@
 #include "Timer_App.h"
 #include <cstring>
 #include "apps_defines.h"
-#include "apps_types.h"
+#include "apps_types.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_os.hpp"
 

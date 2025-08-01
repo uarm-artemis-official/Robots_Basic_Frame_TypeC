@@ -3,7 +3,7 @@
 
 #include <array>
 #include "apps_interfaces.h"
-#include "apps_types.h"
+#include "apps_types.hpp"
 #include "subsystems_interfaces.h"
 
 class SwerveDrive : public ChassisDrive<SwerveDrive> {
