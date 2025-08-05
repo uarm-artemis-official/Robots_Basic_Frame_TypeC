@@ -43,7 +43,7 @@ namespace gimbal_params {
 
     // Gimbal pitch PID.
     constexpr float KP_GIMBAL_PITCH_ANGLE = 80;
-    constexpr float KI_GIMBAL_PITCH_ANGLE = 10;
+    constexpr float KI_GIMBAL_PITCH_ANGLE = 0;
     constexpr float KD_GIMBAL_PITCH_ANGLE = 0.05;
     constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
     constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;

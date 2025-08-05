@@ -359,6 +359,12 @@ void RCApp::pub_command_messages() {
                                  CHANNEL_OFFSET_MAX_ABS_VAL, -5.0f * DEGREE2RAD,
                                  5.0f * DEGREE2RAD);
 
+        // Command delta deadbands.
+        if (fabs(yaw) < RC_YAW_SEND_THRESHOLD)
+            yaw = 0;
+        if (fabs(pitch) < RC_PITCH_SEND_THRESHOLD)
+            yaw = 0;
+
         send_gimbal_can_comm(yaw, pitch, board_mode, act_mode);
 
         if (rc.ctrl.wheel > 0) {

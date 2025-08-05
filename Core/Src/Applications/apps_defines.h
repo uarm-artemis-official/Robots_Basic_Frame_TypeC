@@ -100,11 +100,15 @@
 #define MAX_MOUSE_YAW_OUT 2
 #define MAX_MOUSE_PITCH_OUT 2
 
-#endif
-
 /* =========================================================================
  * TIMER DEFINES
  * ====================================================================== */
 // #define DISABLE_MOTOR_SEND
 
-/* Referee App Defines */
+/* =========================================================================
+ * TIMER DEFINES
+ * ====================================================================== */
+#define RC_YAW_SEND_THRESHOLD 0.001f
+#define RC_PITCH_SEND_THRESHOLD 0.001f
+
+#endif
