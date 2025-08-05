@@ -14,6 +14,7 @@ namespace gimbal_params {
     constexpr float PITCH_MAX_ANGLE = 0.50;
     static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 
+    // Orientation
     // BMI088 rotation matrix.
     // TODO: Move to front-right-up (x-y-z) reference frame???
     constexpr float IMU_ORIENTATION[3][3] = {
@@ -21,6 +22,9 @@ namespace gimbal_params {
         {0.0f, 1.0f, 0.0f},
         {0.0f, 0.0f, 1.0f},
     };
+    // 1 = CCW positive (i.e. rotating CCW pitches up)
+    // 1 = CW positive (i.e. rotating CW pitches up)
+    constexpr float PITCH_ORIENTATION = -1;
 
     // Gimbal yaw PID.
     constexpr float KP_GIMBAL_YAW_ANGLE = 76;

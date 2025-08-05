@@ -84,6 +84,7 @@ class GimbalApp : public ExtendedRTOSApp<GimbalApp> {
     void limit_pitch_target();
 
     void cmd_exec();
+    void calc_control_signals();
 
     void send_motor_volts();
     void send_rel_angles();
