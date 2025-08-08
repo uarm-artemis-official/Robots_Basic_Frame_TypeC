@@ -35,8 +35,6 @@ void ShootApp::init() {
     ammo_lid.init();
 
     loader_control.stdid = SHOOT_LOADER;
-
-    // TODO: Add configuration for hero loader.
     pid2_init(loader_control.speed_pid,
               robot_config::shoot_params::KP_LOADER_SPEED,
               robot_config::shoot_params::KI_LOADER_SPEED,

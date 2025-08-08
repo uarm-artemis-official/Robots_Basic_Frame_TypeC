@@ -10,10 +10,6 @@
     (1.0f -         \
      ACCEL_WEIGHT)  // Define the weight of the gyroscope data, adjust according to the actual situation
 
-// TODO: Investigate this sampling dt
-#define SAMPLE_DT \
-    0.0001f  // Define the sampling period, adjust according to the actual situation
-
 /* =========================================================================
  * MADGWICK DEFINES 
  * ====================================================================== */

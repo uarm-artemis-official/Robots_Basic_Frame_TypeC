@@ -6,6 +6,9 @@
 namespace gimbal_params {
     constexpr float EXIT_CALIBRATION_YAW_ANGLE_DELTA = 2.0;  // degrees
     static_assert(EXIT_CALIBRATION_YAW_ANGLE_DELTA >= 0);
+
+    constexpr float IMU_YAW_LOW_PASS_GAIN = 1.0f;
+    constexpr float IMU_PITCH_LOW_PASS_GAIN = 0.90f;
 }  // namespace gimbal_params
 
 namespace shoot_params {

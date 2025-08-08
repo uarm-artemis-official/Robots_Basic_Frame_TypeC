@@ -111,9 +111,10 @@ void GimbalApp::set_initial_state() {
     gimbal.yaw_ecd_center = robot_config::gimbal_params::YAW_ECD_CENTER;
     gimbal.pitch_ecd_center = robot_config::gimbal_params::PITCH_ECD_CENTER;
 
-    // TODO: Move 'a' constants to robot_config.
-    init_folp_filter(&(gimbal.folp_f_yaw), 0.90f);
-    init_folp_filter(&(gimbal.folp_f_pitch), 1.0f);
+    init_folp_filter(&(gimbal.folp_f_yaw),
+                     robot_config::gimbal_params::IMU_YAW_LOW_PASS_GAIN);
+    init_folp_filter(&(gimbal.folp_f_pitch),
+                     robot_config::gimbal_params::IMU_PITCH_LOW_PASS_GAIN);
 }
 
 bool GimbalApp::exit_calibrate_cond() {

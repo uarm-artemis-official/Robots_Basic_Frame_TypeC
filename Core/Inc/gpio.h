@@ -33,7 +33,6 @@ extern "C" {
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
-// TODO: Consider refactoring GPIO and other peripherals to adhere to dependency inversion.
 #define Servo_Motor_Pin_Pin GPIO_PIN_6
 #define Servo_Motor_Pin_GPIO_Port GPIOI
 #define Board_Status_Pin GPIO_PIN_1
@@ -79,4 +78,3 @@ void MX_GPIO_Init(void);
 }
 #endif
 #endif /*__ GPIO_H__ */
-
