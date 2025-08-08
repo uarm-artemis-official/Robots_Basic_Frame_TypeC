@@ -48,7 +48,7 @@ void lk_motor_send(uint32_t id, LK_Motor_Command_t control_cmd,
     tx_data[6] = *((uint8_t*) &sendValue + 2);
     tx_data[7] = *((uint8_t*) &sendValue + 3);
 
-    HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,
+    HAL_CAN_AddTxMessage(&hcan2, &tx_header, tx_data,
                          (uint32_t*) CAN_TX_MAILBOX1);
 }
 
@@ -76,6 +76,11 @@ void lk_motor_get_raw_feedback(const uint8_t rx_buffer[8], void* fb_ptr) {
             raw_feedback_ptr->rx_current =
                 (int16_t) ((rx_buffer[3] << 8) | rx_buffer[2]);
             raw_feedback_ptr->rx_temp = (int16_t) (rx_buffer[1]);
+            break;
+        }
+        case LK_MOTOR_READ_ENCODER_FB: {
+            uint16_t* encoder_feedback_ptr = (uint16_t*) fb_ptr;
+            *encoder_feedback_ptr = (rx_buffer[3] << 8) | rx_buffer[2];
             break;
         }
         case LK_CMD_SL_ANGLE_WITH_SPEED: {
@@ -137,6 +142,6 @@ void lk_motor_send_single_loop(uint32_t id, uint8_t spin_direction,
     tx_data[6] = *((uint8_t*) (&angle) + 2);
     tx_data[7] = *((uint8_t*) (&angle) + 3);
 
-    HAL_CAN_AddTxMessage(&hcan1, &tx_header, tx_data,
+    HAL_CAN_AddTxMessage(&hcan2, &tx_header, tx_data,
                          (uint32_t*) CAN_TX_MAILBOX0);
 }

@@ -182,7 +182,7 @@ void RCApp::map_switches_to_modes(BoardMode_t& board_mode,
         shoot_mode = SHOOT_CEASE;
     } else if (rc.ctrl.s1 == ESwitchState::MID &&
                rc.ctrl.s2 == ESwitchState::UP) {
-        board_mode = IDLE_MODE;
+        board_mode = PATROL_MODE;
         act_mode = INDPET_MODE;
         shoot_mode = SHOOT_CONT;
     } else if (rc.ctrl.s1 == ESwitchState::UP &&
@@ -201,6 +201,7 @@ void RCApp::map_switches_to_modes(BoardMode_t& board_mode,
         act_mode = GIMBAL_CENTER;
         shoot_mode = SHOOT_CONT;
     } else {
+        // TODO: Add assert to fail for unknown switches.
         board_mode = IDLE_MODE;
         act_mode = INDPET_MODE;
         shoot_mode = SHOOT_CEASE;
@@ -350,6 +351,13 @@ void RCApp::pub_command_messages() {
                               -robot_config::chassis_params::MAX_ROTATION,
                               robot_config::chassis_params::MAX_ROTATION);
 
+        if (fabs(v_perp) < RC_V_PERP_SEND_THRESHOLD)
+            v_perp = 0;
+        if (fabs(v_parallel) < RC_V_PARALLEL_SEND_THRESHOLD)
+            v_parallel = 0;
+        if (fabs(wz) < RC_WZ_SEND_THRESHOLD)
+            wz = 0;
+
         send_chassis_command(v_parallel, v_perp, wz, board_mode, act_mode);
 
         float yaw = in_out_map(rc.ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL,
@@ -363,7 +371,7 @@ void RCApp::pub_command_messages() {
         if (fabs(yaw) < RC_YAW_SEND_THRESHOLD)
             yaw = 0;
         if (fabs(pitch) < RC_PITCH_SEND_THRESHOLD)
-            yaw = 0;
+            pitch = 0;
 
         send_gimbal_can_comm(yaw, pitch, board_mode, act_mode);
 

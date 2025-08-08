@@ -110,5 +110,8 @@
  * ====================================================================== */
 #define RC_YAW_SEND_THRESHOLD 0.001f
 #define RC_PITCH_SEND_THRESHOLD 0.001f
+#define RC_WZ_SEND_THRESHOLD 0.01f
+#define RC_V_PERP_SEND_THRESHOLD 0.01f
+#define RC_V_PARALLEL_SEND_THRESHOLD 0.01f
 
 #endif

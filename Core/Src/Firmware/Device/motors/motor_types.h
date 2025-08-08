@@ -4,22 +4,21 @@
 #include "stdint.h"
 
 typedef enum {
+    // Reset the zero point of the motor (use sparingly to avoid ROM damage)
+    LK_MOTOR_RESET_ZEROS = 0x19,
     // Stop the motor immediately, WILL NOT respond to any command except START
     LK_MOTOR_IDLE = 0x80,
     // Stop the motor immediately but still respond to any command
     LK_MOTOR_STOP = 0x81,
     LK_MOTOR_START = 0x88,  // Reactivate the motor after sending KL_MOTOR_IDLE
 
-    // Read feedback from motor [temp, torque current, speed, encoder pos]
-    LK_MOTOR_READ_FB_DATA = 0x9C,
-
+    LK_MOTOR_READ_ENCODER_FB = 0x90,
     // Read single loop feedback from motor (angle between [0, 360) in 0.01 degree steps).
     LK_MOTOR_READ_SL_FB = 0x94,
-
-    // Reset the zero point of the motor (use sparingly to avoid ROM damage)
-    LK_MOTOR_RESET_ZEROS = 0x19,
     // Similar to KL_MOTOR_RESET_ZEROS, requires testing
     KL_MOTOR_RESET_POS = 0x95,
+    // Read feedback from motor [temp, torque current, speed, encoder pos]
+    LK_MOTOR_READ_FB_DATA = 0x9C,
 
     LK_CMD_TOR = 0xA1,  // Torque Close Loop Control, -2048 ~ 2048
     // Multiple Loop Angle Control, sending value 1000 ~= 1 degree

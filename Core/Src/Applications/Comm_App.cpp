@@ -33,11 +33,9 @@ namespace CommApp {
 
     void CommApp::loop() {
         CANCommMessage_t outgoing_message, incoming_message;
+
         BaseType_t new_send_message =
             message_center.get_message(COMM_OUT, &outgoing_message, 0);
-        BaseType_t new_receive_message =
-            message_center.get_message(COMM_IN, &incoming_message, 0);
-
         if (new_send_message == pdTRUE) {
             switch (config.op_mode) {
                 case OperationMode::Normal:
@@ -52,6 +50,8 @@ namespace CommApp {
             }
         }
 
+        BaseType_t new_receive_message =
+            message_center.get_message(COMM_IN, &incoming_message, 0);
         if (new_receive_message == pdTRUE) {
             switch (incoming_message.topic_name) {
                 case REFEREE_OUT:
