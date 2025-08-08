@@ -145,6 +145,8 @@ static AmmoLid ammo_lid;
 static RCComm rc_comm;
 static PCComm pc_comm;
 
+static CAN_ISR::CAN_ISR can_isr(message_center);
+
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
@@ -330,20 +332,28 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     dwt_init();
 
     UART_Config_t config;
+    CAN_ISR::Config can_isr_config;
     if (debug.get_board_status() == CHASSIS_BOARD) {
         config = CHASSIS;
-    } else {
-        config = GIMBAL;
-    }
-    // init_uart_isr(config);
-    init_uart_isr(CHASSIS);
 
-#ifdef SWERVE_CHASSIS
-    constexpr CAN_ISR_Config can_config = CAN_ISR_Config::SWERVE;
-#else
-    constexpr CAN_ISR_Config can_config = CAN_ISR_Config::NORMAL;
-#endif
-    init_can_isr(can_config);
+        if constexpr (robot_config::config_type ==
+                      robot_config::ConfigType::Sentry) {
+            can_isr_config = CAN_ISR::Config::SENTRY_CHASSIS;
+        } else {
+            can_isr_config = CAN_ISR::Config::NORMAL;
+        }
+    } else {
+        if constexpr (robot_config::config_type ==
+                      robot_config::ConfigType::AutoAim) {
+            // Add mode for enabling PC UART and RC for one board.
+            config = CHASSIS;
+        } else {
+            config = GIMBAL;
+        }
+        can_isr_config = CAN_ISR::Config::NORMAL;
+    }
+    init_uart_isr(config);
+    can_isr.init(can_isr_config);
 
     return HAL_OK;
 }
@@ -364,4 +374,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
     /* USER CODE BEGIN Callback 1 */
 
     /* USER CODE END Callback 1 */
+}
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
+    can_isr.message_pending(hcan);
 }

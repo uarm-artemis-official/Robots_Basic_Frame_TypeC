@@ -2,6 +2,7 @@ add_library(CAN_ISR STATIC can_isr.cpp)
 target_include_directories(CAN_ISR PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(CAN_ISR 
     PUBLIC 
+        SUBSYSTEMS::SUBSYSTEMS_INCLUDE
         FW::DEVICE::MOTOR_LIB
         SUBSYSTEMS::MOTORS
         SUBSYSTEMS::MESSAGE_CENTER)
