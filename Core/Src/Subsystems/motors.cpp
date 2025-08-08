@@ -52,13 +52,22 @@ void Motors::init(Motor_Config_t config) {
 }
 
 void Motors::get_raw_feedback(uint32_t stdid, uint8_t data[8], void* feedback) {
+    // TODO: Make better limits.
     if (0x200 < stdid && stdid < 0x212) {
         dji_motor_get_raw_feedback(data,
                                    static_cast<Motor_Feedback_t*>(feedback));
     } else if (0x140 < stdid && stdid < 0x173) {
-        lk_motor_get_raw_feedback(data, feedback);
+        if (data[0] == LK_MOTOR_READ_ENCODER_FB) {
+            LK_Motor_Torque_Feedback_t* lk_feedback =
+                static_cast<LK_Motor_Torque_Feedback_t*>(feedback);
+            lk_motor_get_raw_feedback(data, &(lk_feedback->ecd_position));
+        } else if (data[0] == LK_CMD_SL_ANGLE_WITH_SPEED) {
+            lk_motor_get_raw_feedback(data, feedback);
+        } else {
+            ASSERT(false, "Trying to parse unsupported feedback.");
+        }
     } else {
-        ASSERT(0,
+        ASSERT(false,
                "subsystems::motors cannot parse feedback for data with "
                "unsupported stdid");
     }
@@ -114,18 +123,21 @@ void Motors::send_motor_voltage() {
         case SWERVE: {
             __dji_motor_send((int32_t) M3508, motors[0].tx_data,
                              motors[1].tx_data, motors[2].tx_data,
-                             motors[3].tx_data, 1);
+                             motors[3].tx_data, 0);
 
+            // TODO: Add encoding + decoding library for swerve in lib.
             uint8_t spin_direction =
                 (motors[4 + counter].tx_data & 0x40000000) >> 30;
             uint16_t max_speed =
                 (motors[4 + counter].tx_data & 0x3fff0000) >> 16;
-            uint32_t angle = (motors[4 + counter].tx_data & 0xffff) * 10;
-            if (angle == 0) {
-                angle = 1;
+            uint32_t new_angle = (motors[4 + counter].tx_data & 0xffff) * 10;
+            if (new_angle == 0) {
+                new_angle = 1;
             }
+
             lk_motor_send_single_loop(0x141 + counter, spin_direction,
-                                      max_speed, angle);
+                                      max_speed, new_angle);
+
             counter = (counter + 1) % 4;
             break;
         }

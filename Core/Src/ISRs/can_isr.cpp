@@ -58,9 +58,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 
         // TODO: Switch 0x201 and 0x204 to references to CHASSIS_WHEEL1
         // and CHASSIS_WHEEL2 respectively
-        if (config == CAN_ISR_Config::SWERVE && 0x201 <= rx_header.StdId &&
-            rx_header.StdId <= 0x204) {
+        if (config == CAN_ISR_Config::SWERVE && 0x141 <= rx_header.StdId &&
+            rx_header.StdId <= 0x150) {
+            // TODO: Refactor so CAN ISR can be configured based on chassis or gimbal.
             read_motor_data(hcan, rx_header);
+            // uint8_t null[8];
+            // HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, null);
         } else {
             HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header,
                                  incoming_message.data);

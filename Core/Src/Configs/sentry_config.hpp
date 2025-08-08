@@ -68,19 +68,19 @@ namespace gimbal_params {
 
 namespace shoot_params {
     // Shoot targets.
-    constexpr float LOADER_ACTIVE_RPM = 75;
+    constexpr float LOADER_ACTIVE_RPM = 150;
     constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
     constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
     static_assert(MAX_FLYWHEEL_ACCEL >= 0);
 
     // Loader PID.
-    constexpr float KP_LOADER_SPEED = 12;
+    constexpr float KP_LOADER_SPEED = 60;
     constexpr float KI_LOADER_SPEED = 0;
     constexpr float KD_LOADER_SPEED = 0;
     constexpr float BETA_LOADER_SPEED = 1;
     constexpr float YETA_LOADER_SPEED = 0;
-    constexpr float MIN_OUT_LOADER_SPEED = -5000;
-    constexpr float MAX_OUT_LOADER_SPEED = 5000;
+    constexpr float MIN_OUT_LOADER_SPEED = -10000;
+    constexpr float MAX_OUT_LOADER_SPEED = 10000;
     static_assert(MAX_OUT_LOADER_SPEED >= MIN_OUT_LOADER_SPEED);
 
     // Flywheel PID.
