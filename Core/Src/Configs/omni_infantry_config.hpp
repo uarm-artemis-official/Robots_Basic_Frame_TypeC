@@ -5,8 +5,8 @@
 
 namespace gimbal_params {
     // Motor encoder zero-position.
-    constexpr int16_t YAW_ECD_CENTER = 2800;
-    constexpr int16_t PITCH_ECD_CENTER = 4100;
+    constexpr int16_t YAW_ECD_CENTER = 7815;
+    constexpr int16_t PITCH_ECD_CENTER = 4800;
     constexpr float LOADER_GEAR_RATIO = 36;
 
     // Software pitch limits.
@@ -23,7 +23,7 @@ namespace gimbal_params {
         {0.0f, 0.0f, 1.0f},
     };
     // 1 = CCW positive (i.e. rotating CCW pitches up)
-    // 1 = CW positive (i.e. rotating CW pitches up)
+    // -1 = CW positive (i.e. rotating CW pitches up)
     constexpr float PITCH_ORIENTATION = -1;
 
     // Gimbal yaw PID.
@@ -48,24 +48,41 @@ namespace gimbal_params {
     static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
     // Gimbal pitch PID.
-    constexpr float KP_GIMBAL_PITCH_ANGLE = 220;
-    constexpr float KI_GIMBAL_PITCH_ANGLE = 12;
-    constexpr float KD_GIMBAL_PITCH_ANGLE = 2;
+    // constexpr float KP_GIMBAL_PITCH_ANGLE = 220;
+    // constexpr float KI_GIMBAL_PITCH_ANGLE = 12;
+    // constexpr float KD_GIMBAL_PITCH_ANGLE = 2;
+    // constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
+    // constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
+    // constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
+    // constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
+    // static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
+
+    // constexpr float KP_GIMBAL_PITCH_SPEED = 80;
+    // constexpr float KI_GIMBAL_PITCH_SPEED = 10;
+    // constexpr float KD_GIMBAL_PITCH_SPEED = 0.05;
+    // constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
+    // constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
+    // constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
+    // constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
+
+    // Gimbal pitch PID.
+    constexpr float KP_GIMBAL_PITCH_ANGLE = 235;   //100 220
+    constexpr float KI_GIMBAL_PITCH_ANGLE = 5;     //0 12
+    constexpr float KD_GIMBAL_PITCH_ANGLE = 0.02;  //0.05 2
     constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
     constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
     constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
     constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
     static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
-    constexpr float KP_GIMBAL_PITCH_SPEED = 80;
-    constexpr float KI_GIMBAL_PITCH_SPEED = 10;
-    constexpr float KD_GIMBAL_PITCH_SPEED = 0.05;
+    constexpr float KP_GIMBAL_PITCH_SPEED = 135;   //120 80
+    constexpr float KI_GIMBAL_PITCH_SPEED = 3;     //8 10
+    constexpr float KD_GIMBAL_PITCH_SPEED = 0.03;  //0.01 0.05
     constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
     constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
     constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
     constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
-    // constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
-    // constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
+    static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
     static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 }  // namespace gimbal_params
 
@@ -77,13 +94,13 @@ namespace shoot_params {
     static_assert(MAX_FLYWHEEL_ACCEL >= 0);
 
     // Loader PID.
-    constexpr float KP_LOADER_SPEED = 12;
+    constexpr float KP_LOADER_SPEED = 30;
     constexpr float KI_LOADER_SPEED = 0;
     constexpr float KD_LOADER_SPEED = 0;
     constexpr float BETA_LOADER_SPEED = 1;
     constexpr float YETA_LOADER_SPEED = 0;
-    constexpr float MIN_OUT_LOADER_SPEED = -5000;
-    constexpr float MAX_OUT_LOADER_SPEED = 5000;
+    constexpr float MIN_OUT_LOADER_SPEED = -10000;
+    constexpr float MAX_OUT_LOADER_SPEED = 10000;
     static_assert(MAX_OUT_LOADER_SPEED >= MIN_OUT_LOADER_SPEED);
 
     // Flywheel PID.

@@ -479,7 +479,11 @@ void GimbalApp::update_targets() {
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                gimbal.gimbal_act_mode == INDPET_MODE) {
         gimbal.yaw_target_angle = 0;
-        gimbal.pitch_target_angle = 0;
+        gimbal.pitch_target_angle =
+            value_limit(gimbal.pitch_target_angle + command_deltas[1],
+                        robot_config::gimbal_params::PITCH_MIN_ANGLE,
+                        robot_config::gimbal_params::
+                            PITCH_MAX_ANGLE);  //- command_deltas[1]
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                (gimbal.gimbal_act_mode == GIMBAL_FOLLOW ||
                 gimbal.gimbal_act_mode == GIMBAL_CENTER ||
@@ -549,6 +553,8 @@ void GimbalApp::send_motor_volts() {
     set_message.can_ids[0] = (Motor_CAN_ID_t) motor_controls[0].stdid;
 
     // Pitch
+    // set_message.motor_can_volts[1] =
+    //     (int32_t) (motor_controls[1].s_pid.total_out);
     set_message.motor_can_volts[1] =
         (int32_t) (motor_controls[1].s_pid.total_out *
                    robot_config::gimbal_params::PITCH_ORIENTATION);

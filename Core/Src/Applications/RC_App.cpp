@@ -116,7 +116,7 @@ void RCApp::init() {
     rc.board_act_mode = INDPET_MODE;
 
     pc_board_mode = PATROL_MODE;
-    pc_act_mode = GIMBAL_CENTER;
+    pc_act_mode = INDPET_MODE;
     pc_shoot_mode = SHOOT_CEASE;
     pc_ammo_status = EAmmoLidStatus::CLOSED;
 }
@@ -281,13 +281,13 @@ void RCApp::send_shoot_command(ShootActMode_t shoot_mode,
 
 void RCApp::pub_command_messages() {
     if (rc.control_mode == PC_MODE) {
-        if (rc.pc.keyboard.F.status == EKeyStatus::PRESSED_TO_RELEASE) {
-            if (pc_act_mode == GIMBAL_CENTER) {
-                pc_act_mode = SELF_GYRO;
-            } else {
-                pc_act_mode = GIMBAL_CENTER;
-            }
-        }
+        // if (rc.pc.keyboard.F.status == EKeyStatus::PRESSED_TO_RELEASE) {
+        //     if (pc_act_mode == GIMBAL_CENTER) {
+        //         pc_act_mode = SELF_GYRO;
+        //     } else {
+        //         pc_act_mode = GIMBAL_CENTER;
+        //     }
+        // }
 
         if (rc.pc.keyboard.R.status == EKeyStatus::PRESSED) {
             pc_ammo_status = EAmmoLidStatus::OPEN;
@@ -319,16 +319,17 @@ void RCApp::pub_command_messages() {
         if (rc.pc.keyboard.D.status == EKeyStatus::PRESSED)
             v_perp += robot_config::chassis_params::MAX_TRANSLATION;
 
-        send_chassis_command(v_parallel, v_perp, wz, pc_board_mode,
+        float yaw = in_out_map(rc.pc.mouse.x, -MOUSE_MAX_SPEED, MOUSE_MAX_SPEED,
+                               -100, 100);
+
+        send_chassis_command(v_parallel, v_perp, yaw, pc_board_mode,
                              pc_act_mode);
 
-        float yaw = in_out_map(rc.pc.mouse.x, -MOUSE_MAX_SPEED, MOUSE_MAX_SPEED,
-                               -MAX_MOUSE_YAW_OUT, MAX_MOUSE_YAW_OUT);
         float pitch =
-            in_out_map(rc.pc.mouse.y, -MOUSE_MAX_SPEED, MOUSE_MAX_SPEED,
-                       -MAX_MOUSE_PITCH_OUT, MAX_MOUSE_PITCH_OUT);
+            -in_out_map(rc.pc.mouse.y, -MOUSE_MAX_SPEED, MOUSE_MAX_SPEED,
+                        -MAX_MOUSE_PITCH_OUT, MAX_MOUSE_PITCH_OUT);
 
-        send_gimbal_can_comm(yaw, pitch, pc_board_mode, pc_act_mode);
+        send_gimbal_can_comm(0, pitch, pc_board_mode, pc_act_mode);
         send_shoot_command(pc_shoot_mode, pc_ammo_status);
     } else {
         BoardMode_t board_mode;

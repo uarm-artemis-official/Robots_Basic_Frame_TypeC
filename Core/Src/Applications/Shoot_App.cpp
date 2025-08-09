@@ -176,18 +176,25 @@ void ShootApp::calc_targets() {
             shoot.antijam_direction = -1;
             set_loader_target(0);
             set_flywheel_target(0);
-            shoot.loader_delay_counter = 0;
+            // TODO: Add delay for stopping fylwheels
+            // shoot.loader_delay_counter = 0;
             break;
         case SHOOT_CONT:
-            shoot.loader_delay_counter =
-                value_limit(shoot.loader_delay_counter + 1, 0, 1000);
+            // shoot.loader_delay_counter =
+            //     value_limit(shoot.loader_delay_counter + 1, 0, 1000);
             if (shoot.shoot_state == ShootState::NORMAL) {
-                if (shoot.loader_delay_counter >= 20) {
+                set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
+                float average_flywheel_rpm =
+                    (fabs(flywheel_controls[0].feedback.rx_rpm) +
+                     fabs(flywheel_controls[1].feedback.rx_rpm)) /
+                    2;
+                if (average_flywheel_rpm >= FLYWHEEL_ACTIVE_TARGET_RPM * 0.8) {
                     set_loader_target(LOADER_ACTIVE_RPM);
-                    set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
                 }
             } else if (shoot.shoot_state == ShootState::ANTIJAM) {
                 set_loader_target(shoot.antijam_direction * LOADER_ACTIVE_RPM);
+                set_flywheel_target(shoot.antijam_direction *
+                                    FLYWHEEL_ACTIVE_TARGET_RPM);
             } else {
                 ASSERT(false, "Unknown shoot state.");
             }
@@ -195,7 +202,7 @@ void ShootApp::calc_targets() {
         default:
             set_loader_target(0);
             set_flywheel_target(0);
-            shoot.loader_delay_counter = 0;
+            // shoot.loader_delay_counter = 0;
     }
 }
 
