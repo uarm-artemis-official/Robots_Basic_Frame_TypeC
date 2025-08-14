@@ -175,13 +175,15 @@ void ShootApp::calc_targets() {
             shoot.shoot_state = ShootState::NORMAL;
             shoot.antijam_direction = -1;
             set_loader_target(0);
-            set_flywheel_target(0);
-            // TODO: Add delay for stopping fylwheels
-            // shoot.loader_delay_counter = 0;
+
+            if (shoot.loader_delay_counter >= 100) {
+                set_flywheel_target(0);
+            }
+            shoot.loader_delay_counter =
+                value_limit(shoot.loader_delay_counter + 1, 0, 1000);
             break;
         case SHOOT_CONT:
-            // shoot.loader_delay_counter =
-            //     value_limit(shoot.loader_delay_counter + 1, 0, 1000);
+            shoot.loader_delay_counter = 0;
             if (shoot.shoot_state == ShootState::NORMAL) {
                 set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
                 float average_flywheel_rpm =
@@ -202,7 +204,7 @@ void ShootApp::calc_targets() {
         default:
             set_loader_target(0);
             set_flywheel_target(0);
-            // shoot.loader_delay_counter = 0;
+            shoot.loader_delay_counter = 0;
     }
 }
 
@@ -226,11 +228,18 @@ void ShootApp::calc_motor_outputs() {
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
         LOOP_PERIOD_MS * 0.001f);
 
-    pid2_single_loop_control(loader_control.speed_pid,
-                             shoot.loader_target_rpm *
-                                 robot_config::gimbal_params::LOADER_GEAR_RATIO,
-                             loader_control.feedback.rx_rpm,
-                             LOOP_PERIOD_MS * 0.001f);
+    if (shoot.loader_target_rpm == 0) {
+        loader_control.speed_pid.i_out = 0;
+        loader_control.speed_pid.prev_d_error = 0;
+        loader_control.speed_pid.total_out = 0;
+        loader_control.speed_pid.prev_total_out = 0;
+    } else {
+        pid2_single_loop_control(
+            loader_control.speed_pid,
+            shoot.loader_target_rpm *
+                robot_config::gimbal_params::LOADER_GEAR_RATIO,
+            loader_control.feedback.rx_rpm, LOOP_PERIOD_MS * 0.001f);
+    }
 }
 
 void ShootApp::send_motor_outputs() {
