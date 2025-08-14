@@ -11,7 +11,7 @@ namespace gimbal_params {
 
     // Software pitch limits.
     constexpr float PITCH_MIN_ANGLE = -0.14;
-    constexpr float PITCH_MAX_ANGLE = 0.35;
+    constexpr float PITCH_MAX_ANGLE = 0.10;
     static_assert(PITCH_MAX_ANGLE >= PITCH_MIN_ANGLE);
 
     // Orientation
@@ -27,18 +27,18 @@ namespace gimbal_params {
     constexpr float PITCH_ORIENTATION = -1;
 
     // Gimbal yaw PID.
-    constexpr float KP_GIMBAL_YAW_ANGLE = 76;
+    constexpr float KP_GIMBAL_YAW_ANGLE = 150;
     constexpr float KI_GIMBAL_YAW_ANGLE = 0;  // Not allowed.
-    constexpr float KD_GIMBAL_YAW_ANGLE = 0.3;
+    constexpr float KD_GIMBAL_YAW_ANGLE = 0;
     constexpr float BETA_GIMBAL_YAW_ANGLE = 1;
     constexpr float YETA_GIMBAL_YAW_ANGLE = 0;
     constexpr float MIN_OUT_GIMBAL_YAW_ANGLE = -800;
     constexpr float MAX_OUT_GIMBAL_YAW_ANGLE = 800;
     static_assert(MAX_OUT_GIMBAL_YAW_ANGLE >= MIN_OUT_GIMBAL_YAW_ANGLE);
 
-    constexpr float KP_GIMBAL_YAW_SPEED = 240;
-    constexpr float KI_GIMBAL_YAW_SPEED = 10;
-    constexpr float KD_GIMBAL_YAW_SPEED = 0.1;
+    constexpr float KP_GIMBAL_YAW_SPEED = 220;
+    constexpr float KI_GIMBAL_YAW_SPEED = 30;
+    constexpr float KD_GIMBAL_YAW_SPEED = 0;
     constexpr float BETA_GIMBAL_YAW_SPEED = 1;
     constexpr float YETA_GIMBAL_YAW_SPEED = 1;
     constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
@@ -66,22 +66,22 @@ namespace gimbal_params {
     // constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
 
     // Gimbal pitch PID.
-    constexpr float KP_GIMBAL_PITCH_ANGLE = 235;   //100 220
-    constexpr float KI_GIMBAL_PITCH_ANGLE = 5;     //0 12
-    constexpr float KD_GIMBAL_PITCH_ANGLE = 0.02;  //0.05 2
+    constexpr float KP_GIMBAL_PITCH_ANGLE = 235;  //100 220
+    constexpr float KI_GIMBAL_PITCH_ANGLE = 0;    //0 12
+    constexpr float KD_GIMBAL_PITCH_ANGLE = 0;    //0.05 2
     constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
     constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
     constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
     constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
     static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
-    constexpr float KP_GIMBAL_PITCH_SPEED = 135;   //120 80
-    constexpr float KI_GIMBAL_PITCH_SPEED = 3;     //8 10
-    constexpr float KD_GIMBAL_PITCH_SPEED = 0.03;  //0.01 0.05
+    constexpr float KP_GIMBAL_PITCH_SPEED = 150;  //120 80
+    constexpr float KI_GIMBAL_PITCH_SPEED = 40;   //8 10
+    constexpr float KD_GIMBAL_PITCH_SPEED = 0;    //0.01 0.05
     constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
     constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
-    constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
-    constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
+    constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -30000;
+    constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 30000;
     static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
     static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 }  // namespace gimbal_params
