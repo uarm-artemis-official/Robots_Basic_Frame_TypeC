@@ -1,7 +1,7 @@
 #ifndef __SUBSYSTEMS_INTERFACES_H
 #define __SUBSYSTEMS_INTERFACES_H
 
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 class IMessageCenter {
    public:

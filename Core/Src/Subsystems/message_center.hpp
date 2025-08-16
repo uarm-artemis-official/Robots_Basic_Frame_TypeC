@@ -2,7 +2,7 @@
 #define __MESSAGE_CENTER_H
 
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 // TODO: Add timestamp or something for users to differentiate messages.
 class MessageCenter : public IMessageCenter {

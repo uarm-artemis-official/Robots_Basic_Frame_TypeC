@@ -3,7 +3,7 @@
 
 #include "subsystems_defines.h"
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 class Motors : public IMotors {
    private:

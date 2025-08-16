@@ -2,7 +2,7 @@
 #define SRC_REF_UI_H_
 
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 class RefereeUI : public IRefUI {
    private:

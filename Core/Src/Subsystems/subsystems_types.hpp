@@ -207,6 +207,84 @@ typedef struct {
     uint16_t chassis_power_limit;
 } RefereeInfoMessage_t;
 
+namespace {
+    struct Message {
+        Message() = delete;
+    };
+
+    template <typename Derived>
+    struct Interboard : Message {
+        static_assert(sizeof(Derived) <= 200);
+        Interboard() = delete;
+
+        virtual void encode(std::array<uint8_t, 200>& bytes) {
+            memcpy(bytes.data(), this, sizeof(Derived));
+        }
+
+        virtual void decode(std::array<uint8_t, 200>& bytes) {
+            memcpy(this, bytes.data(), sizeof(Derived));
+        }
+    };
+
+    struct MotorSet : Message {
+        int32_t motor_can_volts[MAX_MOTOR_COUNT];
+        Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
+    };
+
+    struct RCInfo : Interboard<RCInfo> {
+        /*
+	 * modes[0] - BoardMode_t
+	 * modes[1] - BoardActMode_t
+	 * modes[2] - ShootActMode_t
+	 */
+        uint8_t modes[3];
+
+        /*
+	 * channels[0-3] - Have info from RC on Chassis.
+	 * channels[0-1] - Have info from Chassis on Gimbal.
+	 * Gimbal is not given channels[2] and channels[3] because it does not need channels[0] and
+	 * channels[1] for calculations. This allows RC info to be transmitted in one CAN frame (8 bytes).
+	 */
+        int16_t channels[4];
+    };
+
+    struct MotorRead : Message {
+        uint8_t feedback[MAX_MOTOR_COUNT][8];
+        Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
+    };
+
+    struct ChassisCommand : Message {
+        float v_perp;
+        float v_parallel;
+        float wz;
+        uint16_t command_bits;  // TODO: Implement and remove RC_INFO.
+    };
+
+    struct GimbalCommand : Message {
+        float yaw;
+        float pitch;
+        uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
+    };
+
+    struct ShootCommand : Message {
+        uint32_t command_bits;
+        uint32_t extra_bits;
+    };
+
+    struct RefereeInfo : Message {
+        uint8_t robot_id;
+        uint8_t robot_level;
+        uint16_t shoot_barrel_cooling_rate;
+        uint16_t shoot_barrel_heat_limit;
+        uint16_t chassis_power_limit;
+    };
+
+    template <class TMessage>
+    struct Topic {
+        uint16_t ID;
+    };
+}  // namespace
+
 /* =========================================================================
  * DEBUG TYPES
  * ====================================================================== */

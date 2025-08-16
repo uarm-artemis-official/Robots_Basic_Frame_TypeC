@@ -2,7 +2,7 @@
 #define __AMMO_LID_H
 
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 class AmmoLid : public IAmmoLid {
    private:

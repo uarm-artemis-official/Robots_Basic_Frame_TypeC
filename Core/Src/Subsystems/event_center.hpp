@@ -9,7 +9,7 @@
 #define SRC_EVENT_CENTER_H_
 
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 typedef struct {
     Sync_Event_t sync_event;
