@@ -327,22 +327,22 @@ namespace mc2 {
 
     struct TopicHandle {
         QueueHandle_t queue;
-        std::array<uint32_t, 20> timestamps;
+        std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> timestamps;
     };
 
     template <typename TopicRegistry>
     class MC2 {
        private:
-        std::array<TopicHandle, std::tuple_size_v<TopicRegistry>> queues;
+        std::array<TopicHandle, std::tuple_size_v<TopicRegistry>> topic_handles;
 
        public:
         void init();
 
         template <typename T>
-        void get_message(T& message, uint32_t ticks_to_wait = 0);
+        uint32_t get_message(T& message, uint32_t ticks_to_wait = 0);
 
         template <typename T>
-        void peek_message(T& message, uint32_t ticks_to_wait = 0);
+        uint32_t peek_message(T& message, uint32_t ticks_to_wait = 0);
 
         template <typename T>
         void pub_message(T& message);

@@ -87,12 +87,25 @@ uint8_t MessageCenter::pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
 }
 
 namespace mc2 {
-
     template <typename TopicRegistry>
     void MC2<TopicRegistry>::init() {}
 
     template <typename TopicRegistry>
     template <typename T>
-    void MC2<TopicRegistry>::get_message(T& message,
-                                         uint32_t ticks_to_wait = 0) {}
+    uint32_t MC2<TopicRegistry>::get_message(T& message,
+                                             uint32_t ticks_to_wait) {}
+
+    template <typename TopicRegistry>
+    template <typename T>
+    uint32_t MC2<TopicRegistry>::peek_message(T& message,
+                                              uint32_t ticks_to_wait) {}
+
+    template <typename TopicRegistry>
+    template <typename T>
+    void MC2<TopicRegistry>::pub_message(T& message) {}
+
+    template <typename TopicRegistry>
+    template <typename T>
+    void MC2<TopicRegistry>::pub_message_from_isr(
+        T& message, uint8_t* will_context_switch) {}
 }  // namespace mc2
