@@ -4,6 +4,7 @@
 #define __SUBSYSTEMS_TYPES_H
 
 #include <array>
+#include <tuple>
 #include "attitude_types.h"
 #include "motor_types.h"
 #include "subsystems_defines.h"
@@ -208,30 +209,34 @@ typedef struct {
 } RefereeInfoMessage_t;
 
 namespace {
-    struct Message {
-        Message() = delete;
+    enum class MessageNode { Telemetry, Chassis, Gimbal, All };
+
+    template <int _queue_size>
+    struct Topic {
+        static constexpr int queue_size = _queue_size;
     };
 
-    template <typename Derived>
-    struct Interboard : Message {
-        // static_assert(sizeof(Derived) <= 200);
-        Interboard() = delete;
+    template <typename TMessage, MessageNode _destination,
+              bool _also_local = false>
+    struct InterboardMessage {
+        static constexpr MessageNode destination = _destination;
+        static constexpr bool also_local = _also_local;
 
         virtual void encode(std::array<uint8_t, 200>& bytes) {
-            memcpy(bytes.data(), this, sizeof(Derived));
+            memcpy(bytes.data(), this, sizeof(TMessage));
         }
 
         virtual void decode(std::array<uint8_t, 200>& bytes) {
-            memcpy(this, bytes.data(), sizeof(Derived));
+            memcpy(this, bytes.data(), sizeof(TMessage));
         }
     };
 
-    struct MotorSet : Message {
+    struct MotorSet : Topic<5> {
         int32_t motor_can_volts[MAX_MOTOR_COUNT];
         Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
     };
 
-    struct RCInfo : Interboard<RCInfo> {
+    struct RCInfo : Topic<5>, InterboardMessage<RCInfo, MessageNode::Gimbal> {
         /*
 	 * modes[0] - BoardMode_t
 	 * modes[1] - BoardActMode_t
@@ -246,32 +251,33 @@ namespace {
 	 * channels[1] for calculations. This allows RC info to be transmitted in one CAN frame (8 bytes).
 	 */
         int16_t channels[4];
+        // TODO: implement encode and decode methods.
     };
 
-    struct MotorRead : Message {
+    struct MotorRead : Topic<1> {
         uint8_t feedback[MAX_MOTOR_COUNT][8];
         Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
     };
 
-    struct ChassisCommand : Message {
+    struct ChassisCommand : Topic<1> {
         float v_perp;
         float v_parallel;
         float wz;
         uint16_t command_bits;  // TODO: Implement and remove RC_INFO.
     };
 
-    struct GimbalCommand : Message {
+    struct GimbalCommand : Topic<1> {
         float yaw;
         float pitch;
         uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
     };
 
-    struct ShootCommand : Message {
+    struct ShootCommand : Topic<1> {
         uint32_t command_bits;
         uint32_t extra_bits;
     };
 
-    struct RefereeInfo : Message {
+    struct RefereeInfo : Topic<1> {
         uint8_t robot_id;
         uint8_t robot_level;
         uint16_t shoot_barrel_cooling_rate;
@@ -279,10 +285,44 @@ namespace {
         uint16_t chassis_power_limit;
     };
 
-    template <class TMessage>
-    struct Topic {
-        uint16_t ID;
+    struct CommOut : Topic<5> {
+        std::array<uint8_t, 8> bytes;
     };
+
+    struct CommIn : Topic<5> {
+        std::array<uint8_t, 8> bytes;
+    };
+
+    struct ImuReadings : Topic<1> {
+        float yaw;
+        float pitch;
+    };
+
+    struct GimbalRelativeAngles
+        : Topic<1>,
+          InterboardMessage<GimbalRelativeAngles, MessageNode::Chassis> {
+        float yaw;
+        float pitch;
+        // TODO: Implement encode and decode
+    };
+
+    struct RefereeIn : Topic<1> {
+        std::array<uint8_t, 41> ref_bytes;
+    };
+
+    struct RCRaw : Topic<1> {
+        std::array<uint8_t, 18> rc_bytes;
+    };
+
+    struct AutoAim : Topic<1> {
+        float delta_yaw;
+        float delta_pitch;
+    };
+
+    using TopicRegistry =
+        std::tuple<MotorSet, MotorRead, RCInfo, ChassisCommand, GimbalCommand,
+                   ShootCommand, RefereeInfo, CommOut, CommIn, ImuReadings,
+                   GimbalRelativeAngles, RefereeIn, RCRaw, AutoAim>;
 }  // namespace
 
 /* =========================================================================
