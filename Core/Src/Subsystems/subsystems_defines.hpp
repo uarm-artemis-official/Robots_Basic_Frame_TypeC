@@ -84,4 +84,11 @@
 #define PACK_HEADER_SIZE 4
 #define PACK_TRAILER_SIZE 4
 
+/* =========================================================================
+ * MESSAGE CENTER DEFINES
+ * ====================================================================== */
+namespace mc2 {
+    constexpr size_t MAX_TOPIC_QUEUE_SIZE = 20;
+}
+
 #endif

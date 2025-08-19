@@ -1,7 +1,7 @@
 #include "motors.hpp"
 #include "dji_motor.h"
 #include "lk_motor.h"
-#include "subsystems_defines.h"
+#include "subsystems_defines.hpp"
 #include "uarm_lib.hpp"
 
 Motors::Motors() {

@@ -1,7 +1,7 @@
 #ifndef __MOTORS_H
 #define __MOTORS_H
 
-#include "subsystems_defines.h"
+#include "subsystems_defines.hpp"
 #include "subsystems_interfaces.h"
 #include "subsystems_types.hpp"
 

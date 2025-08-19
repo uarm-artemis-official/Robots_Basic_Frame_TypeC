@@ -7,7 +7,7 @@
 #include <tuple>
 #include "attitude_types.h"
 #include "motor_types.h"
-#include "subsystems_defines.h"
+#include "subsystems_defines.hpp"
 #include "uarm_os.hpp"
 #include "uarm_types.hpp"
 
@@ -208,12 +208,13 @@ typedef struct {
     uint16_t chassis_power_limit;
 } RefereeInfoMessage_t;
 
-namespace {
+namespace mc2 {
     enum class MessageNode { Telemetry, Chassis, Gimbal, All };
 
-    template <int _queue_size>
+    template <size_t _queue_size>
     struct Topic {
-        static constexpr int queue_size = _queue_size;
+        static_assert(_queue_size <= MAX_TOPIC_QUEUE_SIZE);
+        static constexpr size_t queue_size = _queue_size;
     };
 
     template <typename TMessage, MessageNode _destination,
@@ -319,11 +320,38 @@ namespace {
         float delta_pitch;
     };
 
-    using TopicRegistry =
+    using RobotTopics =
         std::tuple<MotorSet, MotorRead, RCInfo, ChassisCommand, GimbalCommand,
                    ShootCommand, RefereeInfo, CommOut, CommIn, ImuReadings,
                    GimbalRelativeAngles, RefereeIn, RCRaw, AutoAim>;
-}  // namespace
+
+    struct TopicHandle {
+        QueueHandle_t queue;
+        std::array<uint32_t, 20> timestamps;
+    };
+
+    template <typename TopicRegistry>
+    class MC2 {
+       private:
+        std::array<TopicHandle, std::tuple_size_v<TopicRegistry>> queues;
+
+       public:
+        void init();
+
+        template <typename T>
+        void get_message(T& message, uint32_t ticks_to_wait = 0);
+
+        template <typename T>
+        void peek_message(T& message, uint32_t ticks_to_wait = 0);
+
+        template <typename T>
+        void pub_message(T& message);
+
+        template <typename T>
+        void pub_message_from_isr(T& message,
+                                  uint8_t* will_context_switch = nullptr);
+    };
+}  // namespace mc2
 
 /* =========================================================================
  * DEBUG TYPES

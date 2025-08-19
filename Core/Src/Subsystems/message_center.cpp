@@ -1,4 +1,5 @@
 #include "message_center.hpp"
+#include <utility>
 #include "uarm_lib.hpp"
 #include "uarm_os.hpp"
 
@@ -84,3 +85,14 @@ uint8_t MessageCenter::pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
         *will_context_switch = (uint8_t) context_switch;
     return res;
 }
+
+namespace mc2 {
+
+    template <typename TopicRegistry>
+    void MC2<TopicRegistry>::init() {}
+
+    template <typename TopicRegistry>
+    template <typename T>
+    void MC2<TopicRegistry>::get_message(T& message,
+                                         uint32_t ticks_to_wait = 0) {}
+}  // namespace mc2
