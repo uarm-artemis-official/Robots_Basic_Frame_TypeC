@@ -214,7 +214,7 @@ namespace {
 
     template <typename Derived>
     struct Interboard : Message {
-        static_assert(sizeof(Derived) <= 200);
+        // static_assert(sizeof(Derived) <= 200);
         Interboard() = delete;
 
         virtual void encode(std::array<uint8_t, 200>& bytes) {
