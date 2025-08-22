@@ -1,7 +1,7 @@
 #include "can_comm.hpp"
 #include "can.h"
 #include "queue_m.h"
-#include "subsystems_defines.h"
+#include "subsystems_defines.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_os.hpp"
 

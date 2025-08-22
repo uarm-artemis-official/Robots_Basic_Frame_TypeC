@@ -4,9 +4,10 @@
 #define __SUBSYSTEMS_TYPES_H
 
 #include <array>
+#include <tuple>
 #include "attitude_types.h"
 #include "motor_types.h"
-#include "subsystems_defines.h"
+#include "subsystems_defines.hpp"
 #include "uarm_os.hpp"
 #include "uarm_types.hpp"
 
@@ -206,6 +207,151 @@ typedef struct {
     uint16_t shoot_barrel_heat_limit;
     uint16_t chassis_power_limit;
 } RefereeInfoMessage_t;
+
+namespace mc2 {
+    enum class MessageNode { Telemetry, Chassis, Gimbal, All };
+
+    template <size_t _queue_size>
+    struct Topic {
+        static_assert(_queue_size <= MAX_TOPIC_QUEUE_SIZE);
+        static constexpr size_t queue_size = _queue_size;
+    };
+
+    template <typename TMessage, MessageNode _destination,
+              bool _also_local = false>
+    struct InterboardMessage {
+        static constexpr MessageNode destination = _destination;
+        static constexpr bool also_local = _also_local;
+
+        virtual void encode(std::array<uint8_t, 200>& bytes) {
+            memcpy(bytes.data(), this, sizeof(TMessage));
+        }
+
+        virtual void decode(std::array<uint8_t, 200>& bytes) {
+            memcpy(this, bytes.data(), sizeof(TMessage));
+        }
+    };
+
+    struct MotorSet : Topic<5> {
+        int32_t motor_can_volts[MAX_MOTOR_COUNT];
+        Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
+    };
+
+    struct RCInfo : Topic<5>, InterboardMessage<RCInfo, MessageNode::Gimbal> {
+        /*
+	 * modes[0] - BoardMode_t
+	 * modes[1] - BoardActMode_t
+	 * modes[2] - ShootActMode_t
+	 */
+        uint8_t modes[3];
+
+        /*
+	 * channels[0-3] - Have info from RC on Chassis.
+	 * channels[0-1] - Have info from Chassis on Gimbal.
+	 * Gimbal is not given channels[2] and channels[3] because it does not need channels[0] and
+	 * channels[1] for calculations. This allows RC info to be transmitted in one CAN frame (8 bytes).
+	 */
+        int16_t channels[4];
+        // TODO: implement encode and decode methods.
+    };
+
+    struct MotorRead : Topic<1> {
+        uint8_t feedback[MAX_MOTOR_COUNT][8];
+        Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
+    };
+
+    struct ChassisCommand : Topic<1> {
+        float v_perp;
+        float v_parallel;
+        float wz;
+        uint16_t command_bits;  // TODO: Implement and remove RC_INFO.
+    };
+
+    struct GimbalCommand : Topic<1> {
+        float yaw;
+        float pitch;
+        uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
+    };
+
+    struct ShootCommand : Topic<1> {
+        uint32_t command_bits;
+        uint32_t extra_bits;
+    };
+
+    struct RefereeInfo : Topic<1> {
+        uint8_t robot_id;
+        uint8_t robot_level;
+        uint16_t shoot_barrel_cooling_rate;
+        uint16_t shoot_barrel_heat_limit;
+        uint16_t chassis_power_limit;
+    };
+
+    struct CommOut : Topic<5> {
+        std::array<uint8_t, 8> bytes;
+    };
+
+    struct CommIn : Topic<5> {
+        std::array<uint8_t, 8> bytes;
+    };
+
+    struct ImuReadings : Topic<1> {
+        float yaw;
+        float pitch;
+    };
+
+    struct GimbalRelativeAngles
+        : Topic<1>,
+          InterboardMessage<GimbalRelativeAngles, MessageNode::Chassis> {
+        float yaw;
+        float pitch;
+        // TODO: Implement encode and decode
+    };
+
+    struct RefereeIn : Topic<1> {
+        std::array<uint8_t, 41> ref_bytes;
+    };
+
+    struct RCRaw : Topic<1> {
+        std::array<uint8_t, 18> rc_bytes;
+    };
+
+    struct AutoAim : Topic<1> {
+        float delta_yaw;
+        float delta_pitch;
+    };
+
+    using RobotTopics =
+        std::tuple<MotorSet, MotorRead, RCInfo, ChassisCommand, GimbalCommand,
+                   ShootCommand, RefereeInfo, CommOut, CommIn, ImuReadings,
+                   GimbalRelativeAngles, RefereeIn, RCRaw, AutoAim>;
+
+    struct TopicHandle {
+        QueueHandle_t queue;
+        std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> timestamps;
+    };
+
+    template <typename TopicRegistry>
+    class MC2 {
+       private:
+        std::array<TopicHandle, std::tuple_size_v<TopicRegistry>> topic_handles;
+
+       public:
+        void init();
+
+        template <typename T>
+        uint32_t get_message(T& message, uint32_t ticks_to_wait = 0);
+
+        template <typename T>
+        uint32_t peek_message(T& message, uint32_t ticks_to_wait = 0);
+
+        template <typename T>
+        void pub_message(T& message);
+
+        template <typename T>
+        void pub_message_from_isr(T& message,
+                                  uint8_t* will_context_switch = nullptr);
+    };
+}  // namespace mc2
 
 /* =========================================================================
  * DEBUG TYPES

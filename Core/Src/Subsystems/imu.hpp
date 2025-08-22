@@ -3,7 +3,7 @@
 
 #include "madgewick.hpp"  // TODO: move to attitude_types.h eventually.
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 class Imu : public IImu {
    private:

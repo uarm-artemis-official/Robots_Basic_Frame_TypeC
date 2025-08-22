@@ -11,9 +11,9 @@
 // usage in Callbacks in main.cpp.
 
 namespace CAN_ISR {
-    void CAN_ISR::init(Config config) {
+    void CAN_ISR::init(Config _config) {
         memset(&read_message, 0, sizeof(MotorReadMessage_t));
-        config = config;
+        config = _config;
     }
 
     uint8_t CAN_ISR::get_free_buffer(uint32_t stdId) {

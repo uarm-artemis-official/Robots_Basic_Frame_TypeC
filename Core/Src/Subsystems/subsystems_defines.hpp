@@ -1,6 +1,8 @@
 #ifndef __SUBSYSTEMS_DEFINES_H
 #define __SUBSYSTEMS_DEFINES_H
 
+#include <cstddef>
+
 /* =========================================================================
  * MOTOR DEFINES
  * ====================================================================== */
@@ -83,5 +85,12 @@
 #define MAX_PACK_BUFFER_SIZE 64  // Measured in bytes.
 #define PACK_HEADER_SIZE 4
 #define PACK_TRAILER_SIZE 4
+
+/* =========================================================================
+ * MESSAGE CENTER DEFINES
+ * ====================================================================== */
+namespace mc2 {
+    constexpr size_t MAX_TOPIC_QUEUE_SIZE = 20;
+}
 
 #endif

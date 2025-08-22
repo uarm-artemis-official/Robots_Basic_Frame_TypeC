@@ -2,7 +2,7 @@
 #define __DEBUG_H
 
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 // TODO: Support setting rbg led to any color.
 class Debug : public IDebug {

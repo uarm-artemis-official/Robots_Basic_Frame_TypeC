@@ -331,10 +331,10 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     // referee_init(&referee);
     dwt_init();
 
-    UART_Config_t config;
+    UART_Config_t uart_config;
     CAN_ISR::Config can_isr_config;
     if (debug.get_board_status() == CHASSIS_BOARD) {
-        config = CHASSIS;
+        uart_config = CHASSIS;
 
         if constexpr (robot_config::config_type ==
                       robot_config::ConfigType::Sentry) {
@@ -346,13 +346,13 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
         if constexpr (robot_config::config_type ==
                       robot_config::ConfigType::AutoAim) {
             // Add mode for enabling PC UART and RC for one board.
-            config = CHASSIS;
+            uart_config = CHASSIS;
         } else {
-            config = GIMBAL;
+            uart_config = GIMBAL;
         }
         can_isr_config = CAN_ISR::Config::NORMAL;
     }
-    init_uart_isr(config);
+    init_uart_isr(uart_config);
     can_isr.init(can_isr_config);
 
     return HAL_OK;

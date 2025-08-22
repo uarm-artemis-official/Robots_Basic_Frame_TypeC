@@ -23,7 +23,7 @@ namespace gimbal_params {
         {0.0f, 0.0f, 1.0f},
     };
     // 1 = CCW positive (i.e. rotating CCW pitches up)
-    // 1 = CW positive (i.e. rotating CW pitches up)
+    // -1 = CW positive (i.e. rotating CW pitches up)
     constexpr float PITCH_ORIENTATION = 1;
 
     // Gimbal yaw PID.

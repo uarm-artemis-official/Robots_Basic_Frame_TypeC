@@ -8,7 +8,7 @@
 #include "attitude_types.h"
 #include "control_types.hpp"
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 #include "uarm_types.hpp"
 
 /* =========================================================================

@@ -3,7 +3,7 @@
 
 #include "can.h"
 #include "subsystems_interfaces.h"
-#include "subsystems_types.h"
+#include "subsystems_types.hpp"
 
 namespace CAN_ISR {
     enum class Config { NORMAL, SENTRY_CHASSIS, SENTRY_GIMBAL };
