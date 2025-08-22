@@ -12,7 +12,9 @@ class ExtendedRTOSApp {
     static_assert(_loop_period_ms > 0,
                   "There must be a delay between loops for RTOS apps.");
     static constexpr uint32_t loop_period_ms = _loop_period_ms;
-    static constexpr float get_loop_period() { return loop_period_ms / 1000; }
+    static constexpr float get_loop_period() {
+        return static_cast<float>(loop_period_ms) / 1000;
+    }
 
     void run(const void* argument) {
         (void) argument;

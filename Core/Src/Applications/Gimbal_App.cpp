@@ -408,6 +408,11 @@ void GimbalApp::process_commands() {
         command_deltas[0] = gimbal_command.yaw;
         command_deltas[1] = gimbal_command.pitch;
 
+        if (fabs(command_deltas[0]) < 0.001)
+            command_deltas[0] = 0;
+        if (fabs(command_deltas[1]) < 0.001)
+            command_deltas[1] = 0;
+
         BoardMode_t board_mode =
             static_cast<BoardMode_t>((gimbal_command.command_bits >> 3) & 0x7);
         BoardActMode_t act_mode =
@@ -509,6 +514,8 @@ void GimbalApp::update_targets() {
     }
 }
 
+static float gimbal_app_loop_period = GimbalApp::get_loop_period();
+
 // TODO: Small shaking/doesn't fully limit pitch within range.
 void GimbalApp::limit_pitch_target() {
     static_assert(-PI / 2 <= robot_config::gimbal_params::PITCH_MIN_ANGLE);
@@ -534,13 +541,13 @@ void GimbalApp::calc_control_signals() {
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid, 0, yaw_diff,
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm,
-        GIMBAL_TASK_EXEC_TIME * 0.001, GIMBAL_TASK_EXEC_TIME * 0.001);
+        GimbalApp::get_loop_period(), GimbalApp::get_loop_period());
 
     pid2_dual_loop_control(
         motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid,
         motor_controls[GIMBAL_PITCH_MOTOR_INDEX].s_pid, 0, pitch_diff,
         motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_rpm,
-        GIMBAL_TASK_EXEC_TIME * 0.001, GIMBAL_TASK_EXEC_TIME * 0.001);
+        GimbalApp::get_loop_period(), GimbalApp::get_loop_period());
 }
 
 void GimbalApp::send_motor_volts() {

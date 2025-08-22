@@ -166,7 +166,7 @@ void OmniDrive::calc_motor_volts() {
             motor_controls.at(i).sp_ramp.output * RADS_TO_RPM *
                 CHASSIS_MOTOR_DEC_RATIO,
             static_cast<float>(motor_controls.at(i).feedback.rx_rpm),
-            CHASSIS_TASK_EXEC_TIME * 0.001);
+            ChassisApp<OmniDrive>::get_loop_period());
     }
 }
 

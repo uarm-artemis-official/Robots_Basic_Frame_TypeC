@@ -19,14 +19,11 @@ namespace app_defines {
     constexpr uint32_t referee_task_loop_period_ms = 10;
 }  // namespace app_defines
 
-#define CHASSIS_TASK_EXEC_TIME 5
-#define GIMBAL_TASK_EXEC_TIME 5
-#define IMU_TASK_EXEC_TIME 2
-
 /* =========================================================================
  * CHASSIS DEFINES 
  * ====================================================================== */
 /* define general declarations for gimbal task here */
+// TODO: Use strong types.
 #define CHASSIS_WHEEL_X_LENGTH (0.40f)      // meters
 #define CHASSIS_WHEEL_Y_LENGTH (0.35f)      // meters
 #define CHASSIS_OMNI_WHEEL_RADIUS (0.076f)  // meters
@@ -35,12 +32,6 @@ namespace app_defines {
 #define CHASSIS_MOTOR_DEC_RATIO (19.0f)  // motor deduction ratio 19:1
 #define CHASSIS_SLEF_GYRO_ANG_VEL 80
 #define CHASSIS_MAX_SPEED 16384
-
-/* power limit defines */
-#define CHASSIS_POWER_DANGER 20       //random value, test soon
-#define CHASSIS_POWER_THRESHOLD 45    //random value, test soon
-#define POWER_TO_CURRENT (1.0f)       //random value, test soon
-#define CHASSIS_PC_RAMP_VALUE (0.5f)  //ramp value for increment of the motors
 
 // Wheel index defines
 #define CHASSIS_WHEEL1_INDEX 0

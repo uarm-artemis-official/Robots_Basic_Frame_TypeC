@@ -24,7 +24,7 @@ namespace gimbal_params {
     };
     // 1 = CCW positive (i.e. rotating CCW pitches up)
     // -1 = CW positive (i.e. rotating CW pitches up)
-    constexpr float PITCH_ORIENTATION = 1;
+    constexpr float PITCH_ORIENTATION = -1;
 
     // Gimbal yaw PID.
     constexpr float KP_GIMBAL_YAW_ANGLE = 76;

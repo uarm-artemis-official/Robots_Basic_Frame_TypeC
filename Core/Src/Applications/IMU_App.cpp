@@ -124,7 +124,7 @@ int32_t IMUApp::imu_temp_pid_control() {
         prescaled_pid2_single_loop_control(
             &(imu_heating_control.pid), IMUApp::TARGET_IMU_TEMP,
             imu_app_state.temp,
-            IMU_TASK_EXEC_TIME * 0.001f);  // pid control
+            IMUApp::get_loop_period());  // pid control
         imu.set_heat_pwm(imu_heating_control.pid.pid.total_out);
 
         if (temp_diff_magnitude <= IMUApp::NORMAL_TEMP_THRESHOLD) {
