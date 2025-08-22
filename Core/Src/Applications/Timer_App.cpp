@@ -11,9 +11,8 @@
 * All rights reserved.
 *******************************************************************************/
 
-#include "Timer_App.h"
 #include <cstring>
-#include "apps_defines.h"
+#include "apps_defines.hpp"
 #include "apps_types.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_os.hpp"

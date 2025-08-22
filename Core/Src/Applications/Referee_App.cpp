@@ -18,7 +18,7 @@
 // extern "C" {
 // #endif
 
-#include "Referee_App.h"
+#include "apps_types.hpp"
 #include "crc.hpp"
 // #include "referee_data.h"
 #include "string.h"

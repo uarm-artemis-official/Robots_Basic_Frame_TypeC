@@ -9,12 +9,10 @@
 *******************************************************************************/
 //#define CHASSIS_POWER_LIMIT
 
-#include "Chassis_App.h"
 #include <cstring>
 #include <type_traits>
-#include "Omni_Drive.h"
-#include "Swerve_Drive.h"
-#include "apps_defines.h"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
 #include "pid.h"
 #include "robot_config.hpp"
 #include "uarm_lib.hpp"
@@ -116,7 +114,7 @@ void ChassisApp<DriveTrain>::calc_movement_vectors() {
                 chassis.v_parallel * arm_cos_f32(chassis.gimbal_yaw_rel_angle);
             chassis.wz = pid2_single_loop_control(
                 chassis.spin_pid, 0, chassis.gimbal_yaw_rel_angle,
-                ChassisApp::LOOP_PERIOD_MS * 0.001);
+                ChassisApp::get_loop_period());
             break;
         case SELF_GYRO:
             chassis.vx =

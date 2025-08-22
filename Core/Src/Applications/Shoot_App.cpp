@@ -7,9 +7,9 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#include "Shoot_App.h"
 #include <cstring>
-#include "apps_defines.h"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
 #include "pid.h"
 #include "ramp.hpp"
 #include "robot_config.hpp"
@@ -150,10 +150,10 @@ void ShootApp::detect_loader_stall() {
                 current_loader_current <
             robot_config::shoot_params::
                 JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD) {
-        shoot.stall_duration += LOOP_PERIOD_MS * 0.001;
+        shoot.stall_duration += ShootApp::get_loop_period();
     } else {
         shoot.stall_duration = 0;
-        shoot.no_stall_duration += LOOP_PERIOD_MS * 0.001;
+        shoot.no_stall_duration += ShootApp::get_loop_period();
     }
 
     if (shoot.stall_duration >
@@ -211,22 +211,22 @@ void ShootApp::calc_targets() {
 void ShootApp::calc_motor_outputs() {
     // TODO: Loader calculations.
     ramp_calc_output(flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp,
-                     LOOP_PERIOD_MS * 0.001f);
+                     ShootApp::get_loop_period());
 
     ramp_calc_output(flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp,
-                     LOOP_PERIOD_MS * 0.001f);
+                     ShootApp::get_loop_period());
 
     pid2_single_loop_control(
         flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid,
         flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp.output,
         flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback.rx_rpm,
-        LOOP_PERIOD_MS * 0.001f);
+        ShootApp::get_loop_period());
 
     pid2_single_loop_control(
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp.output,
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
-        LOOP_PERIOD_MS * 0.001f);
+        ShootApp::get_loop_period());
 
     if (shoot.loader_target_rpm == 0) {
         loader_control.speed_pid.i_out = 0;
@@ -238,7 +238,7 @@ void ShootApp::calc_motor_outputs() {
             loader_control.speed_pid,
             shoot.loader_target_rpm *
                 robot_config::gimbal_params::LOADER_GEAR_RATIO,
-            loader_control.feedback.rx_rpm, LOOP_PERIOD_MS * 0.001f);
+            loader_control.feedback.rx_rpm, ShootApp::get_loop_period());
     }
 }
 

@@ -6,26 +6,19 @@
 // TODO: Add startup events for apps so certain apps will start after certain events.
 // e.g. Chassis and Gimbal Apps only start when motors are detected to be online.
 // TODO: Add another template parameter for task period with getter function to access it.
-template <class Derived>
+template <class Derived, uint32_t _loop_period_ms>
 class ExtendedRTOSApp {
    public:
-    void run(const void* argument) {
-        // TODO: Implement static asserts to check if derived has the following defined:
-        //  - Derived::LOOP_PERIOD_MS
-        //  - void init()
-        //  - void calibrate()
-        //  - bool exit_calibrate_cond()
-        //  - void after_calibrate()
-        //  - bool exit_loop_prepare_cond()
-        //  - void loop_prepare()
-        //  - void after_loop_prepare()
-        //  - void loop()
+    static_assert(_loop_period_ms > 0,
+                  "There must be a delay between loops for RTOS apps.");
+    static constexpr uint32_t loop_period_ms = _loop_period_ms;
+    static constexpr float get_loop_period() { return loop_period_ms / 1000; }
 
+    void run(const void* argument) {
         (void) argument;
         Derived* derived = static_cast<Derived*>(this);
         TickType_t xLastWakeTime;
-        static_assert(Derived::LOOP_PERIOD_MS != 0);
-        const TickType_t xFrequency = pdMS_TO_TICKS(Derived::LOOP_PERIOD_MS);
+        const TickType_t xFrequency = pdMS_TO_TICKS(loop_period_ms);
         xLastWakeTime = xTaskGetTickCount();
         derived->init();
         for (;;) {
@@ -44,8 +37,8 @@ class ExtendedRTOSApp {
     }
 };
 
-template <class Derived>
-class RTOSApp : public ExtendedRTOSApp<Derived> {
+template <class Derived, int loop_period_ms>
+class RTOSApp : public ExtendedRTOSApp<Derived, loop_period_ms> {
    public:
     void calibrate() {}
     bool exit_calibrate_cond() { return true; }

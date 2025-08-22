@@ -9,10 +9,10 @@
 * All rights reserved.
 ******************************************************************************
 */
-#include "Comm_App.h"
 #include <cstring>
 #include <limits>
-#include "apps_defines.h"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
 #include "quantize.hpp"
 #include "string.h"
 #include "uarm_lib.hpp"

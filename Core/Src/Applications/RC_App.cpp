@@ -16,11 +16,11 @@
 #ifndef __RC_APP_C__
 #define __RC_APP_C__
 
-#include "RC_App.hpp"
 #include <algorithm>
 #include <cstring>
 #include <limits>
-#include "apps_defines.h"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
 #include "quantize.hpp"
 #include "robot_config.hpp"
 #include "uarm_lib.hpp"

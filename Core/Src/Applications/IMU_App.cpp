@@ -8,8 +8,8 @@
 * All rights reserved.
 *******************************************************************************/
 
-#include "IMU_App.h"
-#include "apps_defines.h"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
 #include "pid.h"
 #include "string.h"
 #include "uarm_lib.hpp"

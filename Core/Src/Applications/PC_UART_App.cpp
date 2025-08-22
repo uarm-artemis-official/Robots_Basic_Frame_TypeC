@@ -7,9 +7,9 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#include "PC_UART_App.h"
 #include <cstring>
-#include "apps_defines.h"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 #include "uarm_os.hpp"

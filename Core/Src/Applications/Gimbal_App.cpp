@@ -7,10 +7,10 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#include "Gimbal_App.h"
 #include <string.h>
 #include <algorithm>
-#include "apps_defines.h"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
 #include "pid.h"
 #include "robot_config.hpp"
 #include "uarm_lib.hpp"

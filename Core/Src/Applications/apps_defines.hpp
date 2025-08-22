@@ -1,19 +1,27 @@
 #ifndef __APPS_CONFIG_H
 #define __APPS_CONFIG_H
 
+#include <cstdint>
+
 /* =========================================================================
  * PUBLIC DEFINES 
  * ====================================================================== */
 /* Task exec time in milliseconds */
+namespace app_defines {
+    constexpr uint32_t chassis_task_loop_period_ms = 5;
+    constexpr uint32_t gimbal_task_loop_period_ms = 5;
+    constexpr uint32_t shoot_task_loop_period_ms = 5;
+    constexpr uint32_t imu_task_loop_period_ms = 2;
+    constexpr uint32_t timer_task_loop_period_ms = 1;
+    constexpr uint32_t comm_task_loop_period_ms = 2;
+    constexpr uint32_t rc_task_loop_period_ms = 2;
+    constexpr uint32_t pc_uart_task_loop_period_ms = 1;
+    constexpr uint32_t referee_task_loop_period_ms = 10;
+}  // namespace app_defines
+
 #define CHASSIS_TASK_EXEC_TIME 5
 #define GIMBAL_TASK_EXEC_TIME 5
-#define SHOOT_TASK_EXEC_TIME 5
 #define IMU_TASK_EXEC_TIME 2
-#define TIMER_TASK_EXEC_TIME 1
-#define COMM_TASK_EXEC_TIME 2
-#define RC_TASK_EXEC_TIME 2
-#define PC_UART_TASK_EXEC_TIME 1
-#define REFEREE_TASK_EXEC_TIME 10
 
 /* =========================================================================
  * CHASSIS DEFINES 
@@ -113,5 +121,12 @@
 #define RC_WZ_SEND_THRESHOLD 0.01f
 #define RC_V_PERP_SEND_THRESHOLD 0.01f
 #define RC_V_PARALLEL_SEND_THRESHOLD 0.01f
+
+/* =========================================================================
+ * REFEREE DEFINES
+ * ====================================================================== */
+#define REFEREE_NON_RECV_MAX_COUNT \
+    100  // maximum count of non-received referee data before reset
+// now is 1 second
 
 #endif

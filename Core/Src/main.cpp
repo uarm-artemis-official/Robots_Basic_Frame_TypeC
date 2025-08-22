@@ -111,18 +111,7 @@
 #include "stm32f407xx.h"
 #include "uart_isr.hpp"
 
-#include "Chassis_App.h"
-#include "Comm_App.h"
-#include "Gimbal_App.h"
-#include "IMU_App.h"
-#include "Omni_Drive.h"
-#include "PC_UART_App.h"
-#include "RC_App.hpp"
-#include "Referee_App.h"
-#include "Shoot_App.h"
-#include "Swerve_Drive.h"
-#include "Timer_App.h"
-#include "WatchDog_App.h"
+#include "apps_types.hpp"
 
 // Function signature so main.c can find main_cpp().
 extern "C" {
@@ -139,7 +128,7 @@ static CanComm can_comm;
 static Motors motors;
 static RefereeUI ref_ui;
 static Motors no_init_motors;
-static Imu imu(1000 / IMUApp::LOOP_PERIOD_MS, 0.4,
+static Imu imu(1000 / IMUApp::loop_period_ms, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
 static AmmoLid ammo_lid;
 static RCComm rc_comm;
@@ -150,8 +139,7 @@ static CAN_ISR::CAN_ISR can_isr(message_center);
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
-static constexpr float swerve_dt =
-    ChassisApp<SwerveDrive>::LOOP_PERIOD_MS * 0.001;
+static constexpr float swerve_dt = ChassisApp<SwerveDrive>::get_loop_period();
 static SwerveDrive swerve_drive(message_center, no_init_motors,
                                 swerve_chassis_width, swerve_dt);
 static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
@@ -161,13 +149,13 @@ static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
 static constexpr float omni_chassis_width = 0.40f;
 static OmniDrive omni_drive(message_center, no_init_motors, omni_chassis_width,
                             omni_chassis_width, 80,
-                            ChassisApp<OmniDrive>::LOOP_PERIOD_MS * 0.001);
+                            ChassisApp<OmniDrive>::get_loop_period());
 #else
 static constexpr float mecanum_chassis_width = 0.41f;
 static constexpr float mecanum_chassis_length = 0.35f;
 static OmniDrive omni_drive(message_center, no_init_motors,
                             mecanum_chassis_width, mecanum_chassis_length, 50,
-                            ChassisApp<OmniDrive>::LOOP_PERIOD_MS * 0.001);
+                            ChassisApp<OmniDrive>::get_loop_period());
 #endif
 
 static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);

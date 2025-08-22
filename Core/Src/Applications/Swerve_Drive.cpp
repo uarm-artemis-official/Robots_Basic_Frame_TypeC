@@ -1,9 +1,9 @@
-#include "Swerve_Drive.h"
 #include <algorithm>
 #include <cstring>
 #include <iterator>
 #include <numbers>
-#include "apps_defines.h"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
 #include "pid.h"
 #include "robot_config.hpp"
 #include "uarm_lib.hpp"
