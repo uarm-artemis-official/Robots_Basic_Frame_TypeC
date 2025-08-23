@@ -324,7 +324,7 @@ namespace mc2 {
     struct TopicHandle {
         QueueHandle_t queue;
         std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> timestamps;
-        size_t newest_timestamp_index;
+        size_t recent_timestamp_index;
     };
 
     template <typename TopicRegistry>
@@ -342,11 +342,11 @@ namespace mc2 {
         uint32_t peek_message(T& message, uint32_t ticks_to_wait = 0);
 
         template <typename T>
-        void pub_message(T& message);
+        uint32_t pub_message(T& message);
 
         template <typename T>
-        void pub_message_from_isr(T& message,
-                                  uint8_t* will_context_switch = nullptr);
+        uint32_t pub_message_from_isr(T& message,
+                                      uint8_t* will_context_switch = nullptr);
     };
 }  // namespace mc2
 
