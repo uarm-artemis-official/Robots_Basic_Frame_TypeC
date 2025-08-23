@@ -165,7 +165,8 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     for (size_t i = 0; i < NUM_DRIVE_MOTORS; i++) {
         pid2_single_loop_control(
             drive_motors.at(i).f_pid,
-            drive_target_speed.at(i) * RADS_TO_RPM * CHASSIS_MOTOR_DEC_RATIO *
+            drive_target_speed.at(i) * RADS_TO_RPM *
+                apps_defines::chassis::wheel_motor_reduction_ratio *
                 inverse_wheel_radius,
             static_cast<float>(drive_motors.at(i).feedback.rx_rpm), dt);
         drive_output.at(i) =

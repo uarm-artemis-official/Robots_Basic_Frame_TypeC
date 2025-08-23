@@ -320,14 +320,16 @@ void RCApp::pub_command_messages() {
             v_perp += robot_config::chassis_params::MAX_TRANSLATION;
 
         float yaw = in_out_map(rc.pc.mouse.x, -MOUSE_MAX_SPEED, MOUSE_MAX_SPEED,
-                               -100, 100);
+                               -apps_defines::rc::mouse_max_yaw_magnitude_out,
+                               apps_defines::rc::mouse_max_yaw_magnitude_out);
 
         send_chassis_command(v_parallel, v_perp, yaw, pc_board_mode,
                              pc_act_mode);
 
         float pitch =
             -in_out_map(rc.pc.mouse.y, -MOUSE_MAX_SPEED, MOUSE_MAX_SPEED,
-                        -MAX_MOUSE_PITCH_OUT, MAX_MOUSE_PITCH_OUT);
+                        -apps_defines::rc::mouse_max_pitch_magnitude_out,
+                        apps_defines::rc::mouse_max_pitch_magnitude_out);
 
         send_gimbal_can_comm(0, pitch, pc_board_mode, pc_act_mode);
         send_shoot_command(pc_shoot_mode, pc_ammo_status);
@@ -337,41 +339,45 @@ void RCApp::pub_command_messages() {
         ShootActMode_t shoot_mode;
         map_switches_to_modes(board_mode, act_mode, shoot_mode);
 
-        float v_perp =
-            in_out_map(rc.ctrl.ch2, -CHANNEL_OFFSET_MAX_ABS_VAL,
-                       CHANNEL_OFFSET_MAX_ABS_VAL,
-                       -robot_config::chassis_params::MAX_TRANSLATION,
-                       robot_config::chassis_params::MAX_TRANSLATION);
-        float v_parallel =
-            in_out_map(rc.ctrl.ch3, -CHANNEL_OFFSET_MAX_ABS_VAL,
-                       CHANNEL_OFFSET_MAX_ABS_VAL,
-                       -robot_config::chassis_params::MAX_TRANSLATION,
-                       robot_config::chassis_params::MAX_TRANSLATION);
-        float wz = in_out_map(rc.ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL,
-                              CHANNEL_OFFSET_MAX_ABS_VAL,
+        float v_perp = in_out_map(
+            rc.ctrl.ch2, -apps_defines::rc::joystick_max_offset_magnitude,
+            apps_defines::rc::joystick_max_offset_magnitude,
+            -robot_config::chassis_params::MAX_TRANSLATION,
+            robot_config::chassis_params::MAX_TRANSLATION);
+        float v_parallel = in_out_map(
+            rc.ctrl.ch3, -apps_defines::rc::joystick_max_offset_magnitude,
+            apps_defines::rc::joystick_max_offset_magnitude,
+            -robot_config::chassis_params::MAX_TRANSLATION,
+            robot_config::chassis_params::MAX_TRANSLATION);
+        float wz = in_out_map(rc.ctrl.ch0,
+                              -apps_defines::rc::joystick_max_offset_magnitude,
+                              apps_defines::rc::joystick_max_offset_magnitude,
                               -robot_config::chassis_params::MAX_ROTATION,
                               robot_config::chassis_params::MAX_ROTATION);
 
-        if (fabs(v_perp) < RC_V_PERP_SEND_THRESHOLD)
+        if (fabs(v_perp) < apps_defines::rc::chassis_joystick_send_threshold)
             v_perp = 0;
-        if (fabs(v_parallel) < RC_V_PARALLEL_SEND_THRESHOLD)
+        if (fabs(v_parallel) <
+            apps_defines::rc::chassis_joystick_send_threshold)
             v_parallel = 0;
-        if (fabs(wz) < RC_WZ_SEND_THRESHOLD)
+        if (fabs(wz) < apps_defines::rc::chassis_joystick_send_threshold)
             wz = 0;
 
         send_chassis_command(v_parallel, v_perp, wz, board_mode, act_mode);
 
-        float yaw = in_out_map(rc.ctrl.ch0, -CHANNEL_OFFSET_MAX_ABS_VAL,
-                               CHANNEL_OFFSET_MAX_ABS_VAL, -5.0f * DEGREE2RAD,
-                               5.0f * DEGREE2RAD);
-        float pitch = in_out_map(rc.ctrl.ch1, -CHANNEL_OFFSET_MAX_ABS_VAL,
-                                 CHANNEL_OFFSET_MAX_ABS_VAL, -5.0f * DEGREE2RAD,
-                                 5.0f * DEGREE2RAD);
+        float yaw = in_out_map(rc.ctrl.ch0,
+                               -apps_defines::rc::joystick_max_offset_magnitude,
+                               apps_defines::rc::joystick_max_offset_magnitude,
+                               -5.0f * DEGREE2RAD, 5.0f * DEGREE2RAD);
+        float pitch = in_out_map(
+            rc.ctrl.ch1, -apps_defines::rc::joystick_max_offset_magnitude,
+            apps_defines::rc::joystick_max_offset_magnitude, -5.0f * DEGREE2RAD,
+            5.0f * DEGREE2RAD);
 
         // Command delta deadbands.
-        if (fabs(yaw) < RC_YAW_SEND_THRESHOLD)
+        if (fabs(yaw) < apps_defines::rc::gimbal_joystick_send_threshold)
             yaw = 0;
-        if (fabs(pitch) < RC_PITCH_SEND_THRESHOLD)
+        if (fabs(pitch) < apps_defines::rc::gimbal_joystick_send_threshold)
             pitch = 0;
 
         send_gimbal_can_comm(yaw, pitch, board_mode, act_mode);

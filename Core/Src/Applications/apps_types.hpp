@@ -114,7 +114,7 @@ typedef struct {
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
-                                  app_defines::chassis_task_loop_period_ms> {
+                                  apps_defines::chassis_task_loop_period_ms> {
    private:
     ChassisDrive<DriveTrain>& drive_train;
     IMessageCenter& message_center;
@@ -306,7 +306,7 @@ typedef struct {
  * */
 class GimbalApp
     : public ExtendedRTOSApp<GimbalApp,
-                             app_defines::gimbal_task_loop_period_ms> {
+                             apps_defines::gimbal_task_loop_period_ms> {
    private:
     Gimbal_t gimbal;
     Gimbal_Imu_Calibration_t imu_calibration;
@@ -405,7 +405,7 @@ struct FlyWheelControl {
 };
 
 class ShootApp
-    : public RTOSApp<ShootApp, app_defines::shoot_task_loop_period_ms> {
+    : public RTOSApp<ShootApp, apps_defines::shoot_task_loop_period_ms> {
    private:
     IMessageCenter& message_center;
     IAmmoLid& ammo_lid;
@@ -448,7 +448,7 @@ typedef struct {
 } IMU_Heat_t;
 
 class IMUApp
-    : public ExtendedRTOSApp<IMUApp, app_defines::imu_task_loop_period_ms> {
+    : public ExtendedRTOSApp<IMUApp, apps_defines::imu_task_loop_period_ms> {
    private:
     IMessageCenter& message_center;
     IEventCenter& event_center;
@@ -501,7 +501,7 @@ typedef struct {
 } Referee_t;
 
 class RefereeApp
-    : public RTOSApp<RefereeApp, app_defines::referee_task_loop_period_ms> {
+    : public RTOSApp<RefereeApp, apps_defines::referee_task_loop_period_ms> {
    private:
     IMessageCenter& message_center;
     IEventCenter& event_center;
@@ -538,7 +538,7 @@ typedef struct {
     BoardActMode_t board_act_mode;
 } RemoteControl_t;
 
-class RCApp : public RTOSApp<RCApp, app_defines::rc_task_loop_period_ms> {
+class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
    private:
     IMessageCenter& message_center;
     IRCComm& rc_comm;
@@ -586,7 +586,7 @@ namespace CommApp {
     };
 
     class CommApp
-        : public RTOSApp<CommApp, app_defines::comm_task_loop_period_ms> {
+        : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
        private:
         IMessageCenter& message_center;
         IDebug& debug;
@@ -606,7 +606,7 @@ namespace CommApp {
  * TIMER TYPES
  * ====================================================================== */
 class TimerApp
-    : public RTOSApp<TimerApp, app_defines::timer_task_loop_period_ms> {
+    : public RTOSApp<TimerApp, apps_defines::timer_task_loop_period_ms> {
    private:
     const std::array<Motor_CAN_ID_t, 4> swerve_ids = {
         SWERVE_STEER_MOTOR1, SWERVE_STEER_MOTOR2, SWERVE_STEER_MOTOR3,
@@ -628,7 +628,7 @@ class TimerApp
  * PC UART TYPES
  * ====================================================================== */
 class PCUARTApp
-    : public RTOSApp<PCUARTApp, app_defines::pc_uart_task_loop_period_ms> {
+    : public RTOSApp<PCUARTApp, apps_defines::pc_uart_task_loop_period_ms> {
    private:
     IMessageCenter& message_center;
     IMotors& motors;

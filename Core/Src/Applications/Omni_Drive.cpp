@@ -87,7 +87,8 @@ void OmniDrive::calc_target_motor_speeds(float vx, float vy, float wz) {
 
     /* may apply super super capacity gain here */
     /* may apply level up gain and power limit here when we have referee system feedback */
-    constexpr float inverse_wheel_radius = 1 / CHASSIS_OMNI_WHEEL_RADIUS;
+    constexpr float inverse_wheel_radius =
+        1 / apps_defines::chassis::omni_wheel_radius;
     std::get<0>(motor_angular_vel) =
         (vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius;
     std::get<1>(
@@ -141,7 +142,8 @@ void OmniDrive::calc_power_limits() {
         float torque_current = torque / OUTPUT_TORQUE_CONSTANT;
         float output_limit =
             fabs(value_limit(torque_current / CURRENT_RESOLUTION,
-                             -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED));
+                             -apps_defines::chassis::motor_max_output,
+                             apps_defines::chassis::motor_max_output));
         pid2_set_limits(motor_controls.at(i).f_pid, -output_limit,
                         output_limit);
     }
@@ -153,10 +155,11 @@ void OmniDrive::calc_motor_volts() {
     constexpr float RADS_TO_RPM = 60 / (2 * PI);
     for (size_t i = 0; i < motor_controls.size(); i++) {
         int16_t motor_target = value_limit(
-            motor_angular_vel.at(i), -CHASSIS_MAX_SPEED, CHASSIS_MAX_SPEED);
+            motor_angular_vel.at(i), -apps_defines::chassis::motor_max_output,
+            apps_defines::chassis::motor_max_output);
         ramp_set_target(motor_controls.at(i).sp_ramp,
                         motor_controls.at(i).feedback.rx_rpm / RADS_TO_RPM /
-                            CHASSIS_MOTOR_DEC_RATIO,
+                            apps_defines::chassis::wheel_motor_reduction_ratio,
                         motor_target);
 
         ramp_calc_output(motor_controls.at(i).sp_ramp, chassis_dt);
@@ -164,7 +167,7 @@ void OmniDrive::calc_motor_volts() {
         pid2_single_loop_control(
             motor_controls.at(i).f_pid,
             motor_controls.at(i).sp_ramp.output * RADS_TO_RPM *
-                CHASSIS_MOTOR_DEC_RATIO,
+                apps_defines::chassis::wheel_motor_reduction_ratio,
             static_cast<float>(motor_controls.at(i).feedback.rx_rpm),
             ChassisApp<OmniDrive>::get_loop_period());
     }
