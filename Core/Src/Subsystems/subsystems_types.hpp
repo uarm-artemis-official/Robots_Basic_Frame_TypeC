@@ -235,24 +235,6 @@ namespace mc2 {
         Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
     };
 
-    struct RCInfo : Topic<5>, InterboardMessage<RCInfo, MessageNode::Gimbal> {
-        /*
-	 * modes[0] - BoardMode_t
-	 * modes[1] - BoardActMode_t
-	 * modes[2] - ShootActMode_t
-	 */
-        uint8_t modes[3];
-
-        /*
-	 * channels[0-3] - Have info from RC on Chassis.
-	 * channels[0-1] - Have info from Chassis on Gimbal.
-	 * Gimbal is not given channels[2] and channels[3] because it does not need channels[0] and
-	 * channels[1] for calculations. This allows RC info to be transmitted in one CAN frame (8 bytes).
-	 */
-        int16_t channels[4];
-        // TODO: implement encode and decode methods.
-    };
-
     struct MotorRead : Topic<1> {
         uint8_t feedback[MAX_MOTOR_COUNT][8];
         Motor_CAN_ID_t can_ids[MAX_MOTOR_COUNT];
@@ -262,26 +244,40 @@ namespace mc2 {
         float v_perp;
         float v_parallel;
         float wz;
-        uint16_t command_bits;  // TODO: Implement and remove RC_INFO.
+        uint16_t command_bits;
     };
 
-    struct GimbalCommand : Topic<1> {
+    struct GimbalCommand
+        : Topic<1>,
+          InterboardMessage<GimbalCommand, MessageNode::Gimbal> {
         float yaw;
         float pitch;
         uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
+
+        void encode(std::array<uint8_t, 200>& bytes) override;
+        void decode(std::array<uint8_t, 200>& bytes) override;
     };
 
-    struct ShootCommand : Topic<1> {
+    struct ShootCommand : Topic<1>,
+                          InterboardMessage<ShootCommand, MessageNode::Gimbal> {
         uint32_t command_bits;
         uint32_t extra_bits;
+
+        void encode(std::array<uint8_t, 200>& bytes) override;
+        void decode(std::array<uint8_t, 200>& bytes) override;
     };
 
-    struct RefereeInfo : Topic<1> {
+    struct RefereeInfo : Topic<1>,
+                         InterboardMessage<RefereeInfo, MessageNode::Gimbal> {
         uint8_t robot_id;
         uint8_t robot_level;
         uint16_t shoot_barrel_cooling_rate;
         uint16_t shoot_barrel_heat_limit;
         uint16_t chassis_power_limit;
+
+        // TODO: Implement.
+        void encode(std::array<uint8_t, 200>& bytes) override;
+        void decode(std::array<uint8_t, 200>& bytes) override;
     };
 
     struct CommOut : Topic<5> {
@@ -302,7 +298,9 @@ namespace mc2 {
           InterboardMessage<GimbalRelativeAngles, MessageNode::Chassis> {
         float yaw;
         float pitch;
-        // TODO: Implement encode and decode
+
+        void encode(std::array<uint8_t, 200>& bytes) override;
+        void decode(std::array<uint8_t, 200>& bytes) override;
     };
 
     struct RefereeIn : Topic<1> {
@@ -319,13 +317,14 @@ namespace mc2 {
     };
 
     using RobotTopics =
-        std::tuple<MotorSet, MotorRead, RCInfo, ChassisCommand, GimbalCommand,
+        std::tuple<MotorSet, MotorRead, ChassisCommand, GimbalCommand,
                    ShootCommand, RefereeInfo, CommOut, CommIn, ImuReadings,
                    GimbalRelativeAngles, RefereeIn, RCRaw, AutoAim>;
 
     struct TopicHandle {
         QueueHandle_t queue;
         std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> timestamps;
+        size_t newest_timestamp_index;
     };
 
     template <typename TopicRegistry>

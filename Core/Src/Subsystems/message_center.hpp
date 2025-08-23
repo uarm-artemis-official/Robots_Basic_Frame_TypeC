@@ -8,7 +8,7 @@
 class MessageCenter : public IMessageCenter {
    private:
     // TODO: replace with std::array. Hard? cannot use template deduction??
-    Topic_Handle_t topic_handles[19] = {
+    Topic_Handle_t topic_handles[17] = {
         Topic_Handle_t {MOTOR_SET, sizeof(MotorSetMessage_t), 5, NULL},
         Topic_Handle_t {MOTOR_READ, sizeof(MotorReadMessage_t), 1, NULL},
         Topic_Handle_t {RC_INFO, sizeof(RCInfoMessage_t), 1, NULL},
