@@ -10,6 +10,7 @@ extern "C" {
 typedef enum {
     CHASSIS,
     GIMBAL,
+    UART_AUTO_AIM,
     UART_NONE,
 } UART_Config_t;
 

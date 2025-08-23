@@ -331,7 +331,7 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
         if constexpr (robot_config::config_type ==
                       robot_config::ConfigType::AutoAim) {
             // Add mode for enabling PC UART and RC for one board.
-            uart_config = CHASSIS;
+            uart_config = UART_AUTO_AIM;
         } else {
             uart_config = GIMBAL;
         }

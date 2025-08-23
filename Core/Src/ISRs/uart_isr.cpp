@@ -33,28 +33,25 @@ void init_uart_isr(UART_Config_t config) {
     // xSemaphoreGive(pack_rx_semaphore);
     // xSemaphoreGive(rc_rx_semaphore);
 
-    switch (config) {
-        case CHASSIS: {
-            // Initialize UART with error handling
-            if (HAL_UART_Receive_DMA(&huart3, rc_frame_buffer,
-                                     DBUS_BUFFER_LEN) != HAL_OK) {
-                // Handle error
-                Error_Handler();
-            }
-            if (HAL_UART_Receive_DMA(&huart1, ref_rx_frame,
-                                     sizeof(ref_rx_frame)) != HAL_OK) {
-                // Handle error
-                Error_Handler();
-            }
-            break;
+    if (config == CHASSIS) {
+        if (HAL_UART_Receive_DMA(&huart1, ref_rx_frame, sizeof(ref_rx_frame)) !=
+            HAL_OK) {
+            // Handle error
+            Error_Handler();
         }
-        case GIMBAL: {
-            uc_start_receive(pack_buffer, MAX_PACK_BUFFER_SIZE);
-            break;
+    }
+
+    if (config == CHASSIS || config == UART_AUTO_AIM) {
+        // Initialize UART with error handling
+        if (HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN) !=
+            HAL_OK) {
+            // Handle error
+            Error_Handler();
         }
-        default: {
-            break;
-        }
+    }
+
+    if (config == GIMBAL || config == UART_AUTO_AIM) {
+        uc_start_receive(pack_buffer, MAX_PACK_BUFFER_SIZE);
     }
 }
 
@@ -85,10 +82,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
             // Give back the semaphore
             xSemaphoreGiveFromISR(ref_rx_semaphore, &xHigherPriorityTaskWoken);
         }
-    } else if (huart == &huart1 && system_config == GIMBAL) {
+    } else if (huart == &huart1 &&
+               (system_config == GIMBAL || system_config == UART_AUTO_AIM)) {
         message_center.pub_message_from_isr(UC_PACK_IN, pack_buffer, NULL);
         HAL_UART_Receive_DMA(&huart1, pack_buffer, MAX_PACK_BUFFER_SIZE);
-    } else if (huart == &huart3 && system_config == CHASSIS) {
+    } else if (huart == &huart3 &&
+               (system_config == CHASSIS || system_config == UART_AUTO_AIM)) {
         uart_complete_count = (uart_complete_count + 1) % 1000000;
         message_center.pub_message_from_isr(RC_RAW, rc_frame_buffer, NULL);
         HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
