@@ -118,9 +118,6 @@ extern "C" {
 void main_cpp(void);
 }
 
-// TODO Remove
-uint8_t ref_rx_frame[256] = {0};  //referee temp frame buffer
-
 static MessageCenter& message_center = MessageCenter::get_instance();
 static EventCenter event_center;
 static Debug debug;

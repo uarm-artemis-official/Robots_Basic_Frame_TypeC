@@ -1,5 +1,3 @@
-
-// TODO: Rename to .hpp
 #ifndef __SUBSYSTEMS_TYPES_H
 #define __SUBSYSTEMS_TYPES_H
 
