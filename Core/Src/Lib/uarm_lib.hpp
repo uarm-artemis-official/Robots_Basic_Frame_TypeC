@@ -17,9 +17,12 @@
 #include "FreeRTOS.h"
 #include "error_handler.h"
 
-#define ASSERT(cond, msg) \
-    if (!(cond))          \
-    error_handler((msg))
+#define ASSERT(cond, msg)        \
+    if (!(cond)) {               \
+        error_handler((msg));    \
+        __builtin_unreachable(); \
+    }
+
 #define MALLOC(size) pvPortMalloc(size)
 #define FREE(ptr) vPortFree(ptr)
 #endif

@@ -12,14 +12,11 @@
 extern "C" {
 #endif
 
-#include "stm32f4xx_hal.h"
-#include "ssd1306_driver.h"
 #include "dwt.h"
+#include "ssd1306_driver.h"
+#include "stm32f4xx_hal.h"
 
-
-#define ASSERT(cond, msg) if (!(cond)) error_handler((msg))
-
-void error_handler(const char *msg);
+void error_handler(const char* msg);
 
 #ifdef __cplusplus
 }

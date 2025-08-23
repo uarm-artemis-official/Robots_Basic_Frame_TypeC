@@ -514,8 +514,6 @@ void GimbalApp::update_targets() {
     }
 }
 
-static float gimbal_app_loop_period = GimbalApp::get_loop_period();
-
 // TODO: Small shaking/doesn't fully limit pitch within range.
 void GimbalApp::limit_pitch_target() {
     static_assert(-PI / 2 <= robot_config::gimbal_params::PITCH_MIN_ANGLE);

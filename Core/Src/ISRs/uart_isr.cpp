@@ -98,8 +98,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
     if (huart == &huart3 && system_config == CHASSIS) {
         uart_error_count = (uart_error_count + 1) % 100000;
         HAL_UART_Receive_DMA(&huart3, rc_frame_buffer, DBUS_BUFFER_LEN);
