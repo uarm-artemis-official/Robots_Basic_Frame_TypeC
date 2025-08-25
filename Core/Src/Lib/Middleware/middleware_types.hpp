@@ -1,7 +1,7 @@
 #ifndef __MIDDLEWARE_TYPES_HPP
 #define __MIDDLEWARE_TYPES_HPP
 
-#include "uarm_types.hpp"
+#include <cstdint>
 
 namespace MW_GPIO {
     enum class Pin {
@@ -107,5 +107,13 @@ namespace MW_UART {
         UART6,
     };
 }  // namespace MW_UART
+
+namespace MW_I2C {
+    enum class Periperhal { I2C_2, I2C_3 };
+}
+
+namespace MW_RTOS {
+    using TickType = uint32_t;
+}
 
 #endif  // __MIDDLEWARE_TYPES_HPP

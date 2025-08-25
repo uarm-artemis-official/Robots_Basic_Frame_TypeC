@@ -196,4 +196,76 @@ namespace MW_UART {
     };
 }  // namespace MW_UART
 
+namespace MW_I2C {
+    /**
+     * @brief Interface describing I2C functionality required from middleware.
+     * This interface requires methods for master and slave transmit/receive operations.
+     * I2C middleware is primarily used for communication with external devices such as sensors and displays.
+     */
+    class II2C {
+       public:
+        /**
+         * @brief Master transmit: send data to a slave device.
+         * @param[in] i2c The I2C peripheral to use.
+         * @param[in] device_address The address of the slave device.
+         * @param[in] data Pointer to the data buffer to send.
+         * @param[in] size Number of bytes to send.
+         * @param[in] timeout Timeout for the transmission.
+         */
+        virtual void master_transmit(Periperhal i2c, uint8_t device_address,
+                                     const uint8_t* data, size_t size,
+                                     uint32_t timeout) = 0;
+
+        /**
+         * @brief Master receive: receive data from a slave device.
+         * @param[in] i2c The I2C peripheral to use.
+         * @param[in] device_address The address of the slave device.
+         * @param[out] data Pointer to the buffer to store received data.
+         * @param[in] size Number of bytes to receive.
+         * @param[in] timeout Timeout for the reception.
+         */
+        virtual void master_receive(Periperhal i2c, uint8_t device_address,
+                                    uint8_t* data, size_t size,
+                                    uint32_t timeout) = 0;
+
+        /**
+         * @brief Slave transmit: send data when acting as a slave.
+         * @param[in] i2c The I2C peripheral to use.
+         * @param[in] data Pointer to the data buffer to send.
+         * @param[in] size Number of bytes to send.
+         * @param[in] timeout Timeout for the transmission.
+         */
+        virtual void slave_transmit(Periperhal i2c, const uint8_t* data,
+                                    size_t size, uint32_t timeout) = 0;
+
+        /**
+         * @brief Slave receive: receive data when acting as a slave.
+         * @param[in] i2c The I2C peripheral to use.
+         * @param[out] data Pointer to the buffer to store received data.
+         * @param[in] size Number of bytes to receive.
+         * @param[in] timeout Timeout for the reception.
+         */
+        virtual void slave_receive(Periperhal i2c, uint8_t* data, size_t size,
+                                   uint32_t timeout) = 0;
+    };
+}  // namespace MW_I2C
+
+namespace MW_RTOS {
+    class IRTOS {
+       public:
+        // Task delays and task ticks.
+        virtual void delay_until(uint32_t* previous_wake, uint32_t ms) = 0;
+        virtual void delay(uint32_t ms) = 0;
+        virtual TickType get_current_tick() = 0;
+
+        // RTOS queues.
+        virtual bool queue_overwrite() = 0;
+        virtual bool queue_pushback() = 0;
+        virtual bool queue_overwrite_from_isr() = 0;
+        virtual bool queue_pushback_from_isr() = 0;
+        virtual bool queue_peek() = 0;
+        virtual bool queue_get() = 0;
+    };
+}  // namespace MW_RTOS
+
 #endif

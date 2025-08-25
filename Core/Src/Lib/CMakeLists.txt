@@ -1,4 +1,6 @@
 add_subdirectory(DSP)
+add_subdirectory(Middleware)
+add_subdirectory(Devices)
 
 add_library(UARM_INCLUDE INTERFACE)
 target_include_directories(UARM_INCLUDE INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

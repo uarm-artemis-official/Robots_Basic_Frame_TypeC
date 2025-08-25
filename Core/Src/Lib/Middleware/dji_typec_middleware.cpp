@@ -459,3 +459,32 @@ namespace MW_UART {
         }
     };
 }  // namespace MW_UART
+
+namespace MW_RTOS {
+    class RTOS : public IRTOS {
+        void delay_until(TickType* previous_wake, uint32_t ms) override {
+            *previous_wake = xTaskGetTickCount();
+            TickType_t delay_ticks = pdMS_TO_TICKS(ms);
+            vTaskDelayUntil(previous_wake, delay_ticks);
+        }
+
+        void delay(uint32_t ms) {
+            TickType_t delay_ticks = pdMS_TO_TICKS(ms);
+            vTaskDelay(delay_ticks);
+        }
+
+        TickType get_current_tick() { return static_cast<TickType>(uwTick); }
+
+        bool queue_overwrite() {}
+
+        bool queue_pushback() {}
+
+        bool queue_overwrite_from_isr() {}
+
+        bool queue_pushback_from_isr() {}
+
+        bool queue_peek() {}
+
+        bool queue_get() {}
+    };
+}  // namespace MW_RTOS
