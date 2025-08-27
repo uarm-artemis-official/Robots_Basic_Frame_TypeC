@@ -113,7 +113,38 @@ namespace MW_I2C {
 }
 
 namespace MW_RTOS {
+#if defined(GTEST)
     using TickType = uint32_t;
-}
+
+    /**
+     * @brief Mock RTOS queue for testing message passing in a non-RTOS setting.
+     * Queues can only arbitrarily large data types in bytes and can be
+     * manipulated through IRTOS methods.
+     * 
+     * Depending on the implementation, @ref front_index and @ref back_index may
+     * have different meanings. In the test implementation, the queue uses
+     * 0-based indexing and items are added with wrap around starting from 0.
+     * @see middleware_interfaces.hpp
+     * @see test_middleware.cpp
+     */
+    struct MockRTOSQueue {
+        size_t queue_length;  ///< Item capacity of queue.
+        size_t item_size;     ///< Size of each item in bytes.
+        size_t
+            item_count;  ///< Number of items currently in the queue (0 <= item_count <= queue_length).
+        size_t front_index;   ///< Index of the oldest item in queue.
+        size_t back_index;    ///< Index to add new item to queue.
+        uint8_t* byte_queue;  ///< Bytes of items in queue.
+    };
+
+    using QueueHandle = MockRTOSQueue*;
+#else
+#include "cmsis_os.h"
+    using TickType = TickType_t;
+    using QueueHandle = QueueHandle_t;
+    // using TickType = uint32_t;
+    // struct QueueHandle {};
+#endif
+}  // namespace MW_RTOS
 
 #endif  // __MIDDLEWARE_TYPES_HPP

@@ -29,23 +29,16 @@ target_link_libraries(RAMP_TEST
         TEST_TARGET 
         ALGORITHMS::CONTROL_LIB)
 
-add_executable(CHASSIS_APP_TEST chassis_app_test.cpp)
-target_include_directories(CHASSIS_APP_TEST 
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/fixtures)
-target_link_libraries(CHASSIS_APP_TEST 
+add_executable(MOCK_RTOS_QUEUE_TEST mock_rtos_queue_test.cpp)
+target_link_libraries(MOCK_RTOS_QUEUE_TEST
     PRIVATE
         GTest::gtest_main
         TEST_TARGET 
-        CHASSIS_APP_FIXTURE
-        SUBSYSTEMS_MOCKS
-        BASIC_APPS)
-
-
+        MW::MIDDLEWARE)
 
 include(GoogleTest)
 gtest_discover_tests(FIRST_TEST)
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)
 gtest_discover_tests(RAMP_TEST)
-# gtest_discover_tests(CHASSIS_APP_TEST)
+gtest_discover_tests(MOCK_RTOS_QUEUE_TEST)

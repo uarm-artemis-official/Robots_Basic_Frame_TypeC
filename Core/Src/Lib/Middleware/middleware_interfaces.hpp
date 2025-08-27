@@ -259,12 +259,21 @@ namespace MW_RTOS {
         virtual TickType get_current_tick() = 0;
 
         // RTOS queues.
-        virtual bool queue_overwrite() = 0;
-        virtual bool queue_pushback() = 0;
-        virtual bool queue_overwrite_from_isr() = 0;
-        virtual bool queue_pushback_from_isr() = 0;
-        virtual bool queue_peek() = 0;
-        virtual bool queue_get() = 0;
+        virtual bool queue_create(QueueHandle& queue, size_t queue_length,
+                                  size_t item_size) = 0;
+        virtual bool queue_overwrite(QueueHandle queue, void* data_ptr) = 0;
+        virtual bool queue_pushback(QueueHandle queue, void* data_ptr,
+                                    TickType ticks_to_wait = 0) = 0;
+        virtual bool queue_overwrite_from_isr(
+            QueueHandle queue, void* data_ptr,
+            bool* awaken_higher_prio = nullptr) = 0;
+        virtual bool queue_pushback_from_isr(
+            QueueHandle queue, void* data_ptr,
+            bool* awaken_higher_prio = nullptr) = 0;
+        virtual bool queue_peek(QueueHandle queue, void* data_ptr,
+                                TickType ticks_to_wait = 0) = 0;
+        virtual bool queue_get(QueueHandle queue, void* data_ptr,
+                               TickType ticks_to_wait = 0) = 0;
     };
 }  // namespace MW_RTOS
 
