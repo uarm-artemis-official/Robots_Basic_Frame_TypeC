@@ -475,16 +475,51 @@ namespace MW_RTOS {
 
         TickType get_current_tick() { return static_cast<TickType>(uwTick); }
 
-        bool queue_overwrite() {}
+        bool queue_create(QueueHandle queue, size_t queue_length,
+                          size_t item_size) {
+            queue = xQueueCreate(queue_length, item_size);
+            return queue == nullptr;
+        }
 
-        bool queue_pushback() {}
+        bool queue_overwrite(QueueHandle queue, void* data_ptr) {
+            return xQueueOverwrite(queue, data_ptr) == pdTRUE;
+        }
 
-        bool queue_overwrite_from_isr() {}
+        bool queue_pushback(QueueHandle queue, void* data_ptr,
+                            TickType ticks_to_wait) {
+            return xQueueSendToBack(queue, data_ptr, ticks_to_wait) == pdTRUE;
+        }
 
-        bool queue_pushback_from_isr() {}
+        bool queue_overwrite_from_isr(QueueHandle queue, void* data_ptr,
+                                      bool* awakenHigherPrio) {
+            BaseType_t awaken;
+            BaseType_t result =
+                xQueueOverwriteFromISR(queue, data_ptr, &awaken);
+            if (awakenHigherPrio != nullptr) {
+                *awakenHigherPrio = awaken == pdTRUE;
+            }
+            return result == pdTRUE;
+        }
 
-        bool queue_peek() {}
+        bool queue_pushback_from_isr(QueueHandle queue, void* data_ptr,
+                                     bool* awakenHigherPrio) {
+            BaseType_t awaken;
+            BaseType_t result =
+                xQueueOverwriteFromISR(queue, data_ptr, &awaken);
+            if (awakenHigherPrio != nullptr) {
+                *awakenHigherPrio = awaken == pdTRUE;
+            }
+            return result == pdTRUE;
+        }
 
-        bool queue_get() {}
+        bool queue_peek(QueueHandle queue, void* data_ptr,
+                        TickType ticks_to_wait) {
+            return xQueuePeek(queue, data_ptr, ticks_to_wait) == pdTRUE;
+        }
+
+        bool queue_get(QueueHandle queue, void* data_ptr,
+                       TickType ticks_to_wait) {
+            return xQueueReceive(queue, data_ptr, ticks_to_wait) == pdTRUE;
+        }
     };
 }  // namespace MW_RTOS

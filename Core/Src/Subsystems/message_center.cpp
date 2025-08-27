@@ -176,16 +176,34 @@ namespace mc2 {
     }
 
     template <typename T, typename List, int index>
-    struct index_reducer {
+    struct type_present_operator {
         constexpr bool operator()() {
             return std::is_same_v<T, std::tuple_element_t<index, List>>;
+        }
+    };
+
+    template <typename List, int index>
+    struct interboard_present_operator {
+        constexpr bool operator()() {
+            using TypeAtIndex = std::tuple_element_t<index, List>;
+            return std::is_base_of<
+                TypeAtIndex,
+                InterboardMessage<TypeAtIndex, TypeAtIndex::destination,
+                                  TypeAtIndex::also_local>>::value;
         }
     };
 
     template <typename T, typename List, size_t... Is>
     constexpr auto get_type_present_array(std::index_sequence<Is...>) {
         return std::array<bool, std::tuple_size_v<List>> {
-            index_reducer<T, List, Is> {}.template operator()()...
+            type_present_operator<T, List, Is> {}.template operator()()...
+        };
+    }
+
+    template <typename List, size_t... Is>
+    constexpr auto get_interboard_present_array(std::index_sequence<Is...>) {
+        return std::array<bool, std::tuple_size_v<List>> {
+            interboard_present_operator<List, Is> {}.template operator()()...
         };
     }
 
