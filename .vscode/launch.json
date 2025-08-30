@@ -5,6 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
+            // =========================================================
+            // HOWTO: Select Configuration to build and flash.
+            // Run "CMake: Select Configure Preset" in command palette.
+            // =========================================================
             "name": "Build & Debug Microcontroller - ST-Link",
             "cwd": "${workspaceFolder}",
             "type": "cortex-debug",
@@ -37,6 +41,9 @@
             //"serverArgs": ["--extload", "path/to/ext/loader.stldr"],
         },
         {
+            // =========================================================
+            // Unsure of what this does.
+            // =========================================================
             "name": "Attach to Microcontroller - ST-Link",
             "cwd": "${workspaceFolder}",
             "type": "cortex-debug",
@@ -64,6 +71,10 @@
             //"serverArgs": ["--extload", "path/to/ext/loader.stldr"],
         },
         {
+            // =========================================================
+            // HOWTO: Select Configuration to build and flash.
+            // Run "CMake: Select Configure Preset" in command palette.
+            // =========================================================
             "name": "OpenOCD",
             "cwd": "${workspaceFolder}",
             "type": "cortex-debug",
@@ -87,6 +98,20 @@
                 "enabled": true,
                 "samplesPerSecond": 4
             }
-        }
+        },
+        {
+            // =========================================================
+            // HOWTO: Select Test to Debug.
+            // Run "CMake: Set Launch/Debug Target" in command palette.
+            // =========================================================
+            "name": "(ctest) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "MIMode": "gdb",
+        },
     ]
 }
