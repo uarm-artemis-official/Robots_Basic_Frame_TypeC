@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include "subsystems_interfaces.h"
+#include "subsystems_interfaces.hpp"
 
 class MockMessageCenter : public IMessageCenter {
    public:

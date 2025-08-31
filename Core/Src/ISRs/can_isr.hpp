@@ -2,7 +2,7 @@
 #define __CAN_ISR_HPP
 
 #include "can.h"
-#include "subsystems_interfaces.h"
+#include "subsystems_interfaces.hpp"
 #include "subsystems_types.hpp"
 
 namespace CAN_ISR {

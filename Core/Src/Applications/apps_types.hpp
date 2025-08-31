@@ -7,7 +7,7 @@
 #include "apps_interfaces.hpp"
 #include "attitude_types.h"
 #include "control_types.hpp"
-#include "subsystems_interfaces.h"
+#include "subsystems_interfaces.hpp"
 #include "subsystems_types.hpp"
 #include "uarm_types.hpp"
 

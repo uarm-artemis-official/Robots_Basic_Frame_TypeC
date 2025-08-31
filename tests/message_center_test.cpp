@@ -1,10 +1,9 @@
-#include "message_center.hpp"
+#include "message_center.cpp"
 #include <gtest/gtest.h>
 #include <tuple>
-#include "message_center.cpp"
 #include "middleware_interfaces.hpp"
 #include "middleware_types.hpp"
-#include "subsystems_interfaces.h"
+#include "subsystems_interfaces.hpp"
 #include "subsystems_types.hpp"
 #include "test_middleware.cpp"
 

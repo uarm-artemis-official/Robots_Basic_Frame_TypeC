@@ -140,11 +140,15 @@ namespace MW_RTOS {
         size_t back_index;    ///< Index to add new item to queue.
         uint8_t* byte_queue;  ///< Bytes of items in queue.
     };
-
     using QueueHandle = MockRTOSQueue*;
+
+    // TODO: Design and implement mock event group.
+    struct MockRTOSEventGroup {};
+    using EventGroupHandle = MockRTOSEventGroup*;
 #else
     using TickType = TickType_t;
     using QueueHandle = QueueHandle_t;
+    using EventGroupHandle = EventGroupHandle_t;
 #endif
 }  // namespace MW_RTOS
 
