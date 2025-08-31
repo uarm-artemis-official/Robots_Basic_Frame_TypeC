@@ -117,10 +117,10 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     float theta4 = atan2(A, D) * 180 / PI;
 
     /* Zero position of MG4005 (only needed if motor zero are not pointing in the "forward" direction) */
-    float zero1 = 330;
-    float zero2 = 350.5;
-    float zero3 = 340;
-    float zero4 = 165.5;
+    float zero1 = 340;
+    float zero2 = 5.5;
+    float zero3 = 350;
+    float zero4 = 160.5;
 
     /* Realign domain with relative zero of MG4005 (we now multiply by 10 to convert to dps) */
     steer_target_angle.at(0) = realign(theta1, zero1);

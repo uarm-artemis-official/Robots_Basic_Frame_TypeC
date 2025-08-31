@@ -66,16 +66,16 @@ namespace gimbal_params {
     // constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
 
     // Gimbal pitch PID.
-    constexpr float KP_GIMBAL_PITCH_ANGLE = 235;  //100 220
+    constexpr float KP_GIMBAL_PITCH_ANGLE = 220;  //100 220
     constexpr float KI_GIMBAL_PITCH_ANGLE = 0;    //0 12
-    constexpr float KD_GIMBAL_PITCH_ANGLE = 0;    //0.05 2
+    constexpr float KD_GIMBAL_PITCH_ANGLE = 10;   //0.05 2
     constexpr float BETA_GIMBAL_PITCH_ANGLE = 1;
     constexpr float YETA_GIMBAL_PITCH_ANGLE = 0;
     constexpr float MIN_OUT_GIMBAL_PITCH_ANGLE = -1000;
     constexpr float MAX_OUT_GIMBAL_PITCH_ANGLE = 1000;
     static_assert(MAX_OUT_GIMBAL_PITCH_ANGLE >= MIN_OUT_GIMBAL_PITCH_ANGLE);
 
-    constexpr float KP_GIMBAL_PITCH_SPEED = 150;  //120 80
+    constexpr float KP_GIMBAL_PITCH_SPEED = 100;  //120 80
     constexpr float KI_GIMBAL_PITCH_SPEED = 40;   //8 10
     constexpr float KD_GIMBAL_PITCH_SPEED = 0;    //0.01 0.05
     constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
