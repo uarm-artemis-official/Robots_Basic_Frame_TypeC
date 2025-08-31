@@ -5,9 +5,6 @@ add_library(TEST_TARGET INTERFACE)
 target_compile_options(TEST_TARGET INTERFACE --coverage)
 target_link_options(TEST_TARGET INTERFACE --coverage)
 
-add_executable(FIRST_TEST first_test.cpp)
-target_link_libraries(FIRST_TEST PRIVATE TEST_TARGET GTest::gtest_main)
-
 add_executable(PID_TEST pid_test.cpp)
 target_link_libraries(PID_TEST 
     PRIVATE 
@@ -45,7 +42,6 @@ target_link_libraries(MESSAGE_CENTER_TEST
         SUBSYSTEMS::MESSAGE_CENTER)
 
 include(GoogleTest)
-gtest_discover_tests(FIRST_TEST)
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)
 gtest_discover_tests(RAMP_TEST)
