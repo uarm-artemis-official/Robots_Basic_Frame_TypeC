@@ -66,8 +66,13 @@
         {
             "type": "shell",
             "label": "GCOVR: generate test coverage (HTML)",
-            "command": "gcovr",
+            // Make sure to select .venv python interpreter otherwise it
+            // will not work.
+            // use "python: select interpreter" in command palette.
+            "command": "${command:python.interpreterPath}",
             "args": [
+                "-m",
+                "gcovr",
                 "--html-self-contained",
                 "--html-details",
                 "./out/coverage/"
@@ -76,6 +81,9 @@
         {
             "type": "shell",
             "label": "Doxygen: upload unto github",
+            // Make sure to select .venv python interpreter otherwise it
+            // will not work.
+            // use "python: select interpreter" in command palette.
             "command": "${command:python.interpreterPath}",
             "args": [
                 "-m",
