@@ -1,5 +1,5 @@
-#include "rc_comm.hpp"
 #include <cmath>
+#include "subsystems_classes.hpp"
 
 void RCComm::buffer_init(Buffer& buffer) {
     for (size_t i = 0; i < buffer.size(); i++) {

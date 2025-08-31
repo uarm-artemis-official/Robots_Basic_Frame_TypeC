@@ -10,7 +10,8 @@ target_include_directories(SUBSYSTEMS_INCLUDE
         ${ALGORITHMS_PATH}/attitude)
 target_link_libraries(SUBSYSTEMS_INCLUDE
     INTERFACE
-        LIB::UARM_INCLUDE)
+        LIB::UARM_INCLUDE
+        LIB::UARM_MATH)
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
 add_library(MESSAGE_CENTER STATIC message_center.cpp)

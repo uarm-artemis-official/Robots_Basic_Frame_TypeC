@@ -1,3 +1,4 @@
+// TODO: Rename file to avoid confusion and rework project structure to hide auto-generated code.
 /* USER CODE BEGIN Header */
 /*
  ************************************************************************************************
@@ -94,21 +95,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "FreeRTOS.h"
-#include "ammo_lid.hpp"
-#include "can_comm.hpp"
 #include "can_isr.hpp"
-#include "debug.hpp"
 #include "dwt.h"
-#include "event_center.hpp"
-#include "imu.hpp"
-#include "message_center.hpp"
-#include "motors.hpp"
-#include "pc_comm.hpp"
-#include "rc_comm.hpp"
-#include "referee_ui.hpp"
 #include "robot_config.hpp"
 #include "stdio.h"
 #include "stm32f407xx.h"
+#include "subsystems_classes.hpp"
 #include "uart_isr.hpp"
 
 #include "apps_types.hpp"

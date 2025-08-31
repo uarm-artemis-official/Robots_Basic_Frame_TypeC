@@ -5,7 +5,6 @@
 #include "can_isr.hpp"
 #include "dji_motor.h"
 #include "lk_motor.h"
-#include "message_center.hpp"
 
 // TODO: Make ISRs into "Application" like classes and declare their
 // usage in Callbacks in main.cpp.

@@ -400,6 +400,11 @@ typedef enum Sync_Event_t {
     None,
 } Sync_Event_t;
 
+struct Sync_group_t {
+    Sync_Event_t sync_event;
+    EventGroupHandle_t event_group;
+};
+
 /* =========================================================================
  * REFEREE UI TYPES
  * ====================================================================== */

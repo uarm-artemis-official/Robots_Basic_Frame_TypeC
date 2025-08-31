@@ -1,10 +1,7 @@
-#ifndef SRC_REF_UI_CPP_
-#define SRC_REF_UI_CPP_
-
-#include "referee_ui.hpp"
 #include "crc.hpp"
 #include "referee_data.h"
 #include "string.h"
+#include "subsystems_classes.hpp"
 
 void RefereeUI::init() {
     // TODO: Implement init
@@ -625,5 +622,3 @@ void RefereeUI::draw_vaild_info(uint32_t act_mode, uint32_t level) {
     memcpy(ref_ui.ui_intrect_data.user_data, &ref_ui.ui_draw_info_data,
            sizeof(ref_ui.ui_draw_info_data));
 }
-
-#endif /* SRC_REF_UI_CPP_ */

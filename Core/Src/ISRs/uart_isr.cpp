@@ -1,8 +1,9 @@
 #include "uart_isr.hpp"
 #include "cmsis_os.h"
-#include "message_center.hpp"
 #include "pack_handler.h"
 #include "referee_data.h"
+#include "subsystems_classes.hpp"
+#include "subsystems_defines.hpp"
 #include "usart.h"
 
 static MessageCenter& message_center = MessageCenter::get_instance();
