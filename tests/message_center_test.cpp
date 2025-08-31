@@ -12,15 +12,18 @@ struct FloatTopic : mc2::Topic<2> {
     float field;
 };
 
-struct ByteTopic : mc2::Topic<2> {
+struct StructTopic : mc2::Topic<5> {
+    uint8_t byte;
+    float f;
+    int16_t hw;
+    uint32_t w;
+};
+
+struct MailboxTopic : mc2::Topic<1> {
     uint8_t field;
 };
 
-struct WordTopic : mc2::Topic<2> {
-    int32_t field;
-};
-
-using TopicRegistry = std::tuple<FloatTopic, ByteTopic, WordTopic>;
+using TopicRegistry = std::tuple<FloatTopic, StructTopic, MailboxTopic>;
 
 class MessageCenterTest : public ::testing::Test {
    protected:
@@ -49,34 +52,6 @@ TEST_F(MessageCenterTest, PubAndGetMessageFloat) {
     ASSERT_EQ(ts_pub.value(), ts_get.value());
 }
 
-TEST_F(MessageCenterTest, PubAndGetMessageUint8) {
-    ByteTopic value;
-    value.field = 42;
-    auto ts_pub = mc2->pub_message(value);
-    ASSERT_TRUE(ts_pub.has_value());
-    ASSERT_EQ(ts_pub.value(), start_ts);
-
-    ByteTopic received;
-    auto ts_get = mc2->get_message(received, 0);
-    ASSERT_TRUE(ts_get.has_value());
-    ASSERT_EQ(received.field, value.field);
-    ASSERT_EQ(ts_pub.value(), ts_get.value());
-}
-
-TEST_F(MessageCenterTest, PubAndGetMessageInt32) {
-    WordTopic value;
-    value.field = -123456;
-    auto ts_pub = mc2->pub_message(value);
-    ASSERT_TRUE(ts_pub.has_value());
-    ASSERT_EQ(ts_pub.value(), start_ts);
-
-    WordTopic received;
-    auto ts_get = mc2->get_message(received, 0);
-    ASSERT_TRUE(ts_get.has_value());
-    ASSERT_EQ(received.field, value.field);
-    ASSERT_EQ(ts_pub.value(), ts_get.value());
-}
-
 TEST_F(MessageCenterTest, PeekMessageDoesNotRemove) {
     FloatTopic value;
     value.field = 1.23f;
@@ -95,14 +70,13 @@ TEST_F(MessageCenterTest, PeekMessageDoesNotRemove) {
 }
 
 TEST_F(MessageCenterTest, PubMessageFromISRWorks) {
-    WordTopic value;
-    value.field = 98765;
-    bool context_switch = false;
+    FloatTopic value;
+    value.field = 987.65f;
     auto ts_pub = mc2->pub_message_from_isr(value);
     ASSERT_TRUE(ts_pub.has_value());
     ASSERT_EQ(ts_pub.value(), start_ts);
 
-    WordTopic received;
+    FloatTopic received;
     auto ts_get = mc2->get_message(received, 0);
     ASSERT_TRUE(ts_get.has_value());
     ASSERT_EQ(received.field, value.field);
@@ -110,16 +84,16 @@ TEST_F(MessageCenterTest, PubMessageFromISRWorks) {
 }
 
 TEST_F(MessageCenterTest, QueueOverflowReturnsZero) {
-    // Assuming default queue_size > 1 for WordTopic
-    WordTopic v1, v2, v3;
-    v1.field = 1;
-    v2.field = 2;
-    v3.field = 3;
+    // Assuming default queue_size > 1 for FloatTopic
+    FloatTopic v1, v2, v3;
+    v1.field = 1.0f;
+    v2.field = 2.0f;
+    v3.field = 3.0f;
     mc2->pub_message(v1);
     mc2->pub_message(v2);
     mc2->pub_message(v3);
 
-    WordTopic r1, r2, r3;
+    FloatTopic r1, r2, r3;
     mc2->get_message(r1, 0);
     mc2->get_message(r2, 0);
     auto ts_empty = mc2->get_message(r3, 0);
@@ -127,15 +101,15 @@ TEST_F(MessageCenterTest, QueueOverflowReturnsZero) {
 }
 
 TEST_F(MessageCenterTest, TimestampUpdatesCorrectly) {
-    ByteTopic value;
-    value.field = 99;
+    FloatTopic value;
+    value.field = 99.0f;
     auto ts1 = mc2->pub_message(value);
     rtos->delay(5);
     auto ts2 = mc2->pub_message(value);
     ASSERT_TRUE(ts1.has_value());
     ASSERT_TRUE(ts2.has_value());
 
-    ByteTopic received;
+    FloatTopic received;
     auto ts_get = mc2->get_message(received, 0);
     ASSERT_TRUE(ts_get.has_value());
     ASSERT_EQ(ts_get.value(), ts2.value());
@@ -150,4 +124,112 @@ TEST_F(MessageCenterTest, GetMessageReturnsZeroIfEmpty) {
     FloatTopic received;
     auto ts = mc2->get_message(received, 0);
     ASSERT_FALSE(ts.has_value());
+}
+
+TEST_F(MessageCenterTest, PubAndGetMessageStructTopic) {
+    StructTopic value;
+    value.byte = 0xAB;
+    value.f = 2.71f;
+    value.hw = -1234;
+    value.w = 0xDEADBEEF;
+    auto ts_pub = mc2->pub_message(value);
+    ASSERT_TRUE(ts_pub.has_value());
+
+    StructTopic received;
+    auto ts_get = mc2->get_message(received, 0);
+    ASSERT_TRUE(ts_get.has_value());
+    ASSERT_EQ(received.byte, value.byte);
+    ASSERT_EQ(received.f, value.f);
+    ASSERT_EQ(received.hw, value.hw);
+    ASSERT_EQ(received.w, value.w);
+    ASSERT_EQ(ts_pub.value(), ts_get.value());
+}
+
+TEST_F(MessageCenterTest, PeekMessageDoesNotRemoveStructTopic) {
+    StructTopic value;
+    value.byte = 0x55;
+    value.f = 1.23f;
+    value.hw = 4321;
+    value.w = 0x12345678;
+    mc2->pub_message(value);
+
+    StructTopic peeked;
+    auto ts_peek = mc2->peek_message(peeked, 0);
+    ASSERT_TRUE(ts_peek.has_value());
+    ASSERT_EQ(peeked.byte, value.byte);
+    ASSERT_EQ(peeked.f, value.f);
+    ASSERT_EQ(peeked.hw, value.hw);
+    ASSERT_EQ(peeked.w, value.w);
+
+    StructTopic received;
+    auto ts_get = mc2->get_message(received, 0);
+    ASSERT_TRUE(ts_get.has_value());
+    ASSERT_EQ(received.byte, value.byte);
+    ASSERT_EQ(received.f, value.f);
+    ASSERT_EQ(received.hw, value.hw);
+    ASSERT_EQ(received.w, value.w);
+    ASSERT_EQ(ts_peek.value(), ts_get.value());
+}
+
+TEST_F(MessageCenterTest, PubAndGetMessageMailboxTopic) {
+    MailboxTopic value;
+    value.field = 0x42;
+    auto ts_pub = mc2->pub_message(value);
+    ASSERT_TRUE(ts_pub.has_value());
+
+    MailboxTopic received;
+    auto ts_get = mc2->get_message(received, 0);
+    ASSERT_TRUE(ts_get.has_value());
+    ASSERT_EQ(received.field, value.field);
+    ASSERT_EQ(ts_pub.value(), ts_get.value());
+}
+
+TEST_F(MessageCenterTest, PeekMessageDoesNotRemoveMailboxTopic) {
+    MailboxTopic value;
+    value.field = 0x99;
+    mc2->pub_message(value);
+
+    MailboxTopic peeked;
+    auto ts_peek = mc2->peek_message(peeked, 0);
+    ASSERT_TRUE(ts_peek.has_value());
+    ASSERT_EQ(peeked.field, value.field);
+
+    MailboxTopic received;
+    auto ts_get = mc2->get_message(received, 0);
+    ASSERT_TRUE(ts_get.has_value());
+    ASSERT_EQ(received.field, value.field);
+    ASSERT_EQ(ts_peek.value(), ts_get.value());
+}
+
+TEST_F(MessageCenterTest, MailboxTopicOverwriteBehavior) {
+    MailboxTopic first;
+    first.field = 0x11;
+    MailboxTopic second;
+    second.field = 0x22;
+
+    // Publish first message
+    auto ts_pub1 = mc2->pub_message(first);
+    ASSERT_TRUE(ts_pub1.has_value());
+
+    // Publish second message, should overwrite the first
+    auto ts_pub2 = mc2->pub_message(second);
+    ASSERT_TRUE(ts_pub2.has_value());
+
+    // Get should retrieve the second (latest) message
+    MailboxTopic received;
+    auto ts_get1 = mc2->get_message(received, 0);
+    ASSERT_TRUE(ts_get1.has_value());
+    ASSERT_EQ(received.field, second.field);
+    ASSERT_EQ(ts_get1.value(), ts_pub2.value());
+
+    // Second get should fail (mailbox is now empty)
+    MailboxTopic received2;
+    auto ts_get2 = mc2->get_message(received2, 0);
+    ASSERT_FALSE(ts_get2.has_value());
+}
+
+TEST_F(MessageCenterTest, PeekEmptyTopicFails) {
+    FloatTopic peeked;
+    auto ts_peek = mc2->peek_message(peeked, 0);
+    ASSERT_FALSE(ts_peek.has_value());
 }

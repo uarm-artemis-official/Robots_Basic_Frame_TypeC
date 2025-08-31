@@ -256,7 +256,8 @@ namespace mc2 {
     constexpr size_t get_index() {
         constexpr size_t index =
             get_index_impl<T, List>(get_tuple_index<List>());
-        static_assert(index < std::tuple_size_v<List>);
+        static_assert(index < std::tuple_size_v<List>,
+                      "Cannot find index of topic");
         return index;
     }
 
