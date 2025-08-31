@@ -1,8 +1,11 @@
 #include "message_center.hpp"
+#include <cstring>
 #include <utility>
 #include "uarm_lib.hpp"
 #include "uarm_os.hpp"
 
+// TODO: Remove
+#ifndef GTEST
 void MessageCenter::init() {
     if (!initialized) {
         for (size_t i = 0; i < sizeof(topic_handles) / sizeof(Topic_Handle_t);
@@ -86,9 +89,9 @@ uint8_t MessageCenter::pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
     return res;
 }
 
-namespace mc2 {
-#include "uarm_os.hpp"
+#endif
 
+namespace mc2 {
     void GimbalCommand::encode(std::array<uint8_t, 200>& bytes) {
         ASSERT(-2 * PI < yaw && yaw < 2 * PI,
                "Outgoing yaw out of acceptable range (-2PI, 2PI).");
@@ -219,7 +222,7 @@ namespace mc2 {
 
     template <int size>
     constexpr size_t index_first_true(std::array<bool, size> arr) {
-        for (int i = 0; i < arr.size(); i++) {
+        for (size_t i = 0; i < arr.size(); i++) {
             if (arr.at(i)) {
                 return i;
             }
@@ -268,17 +271,21 @@ namespace mc2 {
     }
 
     template <int index, typename TopicRegistry>
-    TopicHandle generate_topic_handle() {
-        return TopicHandle {
-            xQueueCreate((get_topic_queue_size<index, TopicRegistry>()),
-                         (get_topic_type_size<index, TopicRegistry>())),
-            std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> {}, 0};
+    TopicHandle generate_topic_handle(MW_RTOS::IRTOS& rtos) {
+        size_t queue_length = get_topic_queue_size<index, TopicRegistry>();
+        size_t item_size = get_topic_type_size<index, TopicRegistry>();
+        TopicHandle topic;
+        rtos.queue_create(topic.queue, queue_length, item_size);
+        topic.timestamps = std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> {};
+        topic.recent_timestamp_index = 0;
+        return topic;
     }
 
     template <typename TopicRegistry, size_t... Is>
-    auto generate_topic_handles_array(std::index_sequence<Is...>) {
+    auto generate_topic_handles_array(std::index_sequence<Is...>,
+                                      MW_RTOS::IRTOS& rtos) {
         return std::array<TopicHandle, std::tuple_size_v<TopicRegistry>> {
-            generate_topic_handle<Is, TopicRegistry>()...};
+            generate_topic_handle<Is, TopicRegistry>(rtos)...};
     }
 
     template <typename TopicRegistry>
@@ -287,109 +294,114 @@ namespace mc2 {
             all_unique_types<TopicRegistry>(get_tuple_index<TopicRegistry>()),
             "Only unique topics within TopicRegistry");
         topic_handles = generate_topic_handles_array<TopicRegistry>(
-            get_tuple_index<TopicRegistry>());
+            get_tuple_index<TopicRegistry>(), rtos);
     }
 
     template <typename TopicRegistry>
     template <typename T>
-    uint32_t MC2<TopicRegistry>::get_message(T& message,
-                                             uint32_t ticks_to_wait) {
-        TopicHandle topic_handle =
+    std::optional<MW_RTOS::TickType> MC2<TopicRegistry>::get_message(
+        T& message, MW_RTOS::TickType ticks_to_wait) {
+        TopicHandle& topic_handle =
             topic_handles.at(get_index<T, TopicRegistry>());
-        QueueHandle_t topic_queue = topic_handle.queue;
-        ASSERT(topic_queue != NULL,
+        MW_RTOS::QueueHandle topic_queue = topic_handle.queue;
+        ASSERT(topic_queue != nullptr,
                "Cannot get message from message_center for NULL pointer.");
-        BaseType_t result = xQueueReceive(topic_queue, &message, ticks_to_wait);
-        if (result == pdTRUE) {
-            uint32_t recent_message_timestamp =
+        bool result = rtos.queue_get(topic_queue, static_cast<void*>(&message),
+                                     ticks_to_wait);
+        if (result) {
+            MW_RTOS::TickType recent_message_timestamp =
                 topic_handle.timestamps.at(topic_handle.recent_timestamp_index);
             topic_handle.recent_timestamp_index =
                 (topic_handle.recent_timestamp_index - 1 +
                  MAX_TOPIC_QUEUE_SIZE) %
                 MAX_TOPIC_QUEUE_SIZE;
-            return recent_message_timestamp;
+            return std::make_optional(recent_message_timestamp);
         } else {
-            return 0;
+            return {};
         }
     }
 
     template <typename TopicRegistry>
     template <typename T>
-    uint32_t MC2<TopicRegistry>::peek_message(T& message,
-                                              uint32_t ticks_to_wait) {
-        TopicHandle topic_handle =
+    std::optional<MW_RTOS::TickType> MC2<TopicRegistry>::peek_message(
+        T& message, MW_RTOS::TickType ticks_to_wait) {
+        TopicHandle& topic_handle =
             topic_handles.at(get_index<T, TopicRegistry>());
-        QueueHandle_t topic_queue = topic_handle.queue;
-        ASSERT(topic_queue != NULL,
+        MW_RTOS::QueueHandle topic_queue = topic_handle.queue;
+        ASSERT(topic_queue != nullptr,
                "Cannot get message from message_center for NULL pointer.");
-        BaseType_t result = xQueuePeek(topic_queue, &message, ticks_to_wait);
-        if (result == pdTRUE) {
-            uint32_t recent_message_timestamp =
+        bool result = rtos.queue_peek(topic_queue, static_cast<void*>(&message),
+                                      ticks_to_wait);
+        if (result) {
+            MW_RTOS::TickType recent_message_timestamp =
                 topic_handle.timestamps.at(topic_handle.recent_timestamp_index);
-            return recent_message_timestamp;
+            return std::make_optional(recent_message_timestamp);
         } else {
-            return 0;
+            return {};
         }
     }
 
     template <typename TopicRegistry>
     template <typename T>
-    uint32_t MC2<TopicRegistry>::pub_message(T& message) {
-        TopicHandle topic_handle =
+    std::optional<MW_RTOS::TickType> MC2<TopicRegistry>::pub_message(
+        T& message) {
+        TopicHandle& topic_handle =
             topic_handles.at(get_index<T, TopicRegistry>());
-        QueueHandle_t topic_queue = topic_handle.queue;
-        ASSERT(topic_queue != NULL,
+        MW_RTOS::QueueHandle topic_queue = topic_handle.queue;
+        ASSERT(topic_queue != nullptr,
                "Cannot get message from message_center for NULL pointer.");
-        BaseType_t result;
+        bool result;
         if (get_topic_queue_size<get_index<T, TopicRegistry>(),
                                  TopicRegistry>() == 1) {
-            result = xQueueOverwrite(topic_queue, &message);
+            result =
+                rtos.queue_overwrite(topic_queue, static_cast<void*>(&message));
         } else {
-            result = xQueueSendToBack(topic_queue, &message, 0);
+            result = rtos.queue_pushback(topic_queue,
+                                         static_cast<void*>(&message), 0);
         }
-        if (result == pdTRUE) {
-            uint32_t recent_tick = uwTick;
+        if (result) {
+            MW_RTOS::TickType recent_tick = rtos.get_current_tick();
             topic_handle.recent_timestamp_index =
                 (topic_handle.recent_timestamp_index + 1) %
                 topic_handle.timestamps.size();
             topic_handle.timestamps.at(topic_handle.recent_timestamp_index) =
                 recent_tick;
-            return recent_tick;
+            return std::make_optional(recent_tick);
         } else {
-            return 0;
+            return {};
         }
     }
 
     template <typename TopicRegistry>
     template <typename T>
-    uint32_t MC2<TopicRegistry>::pub_message_from_isr(
-        T& message, uint8_t* will_context_switch) {
-        TopicHandle topic_handle =
+    std::optional<MW_RTOS::TickType> MC2<TopicRegistry>::pub_message_from_isr(
+        T& message, bool* will_context_switch) {
+        TopicHandle& topic_handle =
             topic_handles.at(get_index<T, TopicRegistry>());
-        QueueHandle_t topic_queue = topic_handle.queue;
-        ASSERT(topic_queue != NULL,
+        MW_RTOS::QueueHandle topic_queue = topic_handle.queue;
+        ASSERT(topic_queue != nullptr,
                "Cannot get message from message_center for NULL pointer.");
 
-        BaseType_t result;
+        bool result;
         if (get_topic_queue_size<get_index<T, TopicRegistry>(),
                                  TopicRegistry>() == 1) {
-            result = xQueueOverwriteFromISR(topic_queue, &message,
-                                            will_context_switch);
+            result = rtos.queue_overwrite_from_isr(
+                topic_queue, static_cast<void*>(&message), will_context_switch);
         } else {
-            result = xQueueSendToBackFromISR(topic_queue, &message,
-                                             will_context_switch);
+            result = rtos.queue_pushback_from_isr(
+                topic_queue, static_cast<void*>(&message), will_context_switch);
         }
 
-        if (result == pdTRUE) {
-            uint32_t recent_tick = uwTick;
+        if (result) {
+            MW_RTOS::TickType recent_tick = rtos.get_current_tick();
             topic_handle.recent_timestamp_index =
                 (topic_handle.recent_timestamp_index + 1) %
                 topic_handle.timestamps.size();
             topic_handle.timestamps.at(topic_handle.recent_timestamp_index) =
                 recent_tick;
-            return recent_tick;
+            return std::make_optional(recent_tick);
         } else {
-            return 0;
+            return {};
         }
     }
 }  // namespace mc2

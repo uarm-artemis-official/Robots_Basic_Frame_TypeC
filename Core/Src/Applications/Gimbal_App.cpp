@@ -558,8 +558,6 @@ void GimbalApp::send_motor_volts() {
     set_message.can_ids[0] = (Motor_CAN_ID_t) motor_controls[0].stdid;
 
     // Pitch
-    // set_message.motor_can_volts[1] =
-    //     (int32_t) (motor_controls[1].s_pid.total_out);
     set_message.motor_can_volts[1] =
         (int32_t) (motor_controls[1].s_pid.total_out *
                    robot_config::gimbal_params::PITCH_ORIENTATION);

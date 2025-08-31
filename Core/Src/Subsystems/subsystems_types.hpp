@@ -2,8 +2,11 @@
 #define __SUBSYSTEMS_TYPES_H
 
 #include <array>
+#include <optional>
 #include <tuple>
 #include "attitude_types.h"
+#include "middleware_interfaces.hpp"
+#include "middleware_types.hpp"
 #include "motor_types.h"
 #include "subsystems_defines.hpp"
 #include "uarm_os.hpp"
@@ -145,7 +148,7 @@ typedef struct Topic_Handle_t {
     Topic_Name_t name;
     uint8_t item_size;
     uint8_t queue_length;
-    QueueHandle_t queue_handle;
+    MW_RTOS::QueueHandle queue_handle;
 } Topic_Handle_t;
 
 typedef struct {
@@ -322,7 +325,7 @@ namespace mc2 {
                    GimbalRelativeAngles, RefereeIn, RCRaw, AutoAim>;
 
     struct TopicHandle {
-        QueueHandle_t queue;
+        MW_RTOS::QueueHandle queue;
         std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> timestamps;
         size_t recent_timestamp_index;
     };
@@ -331,22 +334,27 @@ namespace mc2 {
     class MC2 {
        private:
         std::array<TopicHandle, std::tuple_size_v<TopicRegistry>> topic_handles;
+        MW_RTOS::IRTOS& rtos;
 
        public:
+        MC2(MW_RTOS::IRTOS& _rtos) : rtos(_rtos) {}
+
         void init();
 
         template <typename T>
-        uint32_t get_message(T& message, uint32_t ticks_to_wait = 0);
+        std::optional<MW_RTOS::TickType> get_message(
+            T& message, MW_RTOS::TickType ticks_to_wait = 0);
 
         template <typename T>
-        uint32_t peek_message(T& message, uint32_t ticks_to_wait = 0);
+        std::optional<MW_RTOS::TickType> peek_message(
+            T& message, MW_RTOS::TickType ticks_to_wait = 0);
 
         template <typename T>
-        uint32_t pub_message(T& message);
+        std::optional<MW_RTOS::TickType> pub_message(T& message);
 
         template <typename T>
-        uint32_t pub_message_from_isr(T& message,
-                                      uint8_t* will_context_switch = nullptr);
+        std::optional<MW_RTOS::TickType> pub_message_from_isr(
+            T& message, bool* will_context_switch = nullptr);
     };
 }  // namespace mc2
 

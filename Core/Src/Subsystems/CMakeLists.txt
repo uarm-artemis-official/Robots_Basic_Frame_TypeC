@@ -2,6 +2,7 @@ add_library(SUBSYSTEMS_INCLUDE INTERFACE)
 target_include_directories(SUBSYSTEMS_INCLUDE 
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${LIB_PATH}/Middleware
         ${FIRMWARE_PATH}/Device/motors
         ${FIRMWARE_PATH}/Device/bmi088
         ${FIRMWARE_PATH}/Device/ist8310
@@ -11,6 +12,15 @@ target_link_libraries(SUBSYSTEMS_INCLUDE
     INTERFACE
         LIB::UARM_INCLUDE)
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
+
+add_library(MESSAGE_CENTER STATIC message_center.cpp)
+target_link_libraries(MESSAGE_CENTER 
+    PUBLIC 
+        SUBSYSTEMS_INCLUDE
+        LIB::UARM_OS
+        LIB::UARM_LIB
+        MW::MIDDLEWARE)
+add_library(SUBSYSTEMS::MESSAGE_CENTER ALIAS MESSAGE_CENTER)
 
 if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest")
 add_library(DEBUG STATIC debug.cpp)
@@ -34,15 +44,6 @@ target_link_libraries(IMU
         FW::DEVICE::IST8310_DRIVER
         ALGORITHMS::ATTITUDE_LIB)
 add_library(SUBSYSTEMS::IMU ALIAS IMU)
-
-
-add_library(MESSAGE_CENTER STATIC message_center.cpp)
-target_link_libraries(MESSAGE_CENTER 
-    PUBLIC 
-        SUBSYSTEMS_INCLUDE
-        LIB::UARM_OS
-        LIB::UARM_LIB)
-add_library(SUBSYSTEMS::MESSAGE_CENTER ALIAS MESSAGE_CENTER)
 
 
 add_library(EVENT_CENTER STATIC event_center.cpp)

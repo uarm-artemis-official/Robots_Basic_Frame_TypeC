@@ -1,6 +1,7 @@
 #include "event_center.hpp"
 #include "subsystems_defines.hpp"
 #include "uarm_lib.hpp"
+#include "uarm_os.hpp"
 
 void EventCenter::init() {
     events_group = xEventGroupCreate();

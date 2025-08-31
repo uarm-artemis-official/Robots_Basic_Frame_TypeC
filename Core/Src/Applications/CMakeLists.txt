@@ -8,6 +8,7 @@ target_include_directories(APPS_INCLUDE
         ${ALGORITHMS_PATH}/attitude
         ${SUBSYSTEMS_PATH}
         ${LIB_PATH}
+        ${LIB_PATH}/Middleware
         ${FIRMWARE_PATH}/Device/motors)
 
 add_library(CHASSIS_DRIVES STATIC Omni_Drive.cpp Swerve_Drive.cpp)

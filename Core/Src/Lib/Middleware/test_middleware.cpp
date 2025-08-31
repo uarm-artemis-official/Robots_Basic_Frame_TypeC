@@ -169,22 +169,18 @@ namespace MW_I2C {
 
 namespace MW_RTOS {
     class TestRTOS : public IRTOS {
+       private:
+        TickType current_tick_ms = 0;
+
        public:
         void delay_until(uint32_t* previous_wake, uint32_t ms) override {
-            (void) previous_wake;
-            (void) ms;
-            // TODO: Implement RTOS delay until logic
+            current_tick_ms = *previous_wake + ms;
+            *previous_wake += current_tick_ms;
         }
 
-        void delay(uint32_t ms) override {
-            (void) ms;
-            // TODO: Implement RTOS delay logic
-        }
+        void delay(uint32_t ms) override { current_tick_ms += ms; }
 
-        TickType get_current_tick() override {
-            // TODO: Implement RTOS get current tick logic
-            return 0;
-        }
+        TickType get_current_tick() override { return current_tick_ms; }
 
         bool queue_create(QueueHandle& queue, size_t queue_length,
                           size_t item_size) override {

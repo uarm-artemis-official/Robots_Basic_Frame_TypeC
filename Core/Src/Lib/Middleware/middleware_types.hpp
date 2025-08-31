@@ -3,6 +3,10 @@
 
 #include <cstdint>
 
+#ifndef GTEST
+#include "cmsis_os.h"
+#endif
+
 namespace MW_GPIO {
     enum class Pin {
         PIN_0,
@@ -139,11 +143,8 @@ namespace MW_RTOS {
 
     using QueueHandle = MockRTOSQueue*;
 #else
-#include "cmsis_os.h"
     using TickType = TickType_t;
     using QueueHandle = QueueHandle_t;
-    // using TickType = uint32_t;
-    // struct QueueHandle {};
 #endif
 }  // namespace MW_RTOS
 
