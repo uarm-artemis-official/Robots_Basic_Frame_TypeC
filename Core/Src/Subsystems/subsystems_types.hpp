@@ -402,7 +402,7 @@ typedef enum Sync_Event_t {
 
 struct Sync_group_t {
     Sync_Event_t sync_event;
-    EventGroupHandle_t event_group;
+    MW_RTOS::EventGroupHandle event_group;
 };
 
 /* =========================================================================

@@ -53,13 +53,14 @@ namespace MW_TIM {
 namespace MW_CAN {
     class TestCAN : public ICAN {
        public:
-        void send_data(BUS bus, uint32_t id, const std::array<uint8_t, 8>& data,
+        bool send_data(BUS bus, uint32_t id, const std::array<uint8_t, 8>& data,
                        uint32_t length) override {
             (void) bus;
             (void) id;
             (void) data;
             (void) length;
             // TODO: Implement CAN send logic
+            return false;
         }
         bool receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& length,
                           std::array<uint8_t, 8>& data) override {
@@ -71,24 +72,28 @@ namespace MW_CAN {
             // TODO: Implement CAN receive logic
             return false;
         }
-        void start(BUS bus) override {
+        bool start(BUS bus) override {
             (void) bus;
             // TODO: Implement CAN start logic
+            return false;
         }
-        void stop(BUS bus) override {
+        bool stop(BUS bus) override {
             (void) bus;
             // TODO: Implement CAN stop logic
+            return false;
         }
-        void activate_notification(BUS bus,
+        bool activate_notification(BUS bus,
                                    Notification notification) override {
             (void) bus;
             (void) notification;
             // TODO: Implement CAN notification logic
+            return false;
         }
-        void configure_filter(BUS bus, Filter filter_configuration) override {
+        bool configure_filter(BUS bus, Filter filter_configuration) override {
             (void) bus;
             (void) filter_configuration;
             // TODO: Implement CAN filter configuration logic
+            return false;
         }
     };
 }  // namespace MW_CAN

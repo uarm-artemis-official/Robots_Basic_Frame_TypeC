@@ -289,7 +289,7 @@ namespace MW_CAN {
          * @param[in] data The data to send.
          * @param[in] length The length of the data.
          */
-        void send_data(BUS bus, uint32_t id, const std::array<uint8_t, 8>& data,
+        bool send_data(BUS bus, uint32_t id, const std::array<uint8_t, 8>& data,
                        uint32_t length) override {
             ASSERT(0 < length && length <= 8,
                    "0 bytes < CAN data length <= 8 bytes.");
@@ -299,8 +299,8 @@ namespace MW_CAN {
             tx_header.DLC = length;
             tx_header.StdId = id;
 
-            HAL_CAN_AddTxMessage(get_hal_can_handle(bus), &tx_header,
-                                 data.data(), nullptr);
+            return HAL_CAN_AddTxMessage(get_hal_can_handle(bus), &tx_header,
+                                        data.data(), nullptr) == HAL_OK;
         }
 
         /**
@@ -329,25 +329,30 @@ namespace MW_CAN {
          * @brief Start the CAN bus communication.
          * @param[in] bus The CAN bus to start.
          */
-        void start(BUS bus) override { HAL_CAN_Start(get_hal_can_handle(bus)); }
+        bool start(BUS bus) override {
+            return HAL_CAN_Start(get_hal_can_handle(bus)) == HAL_OK;
+        }
 
         /**
          * @brief Stop the CAN bus communication.
          * @param[in] bus The CAN bus to stop.
          */
-        void stop(BUS bus) override { HAL_CAN_Stop(get_hal_can_handle(bus)); }
+        bool stop(BUS bus) override {
+            return HAL_CAN_Stop(get_hal_can_handle(bus)) == HAL_OK;
+        }
 
         /**
          * @brief Activate a CAN notification.
          * @param[in] bus The CAN bus to activate the notification on.
          * @param[in] notification The notification type to activate.
          */
-        void activate_notification(BUS bus,
+        bool activate_notification(BUS bus,
                                    Notification notification) override {
             switch (notification) {
                 case Notification::RX_FIFO0_MSG_PENDING:
-                    HAL_CAN_ActivateNotification(get_hal_can_handle(bus),
-                                                 CAN_IT_RX_FIFO0_MSG_PENDING);
+                    return HAL_CAN_ActivateNotification(
+                               get_hal_can_handle(bus),
+                               CAN_IT_RX_FIFO0_MSG_PENDING) == HAL_OK;
                     break;
                 default:
                     ASSERT(false, "Unsupported CAN notification");
@@ -359,7 +364,7 @@ namespace MW_CAN {
          * @param[in] bus The CAN bus to configure.
          * @param[in] filter_configuration The filter configuration to apply.
          */
-        void configure_filter(BUS bus, Filter filter_configuration) override {
+        bool configure_filter(BUS bus, Filter filter_configuration) override {
             CAN_FilterTypeDef filter_config;
             filter_config.FilterIdHigh = filter_configuration.id_high;
             filter_config.FilterIdLow = filter_configuration.id_low;
@@ -377,7 +382,8 @@ namespace MW_CAN {
             filter_config.FilterActivation =
                 (filter_configuration.is_activated) ? ENABLE : DISABLE;
 
-            HAL_CAN_ConfigFilter(get_hal_can_handle(bus), &filter_config);
+            return HAL_CAN_ConfigFilter(get_hal_can_handle(bus),
+                                        &filter_config) == HAL_OK;
         }
     };
 }  // namespace MW_CAN

@@ -102,7 +102,7 @@ namespace MW_CAN {
          * @param[in] data The data to send.
          * @param[in] length The length of the data.
          */
-        virtual void send_data(BUS bus, uint32_t id,
+        virtual bool send_data(BUS bus, uint32_t id,
                                const std::array<uint8_t, 8>& data,
                                uint32_t length) = 0;
 
@@ -123,20 +123,20 @@ namespace MW_CAN {
          * @brief Start the CAN bus communication.
          * @param[in] bus The CAN bus to start.
          */
-        virtual void start(BUS bus) = 0;
+        virtual bool start(BUS bus) = 0;
 
         /**
          * @brief Stop the CAN bus communication.
          * @param[in] bus The CAN bus to stop.
          */
-        virtual void stop(BUS bus) = 0;
+        virtual bool stop(BUS bus) = 0;
 
         /**
          * @brief Activate a CAN notification.
          * @param[in] bus The CAN bus to activate the notification on.
          * @param[in] notification The notification type to activate.
          */
-        virtual void activate_notification(BUS bus,
+        virtual bool activate_notification(BUS bus,
                                            Notification notification) = 0;
 
         /**
@@ -144,7 +144,7 @@ namespace MW_CAN {
          * @param[in] bus The CAN bus to configure.
          * @param[in] filter_configuration The filter configuration to apply.
          */
-        virtual void configure_filter(BUS bus, Filter filter_configuration) = 0;
+        virtual bool configure_filter(BUS bus, Filter filter_configuration) = 0;
     };
 }  // namespace MW_CAN
 
