@@ -232,3 +232,52 @@ TEST_F(MessageCenterTest, PeekEmptyTopicFails) {
     auto ts_peek = mc2->peek_message(peeked, 0);
     ASSERT_FALSE(ts_peek.has_value());
 }
+
+TEST_F(MessageCenterTest, StructTopicMultiplePubAndGetSequence) {
+    // Fill the queue with 5 messages (StructTopic queue size is 5)
+    StructTopic s1 {{}, 0x01, 1.1f, 11, 0x11111111};
+    StructTopic s2 {{}, 0x02, 2.2f, 22, 0x22222222};
+    StructTopic s3 {{}, 0x03, 3.3f, 33, 0x33333333};
+    StructTopic s4 {{}, 0x04, 4.4f, 44, 0x44444444};
+    StructTopic s5 {{}, 0x05, 5.5f, 55, 0x55555555};
+
+    ASSERT_TRUE(mc2->pub_message(s1).has_value());
+    ASSERT_TRUE(mc2->pub_message(s2).has_value());
+    ASSERT_TRUE(mc2->pub_message(s3).has_value());
+
+    // Get one message (should be s1)
+    StructTopic got;
+    auto ts1 = mc2->get_message(got, 0);
+    ASSERT_TRUE(ts1.has_value());
+    ASSERT_EQ(got.byte, s1.byte);
+    ASSERT_EQ(got.f, s1.f);
+    ASSERT_EQ(got.hw, s1.hw);
+    ASSERT_EQ(got.w, s1.w);
+
+    // Add two more (s4, s5)
+    ASSERT_TRUE(mc2->pub_message(s4).has_value());
+    ASSERT_TRUE(mc2->pub_message(s5).has_value());
+
+    // Now queue should have s2, s3, s4, s5 (in order)
+    StructTopic s6 {{}, 0x06, 6.6f, 66, 0x66666666};
+    StructTopic s7 {{}, 0x07, 7.7f, 77, 0x77777777};
+    ASSERT_TRUE(mc2->pub_message(s6).has_value());
+    ASSERT_FALSE(mc2->pub_message(s7).has_value());
+
+    // Now queue should have s2, s3, s4, s5, s6 (in order)
+    StructTopic expected[] = {s2, s3, s4, s5, s6};
+    for (const auto& exp : expected) {
+        StructTopic got2;
+        auto ts = mc2->get_message(got2, 0);
+        ASSERT_TRUE(ts.has_value());
+        ASSERT_EQ(got2.byte, exp.byte);
+        ASSERT_EQ(got2.f, exp.f);
+        ASSERT_EQ(got2.hw, exp.hw);
+        ASSERT_EQ(got2.w, exp.w);
+    }
+
+    // Queue should now be empty
+    StructTopic empty;
+    auto ts_empty = mc2->get_message(empty, 0);
+    ASSERT_FALSE(ts_empty.has_value());
+}
