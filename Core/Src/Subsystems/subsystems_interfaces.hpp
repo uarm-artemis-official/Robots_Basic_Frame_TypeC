@@ -66,13 +66,6 @@ class IDebug {
     virtual void set_led_state(Board_LED_t led, Board_LED_State_t state) = 0;
 };
 
-class ICanComm {
-   public:
-    virtual void init() = 0;
-    virtual void can_transmit_comm_message(uint8_t send_data[8],
-                                           uint32_t comm_id) = 0;
-};
-
 class IAmmoLid {
    public:
     virtual void init() = 0;

@@ -9,6 +9,7 @@
 *******************************************************************************/
 #include <string.h>
 #include <algorithm>
+#include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
 #include "pid.h"

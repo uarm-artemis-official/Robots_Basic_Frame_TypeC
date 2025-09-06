@@ -95,7 +95,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "FreeRTOS.h"
+#include "apps_classes.hpp"
+#include "apps_types.hpp"
 #include "can_isr.hpp"
+#include "dji_typec_middleware.cpp"
 #include "dwt.h"
 #include "robot_config.hpp"
 #include "stdio.h"
@@ -103,17 +106,15 @@
 #include "subsystems_classes.hpp"
 #include "uart_isr.hpp"
 
-#include "apps_types.hpp"
-
 // Function signature so main.c can find main_cpp().
 extern "C" {
 void main_cpp(void);
 }
 
+static MW_CAN::CAN can;
 static MessageCenter& message_center = MessageCenter::get_instance();
 static EventCenter event_center;
 static Debug debug;
-static CanComm can_comm;
 static Motors motors;
 static RefereeUI ref_ui;
 static Motors no_init_motors;
@@ -153,14 +154,12 @@ static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
 static RCApp rc_app(message_center, rc_comm);
 
 #ifdef AUTO_AIM_RIG
-static CommApp::Config comm_config = {.op_mode =
-                                          CommApp::OperationMode::Loopback};
+static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
 #else
-static CommApp::Config comm_config = {.op_mode =
-                                          CommApp::OperationMode::Normal};
+static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 #endif
 
-static CommApp::CommApp comm_app(message_center, debug, can_comm, comm_config);
+static CommApp::CommApp comm_app(message_center, debug, can, comm_config);
 static TimerApp timer_app(motors, message_center, debug);
 static PCUARTApp pc_uart_app(message_center, no_init_motors, pc_comm);
 static IMUApp imu_app(message_center, event_center, imu, debug);
@@ -259,7 +258,6 @@ void init_auto_aim_apps() {
 
 void main_cpp(void) {
     message_center.init();
-    can_comm.init();
     event_center.init();
 
     HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,

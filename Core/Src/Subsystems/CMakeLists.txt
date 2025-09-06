@@ -75,17 +75,6 @@ target_link_libraries(PC_COMM
         FW::PACK_HANDLER)
 add_library(SUBSYSTEMS::PC_COMM ALIAS PC_COMM)
 
-
-add_library(CAN_COMM STATIC can_comm.cpp)
-target_include_directories(CAN_COMM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(CAN_COMM 
-    PUBLIC
-        SUBSYSTEMS_INCLUDE
-        LIB::UARM_LIB
-        LIB::UARM_OS
-        FW::QUEUE_M)
-add_library(SUBSYSTEMS::CAN_COMM ALIAS CAN_COMM)
-
 add_library(REF_UI STATIC referee_ui.cpp)
 target_link_libraries(REF_UI
     PUBLIC

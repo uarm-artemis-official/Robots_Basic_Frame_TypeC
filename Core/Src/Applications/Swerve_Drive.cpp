@@ -2,6 +2,7 @@
 #include <cstring>
 #include <iterator>
 #include <numbers>
+#include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
 #include "pid.h"

@@ -18,11 +18,10 @@
 // extern "C" {
 // #endif
 
+#include "apps_classes.hpp"
 #include "apps_types.hpp"
 #include "crc.hpp"
-// #include "referee_data.h"
 #include "string.h"
-// #include "usart.h"
 
 // Referee_t referee;
 

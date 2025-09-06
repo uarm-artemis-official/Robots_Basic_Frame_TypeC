@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cstring>
 #include <limits>
+#include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
 #include "quantize.hpp"

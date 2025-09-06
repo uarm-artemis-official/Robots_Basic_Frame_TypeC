@@ -11,6 +11,7 @@
 */
 #include <cstring>
 #include <limits>
+#include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
 #include "quantize.hpp"
@@ -21,10 +22,10 @@
 
 namespace CommApp {
     CommApp::CommApp(IMessageCenter& message_center_ref, IDebug& debug_ref,
-                     ICanComm& can_comm_ref, Config _config)
+                     MW_CAN::ICAN& _can, Config _config)
         : message_center(message_center_ref),
           debug(debug_ref),
-          can_comm(can_comm_ref),
+          can(_can),
           config(_config) {}
 
     void CommApp::init() {
@@ -39,8 +40,8 @@ namespace CommApp {
         if (new_send_message == pdTRUE) {
             switch (config.op_mode) {
                 case OperationMode::Normal:
-                    can_comm.can_transmit_comm_message(
-                        outgoing_message.data, outgoing_message.topic_name);
+                    transmit_interboard_message(outgoing_message.topic_name,
+                                                outgoing_message.data);
                     break;
                 case OperationMode::Loopback:
                     message_center.pub_message(COMM_IN, &outgoing_message);
@@ -110,4 +111,10 @@ namespace CommApp {
         }
     };
 
+    bool CommApp::transmit_interboard_message(const uint32_t message_id,
+                                              const uint8_t message_data[8]) {
+        std::array<uint8_t, 8> can_data;
+        memcpy(can_data.data(), message_data, sizeof(uint8_t) * 8);
+        return can.send_data(MW_CAN::BUS::CAN_2, message_id, can_data, 8);
+    }
 }  // namespace CommApp

@@ -69,13 +69,6 @@ class MockDebug : public IDebug {
                 (override));
 };
 
-class MockCanComm : public ICanComm {
-   public:
-    MOCK_METHOD(void, init, (), (override));
-    MOCK_METHOD(void, can_transmit_comm_message,
-                (uint8_t send_data[8], uint32_t comm_id), (override));
-};
-
 class MockAmmoLid : public IAmmoLid {
    public:
     MOCK_METHOD(void, init, (), (override));

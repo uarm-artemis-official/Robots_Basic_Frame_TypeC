@@ -1,5 +1,6 @@
 #include <cstring>
 #include <numeric>
+#include "apps_classes.hpp"
 #include "apps_types.hpp"
 #include "pid.h"
 #include "ramp.hpp"
