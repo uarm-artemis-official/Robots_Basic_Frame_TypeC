@@ -125,6 +125,7 @@ static RCComm rc_comm;
 static PCComm pc_comm;
 
 static CAN_ISR::CAN_ISR can_isr(message_center);
+static UART_ISR::UART_ISR uart_isr(message_center);
 
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
@@ -306,10 +307,10 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     // referee_init(&referee);
     dwt_init();
 
-    UART_Config_t uart_config;
+    UART_ISR::Config uart_config;
     CAN_ISR::Config can_isr_config;
     if (debug.get_board_status() == CHASSIS_BOARD) {
-        uart_config = CHASSIS;
+        uart_config = UART_ISR::Config::CHASSIS;
 
         if constexpr (robot_config::config_type ==
                       robot_config::ConfigType::Sentry) {
@@ -321,13 +322,13 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
         if constexpr (robot_config::config_type ==
                       robot_config::ConfigType::AutoAim) {
             // Add mode for enabling PC UART and RC for one board.
-            uart_config = UART_AUTO_AIM;
+            uart_config = UART_ISR::Config::AUTO_AIM;
         } else {
-            uart_config = GIMBAL;
+            uart_config = UART_ISR::Config::GIMBAL;
         }
         can_isr_config = CAN_ISR::Config::NORMAL;
     }
-    init_uart_isr(uart_config);
+    uart_isr.init(uart_config);
     can_isr.init(can_isr_config);
 
     return HAL_OK;
@@ -341,16 +342,19 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
   * @retval None
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
-    /* USER CODE BEGIN Callback 0 */
-    /* USER CODE END Callback 0 */
     if (htim->Instance == TIM5) {
         HAL_IncTick();
     }
-    /* USER CODE BEGIN Callback 1 */
-
-    /* USER CODE END Callback 1 */
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-    can_isr.message_pending(hcan);
+    can_isr.on_message_pending(hcan);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
+    uart_isr.on_receive_complete(huart);
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
+    uart_isr.on_error(huart);
 }

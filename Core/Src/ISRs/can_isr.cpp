@@ -40,7 +40,7 @@ namespace CAN_ISR {
         }
     }
 
-    void CAN_ISR::message_pending(CAN_HandleTypeDef* hcan) {
+    void CAN_ISR::on_message_pending(CAN_HandleTypeDef* hcan) {
         CAN_RxHeaderTypeDef rx_header;
         rx_header.StdId =
             (CAN_RI0R_STID & hcan->Instance->sFIFOMailBox[CAN_RX_FIFO0].RIR) >>

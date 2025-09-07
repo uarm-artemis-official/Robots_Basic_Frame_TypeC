@@ -21,7 +21,7 @@ namespace CAN_ISR {
         uint8_t get_free_buffer(uint32_t stdId);
         void read_motor_data(CAN_HandleTypeDef* hcan,
                              CAN_RxHeaderTypeDef& rx_header);
-        void message_pending(CAN_HandleTypeDef* hcan);
+        void on_message_pending(CAN_HandleTypeDef* hcan);
     };
 }  // namespace CAN_ISR
 
