@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
+#include "middleware_classes.hpp"
 #include "middleware_interfaces.hpp"
 #include "middleware_types.hpp"
-#include "test_middleware.cpp"
 
 namespace {
 
