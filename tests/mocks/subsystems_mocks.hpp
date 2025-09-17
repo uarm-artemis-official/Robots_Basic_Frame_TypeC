@@ -72,7 +72,7 @@ class MockDebug : public IDebug {
 class MockAmmoLid : public IAmmoLid {
    public:
     MOCK_METHOD(void, init, (), (override));
-    MOCK_METHOD(void, set_lid_status, (EAmmoLidStatus new_status), (override));
+    MOCK_METHOD(void, set_lid_status, (LidStatus new_status), (override));
 };
 
 #endif

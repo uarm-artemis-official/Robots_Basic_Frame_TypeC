@@ -119,7 +119,7 @@ void RCApp::init() {
     pc_board_mode = PATROL_MODE;
     pc_act_mode = INDPET_MODE;
     pc_shoot_mode = SHOOT_CEASE;
-    pc_ammo_status = EAmmoLidStatus::CLOSED;
+    pc_ammo_status = ammo_lid::LidStatus::CLOSED;
 }
 
 void RCApp::loop() {
@@ -259,11 +259,11 @@ void RCApp::send_chassis_command(float v_parallel, float v_perp, float wz,
 }
 
 void RCApp::send_shoot_command(ShootActMode_t shoot_mode,
-                               EAmmoLidStatus ammo_lid_status) {
+                               ammo_lid::LidStatus ammo_lid_status) {
     mc2::ShootCommand shoot_command;
     shoot_command.command_bits = static_cast<uint8_t>(shoot_mode);
 
-    if (ammo_lid_status == EAmmoLidStatus::OPEN) {
+    if (ammo_lid_status == ammo_lid::LidStatus::OPEN) {
         shoot_command.extra_bits = 1;
     } else {
         shoot_command.extra_bits = 0;
@@ -291,9 +291,9 @@ void RCApp::pub_command_messages() {
         // }
 
         if (rc.pc.keyboard.R.status == EKeyStatus::PRESSED) {
-            pc_ammo_status = EAmmoLidStatus::OPEN;
+            pc_ammo_status = ammo_lid::LidStatus::OPEN;
         } else {
-            pc_ammo_status = EAmmoLidStatus::CLOSED;
+            pc_ammo_status = ammo_lid::LidStatus::CLOSED;
         }
 
         if (rc.pc.keyboard.Shift.status == EKeyStatus::PRESSED_TO_RELEASE) {
@@ -384,9 +384,9 @@ void RCApp::pub_command_messages() {
         send_gimbal_can_comm(yaw, pitch, board_mode, act_mode);
 
         if (rc.ctrl.wheel > 0) {
-            send_shoot_command(shoot_mode, EAmmoLidStatus::OPEN);
+            send_shoot_command(shoot_mode, ammo_lid::LidStatus::OPEN);
         } else {
-            send_shoot_command(shoot_mode, EAmmoLidStatus::CLOSED);
+            send_shoot_command(shoot_mode, ammo_lid::LidStatus::CLOSED);
         }
     }
 }

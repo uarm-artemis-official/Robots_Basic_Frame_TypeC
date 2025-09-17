@@ -69,7 +69,7 @@ class IDebug {
 class IAmmoLid {
    public:
     virtual void init() = 0;
-    virtual void set_lid_status(EAmmoLidStatus new_status) = 0;
+    virtual void set_lid_status(ammo_lid::LidStatus new_status) = 0;
 };
 
 class IRCComm {

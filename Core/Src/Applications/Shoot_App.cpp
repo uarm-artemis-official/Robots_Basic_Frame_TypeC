@@ -80,7 +80,7 @@ void ShootApp::init() {
 
     /* set shoot mode */
     set_shoot_mode(SHOOT_CEASE);
-    ammo_lid.set_lid_status(EAmmoLidStatus::CLOSED);
+    ammo_lid.set_lid_status(ammo_lid::LidStatus::CLOSED);
 }
 
 void ShootApp::loop() {
@@ -105,9 +105,9 @@ void ShootApp::process_commands() {
 
         uint8_t open_ammo_lid = static_cast<uint8_t>(shoot_command.extra_bits);
         if (open_ammo_lid == 1) {
-            ammo_lid.set_lid_status(EAmmoLidStatus::OPEN);
+            ammo_lid.set_lid_status(ammo_lid::LidStatus::OPEN);
         } else {
-            ammo_lid.set_lid_status(EAmmoLidStatus::CLOSED);
+            ammo_lid.set_lid_status(ammo_lid::LidStatus::CLOSED);
         }
     }
 }

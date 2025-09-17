@@ -26,20 +26,9 @@ target_link_libraries(PACK_HANDLER
         SUBSYSTEMS::MESSAGE_CENTER)
 add_library(FW::PACK_HANDLER ALIAS PACK_HANDLER)
 
-add_library(QUEUE_M STATIC queue_m.c)
-target_include_directories(QUEUE_M PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(QUEUE_M
-    PUBLIC 
-        COMMON_INCLUDES)
-add_library(FW::QUEUE_M ALIAS QUEUE_M)
-
 add_library(REF_DATA STATIC referee_data.c)
 target_include_directories(REF_DATA PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(REF_DATA
     PUBLIC 
         COMMON_INCLUDES)
 add_library(FW::REF_DATA ALIAS REF_DATA)
-add_library(TIMERS_HANDLER STATIC timers_handler.c)
-target_include_directories(TIMERS_HANDLER PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(TIMERS_HANDLER PUBLIC COMMON_INCLUDES)
-add_library(FW::TIMERS_HANDLER ALIAS TIMERS_HANDLER)

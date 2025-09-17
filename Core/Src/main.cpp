@@ -114,6 +114,7 @@ void main_cpp(void);
 }
 
 static MW_RTOS::RTOS rtos;
+static MW_TIM::PWM pwm;
 
 static MW_CAN::CAN can;
 static mc2::RobotMC mc(rtos);
@@ -124,7 +125,7 @@ static RefereeUI ref_ui;
 static Motors no_init_motors;
 static Imu imu(1000 / IMUApp::loop_period_ms, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
-static AmmoLid ammo_lid;
+static ammo_lid::AmmoLid ammo_lid_(pwm);
 static RCComm rc_comm;
 static PCComm pc_comm;
 
@@ -171,7 +172,8 @@ static IMUApp imu_app(mc, event_center, imu, debug);
 static RefereeApp referee_app(mc, event_center, debug, ref_ui);
 static GimbalApp gimbal_app(mc, event_center, debug, no_init_motors);
 static ShootApp shoot_app(
-    mc, ammo_lid, no_init_motors, robot_config::shoot_params::LOADER_ACTIVE_RPM,
+    mc, ammo_lid_, no_init_motors,
+    robot_config::shoot_params::LOADER_ACTIVE_RPM,
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
     robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
 

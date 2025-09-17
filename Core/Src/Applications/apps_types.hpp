@@ -199,7 +199,7 @@ struct Shoot {
     float loader_target_rpm;
     float flywheel_target_rpm;
 
-    EAmmoLidStatus lid_status;
+    ammo_lid::LidStatus lid_status;
     ShootActMode_t shoot_act_mode;
     ShootState shoot_state;
 

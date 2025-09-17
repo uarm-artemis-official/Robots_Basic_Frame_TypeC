@@ -288,7 +288,7 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
     BoardMode_t pc_board_mode;
     BoardActMode_t pc_act_mode;
     ShootActMode_t pc_shoot_mode;
-    EAmmoLidStatus pc_ammo_status;
+    ammo_lid::LidStatus pc_ammo_status;
 
    public:
     explicit RCApp(mc2::RobotMC& mc2_ref, IRCComm& rc_comm_ref);
@@ -306,7 +306,7 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
     void send_chassis_command(float v_parallel, float v_perp, float wz,
                               BoardMode_t board_mode, BoardActMode_t act_mode);
     void send_shoot_command(ShootActMode_t shoot_mode,
-                            EAmmoLidStatus ammo_lid_status);
+                            ammo_lid::LidStatus ammo_lid_status);
 
     void pub_command_messages();
 };

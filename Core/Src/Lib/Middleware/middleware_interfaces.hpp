@@ -75,7 +75,7 @@ namespace MW_TIM {
          * \f$\frac{compare_value}{TIMx->ARR + 1} * 100%\f$
          * @param[in] timer Timer to set.
          * @param[in] channel Channel of timer to set.
-         * @param[in] compare_value The duty cycle of the PWM signal (0-100%).
+         * @param[in] compare_value The duty cycle of the PWM signal.
          */
         virtual void set_duty_cycle(Timer timer, Channel channel,
                                     uint32_t compare) = 0;

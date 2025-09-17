@@ -2,20 +2,29 @@
 #define __SUBSYSTEMS_CLASSES_HPP
 
 #include "madgewick.hpp"
+#include "middleware_interfaces.hpp"
 #include "subsystems_interfaces.hpp"
 #include "subsystems_types.hpp"
 #include "uarm_types.hpp"
 
-class AmmoLid : public IAmmoLid {
-   private:
-    static constexpr uint16_t CLOSED_PWM_CMP = 503;
-    static constexpr uint16_t OPEN_PWM_CMP = 365;
-    EAmmoLidStatus lid_status;
+namespace ammo_lid {
+    class AmmoLid : public IAmmoLid {
+       private:
+        static constexpr uint16_t CLOSED_PWM_CMP = 503;
+        static constexpr uint16_t OPEN_PWM_CMP = 365;
+        static constexpr MW_TIM::Timer ammo_lid_timer = MW_TIM::Timer::TIM_1;
+        static constexpr MW_TIM::Channel ammo_lid_channel =
+            MW_TIM::Channel::CHANNEL_1;
+        LidStatus lid_status;
+        MW_TIM::IPWM& pwm;
 
-   public:
-    void init() override;
-    void set_lid_status(EAmmoLidStatus new_status) override;
-};
+       public:
+        AmmoLid(MW_TIM::IPWM& pwm_ref);
+
+        void init() override;
+        void set_lid_status(LidStatus new_status) override;
+    };
+}  // namespace ammo_lid
 
 class Debug : public IDebug {
    public:
