@@ -5,8 +5,8 @@
 
 namespace gimbal_params {
     // Motor encoder zero-position.
-    constexpr int16_t YAW_ECD_CENTER = 2800;
-    constexpr int16_t PITCH_ECD_CENTER = 4100;
+    constexpr int16_t YAW_ECD_CENTER = 6100;
+    constexpr int16_t PITCH_ECD_CENTER = 6850;
     constexpr float LOADER_GEAR_RATIO = 36;
 
     // Software pitch limits.
