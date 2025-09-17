@@ -25,11 +25,8 @@ template class ChassisApp<SwerveDrive>;
 
 template <class DriveTrain>
 ChassisApp<DriveTrain>::ChassisApp(DriveTrain& drive_train_ref,
-                                   IMessageCenter& message_center_ref,
-                                   IDebug& debug_ref)
-    : drive_train(drive_train_ref),
-      message_center(message_center_ref),
-      debug(debug_ref) {
+                                   mc2::RobotMC& mc_ref, IDebug& debug_ref)
+    : drive_train(drive_train_ref), mc(mc_ref), debug(debug_ref) {
     static_assert(
         std::is_same<DriveTrain, OmniDrive>::value ||
             std::is_same<DriveTrain, SwerveDrive>::value,
@@ -144,20 +141,18 @@ void ChassisApp<DriveTrain>::calc_movement_vectors() {
 
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::chassis_get_gimbal_rel_angles() {
-    float rel_angles[2];
-    BaseType_t new_rel_angle_message =
-        message_center.peek_message(GIMBAL_REL_ANGLES, rel_angles, 0);
-    if (new_rel_angle_message == pdTRUE) {
-        chassis.gimbal_yaw_rel_angle = rel_angles[0];
+    mc2::GimbalRelativeAngles rel_angles;
+    auto message_ts = mc.peek_message(rel_angles);
+    if (message_ts.has_value()) {
+        chassis.gimbal_yaw_rel_angle = rel_angles.yaw;
     }
 }
 
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::process_commands() {
-    ChassisCommandMessage_t chassis_command;
-    uint8_t new_message =
-        message_center.get_message(COMMAND_CHASSIS, &chassis_command, 0);
-    if (new_message == pdTRUE) {
+    mc2::ChassisCommand chassis_command;
+    auto message_ts = mc.get_message(chassis_command);
+    if (message_ts.has_value()) {
         chassis.v_perp = chassis_command.v_perp;
         chassis.v_parallel = chassis_command.v_parallel;
         chassis.wz = chassis_command.wz;

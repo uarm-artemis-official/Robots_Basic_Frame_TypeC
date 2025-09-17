@@ -11,16 +11,15 @@
 
 namespace CAN_ISR {
     void CAN_ISR::init(Config _config) {
-        memset(&read_message, 0, sizeof(MotorReadMessage_t));
         config = _config;
     }
 
     uint8_t CAN_ISR::get_free_buffer(uint32_t stdId) {
         uint8_t free_index = 0xff;
         for (int i = 0; i < 8; i++) {
-            if (read_message.can_ids[i] == 0)
+            if (motor_read.can_ids[i] == 0)
                 free_index = i;
-            if (read_message.can_ids[i] == stdId) {
+            if (motor_read.can_ids[i] == stdId) {
                 return i;
             }
         }
@@ -32,11 +31,10 @@ namespace CAN_ISR {
         uint8_t buffer_index = get_free_buffer(rx_header.StdId);
         if (buffer_index < MAX_MOTOR_COUNT) {
             HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header,
-                                 read_message.feedback[buffer_index]);
-            read_message.can_ids[buffer_index] =
+                                 motor_read.feedback[buffer_index]);
+            motor_read.can_ids[buffer_index] =
                 static_cast<Motor_CAN_ID_t>(rx_header.StdId);
-            message_center.pub_message_from_isr(MOTOR_READ, &read_message,
-                                                NULL);
+            mc.pub_message_from_isr(motor_read);
         }
     }
 
@@ -50,8 +48,8 @@ namespace CAN_ISR {
         }
 
         if (hcan == &hcan2) {
-            CANCommMessage_t incoming_message;
-            incoming_message.topic_name = rx_header.StdId;
+            mc2::CommIn comm_in;
+            comm_in.topic_name = rx_header.StdId;
 
             if (config == Config::SENTRY_CHASSIS &&
                 SWERVE_STEER_MOTOR1 <= rx_header.StdId &&
@@ -60,10 +58,9 @@ namespace CAN_ISR {
             } else {
                 // TODO: Add removal/filters for non-supported CAN2 messages
                 HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header,
-                                     incoming_message.data);
+                                     comm_in.bytes.data());
                 // TODO: Store messages in RTOS queue and implement API for accessing messages.
-                message_center.pub_message_from_isr(COMM_IN, &incoming_message,
-                                                    NULL);
+                mc.pub_message_from_isr(comm_in);
             }
         }
     }

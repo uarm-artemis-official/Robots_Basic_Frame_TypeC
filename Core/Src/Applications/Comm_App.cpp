@@ -16,74 +16,67 @@
 #include "apps_types.hpp"
 #include "quantize.hpp"
 #include "string.h"
+#include "subsystems_modules.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 #include "uarm_os.hpp"
 
 namespace CommApp {
-    CommApp::CommApp(IMessageCenter& message_center_ref, IDebug& debug_ref,
+    CommApp::CommApp(mc2::RobotMC& mc_ref, IDebug& debug_ref,
                      MW_CAN::ICAN& _can, Config _config)
-        : message_center(message_center_ref),
-          debug(debug_ref),
-          can(_can),
-          config(_config) {}
+        : mc(mc_ref), debug(debug_ref), can(_can), config(_config) {}
 
     void CommApp::init() {
         board_status = debug.get_board_status();
     }
 
     void CommApp::loop() {
-        CANCommMessage_t outgoing_message, incoming_message;
-
-        BaseType_t new_send_message =
-            message_center.get_message(COMM_OUT, &outgoing_message, 0);
-        if (new_send_message == pdTRUE) {
+        mc2::CommOut comm_out;
+        auto comm_out_message_ts = mc.get_message(comm_out);
+        if (comm_out_message_ts.has_value()) {
             switch (config.op_mode) {
                 case OperationMode::Normal:
-                    transmit_interboard_message(outgoing_message.topic_name,
-                                                outgoing_message.data);
+                    transmit_interboard_message(comm_out.topic_name,
+                                                comm_out.bytes.data());
                     break;
-                case OperationMode::Loopback:
-                    message_center.pub_message(COMM_IN, &outgoing_message);
+                case OperationMode::Loopback: {
+                    mc2::CommIn comm_in;
+                    memcpy(comm_in.bytes.data(), comm_out.bytes.data(),
+                           sizeof(comm_in.bytes));
+                    mc.pub_message(comm_in);
                     break;
+                }
                 default:
                     ASSERT(false, "Unsupported Comm App operation mode.");
             }
         }
 
-        BaseType_t new_receive_message =
-            message_center.get_message(COMM_IN, &incoming_message, 0);
-        if (new_receive_message == pdTRUE) {
-            switch (incoming_message.topic_name) {
-                case REFEREE_OUT:
+        mc2::CommIn comm_in;
+        auto comm_in_message_ts = mc.get_message(comm_in);
+        if (comm_in_message_ts.has_value()) {
+            switch (comm_in.topic_name) {
+                case mc2::get_comm_id<mc2::RefereeOut, mc2::RobotMC::Topics>():
                     // TODO: Implement
                     break;
-                case GIMBAL_REL_ANGLES: {
-                    float rel_angles[2];
-                    memcpy(rel_angles, incoming_message.data,
-                           sizeof(float) * 2);
-                    message_center.pub_message(GIMBAL_REL_ANGLES, rel_angles);
+                case mc2::get_comm_id<mc2::GimbalRelativeAngles,
+                                      mc2::RobotMC::Topics>(): {
+                    mc2::GimbalRelativeAngles rel_angles;
+                    memcpy(&rel_angles, comm_in.bytes.data(),
+                           sizeof(mc2::GimbalRelativeAngles));
+                    mc.pub_message(rel_angles);
                 } break;
-                case RC_INFO: {
-                    RCInfoMessage_t rc_info;
-                    memset(&rc_info, 0, sizeof(RCInfoMessage_t));
-                    memcpy(rc_info.channels, &(incoming_message.data[4]),
-                           sizeof(int16_t) * 2);
-                    memcpy(rc_info.modes, incoming_message.data,
-                           sizeof(uint8_t) * 3);
-                    message_center.pub_message(RC_INFO, &rc_info);
-                } break;
-                case COMMAND_GIMBAL: {
-                    GimbalCommandMessage_t gimbal_command;
+                case mc2::get_comm_id<mc2::GimbalCommand,
+                                      mc2::RobotMC::Topics>(): {
+                    mc2::GimbalCommand gimbal_command;
                     int16_t quantized_yaw;
                     int16_t quantized_pitch;
 
-                    std::memcpy(&quantized_yaw, incoming_message.data,
+                    std::memcpy(&quantized_yaw, comm_in.bytes.data(),
                                 sizeof(int16_t));
-                    std::memcpy(&quantized_pitch, &(incoming_message.data[2]),
+                    std::memcpy(&quantized_pitch, &(comm_in.bytes.data()[2]),
                                 sizeof(int16_t));
                     std::memcpy(&(gimbal_command.command_bits),
-                                &(incoming_message.data[4]), sizeof(uint32_t));
+                                &(comm_in.bytes.data()[4]), sizeof(uint32_t));
 
                     gimbal_command.yaw = inv_quantize_float(
                         quantized_yaw, std::numeric_limits<int16_t>::min(),
@@ -91,18 +84,17 @@ namespace CommApp {
                     gimbal_command.pitch = inv_quantize_float(
                         quantized_pitch, std::numeric_limits<int16_t>::min(),
                         std::numeric_limits<int16_t>::max(), -PI, PI);
-
-                    message_center.pub_message(COMMAND_GIMBAL, &gimbal_command);
+                    mc.pub_message(gimbal_command);
                     break;
                 }
-                case COMMAND_SHOOT: {
-                    ShootCommandMessage_t shoot_command;
+                case mc2::get_comm_id<mc2::ShootCommand,
+                                      mc2::RobotMC::Topics>(): {
+                    mc2::ShootCommand shoot_command;
                     std::memcpy(&(shoot_command.command_bits),
-                                incoming_message.data, sizeof(uint32_t));
+                                comm_in.bytes.data(), sizeof(uint32_t));
                     std::memcpy(&(shoot_command.extra_bits),
-                                &(incoming_message.data[4]), sizeof(uint32_t));
-
-                    message_center.pub_message(COMMAND_SHOOT, &shoot_command);
+                                &(comm_in.bytes.data()[4]), sizeof(uint32_t));
+                    mc.pub_message(shoot_command);
                     break;
                 }
                 default:
@@ -114,7 +106,7 @@ namespace CommApp {
     bool CommApp::transmit_interboard_message(const uint32_t message_id,
                                               const uint8_t message_data[8]) {
         std::array<uint8_t, 8> can_data;
-        memcpy(can_data.data(), message_data, sizeof(uint8_t) * 8);
+        memcpy(can_data.data(), message_data, sizeof(can_data));
         return can.send_data(MW_CAN::BUS::CAN_2, message_id, can_data, 8);
     }
 }  // namespace CommApp

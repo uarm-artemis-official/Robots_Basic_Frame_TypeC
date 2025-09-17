@@ -101,11 +101,11 @@
  *    Note: Shift need to be combined with any of WASD keys.
  *
  *********************************************************************************/
-RCApp::RCApp(IMessageCenter& message_center_ref, IRCComm& rc_comm_ref)
-    : message_center(message_center_ref), rc_comm(rc_comm_ref) {}
+RCApp::RCApp(mc2::RobotMC& mc_ref, IRCComm& rc_comm_ref)
+    : mc(mc_ref), rc_comm(rc_comm_ref) {}
 
 void RCApp::init() {
-    memset(&tmp_rx_buffer, 0, sizeof(uint8_t) * 18);
+    memset(rc_raw.rc_bytes.data(), 0, sizeof(rc_raw.rc_bytes));
     rc_idle_count = 0;
 
     rc_comm.buffer_init(rc_rx_buffer);
@@ -125,11 +125,10 @@ void RCApp::init() {
 void RCApp::loop() {
     detect_rc_loss();
 
-    BaseType_t new_rc_raw_message =
-        message_center.get_message(RC_RAW, tmp_rx_buffer, 0);
+    auto message_ts = mc.get_message(rc_raw);
 
-    if (new_rc_raw_message == pdTRUE) {
-        std::copy(std::begin(tmp_rx_buffer), std::end(tmp_rx_buffer),
+    if (message_ts.has_value()) {
+        std::copy(std::begin(rc_raw.rc_bytes), std::end(rc_raw.rc_bytes),
                   rc_rx_buffer.begin());
 
         parse_raw_rc();
@@ -215,10 +214,9 @@ void RCApp::detect_rc_loss() {
         send_gimbal_can_comm(0, 0, IDLE_MODE, INDPET_MODE);
     }
 
-    BaseType_t new_rc_raw_message =
-        message_center.peek_message(RC_RAW, tmp_rx_buffer, 0);
+    auto message_ts = mc.peek_message(rc_raw);
 
-    if (new_rc_raw_message == pdTRUE) {
+    if (message_ts.has_value()) {
         rc_idle_count = 0;
     } else {
         rc_idle_count = value_limit(rc_idle_count + 1, 0, 1000);
@@ -236,19 +234,20 @@ void RCApp::send_gimbal_can_comm(float yaw, float pitch, BoardMode_t board_mode,
     uint32_t command_bits = ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
                             (static_cast<uint8_t>(act_mode) & 0x7);
 
-    CANCommMessage_t can_comm_message;
-    can_comm_message.topic_name = COMMAND_GIMBAL;
-    std::memcpy(can_comm_message.data, &quantized_yaw, sizeof(int16_t));
-    std::memcpy(&(can_comm_message.data[2]), &quantized_pitch, sizeof(int16_t));
-    std::memcpy(&(can_comm_message.data[4]), &command_bits, sizeof(uint32_t));
+    mc2::CommOut comm_out;
+    comm_out.topic_name =
+        mc2::get_comm_id<mc2::GimbalCommand, mc2::RobotMC::Topics>();
+    std::memcpy(comm_out.bytes.data(), &quantized_yaw, sizeof(int16_t));
+    std::memcpy(&(comm_out.bytes.data()[2]), &quantized_pitch, sizeof(int16_t));
+    std::memcpy(&(comm_out.bytes.data()[4]), &command_bits, sizeof(uint32_t));
 
-    message_center.pub_message(COMM_OUT, &can_comm_message);
+    mc.pub_message(comm_out);
 }
 
 void RCApp::send_chassis_command(float v_parallel, float v_perp, float wz,
                                  BoardMode_t board_mode,
                                  BoardActMode_t act_mode) {
-    ChassisCommandMessage_t chassis_command;
+    mc2::ChassisCommand chassis_command;
     chassis_command.v_parallel = v_parallel;
     chassis_command.v_perp = v_perp;
     chassis_command.wz = wz;
@@ -256,12 +255,12 @@ void RCApp::send_chassis_command(float v_parallel, float v_perp, float wz,
         ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
         (static_cast<uint8_t>(act_mode) & 0x7);
 
-    message_center.pub_message(COMMAND_CHASSIS, &chassis_command);
+    mc.pub_message(chassis_command);
 }
 
 void RCApp::send_shoot_command(ShootActMode_t shoot_mode,
                                EAmmoLidStatus ammo_lid_status) {
-    ShootCommandMessage_t shoot_command;
+    mc2::ShootCommand shoot_command;
     shoot_command.command_bits = static_cast<uint8_t>(shoot_mode);
 
     if (ammo_lid_status == EAmmoLidStatus::OPEN) {
@@ -270,14 +269,15 @@ void RCApp::send_shoot_command(ShootActMode_t shoot_mode,
         shoot_command.extra_bits = 0;
     }
 
-    CANCommMessage_t can_comm_message;
-    can_comm_message.topic_name = COMMAND_SHOOT;
-    std::memcpy(&can_comm_message.data, &(shoot_command.command_bits),
+    mc2::CommOut comm_out;
+    comm_out.topic_name =
+        mc2::get_comm_id<mc2::ShootCommand, mc2::RobotMC::Topics>();
+    std::memcpy(comm_out.bytes.data(), &(shoot_command.command_bits),
                 sizeof(uint32_t));
-    std::memcpy(&(can_comm_message.data[4]), &(shoot_command.extra_bits),
+    std::memcpy(&(comm_out.bytes.data()[4]), &(shoot_command.extra_bits),
                 sizeof(uint32_t));
 
-    message_center.pub_message(COMM_OUT, &can_comm_message);
+    mc.pub_message(comm_out);
 }
 
 void RCApp::pub_command_messages() {

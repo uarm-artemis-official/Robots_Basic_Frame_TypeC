@@ -4,13 +4,14 @@
 #include "apps_interfaces.hpp"
 #include "apps_types.hpp"
 #include "subsystems_interfaces.hpp"
+#include "subsystems_modules.hpp"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
                                   apps_defines::chassis_task_loop_period_ms> {
    private:
     ChassisDrive<DriveTrain>& drive_train;
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IDebug& debug;
 
     Chassis_t chassis;
@@ -20,8 +21,8 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
     static constexpr float MAX_ROTATION = PI;    // rad/s
     static constexpr float GYRO_SPEED = PI;
 
-    ChassisApp(DriveTrain& drive_train_ref, IMessageCenter& message_center_ref,
-               IDebug& debug_ref);
+    explicit ChassisApp(DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
+                        IDebug& debug_ref);
     void init();
     void set_initial_state();
 
@@ -42,7 +43,7 @@ class OmniDrive : public ChassisDrive<OmniDrive> {
     std::array<Chassis_Wheel_Control_t, 4> motor_controls;
     std::array<float, 4> motor_angular_vel;
     std::array<float, 4> wheel_power_consumption;
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IMotors& motors;
     float width, length, power_limit, chassis_dt;
     const float a = 0;
@@ -50,9 +51,9 @@ class OmniDrive : public ChassisDrive<OmniDrive> {
     const float k2 = 0;
 
    public:
-    OmniDrive(IMessageCenter& message_center_ref, IMotors& motors,
-              float chassis_width, float chassis_length, float power_limit_,
-              float chassis_dt_);
+    explicit OmniDrive(mc2::RobotMC& mc2_ref, IMotors& motors,
+                       float chassis_width, float chassis_length,
+                       float power_limit_, float chassis_dt_);
 
     void init_impl();
 
@@ -75,7 +76,7 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     static constexpr size_t NUM_STEER_MOTORS = 4;
     static constexpr size_t NUM_DRIVE_MOTORS = 4;
 
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IMotors& motors;
     const float width;
     const float dt;
@@ -99,8 +100,8 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     static int32_t pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                          uint32_t angle);
 
-    explicit SwerveDrive(IMessageCenter& message_center_ref,
-                         IMotors& motors_ref, float width_, float dt_);
+    explicit SwerveDrive(mc2::RobotMC& mc2_ref, IMotors& motors_ref,
+                         float width_, float dt_);
 
     void init_impl();
     void get_motor_feedback();
@@ -128,7 +129,7 @@ class GimbalApp
     int16_t gimbal_channels[2];
     float command_deltas[2];
 
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IEventCenter& event_center;
     IDebug& debug;
     IMotors& motors;
@@ -142,8 +143,8 @@ class GimbalApp
     static float calc_rel_angle(float angle1, float angle2);
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
-    GimbalApp(IMessageCenter& message_center_ref, IEventCenter& event_center,
-              IDebug& debug_ref, IMotors& motors_ref);
+    explicit GimbalApp(mc2::RobotMC& mc_ref, IEventCenter& event_center,
+                       IDebug& debug_ref, IMotors& motors_ref);
     void init();
     void set_initial_state();
     bool calibrate_start_precondition();
@@ -186,7 +187,7 @@ class GimbalApp
 class ShootApp
     : public RTOSApp<ShootApp, apps_defines::shoot_task_loop_period_ms> {
    private:
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IAmmoLid& ammo_lid;
     IMotors& motors;
 
@@ -198,9 +199,9 @@ class ShootApp
     const float MAX_FLYWHEEL_ACCEL;
 
    public:
-    ShootApp(IMessageCenter& message_center_ref, IAmmoLid& ammo_lid_ref,
-             IMotors& motors_ref, float loader_active_rpm_,
-             float flywheel_target_rpm_, float max_flywheel_accel);
+    explicit ShootApp(mc2::RobotMC& mc2_ref, IAmmoLid& ammo_lid_ref,
+                      IMotors& motors_ref, float loader_active_rpm_,
+                      float flywheel_target_rpm_, float max_flywheel_accel);
 
     void init();
     void loop();
@@ -222,7 +223,7 @@ class ShootApp
 class IMUApp
     : public ExtendedRTOSApp<IMUApp, apps_defines::imu_task_loop_period_ms> {
    private:
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IEventCenter& event_center;
     IImu& imu;
     IDebug& debug;
@@ -231,15 +232,14 @@ class IMUApp
     IMU_Heat_t imu_heating_control;
     Attitude_t attitude;
     AhrsSensor_t sensor_data;
-    float message_data[2];
 
    public:
     static constexpr float TARGET_IMU_TEMP = 40.0f;
     static constexpr float NORMAL_TEMP_THRESHOLD = 1.0f;
     static constexpr float IMU_RESET_THRESHOLD = 7.0f;
 
-    IMUApp(IMessageCenter& message_center_ref, IEventCenter& event_center_ref,
-           IImu& imu_ref, IDebug& debug_ref);
+    explicit IMUApp(mc2::RobotMC& mc2_ref, IEventCenter& event_center_ref,
+                    IImu& imu_ref, IDebug& debug_ref);
     void init();
     void calibrate();
     bool exit_calibrate_cond();
@@ -253,7 +253,7 @@ class IMUApp
 class RefereeApp
     : public RTOSApp<RefereeApp, apps_defines::referee_task_loop_period_ms> {
    private:
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IEventCenter& event_center;
     IDebug& debug;
     IRefUI& ref_ui;  // Referee UI interface
@@ -264,8 +264,8 @@ class RefereeApp
     uint8_t ui_sendig_count = 0;  // Count the number of times UI data is sent
 
    public:
-    RefereeApp(IMessageCenter& msg_center, IEventCenter& evt_center,
-               IDebug& debug, IRefUI& ref_ui);
+    explicit RefereeApp(mc2::RobotMC& mc2_ref, IEventCenter& evt_center,
+                        IDebug& debug, IRefUI& ref_ui);
     void init();
     void loop();
 
@@ -276,11 +276,11 @@ class RefereeApp
 
 class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
    private:
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IRCComm& rc_comm;
 
     // TODO: remove and replace with rc_rx_buffer.
-    uint8_t tmp_rx_buffer[18];
+    mc2::RCRaw rc_raw;
     Buffer rc_rx_buffer;
     RemoteControl_t rc;
     uint32_t rc_idle_count = 0;
@@ -291,7 +291,7 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
     EAmmoLidStatus pc_ammo_status;
 
    public:
-    explicit RCApp(IMessageCenter& message_center_ref, IRCComm& rc_comm_ref);
+    explicit RCApp(mc2::RobotMC& mc2_ref, IRCComm& rc_comm_ref);
 
     void init();
     void loop();
@@ -318,14 +318,15 @@ class TimerApp
         SWERVE_STEER_MOTOR1, SWERVE_STEER_MOTOR2, SWERVE_STEER_MOTOR3,
         SWERVE_STEER_MOTOR4};
     IMotors& system_motors;
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IDebug& debug;
+    mc2::MotorSet motor_set;
     MotorSetMessage_t motor_tx_message;
     BoardStatus_t board_status;
 
    public:
-    TimerApp(IMotors& system_motors_ref, IMessageCenter& message_center_ref,
-             IDebug& debug_ref);
+    explicit TimerApp(IMotors& system_motors_ref, mc2::RobotMC& mc2_ref,
+                      IDebug& debug_ref);
     void init();
     void loop();
 };
@@ -333,18 +334,18 @@ class TimerApp
 class PCUARTApp
     : public RTOSApp<PCUARTApp, apps_defines::pc_uart_task_loop_period_ms> {
    private:
-    IMessageCenter& message_center;
+    mc2::RobotMC& mc;
     IMotors& motors;
     IPCComm& pc_comm;
 
     uint32_t idle_count = 0;
-    uint8_t new_pack_buffer[64];  // TODO: Make same as MAX_PACK_BUFFER_SIZE.
+    mc2::UCPackIn uc_pack_in;
     uint8_t new_send_buffer[196];
     float recent_deltas[2];
 
    public:
-    PCUARTApp(IMessageCenter& message_center_ref, IMotors& motors_,
-              IPCComm& pc_comm_);
+    explicit PCUARTApp(mc2::RobotMC& mc2_ref, IMotors& motors_,
+                       IPCComm& pc_comm_);
     void init();
     void loop();
     void send_swerve_data();
@@ -354,15 +355,15 @@ namespace CommApp {
     class CommApp
         : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
        private:
-        IMessageCenter& message_center;
+        mc2::RobotMC& mc;
         IDebug& debug;
         MW_CAN::ICAN& can;
         BoardStatus_t board_status;
         Config config;
 
        public:
-        CommApp(IMessageCenter& message_center, IDebug& debug,
-                MW_CAN::ICAN& can, Config config);
+        explicit CommApp(mc2::RobotMC& mc2_ref, IDebug& debug,
+                         MW_CAN::ICAN& can, Config config);
         void init();
         void loop();
         bool transmit_interboard_message(const uint32_t message_id,

@@ -246,7 +246,7 @@ typedef struct {
 
     uint8_t ref_data[MAX_REF_RX_DATA_LEN];  // MAX_REF_RX_DATA_LEN
     // rx data
-    uint8_t ref_rx_frame[MAX_REF_BUFFER_SIZE];  // MAX_REF_BUFFER_SIZE
+    mc2::RefereeIn referee_in;
     uint16_t ref_cmd_id;
     robot_color_t robot_color;
 

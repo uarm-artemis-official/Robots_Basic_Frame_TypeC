@@ -22,10 +22,10 @@ namespace {
     constexpr size_t RIGHT_FLYWHEEL_INDEX = 1;
 }  // namespace
 
-ShootApp::ShootApp(IMessageCenter& message_center_ref, IAmmoLid& ammo_lid_ref,
+ShootApp::ShootApp(mc2::RobotMC& mc_ref, IAmmoLid& ammo_lid_ref,
                    IMotors& motors_ref, float loader_active_rpm_,
                    float flywheel_target_rpm_, float max_flywheel_accel)
-    : message_center(message_center_ref),
+    : mc(mc_ref),
       ammo_lid(ammo_lid_ref),
       motors(motors_ref),
       LOADER_ACTIVE_RPM(loader_active_rpm_),
@@ -95,11 +95,10 @@ void ShootApp::loop() {
 }
 
 void ShootApp::process_commands() {
-    ShootCommandMessage_t shoot_command;
-    uint8_t new_message =
-        message_center.get_message(COMMAND_SHOOT, &shoot_command, 0);
+    mc2::ShootCommand shoot_command;
+    auto message_ts = mc.get_message(shoot_command);
 
-    if (new_message == pdTRUE) {
+    if (message_ts.has_value()) {
         ShootActMode_t shoot_mode =
             static_cast<ShootActMode_t>(shoot_command.command_bits);
         set_shoot_mode(shoot_mode);
@@ -114,10 +113,9 @@ void ShootApp::process_commands() {
 }
 
 void ShootApp::get_motor_feedback() {
-    MotorReadMessage_t read_message;
-    BaseType_t has_motor_feedback =
-        message_center.peek_message(MOTOR_READ, &read_message, 0);
-    if (has_motor_feedback == pdTRUE) {
+    mc2::MotorRead motor_read;
+    auto message_ts = mc.peek_message(motor_read);
+    if (message_ts.has_value()) {
         std::array<std::pair<uint32_t, Motor_Feedback_t*>, 3> feedbacks = {
             std::make_pair(loader_control.stdid, &(loader_control.feedback)),
             std::make_pair(flywheel_controls[LEFT_FLYWHEEL_INDEX].stdid,
@@ -128,9 +126,9 @@ void ShootApp::get_motor_feedback() {
 
         for (size_t i = 0; i < feedbacks.size(); i++) {
             for (size_t j = 0; j < MAX_MOTOR_COUNT; j++) {
-                if (read_message.can_ids[j] == feedbacks[i].first) {
+                if (motor_read.can_ids[j] == feedbacks[i].first) {
                     motors.get_raw_feedback(feedbacks[i].first,
-                                            read_message.feedback[j],
+                                            motor_read.feedback[j],
                                             feedbacks[i].second);
                     break;
                 }
@@ -244,20 +242,17 @@ void ShootApp::calc_motor_outputs() {
 }
 
 void ShootApp::send_motor_outputs() {
-    MotorSetMessage_t motor_set_message;
-    memset(&motor_set_message, 0, sizeof(MotorSetMessage_t));
-
-    motor_set_message.motor_can_volts[0] = loader_control.speed_pid.total_out;
-    motor_set_message.can_ids[0] = loader_control.stdid;
-    motor_set_message.motor_can_volts[1] =
+    mc2::MotorSet motor_set {};
+    motor_set.motor_can_volts[0] = loader_control.speed_pid.total_out;
+    motor_set.can_ids[0] = loader_control.stdid;
+    motor_set.motor_can_volts[1] =
         flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid.total_out;
-    motor_set_message.can_ids[1] = flywheel_controls[LEFT_FLYWHEEL_INDEX].stdid;
-    motor_set_message.motor_can_volts[2] =
+    motor_set.can_ids[1] = flywheel_controls[LEFT_FLYWHEEL_INDEX].stdid;
+    motor_set.motor_can_volts[2] =
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid.total_out;
-    motor_set_message.can_ids[2] =
-        flywheel_controls[RIGHT_FLYWHEEL_INDEX].stdid;
+    motor_set.can_ids[2] = flywheel_controls[RIGHT_FLYWHEEL_INDEX].stdid;
 
-    message_center.pub_message(MOTOR_SET, &motor_set_message);
+    mc.pub_message(motor_set);
 }
 
 void ShootApp::set_shoot_mode(ShootActMode_t new_mode) {

@@ -53,12 +53,9 @@
 //  * @param[in] None
 //  * @retval    None
 //  */
-RefereeApp::RefereeApp(IMessageCenter& msg_center, IEventCenter& evt_center,
+RefereeApp::RefereeApp(mc2::RobotMC& mc_ref, IEventCenter& evt_center,
                        IDebug& debug, IRefUI& ref_ui)
-    : message_center(msg_center),
-      event_center(evt_center),
-      debug(debug),
-      ref_ui(ref_ui) {}
+    : mc(mc_ref), event_center(evt_center), debug(debug), ref_ui(ref_ui) {}
 
 void RefereeApp::init() {
     // Initialization code for referee app
@@ -85,19 +82,18 @@ void RefereeApp::loop() {
     // Main loop for referee app
     // outlines:
     // Read data from referee system (from Topic)
-    if (message_center.get_message(REFEREE_IN, ref.ref_rx_frame, 0) == pdTRUE) {
+    if (mc.get_message(ref.referee_in).has_value()) {
         // Process received data
         read_ref_data();
         non_recv_count = 0;
 
-        RefereeInfoMessage_t ref_message;
-        ref_message.robot_id = ref.robot_status_data.robot_id;
-        ref_message.robot_level = ref.robot_status_data.robot_level;
-        ref_message.shoot_barrel_cooling_rate =
+        mc2::RefereeOut ref_out;
+        ref_out.robot_id = ref.robot_status_data.robot_id;
+        ref_out.robot_level = ref.robot_status_data.robot_level;
+        ref_out.shoot_barrel_cooling_rate =
             ref.robot_status_data.shooter_barrel_cooling_value;
-        ref_message.chassis_power_limit =
-            ref.robot_status_data.chassis_power_limit;
-        message_center.pub_message(REFEREE_OUT, &ref_message);
+        ref_out.chassis_power_limit = ref.robot_status_data.chassis_power_limit;
+        mc.pub_message(ref_out);
     } else {
         // If no data received, increment non-receive count
         non_recv_count++;
@@ -114,12 +110,12 @@ void RefereeApp::loop() {
 
 void RefereeApp::read_ref_data() {
     // Read data from referee system
-    if (ref.ref_rx_frame == NULL) {
+    if (ref.referee_in.ref_bytes.data() == NULL) {
         // frame is NULL, return
         return;
     }
     /* copy frame header */
-    memcpy(&ref.header, ref.ref_rx_frame, HEADER_LEN);
+    memcpy(&ref.header, ref.referee_in.ref_bytes.data(), HEADER_LEN);
 
     /* frame header CRC8 verification */
     // FIXME: We don't know if we still need crc8 verification. if not , probably just update the pointer
@@ -131,11 +127,12 @@ void RefereeApp::read_ref_data() {
             // ref.ref_cmd_id = (uint16_t)((ref.ref_rx_frame[HEADER_LEN] << 8) | ref.ref_rx_frame[HEADER_LEN + 1]);
 
             ref.ref_cmd_id = *(
-                uint16_t*) (ref.ref_rx_frame +
+                uint16_t*) (ref.referee_in.ref_bytes.data() +
                             HEADER_LEN);  //point to the addr of the cmd id (rx_frame[6] << 8 | rx_frame[5])
 
             memcpy(
-                ref.ref_data, ref.ref_rx_frame + HEADER_LEN + CMD_LEN,
+                ref.ref_data,
+                ref.referee_in.ref_bytes.data() + HEADER_LEN + CMD_LEN,
                 sizeof(
                     ref.ref_data));  //pointer to the beginning of the data addr
 
@@ -182,7 +179,7 @@ void RefereeApp::read_ref_data() {
                 }
             }
 
-            if (*(ref.ref_rx_frame + HEADER_LEN + CMD_LEN +
+            if (*(ref.referee_in.ref_bytes.data() + HEADER_LEN + CMD_LEN +
                   sizeof(ref.ref_data) + CRC_LEN) ==
                 0xA5) {  // Parsed multi-frame in one pack if needed
                 read_ref_data();
@@ -196,10 +193,8 @@ void RefereeApp::read_ref_data() {
 void RefereeApp::draw_all_ui() {
     // Draw all UI elements
     // get information from chassis command data
-    ChassisCommandMessage_t chassis_command;
-
-    if (message_center.peek_message(COMMAND_CHASSIS, &chassis_command, 0) ==
-        pdTRUE) {
+    mc2::ChassisCommand chassis_command;
+    if (mc.peek_message(chassis_command).has_value()) {
         // Extract act_mode from command_bits (lower 3 bits)
         ref.ref_info_data.act_mode =
             static_cast<BoardActMode_t>(chassis_command.command_bits & 0x7);

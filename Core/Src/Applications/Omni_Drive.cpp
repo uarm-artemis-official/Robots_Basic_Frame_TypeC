@@ -8,10 +8,10 @@
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
-OmniDrive::OmniDrive(IMessageCenter& message_center_ref, IMotors& motors_ref,
+OmniDrive::OmniDrive(mc2::RobotMC& mc_ref, IMotors& motors_ref,
                      float chassis_width, float chassis_length,
                      float power_limit_, float chassis_dt_)
-    : message_center(message_center_ref),
+    : mc(mc_ref),
       motors(motors_ref),
       width(chassis_width),
       length(chassis_length),
@@ -42,18 +42,17 @@ void OmniDrive::init_impl() {
 }
 
 void OmniDrive::get_motor_feedback() {
-    MotorReadMessage_t read_message;
     Motor_CAN_ID_t wheel_can_ids[] = {CHASSIS_WHEEL1, CHASSIS_WHEEL2,
                                       CHASSIS_WHEEL3, CHASSIS_WHEEL4};
 
-    uint8_t new_read_message =
-        message_center.peek_message(MOTOR_READ, &read_message, 0);
-    if (new_read_message == 1) {
+    mc2::MotorRead motor_read;
+    auto message_ts = mc.peek_message(motor_read);
+    if (message_ts.has_value()) {
         for (size_t i = 0; i < motor_controls.size(); i++) {
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
-                if (wheel_can_ids[i] == read_message.can_ids[j]) {
+                if (wheel_can_ids[i] == motor_read.can_ids[j]) {
                     motors.get_raw_feedback(wheel_can_ids[i],
-                                            read_message.feedback[j],
+                                            motor_read.feedback[j],
                                             &(motor_controls.at(i).feedback));
                     break;
                 }
@@ -180,17 +179,15 @@ void OmniDrive::calc_motor_outputs(float vx, float vy, float wz) {
 }
 
 void OmniDrive::send_motor_messages() {
-    MotorSetMessage_t set_message;
-    memset(&set_message, 0, sizeof(MotorSetMessage_t));
-
+    mc2::MotorSet motor_set {};
     for (int i = 0; i < 4; i++) {
-        set_message.motor_can_volts[i] = static_cast<int32_t>(
+        motor_set.motor_can_volts[i] = static_cast<int32_t>(
             std::roundf(motor_controls.at(i).f_pid.total_out));
-        set_message.can_ids[i] =
+        motor_set.can_ids[i] =
             static_cast<Motor_CAN_ID_t>(motor_controls.at(i).stdid);
     }
 
-    message_center.pub_message(MOTOR_SET, &set_message);
+    mc.pub_message(motor_set);
 }
 
 // Assumes that wheels are always running at max output and will be limited

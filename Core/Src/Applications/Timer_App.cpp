@@ -25,11 +25,9 @@
 * @retval None
 */
 
-TimerApp::TimerApp(IMotors& system_motors_ref,
-                   IMessageCenter& message_center_ref, IDebug& debug_ref)
-    : system_motors(system_motors_ref),
-      message_center(message_center_ref),
-      debug(debug_ref) {
+TimerApp::TimerApp(IMotors& system_motors_ref, mc2::RobotMC& mc_ref,
+                   IDebug& debug_ref)
+    : system_motors(system_motors_ref), mc(mc_ref), debug(debug_ref) {
     memset(&motor_tx_message, 0, sizeof(MotorSetMessage_t));
 }
 
@@ -60,14 +58,12 @@ void TimerApp::init() {
 }
 
 void TimerApp::loop() {
-    uint8_t received_new_message =
-        message_center.get_message(MOTOR_SET, &motor_tx_message, 0);
-    if (received_new_message == 1) {
+    auto message_ts = mc.get_message(motor_set);
+    if (message_ts.has_value()) {
         for (int i = 0; i < MAX_MOTOR_COUNT; i++) {
-            if (motor_tx_message.can_ids[i] != 0) {
-                system_motors.set_motor_voltage(
-                    motor_tx_message.can_ids[i],
-                    motor_tx_message.motor_can_volts[i]);
+            if (motor_set.can_ids[i] != 0) {
+                system_motors.set_motor_voltage(motor_set.can_ids[i],
+                                                motor_set.motor_can_volts[i]);
             }
         }
     }

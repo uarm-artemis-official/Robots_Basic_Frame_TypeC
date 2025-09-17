@@ -3,6 +3,8 @@
 
 #include "subsystems_defines.hpp"
 #include "subsystems_interfaces.hpp"
+#include "subsystems_modules.hpp"
+#include "usart.h"
 
 #define DBUS_BUFFER_LEN 18
 
@@ -17,19 +19,19 @@ namespace UART_ISR {
     struct UARTISRState {
         uint32_t complete_count;
         uint32_t error_count;
-        uint8_t rc_frame_buffer[DBUS_BUFFER_LEN];
-        uint8_t pack_buffer[MAX_PACK_BUFFER_SIZE];
-        uint8_t ref_rx_frame[MAX_REF_BUFFER_SIZE];
+        mc2::UCPackIn uc_pack_in;
+        mc2::RefereeIn referee_in;
+        mc2::RCRaw rc_raw;
     };
 
     class UART_ISR {
        private:
         Config config;
         UARTISRState state;
-        IMessageCenter& message_center;
+        mc2::RobotMC& mc;
 
        public:
-        UART_ISR(IMessageCenter& _message_center);
+        UART_ISR(mc2::RobotMC& mc_ref);
         void init(Config _config);
         void on_receive_complete(UART_HandleTypeDef* huart);
         void on_error(UART_HandleTypeDef* huart);

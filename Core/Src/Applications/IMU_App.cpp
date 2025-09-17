@@ -17,9 +17,9 @@
 #include "uarm_math.hpp"
 #include "uarm_os.hpp"
 
-IMUApp::IMUApp(IMessageCenter& message_center_ref,
-               IEventCenter& event_center_ref, IImu& imu_ref, IDebug& debug_ref)
-    : message_center(message_center_ref),
+IMUApp::IMUApp(mc2::RobotMC& mc_ref, IEventCenter& event_center_ref,
+               IImu& imu_ref, IDebug& debug_ref)
+    : mc(mc_ref),
       event_center(event_center_ref),
       imu(imu_ref),
       debug(debug_ref) {}
@@ -28,7 +28,6 @@ void IMUApp::init() {
     memset(&imu_app_state, 0, sizeof(IMU_t));
     memset(&imu_heating_control, 0, sizeof(IMU_Heat_t));
     memset(&attitude, 0, sizeof(Attitude_t));
-    memset(message_data, 0, sizeof(float) * 2);
 
     imu.init();
 
@@ -67,9 +66,11 @@ void IMUApp::loop() {
     if (imu_app_state.temp_status == NORMAL) {
         imu.get_attitude(attitude);
 
-        message_data[0] = attitude.yaw;
-        message_data[1] = attitude.roll;
-        message_center.pub_message(IMU_READINGS, message_data);
+        mc2::ImuReadings imu_readings;
+        imu_readings.yaw = attitude.yaw;
+        imu_readings.pitch =
+            attitude.roll;  // TODO: Change after fixing reference frames.
+        mc.pub_message(imu_readings);
 
         // Sending raw sensor data for calibration.
         // imu.get_sensor_data(sensor_data);

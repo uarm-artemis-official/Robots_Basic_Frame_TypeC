@@ -100,10 +100,12 @@
 #include "can_isr.hpp"
 #include "dji_typec_middleware.cpp"
 #include "dwt.h"
+#include "middleware_classes.hpp"
 #include "robot_config.hpp"
 #include "stdio.h"
 #include "stm32f407xx.h"
 #include "subsystems_classes.hpp"
+#include "subsystems_modules.hpp"
 #include "uart_isr.hpp"
 
 // Function signature so main.c can find main_cpp().
@@ -111,8 +113,10 @@ extern "C" {
 void main_cpp(void);
 }
 
+static MW_RTOS::RTOS rtos;
+
 static MW_CAN::CAN can;
-static MessageCenter& message_center = MessageCenter::get_instance();
+static mc2::RobotMC mc(rtos);
 static EventCenter event_center;
 static Debug debug;
 static Motors motors;
@@ -124,35 +128,35 @@ static AmmoLid ammo_lid;
 static RCComm rc_comm;
 static PCComm pc_comm;
 
-static CAN_ISR::CAN_ISR can_isr(message_center);
-static UART_ISR::UART_ISR uart_isr(message_center);
+static CAN_ISR::CAN_ISR can_isr(mc);
+static UART_ISR::UART_ISR uart_isr(mc);
 
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
 static constexpr float swerve_dt = ChassisApp<SwerveDrive>::get_loop_period();
-static SwerveDrive swerve_drive(message_center, no_init_motors,
-                                swerve_chassis_width, swerve_dt);
-static ChassisApp<SwerveDrive> chassis_app(swerve_drive, message_center, debug);
+static SwerveDrive swerve_drive(mc, no_init_motors, swerve_chassis_width,
+                                swerve_dt);
+static ChassisApp<SwerveDrive> chassis_app(swerve_drive, mc, debug);
 #else
 
 #ifdef OMNI_CHASSIS
 static constexpr float omni_chassis_width = 0.40f;
-static OmniDrive omni_drive(message_center, no_init_motors, omni_chassis_width,
+static OmniDrive omni_drive(mc, no_init_motors, omni_chassis_width,
                             omni_chassis_width, 80,
                             ChassisApp<OmniDrive>::get_loop_period());
 #else
 static constexpr float mecanum_chassis_width = 0.41f;
 static constexpr float mecanum_chassis_length = 0.35f;
-static OmniDrive omni_drive(message_center, no_init_motors,
-                            mecanum_chassis_width, mecanum_chassis_length, 50,
+static OmniDrive omni_drive(mc, no_init_motors, mecanum_chassis_width,
+                            mecanum_chassis_length, 50,
                             ChassisApp<OmniDrive>::get_loop_period());
 #endif
 
-static ChassisApp<OmniDrive> chassis_app(omni_drive, message_center, debug);
+static ChassisApp<OmniDrive> chassis_app(omni_drive, mc, debug);
 #endif
 
-static RCApp rc_app(message_center, rc_comm);
+static RCApp rc_app(mc, rc_comm);
 
 #ifdef AUTO_AIM_RIG
 static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
@@ -160,16 +164,14 @@ static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
 static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 #endif
 
-static CommApp::CommApp comm_app(message_center, debug, can, comm_config);
-static TimerApp timer_app(motors, message_center, debug);
-static PCUARTApp pc_uart_app(message_center, no_init_motors, pc_comm);
-static IMUApp imu_app(message_center, event_center, imu, debug);
-static RefereeApp referee_app(message_center, event_center, debug, ref_ui);
-static GimbalApp gimbal_app(message_center, event_center, debug,
-                            no_init_motors);
+static CommApp::CommApp comm_app(mc, debug, can, comm_config);
+static TimerApp timer_app(motors, mc, debug);
+static PCUARTApp pc_uart_app(mc, no_init_motors, pc_comm);
+static IMUApp imu_app(mc, event_center, imu, debug);
+static RefereeApp referee_app(mc, event_center, debug, ref_ui);
+static GimbalApp gimbal_app(mc, event_center, debug, no_init_motors);
 static ShootApp shoot_app(
-    message_center, ammo_lid, no_init_motors,
-    robot_config::shoot_params::LOADER_ACTIVE_RPM,
+    mc, ammo_lid, no_init_motors, robot_config::shoot_params::LOADER_ACTIVE_RPM,
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
     robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
 
@@ -258,7 +260,7 @@ void init_auto_aim_apps() {
 }
 
 void main_cpp(void) {
-    message_center.init();
+    mc.init();
     event_center.init();
 
     HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,

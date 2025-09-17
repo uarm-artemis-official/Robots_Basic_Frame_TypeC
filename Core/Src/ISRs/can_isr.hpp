@@ -3,6 +3,7 @@
 
 #include "can.h"
 #include "subsystems_interfaces.hpp"
+#include "subsystems_modules.hpp"
 #include "subsystems_types.hpp"
 
 namespace CAN_ISR {
@@ -10,13 +11,12 @@ namespace CAN_ISR {
 
     class CAN_ISR {
        private:
-        MotorReadMessage_t read_message;
-        IMessageCenter& message_center;
+        mc2::MotorRead motor_read {};
+        mc2::RobotMC& mc;
         Config config;
 
        public:
-        CAN_ISR(IMessageCenter& _message_center)
-            : message_center(_message_center) {}
+        CAN_ISR(mc2::RobotMC& mc_ref) : mc(mc_ref) {}
         void init(Config config);
         uint8_t get_free_buffer(uint32_t stdId);
         void read_motor_data(CAN_HandleTypeDef* hcan,

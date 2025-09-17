@@ -10,12 +10,9 @@
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
-SwerveDrive::SwerveDrive(IMessageCenter& message_center_ref,
-                         IMotors& motors_ref, float width_, float dt_)
-    : message_center(message_center_ref),
-      motors(motors_ref),
-      width(width_),
-      dt(dt_) {}
+SwerveDrive::SwerveDrive(mc2::RobotMC& mc_ref, IMotors& motors_ref,
+                         float width_, float dt_)
+    : mc(mc_ref), motors(motors_ref), width(width_), dt(dt_) {}
 
 void SwerveDrive::init_impl() {
     steer_curr_angle = {0};
@@ -66,25 +63,23 @@ void SwerveDrive::init_impl() {
 }
 
 void SwerveDrive::get_motor_feedback() {
-    MotorReadMessage_t read_message;
-
-    uint8_t new_read_message =
-        message_center.peek_message(MOTOR_READ, &read_message, 0);
-    if (new_read_message == 1) {
+    mc2::MotorRead motor_read;
+    auto message_ts = mc.peek_message(motor_read);
+    if (message_ts.has_value()) {
         for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
             for (size_t j = 0; j < steer_motors.size(); j++) {
-                if (steer_motors[j].stdid == read_message.can_ids[i]) {
+                if (steer_motors[j].stdid == motor_read.can_ids[i]) {
                     motors.get_raw_feedback(steer_motors.at(j).stdid,
-                                            read_message.feedback[i],
+                                            motor_read.feedback[i],
                                             &(steer_motors.at(j).lk_feedback));
                     break;
                 }
             }
 
             for (size_t j = 0; j < drive_motors.size(); j++) {
-                if (drive_motors.at(j).stdid == read_message.can_ids[i]) {
+                if (drive_motors.at(j).stdid == motor_read.can_ids[i]) {
                     motors.get_raw_feedback(drive_motors.at(j).stdid,
-                                            read_message.feedback[i],
+                                            motor_read.feedback[i],
                                             &(drive_motors.at(j).feedback));
                     break;
                 }
@@ -177,23 +172,22 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
 
 void SwerveDrive::send_motor_messages() {
     static_assert(NUM_STEER_MOTORS + NUM_DRIVE_MOTORS <= MAX_MOTOR_COUNT);
-    MotorSetMessage_t set_message;
-    std::memset(&set_message, 0, sizeof(MotorSetMessage_t));
+    mc2::MotorSet motor_set {};
     for (size_t i = 0; i < NUM_STEER_MOTORS; i++) {
-        set_message.motor_can_volts[i] = SwerveDrive::pack_lk_motor_message(
+        motor_set.motor_can_volts[i] = SwerveDrive::pack_lk_motor_message(
             steer_ccw.at(i), steer_max_speed.at(i),
             steer_output_angle.at(i) * 100);
-        set_message.can_ids[i] =
+        motor_set.can_ids[i] =
             static_cast<Motor_CAN_ID_t>(steer_motors.at(i).stdid);
     }
 
     for (size_t i = 0; i < NUM_DRIVE_MOTORS; i++) {
-        set_message.motor_can_volts[NUM_STEER_MOTORS + i] = drive_output.at(i);
-        set_message.can_ids[NUM_STEER_MOTORS + i] =
+        motor_set.motor_can_volts[NUM_STEER_MOTORS + i] = drive_output.at(i);
+        motor_set.can_ids[NUM_STEER_MOTORS + i] =
             static_cast<Motor_CAN_ID_t>(drive_motors.at(i).stdid);
     }
 
-    message_center.pub_message(MOTOR_SET, &set_message);
+    mc.pub_message(motor_set);
 }
 
 int32_t SwerveDrive::pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,

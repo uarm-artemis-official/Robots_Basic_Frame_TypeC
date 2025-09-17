@@ -520,7 +520,7 @@ namespace MW_RTOS {
     bool RTOS::queue_pushback_from_isr(QueueHandle queue, void* data_ptr,
                                        bool* awakenHigherPrio) {
         BaseType_t awaken;
-        BaseType_t result = xQueueOverwriteFromISR(queue, data_ptr, &awaken);
+        BaseType_t result = xQueueSendFromISR(queue, data_ptr, &awaken);
         if (awakenHigherPrio != nullptr) {
             *awakenHigherPrio = awaken == pdTRUE;
         }

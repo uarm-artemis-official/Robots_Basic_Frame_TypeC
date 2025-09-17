@@ -284,10 +284,12 @@ namespace mc2 {
     };
 
     struct CommOut : Topic<5> {
+        uint32_t topic_name;
         std::array<uint8_t, 8> bytes;
     };
 
     struct CommIn : Topic<5> {
+        uint32_t topic_name;
         std::array<uint8_t, 8> bytes;
     };
 
@@ -310,19 +312,38 @@ namespace mc2 {
         std::array<uint8_t, 41> ref_bytes;
     };
 
+    struct RefereeOut : Topic<1> {
+        uint8_t robot_id;
+        uint8_t robot_level;
+        uint16_t shoot_barrel_cooling_rate;
+        uint16_t shoot_barrel_heat_limit;
+        uint16_t chassis_power_limit;
+    };
+
     struct RCRaw : Topic<1> {
         std::array<uint8_t, 18> rc_bytes;
     };
 
     struct AutoAim : Topic<1> {
+        uint8_t target_num;
+        bool should_shoot;
         float delta_yaw;
         float delta_pitch;
+    };
+
+    struct UCPackIn : Topic<1> {
+        std::array<uint8_t, 64> bytes;
+    };
+
+    struct UCPackOut : Topic<10> {
+        std::array<uint8_t, 192> bytes;
     };
 
     using RobotTopics =
         std::tuple<MotorSet, MotorRead, ChassisCommand, GimbalCommand,
                    ShootCommand, RefereeInfo, CommOut, CommIn, ImuReadings,
-                   GimbalRelativeAngles, RefereeIn, RCRaw, AutoAim>;
+                   GimbalRelativeAngles, RefereeIn, RefereeOut, RCRaw, AutoAim,
+                   UCPackIn, UCPackOut>;
 
     struct TopicHandle {
         MW_RTOS::QueueHandle queue;
@@ -330,32 +351,16 @@ namespace mc2 {
         size_t recent_timestamp_index;
     };
 
-    template <typename TopicRegistry>
-    class MC2 {
-       private:
-        std::array<TopicHandle, std::tuple_size_v<TopicRegistry>> topic_handles;
-        MW_RTOS::IRTOS& rtos;
-
-       public:
-        MC2(MW_RTOS::IRTOS& _rtos) : rtos(_rtos) {}
-
-        void init();
-
-        template <typename T>
-        std::optional<MW_RTOS::TickType> get_message(
-            T& message, MW_RTOS::TickType ticks_to_wait = 0);
-
-        template <typename T>
-        std::optional<MW_RTOS::TickType> peek_message(
-            T& message, MW_RTOS::TickType ticks_to_wait = 0);
-
-        template <typename T>
-        std::optional<MW_RTOS::TickType> pub_message(T& message);
-
-        template <typename T>
-        std::optional<MW_RTOS::TickType> pub_message_from_isr(
-            T& message, bool* will_context_switch = nullptr);
+    struct TopicInfo {
+        size_t queue_size;
+        size_t item_size;
     };
+
+    // Forward declaration of MC2 in subsystems_modules.hpp
+    template <typename TopicRegistry>
+    class MC2;
+
+    using RobotMC = MC2<RobotTopics>;
 }  // namespace mc2
 
 /* =========================================================================

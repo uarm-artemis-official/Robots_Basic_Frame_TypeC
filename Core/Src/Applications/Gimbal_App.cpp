@@ -18,10 +18,9 @@
 #include "uarm_math.hpp"
 #include "uarm_os.hpp"
 
-GimbalApp::GimbalApp(IMessageCenter& message_center_ref,
-                     IEventCenter& event_center_ref, IDebug& debug_ref,
-                     IMotors& motors_ref)
-    : message_center(message_center_ref),
+GimbalApp::GimbalApp(mc2::RobotMC& mc_ref, IEventCenter& event_center_ref,
+                     IDebug& debug_ref, IMotors& motors_ref)
+    : mc(mc_ref),
       event_center(event_center_ref),
       debug(debug_ref),
       motors(motors_ref) {}
@@ -39,21 +38,21 @@ void GimbalApp::init() {
 }
 
 bool GimbalApp::calibrate_start_precondition() {
-    MotorReadMessage_t read_message;
-    uint8_t new_motor_message =
-        message_center.peek_message(MOTOR_READ, &read_message, 0);
-    if (new_motor_message == pdTRUE) {
-        bool yaw_motor = false;
-        bool pitch_motor = false;
-        for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
-            yaw_motor = yaw_motor ||
-                        (read_message.can_ids[i] == Motor_CAN_ID_t::GIMBAL_YAW);
-            pitch_motor = pitch_motor || (read_message.can_ids[i] ==
-                                          Motor_CAN_ID_t::GIMBAL_PITCH);
-        }
-        return yaw_motor && pitch_motor;
-    }
-    return false;
+    // mc2::MotorRead motor_read;
+    // auto message_ts = mc.peek_message(motor_read);
+    // if (message_ts.has_value()) {
+    //     bool yaw_motor = false;
+    //     bool pitch_motor = false;
+    //     for (size_t i = 0; i < MAX_MOTOR_COUNT; i++) {
+    //         yaw_motor = yaw_motor ||
+    //                     (motor_read.can_ids[i] == Motor_CAN_ID_t::GIMBAL_YAW);
+    //         pitch_motor = pitch_motor || (motor_read.can_ids[i] ==
+    //                                       Motor_CAN_ID_t::GIMBAL_PITCH);
+    //     }
+    //     return yaw_motor && pitch_motor;
+    // }
+    // return false;
+    return true;
 }
 
 void GimbalApp::wait_for_motors() {
@@ -119,12 +118,13 @@ void GimbalApp::set_initial_state() {
 }
 
 bool GimbalApp::exit_calibrate_cond() {
-    return fabs(gimbal.yaw_rel_angle) <
-               (robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA *
-                DEGREE2RAD) &&
-           abs(motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm) < 2 &&
-           fabs(gimbal.pitch_rel_angle) < (2.0f * DEGREE2RAD) &&
-           abs(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_rpm) < 2;
+    // return fabs(gimbal.yaw_rel_angle) <
+    //            (robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA *
+    //             DEGREE2RAD) &&
+    //        abs(motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm) < 2 &&
+    //        fabs(gimbal.pitch_rel_angle) < (2.0f * DEGREE2RAD) &&
+    //        abs(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_rpm) < 2;
+    return true;
 }
 
 void GimbalApp::calibrate() {
@@ -244,17 +244,16 @@ void GimbalApp::set_modes(uint8_t modes[3]) {
 }
 
 void GimbalApp::get_motor_feedback() {
-    MotorReadMessage_t read_message;
+    mc2::MotorRead motor_read;
     Motor_CAN_ID_t gimbal_can_ids[] = {GIMBAL_YAW, GIMBAL_PITCH};
 
-    uint8_t new_read_message =
-        message_center.peek_message(MOTOR_READ, &read_message, 0);
-    if (new_read_message == 1) {
+    auto message_ts = mc.peek_message(motor_read);
+    if (message_ts.has_value()) {
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < MAX_MOTOR_COUNT; j++) {
-                if (gimbal_can_ids[i] == read_message.can_ids[j]) {
+                if (gimbal_can_ids[i] == motor_read.can_ids[j]) {
                     motors.get_raw_feedback(gimbal_can_ids[i],
-                                            read_message.feedback[j],
+                                            motor_read.feedback[j],
                                             &(motor_controls[i].feedback));
                     break;
                 }
@@ -380,32 +379,28 @@ void GimbalApp::calc_imu_center() {
         return;
     }
 
-    float attitude[2];
-    BaseType_t new_imu_message =
-        message_center.get_message(IMU_READINGS, attitude, 0);
-    if (new_imu_message) {
-        gimbal.yaw_imu_center_cumsum += attitude[0];
+    mc2::ImuReadings imu_readings;
+    auto message_ts = mc.get_message(imu_readings);
+    if (message_ts.has_value()) {
+        gimbal.yaw_imu_center_cumsum += imu_readings.yaw;
         gimbal.yaw_imu_center_sample_count++;
     }
 }
 
 void GimbalApp::get_imu_headings() {
-    float imu_readings[2];
-    BaseType_t new_imu_message =
-        message_center.peek_message(IMU_READINGS, imu_readings, 0);
-
-    if (new_imu_message == pdTRUE) {
-        update_imu_angle(imu_readings[0], imu_readings[1]);
+    mc2::ImuReadings imu_readings;
+    auto message_ts = mc.get_message(imu_readings);
+    if (message_ts.has_value()) {
+        update_imu_angle(imu_readings.yaw, imu_readings.pitch);
     } else {
         // TODO: Implement error handling
     }
 }
 
 void GimbalApp::process_commands() {
-    GimbalCommandMessage_t gimbal_command;
-    uint8_t new_message =
-        message_center.get_message(COMMAND_GIMBAL, &gimbal_command, 0);
-    if (new_message == pdTRUE) {
+    mc2::GimbalCommand gimbal_command;
+    auto message_ts = mc.get_message(gimbal_command);
+    if (message_ts.has_value()) {
         command_deltas[0] = gimbal_command.yaw;
         command_deltas[1] = gimbal_command.pitch;
 
@@ -437,14 +432,15 @@ void GimbalApp::process_commands() {
 }
 
 void GimbalApp::send_rel_angles() {
-    CANCommMessage_t rel_angle_message;
-    rel_angle_message.topic_name = GIMBAL_REL_ANGLES;
+    mc2::CommOut comm_out;
+    comm_out.topic_name =
+        mc2::get_comm_id<mc2::GimbalRelativeAngles, mc2::RobotMC::Topics>();
 
-    memcpy(rel_angle_message.data, &gimbal.yaw_ecd_angle, sizeof(float));
-    memcpy(&(rel_angle_message.data[4]), &(gimbal.pitch_rel_angle),
+    memcpy(comm_out.bytes.data(), &gimbal.yaw_ecd_angle, sizeof(float));
+    memcpy(&(comm_out.bytes.data()[4]), &(gimbal.pitch_rel_angle),
            sizeof(float));
 
-    message_center.pub_message(COMM_OUT, &rel_angle_message);
+    mc.pub_message(comm_out);
 }
 
 void GimbalApp::update_headings() {
@@ -470,12 +466,12 @@ void GimbalApp::update_targets() {
         gimbal.yaw_target_angle = 0;
         gimbal.pitch_target_angle = 0;
     } else if (gimbal.gimbal_mode == AUTO_AIM_MODE) {
-        float deltas[2];
-        BaseType_t new_pack_response =
-            message_center.get_message(AUTO_AIM, deltas, 0);
-        if (new_pack_response == pdTRUE) {
-            gimbal.yaw_target_angle = gimbal.yaw_rel_angle + deltas[0];
-            gimbal.pitch_target_angle = gimbal.pitch_rel_angle + deltas[1];
+        mc2::AutoAim auto_aim;
+        auto message_ts = mc.get_message(auto_aim);
+        if (message_ts.has_value()) {
+            gimbal.yaw_target_angle = gimbal.yaw_rel_angle + auto_aim.delta_yaw;
+            gimbal.pitch_target_angle =
+                gimbal.pitch_rel_angle + auto_aim.delta_pitch;
 
             if (gimbal.yaw_target_angle > PI)
                 gimbal.yaw_target_angle -= 2.0f * PI;
@@ -550,19 +546,16 @@ void GimbalApp::calc_control_signals() {
 }
 
 void GimbalApp::send_motor_volts() {
-    MotorSetMessage_t set_message;
-    memset(&set_message, 0, sizeof(MotorSetMessage_t));
-
+    mc2::MotorSet motor_set;
     // Yaw
-    set_message.motor_can_volts[0] =
-        (int32_t) motor_controls[0].s_pid.total_out;
-    set_message.can_ids[0] = (Motor_CAN_ID_t) motor_controls[0].stdid;
+    motor_set.motor_can_volts[0] = (int32_t) motor_controls[0].s_pid.total_out;
+    motor_set.can_ids[0] = (Motor_CAN_ID_t) motor_controls[0].stdid;
 
     // Pitch
-    set_message.motor_can_volts[1] =
+    motor_set.motor_can_volts[1] =
         (int32_t) (motor_controls[1].s_pid.total_out *
                    robot_config::gimbal_params::PITCH_ORIENTATION);
-    set_message.can_ids[1] = (Motor_CAN_ID_t) motor_controls[1].stdid;
+    motor_set.can_ids[1] = (Motor_CAN_ID_t) motor_controls[1].stdid;
 
-    message_center.pub_message(MOTOR_SET, &set_message);
+    mc.pub_message(motor_set);
 }
