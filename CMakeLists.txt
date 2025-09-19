@@ -26,34 +26,34 @@ endif()
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Test)
-    include("cmake/mingw64-gcc.cmake") # toolchain file
+    include("base/cmake/mingw64-gcc.cmake") # toolchain file
     set(CMAKE_C_FLAGS_GTEST "-O0 -g3 -fprofile-arcs -ftest-coverage -DGTEST")
     set(CMAKE_CXX_FLAGS_GTEST "-O0 -g3 -fprofile-arcs -ftest-coverage  -DGTEST")
     # set(CMAKE_C_LINKER_FLAGS_GTEST "--coverage")
     # set(CMAKE_CXX_LINKER_FLAGS_GTEST "--coverage")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Swerve")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Swerve)
-    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS -DSWERVE_GIMBAL -DSENTRY")
     set(CMAKE_CXX_FLAGS_SWERVE "-O0 -g3 -DSWERVE_CHASSIS -DSWERVE_GIMBAL -DSENTRY")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Omni")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Omni)
-    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS -DOMNI_GIMBAL -DOMNI_INFANTRY -DINFANTRY")
     set(CMAKE_CXX_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS -DOMNI_GIMBAL -DOMNI_INFANTRY -DINFANTRY")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Mecanum")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Mecanum)
-    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS -DMECANUM_GIMBAL -DMECANUM_INFANTRY -DINFANTRY")
     set(CMAKE_CXX_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS -DMECANUM_GIMBAL -DMECANUM_INFANTRY -DINFANTRY")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Hero")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Hero)
-    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_HERO "-O0 -g3 -DHERO_CHASSIS -DHERO_GIMBAL -DHERO")
     set(CMAKE_CXX_FLAGS_HERO "-O0 -g3 -DHERO_CHASSIS -DHERO_GIMBAL -DHERO")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Auto_Aim_Rig")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Auto_Aim_Rig)
-    include("cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_AUTO_AIM_RIG "-O0 -g3 -DAUTO_AIM_RIG")
     set(CMAKE_CXX_FLAGS_AUTO_AIM_RIG "-O0 -g3 -DAUTO_AIM_RIG")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
@@ -107,8 +107,8 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
 else()
     add_executable(${CMAKE_PROJECT_NAME})
 
-    add_subdirectory(cmake/stm32cubemx)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/base)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/robots)
 
     add_library(COMMON_INCLUDES INTERFACE)
     target_link_libraries(COMMON_INCLUDES
@@ -118,27 +118,12 @@ else()
         INTERFACE
             ARM_MATH_CM4)
 
-    # Link directories setup
-    target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
-        # Add user defined library search paths
-    )
-
-    # Add sources to executable
     target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-        # Add user sources here
-        ${PROJECT_SOURCE_DIR}/Core/Src/main.cpp
+        ${PROJECT_SOURCE_DIR}/robots/main.cpp
     )
 
-    # Add include paths
     target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-        # Add user defined include paths
-        ${PROJECT_SOURCE_DIR}/Core/Inc
-        ${PROJECT_SOURCE_DIR}/Core/Src/Configs
-    )
-
-    # Add project symbols (macros)
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-        # Add user defined symbols
+        ${PROJECT_SOURCE_DIR}/robots/Configs
     )
 
     # Add linked libraries
