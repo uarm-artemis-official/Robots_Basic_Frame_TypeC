@@ -71,6 +71,15 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 
 enable_language(C CXX ASM)
 
+set(APPLICATIONS_PATH ${PROJECT_SOURCE_DIR}/robots/Applications)
+set(FIRMWARE_PATH ${PROJECT_SOURCE_DIR}/robots/Firmware)
+set(CONFIGS_PATH ${PROJECT_SOURCE_DIR}/robots/Configs)
+set(ALGORITHMS_PATH ${PROJECT_SOURCE_DIR}/lib/Algorithms)
+set(SUBSYSTEMS_PATH ${PROJECT_SOURCE_DIR}/lib/Subsystems)
+set(MIDDLEWARE_PATH ${PROJECT_SOURCE_DIR}/lib/Middleware)
+set(MODULES_PATH ${PROJECT_SOURCE_DIR}/lib/Modules)
+set(ISRS_PATH ${PROJECT_SOURCE_DIR}/lib/ISRs)
+
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     include(CTest)
     include(FetchContent)
@@ -90,6 +99,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
         INTERFACE 
             GTEST)
 
+    add_subdirectory(${PROJECT_SOURCE_DIR}/lib)
     add_subdirectory(${PROJECT_SOURCE_DIR}/robots)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
@@ -108,6 +118,7 @@ else()
     add_executable(${CMAKE_PROJECT_NAME})
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/base)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/lib)
     add_subdirectory(${PROJECT_SOURCE_DIR}/robots)
 
     add_library(COMMON_INCLUDES INTERFACE)

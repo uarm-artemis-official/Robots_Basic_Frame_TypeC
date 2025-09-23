@@ -2,7 +2,7 @@ add_library(SUBSYSTEMS_INCLUDE INTERFACE)
 target_include_directories(SUBSYSTEMS_INCLUDE 
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${LIB_PATH}/Middleware
+        ${MIDDLEWARE_PATH}
         ${FIRMWARE_PATH}/Device/motors
         ${FIRMWARE_PATH}/Device/bmi088
         ${FIRMWARE_PATH}/Device/ist8310
