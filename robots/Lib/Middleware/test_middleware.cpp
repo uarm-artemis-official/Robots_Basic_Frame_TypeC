@@ -102,17 +102,15 @@ namespace MW_CAN {
 }  // namespace MW_CAN
 
 namespace MW_UART {
-    void TestUART::send_data(
-        Peripheral uart, const std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
-        uint32_t length, uint32_t timeout) {
+    void TestUART::send_data(Peripheral uart, uint8_t* data, uint32_t length,
+                             uint32_t timeout) {
         (void) uart;
         (void) data;
         (void) length;
         (void) timeout;
         // TODO: Implement UART send logic
     }
-    bool TestUART::receive_data(Peripheral uart,
-                                std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
+    bool TestUART::receive_data(Peripheral uart, uint8_t* data,
                                 uint32_t& length) {
         (void) uart;
         (void) data;

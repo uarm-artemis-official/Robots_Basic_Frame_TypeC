@@ -2,7 +2,6 @@
 #include <cstring>
 #include "cmsis_os.h"
 #include "pack_handler.h"
-#include "referee_data.h"
 #include "subsystems_classes.hpp"
 #include "subsystems_defines.hpp"
 #include "usart.h"

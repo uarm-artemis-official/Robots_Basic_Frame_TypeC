@@ -145,13 +145,14 @@
 
 static MW_RTOS::RTOS rtos;
 static MW_TIM::PWM pwm;
+static MW_UART::UART uart;
 
 static MW_CAN::CAN can;
 static mc2::RobotMC mc(rtos);
 static EventCenter event_center;
 static Debug debug;
 static Motors motors;
-static RefereeUI ref_ui;
+static RefereeUI ref_ui(uart);
 static Motors no_init_motors;
 static Imu imu(1000 / IMUApp::loop_period_ms, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);

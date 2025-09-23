@@ -177,8 +177,10 @@ class RefereeUI : public IRefUI {
    private:
     Referee_UI_t ref_ui;
     uint8_t ref_tx_frame[256];
+    MW_UART::IUART& uart;
 
    public:
+    RefereeUI(MW_UART::IUART& _uart);
     void init() override;
     void set_ui_data(referee_ui_type_t ui_type, uint8_t robot_id,
                      ref_ui_info_t ref_ui_info) override;

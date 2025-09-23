@@ -25,10 +25,3 @@ target_link_libraries(PACK_HANDLER
         COMMON_INCLUDES
         SUBSYSTEMS::MESSAGE_CENTER)
 add_library(FW::PACK_HANDLER ALIAS PACK_HANDLER)
-
-add_library(REF_DATA STATIC referee_data.c)
-target_include_directories(REF_DATA PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(REF_DATA
-    PUBLIC 
-        COMMON_INCLUDES)
-add_library(FW::REF_DATA ALIAS REF_DATA)

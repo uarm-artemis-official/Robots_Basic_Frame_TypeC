@@ -81,8 +81,7 @@ target_link_libraries(REF_UI
         SUBSYSTEMS_INCLUDE
         LIB::UARM_LIB
         LIB::UARM_INCLUDE
-        ALGORITHMS::COMMS_LIB
-        FW::REF_DATA)
+        ALGORITHMS::COMMS_LIB)
 add_library(SUBSYSTEMS::REF_UI ALIAS REF_UI)
 
 add_library(RC_COMM STATIC rc_comm.cpp)

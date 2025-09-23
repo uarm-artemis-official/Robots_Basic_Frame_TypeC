@@ -394,13 +394,10 @@ namespace MW_UART {
      * @param[in] length The length of the data.
      * @param[in] timeout The timeout for the transmission.
      */
-    void UART::send_data(Peripheral uart,
-                         const std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
-                         uint32_t length, uint32_t timeout) {
-        ASSERT(0 < length && length <= MAX_UART_BUFFER_SIZE,
-               "UART data length must be > 0 and <= MAX_UART_BUFFER_SIZE");
-        HAL_UART_Transmit(get_hal_uart_handle(uart), data.data(), length,
-                          timeout);
+    void UART::send_data(Peripheral uart, uint8_t* data, uint32_t length,
+                         uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot transfer data from nullptr.");
+        HAL_UART_Transmit(get_hal_uart_handle(uart), data, length, timeout);
     }
 
     /**
@@ -411,12 +408,9 @@ namespace MW_UART {
      * @param[out] length The length of the received data.
      * @return true if data was received successfully, false otherwise.
      */
-    bool UART::receive_data(Peripheral uart,
-                            std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
-                            uint32_t& length) {
-        ASSERT(0 < length && length <= MAX_UART_BUFFER_SIZE,
-               "UART data length must be > 0 and <= MAX_UART_BUFFER_SIZE");
-        HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data.data(), length);
+    bool UART::receive_data(Peripheral uart, uint8_t* data, uint32_t& length) {
+        ASSERT(data != nullptr, "Cannot receive data to nullptr.");
+        HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
         return false;  // Placeholder for actual implementation
     }
 

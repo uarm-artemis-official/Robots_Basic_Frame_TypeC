@@ -180,10 +180,8 @@ namespace MW_UART {
          * @param[in] length The length of the data.
          * @param[in] timeout The timeout for the transmission.
          */
-        virtual void send_data(
-            Peripheral uart,
-            const std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
-            uint32_t length, uint32_t timeout) = 0;
+        virtual void send_data(Peripheral uart, uint8_t* data, uint32_t length,
+                               uint32_t timeout) = 0;
 
         /**
          * @brief Start reception of data from UART.
@@ -194,9 +192,8 @@ namespace MW_UART {
          * @return true if data was received successfully, false otherwise.
          * @pre 0 < length <= MAX_UART_BUFFER_SIZE
          */
-        virtual bool receive_data(
-            Peripheral uart, std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
-            uint32_t& length) = 0;
+        virtual bool receive_data(Peripheral uart, uint8_t* data,
+                                  uint32_t& length) = 0;
 
         /**
          * @brief Abort receiving data on the UART peripheral.

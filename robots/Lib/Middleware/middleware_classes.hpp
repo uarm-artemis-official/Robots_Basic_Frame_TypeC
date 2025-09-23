@@ -42,11 +42,9 @@ namespace MW_CAN {
 namespace MW_UART {
     class TestUART : public IUART {
        public:
-        void send_data(Peripheral uart,
-                       const std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
-                       uint32_t length, uint32_t timeout) override;
-        bool receive_data(Peripheral uart,
-                          std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
+        void send_data(Peripheral uart, uint8_t* data, uint32_t length,
+                       uint32_t timeout) override;
+        bool receive_data(Peripheral uart, uint8_t* data,
                           uint32_t& length) override;
         void abort_receive(Peripheral uart) override;
         void abort_transmit(Peripheral uart) override;
@@ -155,11 +153,9 @@ namespace MW_UART {
      */
     class UART : public IUART {
        public:
-        void send_data(Peripheral uart,
-                       const std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
-                       uint32_t length, uint32_t timeout) override;
-        bool receive_data(Peripheral uart,
-                          std::array<uint8_t, MAX_UART_BUFFER_SIZE>& data,
+        void send_data(Peripheral uart, uint8_t* data, uint32_t length,
+                       uint32_t timeout) override;
+        bool receive_data(Peripheral uart, uint8_t* data,
                           uint32_t& length) override;
         void abort_receive(Peripheral uart) override;
         void abort_transmit(Peripheral uart) override;
