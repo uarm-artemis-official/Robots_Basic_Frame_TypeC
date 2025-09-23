@@ -36,12 +36,23 @@ namespace MW_TIM {
         (void) channel;
         // TODO: Implement PWM stop logic
     }
-    void TestPWM::set_duty_cycle(Timer timer, Channel channel,
-                                 uint32_t compare) {
+    void TestPWM::set_compare(Timer timer, Channel channel, uint32_t compare) {
         (void) timer;
         (void) channel;
         (void) compare;
         // TODO: Implement PWM duty cycle logic
+    }
+
+    void set_autoreload(Timer timer, uint32_t autoreload) {
+        (void) timer;
+        (void) autoreload;
+        // TODO: Implement
+    }
+
+    void set_counter(Timer timer, uint32_t counter) {
+        (void) timer;
+        (void) counter;
+        // TODO: Implement
     }
 }  // namespace MW_TIM
 

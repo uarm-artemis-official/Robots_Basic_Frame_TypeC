@@ -6,6 +6,7 @@
 #include "subsystems_modules.hpp"
 #include "subsystems_types.hpp"
 
+// TODO: Add middleware layer instead of inclusion of can.h.
 namespace CAN_ISR {
     enum class Config { NORMAL, SENTRY_CHASSIS, SENTRY_GIMBAL };
 

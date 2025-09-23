@@ -12,12 +12,11 @@ namespace ammo_lid {
     void AmmoLid::set_lid_status(LidStatus new_status) {
         switch (new_status) {
             case LidStatus::OPEN:
-                pwm.set_duty_cycle(ammo_lid_timer, ammo_lid_channel,
-                                   OPEN_PWM_CMP);
+                pwm.set_compare(ammo_lid_timer, ammo_lid_channel, OPEN_PWM_CMP);
                 break;
             case LidStatus::CLOSED:
-                pwm.set_duty_cycle(ammo_lid_timer, ammo_lid_channel,
-                                   CLOSED_PWM_CMP);
+                pwm.set_compare(ammo_lid_timer, ammo_lid_channel,
+                                CLOSED_PWM_CMP);
                 break;
             default:
                 ASSERT(false, "Unknown new lid status.");

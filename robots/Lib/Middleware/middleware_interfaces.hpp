@@ -77,8 +77,24 @@ namespace MW_TIM {
          * @param[in] channel Channel of timer to set.
          * @param[in] compare_value The duty cycle of the PWM signal.
          */
-        virtual void set_duty_cycle(Timer timer, Channel channel,
-                                    uint32_t compare) = 0;
+        virtual void set_compare(Timer timer, Channel channel,
+                                 uint32_t compare) = 0;
+
+        /**
+         * @brief Set the auto-reload value for a timer.
+         * Changing the auto-reload value (ARR) affects the period of the PWM signal.
+         * @param[in] timer Timer to configure.
+         * @param[in] autoreload The auto-reload value to set.
+         */
+        virtual void set_autoreload(Timer timer, uint32_t autoreload) = 0;
+
+        /**
+         * @brief Set the counter value for a timer.
+         * Setting the counter value (CNT) directly changes the current timer count.
+         * @param[in] timer Timer to configure.
+         * @param[in] counter The counter value to set.
+         */
+        virtual void set_counter(Timer timer, uint32_t counter) = 0;
     };
 }  // namespace MW_TIM
 

@@ -8,6 +8,7 @@
 
 #define DBUS_BUFFER_LEN 18
 
+// TODO: Add middleware layer instead of inclusion of usart.h.
 namespace UART_ISR {
     enum class Config {
         CHASSIS,

@@ -18,8 +18,10 @@ namespace MW_TIM {
        public:
         void start(Timer timer, Channel channel) override;
         void stop(Timer timer, Channel channel) override;
-        void set_duty_cycle(Timer timer, Channel channel,
-                            uint32_t compare) override;
+        void set_compare(Timer timer, Channel channel,
+                         uint32_t compare) override;
+        void set_autoreload(Timer timer, uint32_t autoreload) override;
+        void set_counter(Timer timer, uint32_t counter) override;
     };
 }  // namespace MW_TIM
 
@@ -117,8 +119,10 @@ namespace MW_TIM {
        public:
         void start(Timer timer, Channel channel) override;
         void stop(Timer timer, Channel channel) override;
-        void set_duty_cycle(Timer timer, Channel channel,
-                            uint32_t compare) override;
+        void set_compare(Timer timer, Channel channel,
+                         uint32_t compare) override;
+        void set_autoreload(Timer timer, uint32_t autoreload) override;
+        void set_counter(Timer timer, uint32_t counter) override;
     };
 }  // namespace MW_TIM
 

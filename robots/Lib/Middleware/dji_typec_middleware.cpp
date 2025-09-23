@@ -220,9 +220,17 @@ namespace MW_TIM {
      * @param[in] channel Channel of timer to set.
      * @param[in] compare_value The compare value for the PWM signal.
      */
-    void PWM::set_duty_cycle(Timer timer, Channel channel, uint32_t compare) {
+    void PWM::set_compare(Timer timer, Channel channel, uint32_t compare) {
         __HAL_TIM_SET_COMPARE(get_hal_tim_handle(timer),
                               get_hal_tim_channel(channel), compare);
+    }
+
+    void PWM::set_autoreload(Timer timer, uint32_t autoreload) {
+        __HAL_TIM_SET_AUTORELOAD(get_hal_tim_handle(timer), autoreload);
+    }
+
+    void PWM::set_counter(Timer timer, uint32_t counter) {
+        __HAL_TIM_SET_COUNTER(get_hal_tim_handle(timer), counter);
     }
 }  // namespace MW_TIM
 
@@ -455,7 +463,7 @@ namespace MW_RTOS {
      * @return The current tick count.
      */
     TickType RTOS::get_current_tick() {
-        return static_cast<TickType>(uwTick);
+        return static_cast<TickType>(HAL_GetTick());
     }
 
     /**
