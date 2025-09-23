@@ -56,7 +56,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "GTest",
                 "CMAKE_VERBOSE_MAKEFILE": "ON",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/mingw64-gcc.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/base/cmake/mingw64-gcc.cmake"
             }
         },
         {

@@ -90,7 +90,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
         INTERFACE 
             GTEST)
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Core/Src)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/robots)
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
     find_package(Doxygen)
