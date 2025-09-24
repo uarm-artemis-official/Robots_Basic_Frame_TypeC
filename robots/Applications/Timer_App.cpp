@@ -16,7 +16,6 @@
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
 #include "uarm_lib.hpp"
-#include "uarm_os.hpp"
 
 /**
 * @brief  Timer app used to update the CAN data
@@ -25,9 +24,12 @@
 * @retval None
 */
 
-TimerApp::TimerApp(IMotors& system_motors_ref, mc2::RobotMC& mc_ref,
-                   IDebug& debug_ref)
-    : system_motors(system_motors_ref), mc(mc_ref), debug(debug_ref) {
+TimerApp::TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
+                   mc2::RobotMC& mc_ref, IDebug& debug_ref)
+    : RTOSApp(_rtos),
+      system_motors(system_motors_ref),
+      mc(mc_ref),
+      debug(debug_ref) {
     memset(&motor_tx_message, 0, sizeof(MotorSetMessage_t));
 }
 

@@ -16,11 +16,12 @@
 #include "robot_config.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
-#include "uarm_os.hpp"
 
-GimbalApp::GimbalApp(mc2::RobotMC& mc_ref, IEventCenter& event_center_ref,
-                     IDebug& debug_ref, IMotors& motors_ref)
-    : mc(mc_ref),
+GimbalApp::GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                     IEventCenter& event_center_ref, IDebug& debug_ref,
+                     IMotors& motors_ref)
+    : ExtendedRTOSApp(_rtos),
+      mc(mc_ref),
       event_center(event_center_ref),
       debug(debug_ref),
       motors(motors_ref) {}

@@ -270,6 +270,7 @@ namespace MW_RTOS {
         virtual void delay_until(uint32_t* previous_wake, uint32_t ms) = 0;
         virtual void delay(uint32_t ms) = 0;
         virtual TickType get_current_tick() = 0;
+        virtual TickType ms_to_ticks(uint32_t ms) = 0;
 
         // RTOS queues.
         virtual bool queue_create(QueueHandle& queue, size_t queue_length,

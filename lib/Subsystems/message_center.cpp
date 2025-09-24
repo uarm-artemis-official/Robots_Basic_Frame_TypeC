@@ -2,7 +2,6 @@
 #include <utility>
 #include "subsystems_modules.hpp"
 #include "uarm_lib.hpp"
-#include "uarm_os.hpp"
 
 namespace mc2 {
     void GimbalCommand::encode(std::array<uint8_t, 200>& bytes) {

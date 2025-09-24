@@ -13,10 +13,10 @@
 #include "apps_types.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
-#include "uarm_os.hpp"
 
-PCUARTApp::PCUARTApp(mc2::RobotMC& mc_ref, IMotors& motors_, IPCComm& pc_comm_)
-    : mc(mc_ref), motors(motors_), pc_comm(pc_comm_) {
+PCUARTApp::PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                     IMotors& motors_, IPCComm& pc_comm_)
+    : RTOSApp(_rtos), mc(mc_ref), motors(motors_), pc_comm(pc_comm_) {
     memset(uc_pack_in.bytes.data(), 0, sizeof(uc_pack_in.bytes));
 }
 

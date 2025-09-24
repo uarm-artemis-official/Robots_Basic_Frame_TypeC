@@ -9,7 +9,6 @@
 #include "middleware_types.hpp"
 #include "motor_types.h"
 #include "subsystems_defines.hpp"
-#include "uarm_os.hpp"
 #include "uarm_types.hpp"
 
 /* =========================================================================

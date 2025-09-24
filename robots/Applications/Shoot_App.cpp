@@ -22,10 +22,12 @@ namespace {
     constexpr size_t RIGHT_FLYWHEEL_INDEX = 1;
 }  // namespace
 
-ShootApp::ShootApp(mc2::RobotMC& mc_ref, IAmmoLid& ammo_lid_ref,
-                   IMotors& motors_ref, float loader_active_rpm_,
-                   float flywheel_target_rpm_, float max_flywheel_accel)
-    : mc(mc_ref),
+ShootApp::ShootApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                   IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
+                   float loader_active_rpm_, float flywheel_target_rpm_,
+                   float max_flywheel_accel)
+    : RTOSApp(_rtos),
+      mc(mc_ref),
       ammo_lid(ammo_lid_ref),
       motors(motors_ref),
       LOADER_ACTIVE_RPM(loader_active_rpm_),

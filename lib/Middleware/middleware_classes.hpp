@@ -76,6 +76,8 @@ namespace MW_RTOS {
         void delay_until(uint32_t* previous_wake, uint32_t ms) override;
         void delay(uint32_t ms) override;
         TickType get_current_tick() override;
+        TickType ms_to_ticks(uint32_t ms) override;
+
         bool queue_create(QueueHandle& queue, size_t queue_length,
                           size_t item_size) override;
         bool queue_overwrite(QueueHandle queue, void* data_ptr) override;
@@ -168,6 +170,8 @@ namespace MW_RTOS {
         void delay_until(uint32_t* previous_wake, uint32_t ms) override;
         void delay(uint32_t ms) override;
         TickType get_current_tick() override;
+        TickType ms_to_ticks(uint32_t ms) override;
+
         bool queue_create(QueueHandle& queue, size_t queue_length,
                           size_t item_size) override;
         bool queue_overwrite(QueueHandle queue, void* data_ptr) override;

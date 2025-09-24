@@ -19,12 +19,15 @@
 #include "subsystems_modules.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
-#include "uarm_os.hpp"
 
 namespace CommApp {
-    CommApp::CommApp(mc2::RobotMC& mc_ref, IDebug& debug_ref,
-                     MW_CAN::ICAN& _can, Config _config)
-        : mc(mc_ref), debug(debug_ref), can(_can), config(_config) {}
+    CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                     IDebug& debug_ref, MW_CAN::ICAN& _can, Config _config)
+        : RTOSApp(_rtos),
+          mc(mc_ref),
+          debug(debug_ref),
+          can(_can),
+          config(_config) {}
 
     void CommApp::init() {
         board_status = debug.get_board_status();

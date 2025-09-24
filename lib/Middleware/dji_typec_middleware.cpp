@@ -460,6 +460,10 @@ namespace MW_RTOS {
         return static_cast<TickType>(HAL_GetTick());
     }
 
+    TickType RTOS::ms_to_ticks(uint32_t ms) {
+        return pdMS_TO_TICKS(ms);
+    }
+
     /**
      * @brief Create a queue.
      * @param[out] queue The created queue handle.

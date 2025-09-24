@@ -185,10 +185,10 @@ static OmniDrive omni_drive(mc, no_init_motors, mecanum_chassis_width,
                             ChassisApp<OmniDrive>::get_loop_period());
 #endif
 
-static ChassisApp<OmniDrive> chassis_app(omni_drive, mc, debug);
+static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, debug);
 #endif
 
-static RCApp rc_app(mc, rc_comm);
+static RCApp rc_app(rtos, mc, rc_comm);
 
 #ifdef AUTO_AIM_RIG
 static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
@@ -196,14 +196,14 @@ static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
 static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 #endif
 
-static CommApp::CommApp comm_app(mc, debug, can, comm_config);
-static TimerApp timer_app(motors, mc, debug);
-static PCUARTApp pc_uart_app(mc, no_init_motors, pc_comm);
-static IMUApp imu_app(mc, event_center, imu, debug);
-static RefereeApp referee_app(mc, event_center, debug, ref_ui);
-static GimbalApp gimbal_app(mc, event_center, debug, no_init_motors);
+static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config);
+static TimerApp timer_app(rtos, motors, mc, debug);
+static PCUARTApp pc_uart_app(rtos, mc, no_init_motors, pc_comm);
+static IMUApp imu_app(rtos, mc, event_center, imu, debug);
+static RefereeApp referee_app(rtos, mc, event_center, debug, ref_ui);
+static GimbalApp gimbal_app(rtos, mc, event_center, debug, no_init_motors);
 static ShootApp shoot_app(
-    mc, ammo_lid_, no_init_motors,
+    rtos, mc, ammo_lid_, no_init_motors,
     robot_config::shoot_params::LOADER_ACTIVE_RPM,
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
     robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);

@@ -17,7 +17,6 @@ target_link_libraries(CHASSIS_DRIVES
         ALGORITHMS::CONTROL_LIB
         SUBSYSTEMS::SUBSYSTEMS_INCLUDE
         LIB::UARM_LIB
-        LIB::UARM_OS
         LIB::UARM_MATH)
 
 add_library(BASIC_APPS STATIC Chassis_App.cpp Gimbal_App.cpp Shoot_App.cpp)
@@ -25,7 +24,6 @@ target_link_libraries(BASIC_APPS
     PUBLIC
         APPS_INCLUDE
         LIB::UARM_LIB
-        LIB::UARM_OS
         LIB::UARM_MATH
         CHASSIS_DRIVES
         ALGORITHMS::ATTITUDE_LIB
@@ -45,7 +43,6 @@ target_link_libraries(GENERIC_APPS
     PUBLIC 
         APPS_INCLUDE
         LIB::UARM_LIB
-        LIB::UARM_OS
         LIB::UARM_MATH
         SUBSYSTEMS::SUBSYSTEMS_INCLUDE
         ALGORITHMS::COMMS_LIB)

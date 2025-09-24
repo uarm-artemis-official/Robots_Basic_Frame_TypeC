@@ -1,13 +1,16 @@
 #ifndef __APPS_INTERFACES_H
 #define __APPS_INTERFACES_H
 
-#include "uarm_os.hpp"
+#include "middleware_interfaces.hpp"
 
 // TODO: Add startup events for apps so certain apps will start after certain events.
 // e.g. Chassis and Gimbal Apps only start when motors are detected to be online.
 // TODO: Add another template parameter for task period with getter function to access it.
 template <class Derived, uint32_t _loop_period_ms>
 class ExtendedRTOSApp {
+   private:
+    MW_RTOS::IRTOS& rtos;
+
    public:
     static_assert(_loop_period_ms > 0,
                   "There must be a delay between loops for RTOS apps.");
@@ -16,12 +19,14 @@ class ExtendedRTOSApp {
         return static_cast<float>(loop_period_ms) / 1000;
     }
 
+    ExtendedRTOSApp(MW_RTOS::IRTOS& _rtos) : rtos(_rtos) {}
+
     void run(const void* argument) {
         (void) argument;
         Derived* derived = static_cast<Derived*>(this);
-        TickType_t xLastWakeTime;
-        const TickType_t xFrequency = pdMS_TO_TICKS(loop_period_ms);
-        xLastWakeTime = xTaskGetTickCount();
+        MW_RTOS::TickType xLastWakeTime;
+        const MW_RTOS::TickType xFrequency = rtos.ms_to_ticks(loop_period_ms);
+        xLastWakeTime = rtos.get_current_tick();
         derived->init();
         for (;;) {
             if (derived->exit_calibrate_cond()) {
@@ -29,12 +34,12 @@ class ExtendedRTOSApp {
             } else {
                 derived->calibrate();
             }
-            vTaskDelayUntil(&xLastWakeTime, xFrequency);
+            rtos.delay_until(&xLastWakeTime, xFrequency);
         }
 
         for (;;) {
             derived->loop();
-            vTaskDelayUntil(&xLastWakeTime, xFrequency);
+            rtos.delay_until(&xLastWakeTime, xFrequency);
         }
     }
 };
@@ -42,6 +47,8 @@ class ExtendedRTOSApp {
 template <class Derived, int loop_period_ms>
 class RTOSApp : public ExtendedRTOSApp<Derived, loop_period_ms> {
    public:
+    RTOSApp(MW_RTOS::IRTOS& _rtos)
+        : ExtendedRTOSApp<Derived, loop_period_ms>(_rtos) {}
     void calibrate() {}
     bool exit_calibrate_cond() { return true; }
 };

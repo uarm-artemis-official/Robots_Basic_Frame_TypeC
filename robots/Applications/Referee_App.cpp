@@ -53,9 +53,13 @@
 //  * @param[in] None
 //  * @retval    None
 //  */
-RefereeApp::RefereeApp(mc2::RobotMC& mc_ref, IEventCenter& evt_center,
-                       IDebug& debug, IRefUI& ref_ui)
-    : mc(mc_ref), event_center(evt_center), debug(debug), ref_ui(ref_ui) {}
+RefereeApp::RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                       IEventCenter& evt_center, IDebug& debug, IRefUI& ref_ui)
+    : RTOSApp(_rtos),
+      mc(mc_ref),
+      event_center(evt_center),
+      debug(debug),
+      ref_ui(ref_ui) {}
 
 void RefereeApp::init() {
     // Initialization code for referee app

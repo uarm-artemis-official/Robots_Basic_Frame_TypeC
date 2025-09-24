@@ -180,6 +180,10 @@ namespace MW_RTOS {
         return current_tick_ms;
     }
 
+    TickType TestRTOS::ms_to_ticks(uint32_t ms) {
+        return static_cast<TickType>(ms);
+    }
+
     bool TestRTOS::queue_create(QueueHandle& queue, size_t queue_length,
                                 size_t item_size) {
         queue = static_cast<QueueHandle>(malloc(sizeof(MockRTOSQueue)));

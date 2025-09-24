@@ -18,15 +18,19 @@
 #include "robot_config.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
-#include "uarm_os.hpp"
 
 template class ChassisApp<OmniDrive>;
 template class ChassisApp<SwerveDrive>;
 
 template <class DriveTrain>
-ChassisApp<DriveTrain>::ChassisApp(DriveTrain& drive_train_ref,
+ChassisApp<DriveTrain>::ChassisApp(MW_RTOS::IRTOS& _rtos,
+                                   DriveTrain& drive_train_ref,
                                    mc2::RobotMC& mc_ref, IDebug& debug_ref)
-    : drive_train(drive_train_ref), mc(mc_ref), debug(debug_ref) {
+    : RTOSApp<ChassisApp<DriveTrain>, ChassisApp<DriveTrain>::loop_period_ms>(
+          _rtos),
+      drive_train(drive_train_ref),
+      mc(mc_ref),
+      debug(debug_ref) {
     static_assert(
         std::is_same<DriveTrain, OmniDrive>::value ||
             std::is_same<DriveTrain, SwerveDrive>::value,

@@ -15,11 +15,11 @@
 #include "string.h"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
-#include "uarm_os.hpp"
 
-IMUApp::IMUApp(mc2::RobotMC& mc_ref, IEventCenter& event_center_ref,
-               IImu& imu_ref, IDebug& debug_ref)
-    : mc(mc_ref),
+IMUApp::IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+               IEventCenter& event_center_ref, IImu& imu_ref, IDebug& debug_ref)
+    : ExtendedRTOSApp(_rtos),
+      mc(mc_ref),
       event_center(event_center_ref),
       imu(imu_ref),
       debug(debug_ref) {}

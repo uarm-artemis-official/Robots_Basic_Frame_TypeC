@@ -21,8 +21,8 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
     static constexpr float MAX_ROTATION = PI;    // rad/s
     static constexpr float GYRO_SPEED = PI;
 
-    explicit ChassisApp(DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
-                        IDebug& debug_ref);
+    explicit ChassisApp(MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
+                        mc2::RobotMC& mc_ref, IDebug& debug_ref);
     void init();
     void set_initial_state();
 
@@ -143,8 +143,9 @@ class GimbalApp
     static float calc_rel_angle(float angle1, float angle2);
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
-    explicit GimbalApp(mc2::RobotMC& mc_ref, IEventCenter& event_center,
-                       IDebug& debug_ref, IMotors& motors_ref);
+    explicit GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                       IEventCenter& event_center, IDebug& debug_ref,
+                       IMotors& motors_ref);
     void init();
     void set_initial_state();
     bool calibrate_start_precondition();
@@ -199,9 +200,10 @@ class ShootApp
     const float MAX_FLYWHEEL_ACCEL;
 
    public:
-    explicit ShootApp(mc2::RobotMC& mc2_ref, IAmmoLid& ammo_lid_ref,
-                      IMotors& motors_ref, float loader_active_rpm_,
-                      float flywheel_target_rpm_, float max_flywheel_accel);
+    explicit ShootApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                      IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
+                      float loader_active_rpm_, float flywheel_target_rpm_,
+                      float max_flywheel_accel);
 
     void init();
     void loop();
@@ -238,8 +240,9 @@ class IMUApp
     static constexpr float NORMAL_TEMP_THRESHOLD = 1.0f;
     static constexpr float IMU_RESET_THRESHOLD = 7.0f;
 
-    explicit IMUApp(mc2::RobotMC& mc2_ref, IEventCenter& event_center_ref,
-                    IImu& imu_ref, IDebug& debug_ref);
+    explicit IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                    IEventCenter& event_center_ref, IImu& imu_ref,
+                    IDebug& debug_ref);
     void init();
     void calibrate();
     bool exit_calibrate_cond();
@@ -264,8 +267,9 @@ class RefereeApp
     uint8_t ui_sendig_count = 0;  // Count the number of times UI data is sent
 
    public:
-    explicit RefereeApp(mc2::RobotMC& mc2_ref, IEventCenter& evt_center,
-                        IDebug& debug, IRefUI& ref_ui);
+    explicit RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                        IEventCenter& evt_center, IDebug& debug,
+                        IRefUI& ref_ui);
     void init();
     void loop();
 
@@ -291,7 +295,8 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
     ammo_lid::LidStatus pc_ammo_status;
 
    public:
-    explicit RCApp(mc2::RobotMC& mc2_ref, IRCComm& rc_comm_ref);
+    explicit RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                   IRCComm& rc_comm_ref);
 
     void init();
     void loop();
@@ -325,8 +330,8 @@ class TimerApp
     BoardStatus_t board_status;
 
    public:
-    explicit TimerApp(IMotors& system_motors_ref, mc2::RobotMC& mc2_ref,
-                      IDebug& debug_ref);
+    explicit TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
+                      mc2::RobotMC& mc2_ref, IDebug& debug_ref);
     void init();
     void loop();
 };
@@ -344,8 +349,8 @@ class PCUARTApp
     float recent_deltas[2];
 
    public:
-    explicit PCUARTApp(mc2::RobotMC& mc2_ref, IMotors& motors_,
-                       IPCComm& pc_comm_);
+    explicit PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                       IMotors& motors_, IPCComm& pc_comm_);
     void init();
     void loop();
     void send_swerve_data();
@@ -362,8 +367,8 @@ namespace CommApp {
         Config config;
 
        public:
-        explicit CommApp(mc2::RobotMC& mc2_ref, IDebug& debug,
-                         MW_CAN::ICAN& can, Config config);
+        explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                         IDebug& debug, MW_CAN::ICAN& can, Config config);
         void init();
         void loop();
         bool transmit_interboard_message(const uint32_t message_id,

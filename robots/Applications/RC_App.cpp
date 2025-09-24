@@ -26,7 +26,6 @@
 #include "robot_config.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
-#include "uarm_os.hpp"
 
 /*********************************************************************************
  *  				  <   GENERAL CTRL OPERATION TABLE  >
@@ -101,8 +100,8 @@
  *    Note: Shift need to be combined with any of WASD keys.
  *
  *********************************************************************************/
-RCApp::RCApp(mc2::RobotMC& mc_ref, IRCComm& rc_comm_ref)
-    : mc(mc_ref), rc_comm(rc_comm_ref) {}
+RCApp::RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref, IRCComm& rc_comm_ref)
+    : RTOSApp(_rtos), mc(mc_ref), rc_comm(rc_comm_ref) {}
 
 void RCApp::init() {
     memset(rc_raw.rc_bytes.data(), 0, sizeof(rc_raw.rc_bytes));
