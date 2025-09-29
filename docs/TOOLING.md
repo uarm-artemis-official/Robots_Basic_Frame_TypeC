@@ -1,9 +1,9 @@
 # Tooling
-This document is intended to provide information about the tools that are used for developing our software for robots. Included below is an overview of what tools are used along with their rationale as well as installation instructions for primary development tools and additional tooling that we find helpful.
+This document is intended to provide information about the tools that are used for developing our software for robots. Included below is an overview of what tools are used along with their rationale as well as installation instructions for primary development tools and additional tooling that we find helpful. The installation instructions were primarily made for Windows 11, however, there aren't any tools that are exclusive to the Windows system so setting up a developemnt environment on a different operating system should be possible. There are additional notes given for MacOS for some tools to help with setup.
 
 ## Tool Overview
 Development is done on VSCode. VSCode was chosen because it was a modern IDE with support from STMicroelectronics in developing code for their chips in the form of their extension. 
-It may be possible to use other IDEs, especially those specifically made for embedded development like CubeIDE, and Keil. However, instructions for setting up a development environment for those IDEs are not included in this guide you would have to look elsewhere for information regarding that. There are several tools used in this project for various reasons, below is a table outlining them.
+It may be possible to use other IDEs, especially those specifically made for embedded development like CubeIDE, or Keil. However, instructions for setting up a development environment for those IDEs are not included in this guide you would have to look elsewhere for information regarding that. There are several tools used in this project for various reasons, below is a table outlining them.
 
 | Tool | Use | Description |
 | --- | --- | --- |
@@ -18,11 +18,15 @@ Required tools will be set up in the [Core Development Tools](#core-development-
 
 ## Core Development Tools
 
+Below are tools deamed to be the bare necessities for setting up a minimal development environment. Please take note of installation locations of software installed (particularly the STM prerequiste software packages) as they will be 
+
 ### STM32Cube for Visual Studio Code
 This will be the primary development environment for developing this codebase. VSCode was choosen because of its popularity, modern IDE features, and its plethora of free extensions. The STM32Cube extension itself provides integration of CubeIDE features like project creation, code editing, building, flashing, and debugging into VSCode. The extension uses the same toolchain and device data packages used in STM32CubeIDE.  **Before installing this extension, ensure you have the prerequisites installed**. 
 
 #### STM32CubeCLT
 - STM32CubeCLT is a package containing toolchain and STM32 device related data required for project creation, build, and debug functionality. Without it, you cannot build or flash firmware. [Download](https://www.st.com/en/development-tools/stm32cubeclt.html) 
+
+> It is unclear where CLT is installed when using the MacOS installer. From STM's UM3089, it suggests that the default location is in `/opt/ST/`. Open terminal and check if there is a newly created CLT folder there using `cd` and `ls` commands.
 
 #### STM32CubeMX 
 - STM32CubeMX simplifies the configuration of STM32 MCUs and generates the corresponding initialization C code.
@@ -31,10 +35,29 @@ Starting from v6.11.0, STM32CubeMX can generate VSCode-compatible CMake projects
 #### ST-MCU-Finder
 - Connects to and explores the full range of STM32 and STM8 microcontrollers, processors, dev boards, and examples, making it easier to select the correct device and reference code. [Download](https://www.st.com/en/development-tools/st-mcu-finder-pc.html) 
 
-Upon installing the extension, you should receive a notification for configuring the extension to use the above software. Due to how the project is configured, we use Ninja as the build system which has to be installed before you can build the codebase.
+Upon installing the extension, you should receive a notification for configuring the extension to use the above software. You can configure the extension at any time by selecting `Manage` in the extension side menu and selecting `Settings`. 
+
+![Image of extension side menu with manage tool tip for STM32Cube extension](figures/configure_extension.png)
+
+Afterwards, a settings page will open with options to change path settings. Please read the descriptions carefully and configure them currently.
+
+> Make sure to add the `.exe` file extension for executable file paths. Otherwise it may not work.
+
+![Image of settings page for STM32Cube extension](figures/extension_settings.png)
+
+Due to how the project is configured, we use Ninja as the build system which has to be on your system before you can build the codebase. You can check if Ninja is installed by running the below in VSCode's terminal. You should see a version number as a result of your command.
+
+```
+ninja --version
+```
+
+If the above doesn't work, STM32CubeCLT may come with Ninja but it may not included in system PATH. Please check your CLT installation folder for a `Ninja` directory, if it exists, add the absolute path to `Ninja/bin` folder to your system PATH. If none of the above works, you'll have to install ninja separately.
 
 ### Ninja
-Ninja is a small, high-speed build system designed to run builds generated by higher-level build configuration tools like CMake. Its main purpose here is to significantly speed up incremental builds, especially in large codebases, by only rebuilding what has changed. You can download and learn more about Ninja [here](https://ninja-build.org/). Download the Windows zip, extract it, and run the installer. Testing for successful installation of ninja can be done by running `ninja` in VSCode's terminal.
+> There are several ways to install Ninja, the below instructions directly downloads the binary and manually adds that to system PATH. However, you may want to use your system's package manager (e.g. homebrew) if you already have that setup.
+
+Ninja is a small, high-speed build system designed to run builds generated by higher-level build configuration tools like CMake. Its main purpose here is to significantly speed up incremental builds, especially in large codebases, by only rebuilding what has changed. You can learn more about Ninja [from their website](https://ninja-build.org/). Please download your system's binary zip from their [github](https://github.com/ninja-build/ninja/releases), and extract it. Included in the zip should be an executable, please place this somewhere for safekeeping and add the parent folder to system PATH.
+
 
 Now you should be able to build the entire codebase, and flash and debug using st-linkv2. You can build using the build button located at the botton toolbar of the IDE. Whenever, you flash and debug, a build will automatically run before. The flash and debug options are located under the debug menu on the side. Please use "Build & Debug Microcontroller - ST-Link" when you are debugging with an ST-Link.
 
