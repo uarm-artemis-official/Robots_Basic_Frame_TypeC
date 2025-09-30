@@ -64,8 +64,10 @@ namespace CommApp {
                 case mc2::get_comm_id<mc2::GimbalRelativeAngles,
                                       mc2::RobotMC::Topics>(): {
                     mc2::GimbalRelativeAngles rel_angles;
-                    memcpy(&rel_angles, comm_in.bytes.data(),
-                           sizeof(mc2::GimbalRelativeAngles));
+                    memcpy(&rel_angles.yaw, comm_in.bytes.data(),
+                           sizeof(float));
+                    memcpy(&rel_angles.pitch, &comm_in.bytes.data()[4],
+                           sizeof(float));
                     mc.pub_message(rel_angles);
                 } break;
                 case mc2::get_comm_id<mc2::GimbalCommand,
