@@ -17,7 +17,19 @@ namespace isotp {
         FlowControl = 0x3
     };
 
-    enum class ISOTPSendState { Ready, Sending, WaitingForControl };
+    /**
+     * @brief Flow Control Flags for ISO-TP Flow Control frames.
+     * 
+     * These are present in flow control frames and are located in the
+     * lower nibble of the 0th byte.
+     */
+    enum class FlowControlFlag : uint8_t {
+        Continue = 0x1,
+        Wait = 0x2,
+        Abort = 0x3
+    };
+
+    enum class ISOTPSendState { Ready, Sending, WaitingForControl, Aborted };
 
     enum class ISOTPReceiveState { Ready, AssemblingMessage, HaveFullMessage };
 
@@ -34,6 +46,9 @@ namespace isotp {
         std::array<uint8_t, MAX_MESSAGE_LENGTH> send_message_buffer;
         size_t send_message_length;
         size_t used_send_buffer_length;
+
+        uint32_t separation_time_min_ms;
+        uint8_t block_size;
     };
 
     struct ReceiveMachine {

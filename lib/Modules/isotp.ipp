@@ -35,8 +35,7 @@ namespace isotp {
                             &message[1], msg_len);
                 receive_machine.receive_message_length = msg_len;
                 receive_machine.used_receive_buffer_length = msg_len;
-                receive_machine.receive_state =
-                    ISOTPReceiveState::HaveFullMessage;
+                set_receive_state(ISOTPReceiveState::HaveFullMessage);
                 break;
             }
             case PCICode::FirstFrame: {
@@ -47,8 +46,7 @@ namespace isotp {
                             &message[2], length - 2);
                 receive_machine.receive_message_length = msg_len;
                 receive_machine.used_receive_buffer_length = length - 2;
-                receive_machine.receive_state =
-                    ISOTPReceiveState::AssemblingMessage;
+                set_receive_state(ISOTPReceiveState::AssemblingMessage);
                 break;
             }
             case PCICode::ConsecutiveFrame: {
@@ -68,14 +66,50 @@ namespace isotp {
                 receive_machine.used_receive_buffer_length += copy_len;
                 if (receive_machine.used_receive_buffer_length >=
                     receive_machine.receive_message_length) {
-                    receive_machine.receive_state =
-                        ISOTPReceiveState::HaveFullMessage;
+                    check(receive_machine.receive_message_length ==
+                              receive_machine.used_receive_buffer_length,
+                          "Declared message length doesn't match size of "
+                          "received message "
+                          "bytes.");
+
+                    set_receive_state(ISOTPReceiveState::HaveFullMessage);
                 }
                 break;
             }
             case PCICode::FlowControl: {
-                // Not needed for receive FSM, but could be used for send FSM
-                // Ignore for now
+                FlowControlFlag flow_status =
+                    static_cast<FlowControlFlag>(message[0] & 0x0F);
+                uint8_t block_size = message[1];
+                uint8_t stmin_raw = message[2];
+
+                send_machine.block_size = block_size;
+
+                // Parse separation time according to ISO-TP spec
+                uint32_t stmin_ms = 0;
+                if (stmin_raw < 0xF0) {
+                    stmin_ms = stmin_raw;
+                } else if (stmin_raw >= 0xF1 && stmin_raw <= 0xF9) {
+                    stmin_ms = (stmin_raw - 0xF0) * 100;
+                } else {
+                    check(false, "STmin value out of range");
+                }
+                send_machine.separation_time_min_ms = stmin_ms;
+
+                // Change send_machine state according to flow status
+                switch (flow_status) {
+                    case FlowControlFlag::Continue:
+                        set_send_state(ISOTPSendState::Sending);
+                        break;
+                    case FlowControlFlag::Wait:
+                        set_send_state(ISOTPSendState::WaitingForControl);
+                        break;
+                    case FlowControlFlag::Abort:
+                        set_send_state(ISOTPSendState::Aborted);
+                        break;
+                    default:
+                        check(false, "Unknown FlowControlFlag value");
+                        break;
+                }
                 break;
             }
             default:
@@ -89,6 +123,8 @@ namespace isotp {
     void ISOTP<FSend, FDelay>::tick_send_process() {
         switch (send_machine.send_state) {
             case ISOTPSendState::Ready:
+                [[fallthrough]];
+            case ISOTPSendState::Aborted:
                 // Nothing to send
                 break;
             case ISOTPSendState::Sending: {
@@ -101,7 +137,7 @@ namespace isotp {
                                 send_machine.send_message_buffer.data(),
                                 send_machine.send_message_length);
                     send_function(frame, send_machine.send_message_length + 1);
-                    send_machine.send_state = ISOTPSendState::Ready;
+                    set_send_state(ISOTPSendState::Ready);
                 } else {
                     // First Frame
                     uint8_t frame[8] = {0};
@@ -116,7 +152,7 @@ namespace isotp {
                                 first_data_len);
                     send_function(frame, 8);
                     send_machine.used_send_buffer_length = first_data_len;
-                    send_machine.send_state = ISOTPSendState::WaitingForControl;
+                    set_send_state(ISOTPSendState::WaitingForControl);
                 }
                 break;
             }
@@ -138,7 +174,7 @@ namespace isotp {
                     frame_idx = (frame_idx + 1) & 0x0F;
                     delay_function();
                 }
-                send_machine.send_state = ISOTPSendState::Ready;
+                set_send_state(ISOTPSendState::Ready);
                 break;
             }
         }
@@ -148,14 +184,14 @@ namespace isotp {
     void ISOTP<FSend, FDelay>::set_send_message(uint8_t* message,
                                                 size_t length) {
         check(length <= MAX_MESSAGE_LENGTH, "Send message too long");
-        if (send_machine.send_state != ISOTPSendState::Ready) {
+        if (send_machine.send_state != ISOTPSendState::Ready &&
+            send_machine.send_state != ISOTPSendState::Aborted) {
             check(false, "Send message while previous not finished");
-            // TODO: Robust mode: overwrite/send new message
         }
         std::memcpy(send_machine.send_message_buffer.data(), message, length);
         send_machine.send_message_length = length;
         send_machine.used_send_buffer_length = 0;
-        send_machine.send_state = ISOTPSendState::Sending;
+        set_send_state(ISOTPSendState::Sending);
     }
 
     template <typename FSend, typename FDelay>
@@ -179,9 +215,10 @@ namespace isotp {
             ISOTPReceiveState::HaveFullMessage) {
             return false;
         }
+
         std::memcpy(dst, receive_machine.receive_message_buffer.data(),
                     receive_machine.receive_message_length);
-        receive_machine.receive_state = ISOTPReceiveState::Ready;
+        set_receive_state(ISOTPReceiveState::Ready);
         return true;
     }
 
@@ -198,6 +235,13 @@ namespace isotp {
     template <typename FSend, typename FDelay>
     void ISOTP<FSend, FDelay>::set_send_state(ISOTPSendState new_state) {
         send_machine.send_state = new_state;
+        if (new_state == ISOTPSendState::Ready) {
+            send_machine.send_message_length = 0;
+            send_machine.used_send_buffer_length = 0;
+            send_machine.send_message_buffer.fill(0);
+            send_machine.separation_time_min_ms = 0;
+            send_machine.block_size = 0;
+        }
     }
 
     template <typename FSend, typename FDelay>
@@ -237,7 +281,4 @@ namespace isotp {
             // TODO: Implement robust error handling.
         }
     }
-
-    // Explicit template instantiation for common use cases can be added here if needed.
-
 }  // namespace isotp
