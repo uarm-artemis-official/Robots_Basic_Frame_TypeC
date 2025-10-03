@@ -41,9 +41,18 @@ target_link_libraries(MESSAGE_CENTER_TEST
         MW::MIDDLEWARE
         SUBSYSTEMS::MESSAGE_CENTER)
 
+add_executable(ISOTP_TEST isotp_test.cpp)
+target_link_libraries(ISOTP_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        ISOTP)
+
+
 include(GoogleTest)
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)
 gtest_discover_tests(RAMP_TEST)
 gtest_discover_tests(MOCK_RTOS_QUEUE_TEST)
 gtest_discover_tests(MESSAGE_CENTER_TEST)
+gtest_discover_tests(ISOTP_TEST)

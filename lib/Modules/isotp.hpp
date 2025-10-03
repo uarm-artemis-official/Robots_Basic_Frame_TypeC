@@ -1,6 +1,7 @@
-#ifndef __ISOTP_FSM_HPP
-#define __ISOTP_FSM_HPP
+#ifndef __ISOTP_HPP
+#define __ISOTP_HPP
 
+#include <array>
 #include <cstdint>
 
 namespace isotp {
@@ -28,8 +29,24 @@ namespace isotp {
      */
     enum class ISOTPConfig { FailFast, Robust };
 
+    struct SendMachine {
+        ISOTPSendState send_state;
+        std::array<uint8_t, MAX_MESSAGE_LENGTH> send_message_buffer;
+        size_t send_message_length;
+        size_t used_send_buffer_length;
+    };
+
+    struct ReceiveMachine {
+        ISOTPReceiveState receive_state;
+        std::array<uint8_t, MAX_MESSAGE_LENGTH> receive_message_buffer;
+        std::array<uint8_t, MAX_MESSAGE_LENGTH / 8 + 1> receive_indices_buffer;
+        size_t indice_buffer_index;
+        size_t used_receive_buffer_length;
+        size_t receive_message_length;
+    };
+
     /**
-     * @brief Finite-state machine for facilitating ISO-TP communication.
+     * @brief Implementation class for ISO-TP communication.
      * 
      * The protocol is implemented according to its outline in the below
      * webpage.
@@ -38,25 +55,18 @@ namespace isotp {
      * All frame types (single, first, consecutive, and flow control) are supported.
      */
     template <typename FSend, typename FDelay>
-    class ISOTPFSM {
+    class ISOTP {
        private:
         FDelay& delay_function;
         FSend& send_function;
         ISOTPConfig config;
 
-        std::array<uint8_t, MAX_MESSAGE_LENGTH> receive_message_buffer;
-        std::array<uint8_t, MAX_MESSAGE_LENGTH> send_message_buffer;
-        size_t used_receive_buffer_length;
-        size_t used_send_buffer_length;
-        size_t receive_message_length;
-        size_t send_message_length;
-
-        ISOTPSendState send_state;
-        ISOTPReceiveState receive_state;
+        SendMachine send_machine;
+        ReceiveMachine receive_machine;
 
        public:
-        ISOTPFSM(FSend& _send_function, F& _delay_function,
-                 ISOTPConfig _config);
+        ISOTP(FSend& _send_function, FDelay& _delay_function,
+              ISOTPConfig _config);
 
         /**
          * @brief Process received frame.
@@ -164,5 +174,7 @@ namespace isotp {
         void check(bool cond, const char* msg);
     };
 }  // namespace isotp
+
+#include "isotp.ipp"
 
 #endif

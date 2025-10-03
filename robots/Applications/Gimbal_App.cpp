@@ -58,9 +58,9 @@ bool GimbalApp::calibrate_start_precondition() {
 
 void GimbalApp::wait_for_motors() {
     while (!calibrate_start_precondition()) {
-        vTaskDelay(100);
+        rtos.delay(100);
     }
-    vTaskDelay(200);
+    rtos.delay(200);
     get_motor_feedback();
     update_ecd_angles();
     gimbal.yaw_rel_angle = gimbal.yaw_ecd_angle;

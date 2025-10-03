@@ -6,3 +6,7 @@ add_library(FW::DEVICE::SSD1306_DRIVER2 ALIAS SSD1306_DRIVER2)
 add_library(BUZZER STATIC buzzer.cpp)
 target_include_directories(BUZZER PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(BUZZER PUBLIC MW::MIDDLEWARE)
+
+add_library(ISOTP INTERFACE)
+target_include_directories(ISOTP INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(ISOTP INTERFACE LIB::UARM_LIB)

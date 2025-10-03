@@ -8,7 +8,7 @@
 // TODO: Add another template parameter for task period with getter function to access it.
 template <class Derived, uint32_t _loop_period_ms>
 class ExtendedRTOSApp {
-   private:
+   protected:
     MW_RTOS::IRTOS& rtos;
 
    public:
