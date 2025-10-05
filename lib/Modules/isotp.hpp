@@ -29,7 +29,13 @@ namespace isotp {
         Abort = 0x3
     };
 
-    enum class ISOTPSendState { Ready, Sending, WaitingForControl, Aborted };
+    enum class ISOTPSendState {
+        Ready,
+        SendingSingleOrFirst,
+        WaitingForControl,
+        SendingConsecutive,
+        Aborted
+    };
 
     enum class ISOTPReceiveState { Ready, AssemblingMessage, HaveFullMessage };
 
@@ -49,6 +55,7 @@ namespace isotp {
 
         uint32_t separation_time_min_ms;
         uint8_t block_size;
+        uint8_t frames_sent_in_block;
     };
 
     struct ReceiveMachine {

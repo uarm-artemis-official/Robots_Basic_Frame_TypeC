@@ -60,6 +60,11 @@ namespace isotp {
                 size_t remaining = receive_machine.receive_message_length -
                                    receive_machine.used_receive_buffer_length;
                 size_t copy_len = (data_len < remaining) ? data_len : remaining;
+
+                uint8_t index = message[0] & 0x0F;
+                receive_machine.receive_indices_buffer
+                    [receive_machine.indice_buffer_index++] = index;
+
                 std::memcpy(receive_machine.receive_message_buffer.data() +
                                 receive_machine.used_receive_buffer_length,
                             &message[1], copy_len);
@@ -98,7 +103,7 @@ namespace isotp {
                 // Change send_machine state according to flow status
                 switch (flow_status) {
                     case FlowControlFlag::Continue:
-                        set_send_state(ISOTPSendState::Sending);
+                        set_send_state(ISOTPSendState::SendingConsecutive);
                         break;
                     case FlowControlFlag::Wait:
                         set_send_state(ISOTPSendState::WaitingForControl);
@@ -124,10 +129,12 @@ namespace isotp {
         switch (send_machine.send_state) {
             case ISOTPSendState::Ready:
                 [[fallthrough]];
+            case ISOTPSendState::WaitingForControl:
+                [[fallthrough]];
             case ISOTPSendState::Aborted:
                 // Nothing to send
                 break;
-            case ISOTPSendState::Sending: {
+            case ISOTPSendState::SendingSingleOrFirst: {
                 if (send_machine.send_message_length <= 7) {
                     // Single Frame
                     uint8_t frame[8] = {0};
@@ -152,15 +159,24 @@ namespace isotp {
                                 first_data_len);
                     send_function(frame, 8);
                     send_machine.used_send_buffer_length = first_data_len;
+                    send_machine.frames_sent_in_block = 0;
                     set_send_state(ISOTPSendState::WaitingForControl);
                 }
                 break;
             }
-            case ISOTPSendState::WaitingForControl: {
+            case ISOTPSendState::SendingConsecutive: {
                 size_t remaining = send_machine.send_message_length -
                                    send_machine.used_send_buffer_length;
-                size_t frame_idx = 1;
-                while (remaining > 0) {
+                uint8_t block_size = send_machine.block_size;
+                uint32_t stmin_ms = send_machine.separation_time_min_ms;
+                size_t frame_idx =
+                    1 + (send_machine.used_send_buffer_length > 0
+                             ? (send_machine.used_send_buffer_length - 6) / 7
+                             : 0);
+
+                if (remaining > 0 &&
+                    (block_size == 0 ||
+                     send_machine.frames_sent_in_block < block_size)) {
                     uint8_t frame[8] = {0};
                     frame[0] = static_cast<uint8_t>(0x20 | (frame_idx & 0x0F));
                     size_t data_len = (remaining > 7) ? 7 : remaining;
@@ -171,12 +187,23 @@ namespace isotp {
                     send_function(frame, data_len + 1);
                     send_machine.used_send_buffer_length += data_len;
                     remaining -= data_len;
-                    frame_idx = (frame_idx + 1) & 0x0F;
-                    delay_function();
+                    send_machine.frames_sent_in_block++;
                 }
-                set_send_state(ISOTPSendState::Ready);
+
+                if (remaining == 0) {
+                    set_send_state(ISOTPSendState::Ready);
+                } else if (block_size != 0 &&
+                           send_machine.frames_sent_in_block == block_size) {
+                    set_send_state(ISOTPSendState::WaitingForControl);
+                } else {
+                    if (stmin_ms > 0 && remaining > 0) {
+                        delay_function(stmin_ms);
+                    }
+                }
                 break;
             }
+            default:
+                check(false, "Unsupported send state.");
         }
     }
 
@@ -191,7 +218,7 @@ namespace isotp {
         std::memcpy(send_machine.send_message_buffer.data(), message, length);
         send_machine.send_message_length = length;
         send_machine.used_send_buffer_length = 0;
-        set_send_state(ISOTPSendState::Sending);
+        set_send_state(ISOTPSendState::SendingSingleOrFirst);
     }
 
     template <typename FSend, typename FDelay>
@@ -234,22 +261,37 @@ namespace isotp {
 
     template <typename FSend, typename FDelay>
     void ISOTP<FSend, FDelay>::set_send_state(ISOTPSendState new_state) {
-        send_machine.send_state = new_state;
-        if (new_state == ISOTPSendState::Ready) {
-            send_machine.send_message_length = 0;
-            send_machine.used_send_buffer_length = 0;
-            send_machine.send_message_buffer.fill(0);
-            send_machine.separation_time_min_ms = 0;
-            send_machine.block_size = 0;
+        switch (new_state) {
+            case ISOTPSendState::Ready:
+                send_machine.send_message_length = 0;
+                send_machine.used_send_buffer_length = 0;
+                send_machine.send_message_buffer.fill(0);
+                send_machine.separation_time_min_ms = 0;
+                send_machine.block_size = 0;
+                send_machine.frames_sent_in_block = 0;
+                break;
+            case ISOTPSendState::WaitingForControl:
+                check(send_machine.send_state ==
+                              ISOTPSendState::SendingSingleOrFirst ||
+                          send_machine.send_state ==
+                              ISOTPSendState::SendingConsecutive,
+                      "WaitingForControl state can only be reached from "
+                      "SendingSingleOrFirst or SendingConsecutive states.");
+                break;
+            case ISOTPSendState::SendingConsecutive:
+                send_machine.frames_sent_in_block = 0;
+                break;
         }
+        send_machine.send_state = new_state;
     }
 
     template <typename FSend, typename FDelay>
     void ISOTP<FSend, FDelay>::set_receive_state(ISOTPReceiveState new_state) {
-        check(new_state == ISOTPReceiveState::AssemblingMessage &&
-                  (receive_machine.receive_state == ISOTPReceiveState::Ready ||
-                   receive_machine.receive_state ==
-                       ISOTPReceiveState::HaveFullMessage),
+        check(new_state != ISOTPReceiveState::AssemblingMessage ||
+                  (new_state == ISOTPReceiveState::AssemblingMessage &&
+                   (receive_machine.receive_state == ISOTPReceiveState::Ready ||
+                    receive_machine.receive_state ==
+                        ISOTPReceiveState::HaveFullMessage)),
               "Attempt to assemble new message when previous message wasn't "
               "finished assembling");
         receive_machine.receive_state = new_state;
@@ -258,11 +300,16 @@ namespace isotp {
                 receive_machine.receive_message_buffer.fill(0);
                 receive_machine.used_receive_buffer_length = 0;
                 receive_machine.receive_message_length = 0;
+                receive_machine.receive_indices_buffer.fill(0);
+                receive_machine.indice_buffer_index = 0;
                 break;
             case ISOTPReceiveState::AssemblingMessage:
                 receive_machine.receive_message_buffer.fill(0);
+                receive_machine.receive_indices_buffer.fill(0);
+                receive_machine.indice_buffer_index = 0;
                 break;
             case ISOTPReceiveState::HaveFullMessage:
+                // TODO: Check indices if multi-frame message for errors.
                 check(receive_machine.used_receive_buffer_length ==
                           receive_machine.receive_message_length,
                       "Size of received message bytes should have the same "
