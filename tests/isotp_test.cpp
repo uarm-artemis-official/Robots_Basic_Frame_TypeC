@@ -247,3 +247,6 @@ TEST(ISOTPTest, NoSendInAbortedState) {
 
     ASSERT_EQ(send.sent_frames.size(), 0);
 }
+
+// TODO: Add tests for Wait and Abort flow control scenarios.
+// TODO: Add tests for long stmin times (100-900 ms).
