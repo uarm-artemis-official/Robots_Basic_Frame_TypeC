@@ -80,6 +80,15 @@
         },
         {
             "type": "shell",
+            "label": "GCOVR: Open in Browser",
+            "command": "start",
+            "args": [
+                "./out/coverage/coverage_details.html"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
             "label": "Doxygen: upload unto github",
             // Make sure to select .venv python interpreter otherwise it
             // will not work.
@@ -97,7 +106,6 @@
                 "out/doxygen/html",
             ]
         },
-        // Make a task to open doxygen in browser
         {
             "type": "shell",
             "label": "Doxygen: Open in Browser",

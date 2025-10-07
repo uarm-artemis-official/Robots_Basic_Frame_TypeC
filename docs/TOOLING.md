@@ -104,6 +104,8 @@ Now clang-format will run after every file save and format the file contents to 
 ### Gcovr and Gcov Viewer
 Gcovr is a Python library wrapper over GNU's gcov utility. In this project, the primary use of this library is to generate code coverage reports and gcov data so we can see sections of code that are still untested. To set up Gcovr, make sure that Python (3.11+) is downloaded and installed on your computer and you can use `venv` module. Next run the following to create a virtual environment.
 
+> A virtual environment can also be created using `Cmd-P` and running `Python: Create Environment` command. This will prompt you with everything you need to fill out. This is another perfectly viable method of setup. If you do this, you can skip the next two instructions about creating a virtual environment and installing packages.
+
 ```bash
 python -m venv .venv
 ```

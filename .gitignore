@@ -9,3 +9,4 @@ build.ninja
 out
 .vscode/settings.json
 .venv
+venv
