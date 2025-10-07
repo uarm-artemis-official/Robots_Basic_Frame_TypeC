@@ -304,9 +304,6 @@ namespace isotp {
                 receive_machine.indice_buffer_index = 0;
                 break;
             case ISOTPReceiveState::AssemblingMessage:
-                receive_machine.receive_message_buffer.fill(0);
-                receive_machine.receive_indices_buffer.fill(0);
-                receive_machine.indice_buffer_index = 0;
                 break;
             case ISOTPReceiveState::HaveFullMessage:
                 // TODO: Check indices if multi-frame message for errors.

@@ -53,6 +53,13 @@ TEST(ISOTPTest, MultiFrameSendReceive) {
     uint8_t msg[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     isotp.set_send_message(msg, 10);
     isotp.tick_send_process();  // First frame
+
+    uint8_t fc[3];
+    fc[0] = 0x30 | static_cast<uint8_t>(isotp::FlowControlFlag::Continue);
+    fc[1] = 0;
+    fc[2] = 0;
+    isotp.process_receive_frame(fc, 3);
+
     isotp.tick_send_process();  // Consecutive frames
 
     // Should have sent 1 first frame and 1 consecutive frame
