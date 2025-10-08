@@ -10,3 +10,10 @@ target_link_libraries(BUZZER PUBLIC MW::MIDDLEWARE)
 add_library(ISOTP INTERFACE)
 target_include_directories(ISOTP INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ISOTP INTERFACE LIB::UARM_LIB)
+
+add_library(UC_UARTV1 STATIC uc_uartv1.cpp)
+target_include_directories(UC_UARTV1 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(UC_UARTV1 
+    PUBLIC 
+        LIB::UARM_LIB
+        MW::MIDDLEWARE)
