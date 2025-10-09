@@ -20,9 +20,9 @@ namespace uc_uart {
         }
 
         void send_control_flow(const uint16_t id, TControlFlowID control_id,
-                               void* body) {
+                               void* body, size_t length) {
             TProtocol* protocol = static_cast<TProtocol*>(this);
-            protocol.send_control_flow_impl(id, control_id, body);
+            protocol.send_control_flow_impl(id, control_id, body, length);
         }
 
         // Receive a message from UART
@@ -31,6 +31,8 @@ namespace uc_uart {
             TProtocol* protocol = static_cast<TProtocol*>(this);
             return protocol.process_receive_message_impl(dst, buffer, length);
         }
+
+        bool is_start_of_frame(uint8_t* buffer, size_t length) {}
     };
 
 }  // namespace uc_uart

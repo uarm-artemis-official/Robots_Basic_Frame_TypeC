@@ -394,7 +394,7 @@ namespace MW_UART {
      * @param[in] length The length of the data.
      * @param[in] timeout The timeout for the transmission.
      */
-    void UART::send_data(Peripheral uart, uint8_t* data, uint32_t length,
+    void UART::send_data(Peripheral uart, const uint8_t* data, uint32_t length,
                          uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot transfer data from nullptr.");
         HAL_UART_Transmit(get_hal_uart_handle(uart), data, length, timeout);

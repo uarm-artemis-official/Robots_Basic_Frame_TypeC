@@ -10,6 +10,8 @@ namespace uc_uart {
         constexpr uint8_t SOF_MAGIC = 0x7;
         constexpr uint8_t PROTOCOL_VERSION = 0x1;
         constexpr uint8_t FIRST_BYTE = (SOF_MAGIC << 4) & PROTOCOL_VERSION;
+        constexpr size_t MAX_DATA_MESSAGE_LENGTH = 13;
+        constexpr size_t MAX_CONTROL_FLOW_MESSAGE_LENGTH = 5;
 
         enum class ControlFlowID { Ping, Pong };
         enum class Config { FailFast, Robust };
@@ -19,15 +21,18 @@ namespace uc_uart {
            private:
             Config config;
             MW_UART::IUART& uart;
+            MW_UART::Peripheral peripheral;
 
            public:
-            UC_UARTV1(Config _config, MW_UART::IUART& _uart);
+            UC_UARTV1(Config _config, MW_UART::IUART& _uart,
+                      MW_UART::Peripheral _peripheral);
 
             void send_data_impl(const uint16_t id, const uint8_t* data,
                                 size_t length);
 
             void send_control_flow_impl(const uint16_t id,
-                                        ControlFlowID control_id, void* body);
+                                        ControlFlowID control_id, void* body,
+                                        size_t length);
 
             bool process_receive_message_impl(void* dst, uint8_t* buffer,
                                               size_t length);

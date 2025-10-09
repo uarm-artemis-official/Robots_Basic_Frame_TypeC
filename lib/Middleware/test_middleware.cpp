@@ -102,8 +102,8 @@ namespace MW_CAN {
 }  // namespace MW_CAN
 
 namespace MW_UART {
-    void TestUART::send_data(Peripheral uart, uint8_t* data, uint32_t length,
-                             uint32_t timeout) {
+    void TestUART::send_data(Peripheral uart, const uint8_t* data,
+                             uint32_t length, uint32_t timeout) {
         (void) uart;
         (void) data;
         (void) length;

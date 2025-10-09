@@ -42,7 +42,7 @@ namespace MW_CAN {
 namespace MW_UART {
     class TestUART : public IUART {
        public:
-        void send_data(Peripheral uart, uint8_t* data, uint32_t length,
+        void send_data(Peripheral uart, const uint8_t* data, uint32_t length,
                        uint32_t timeout) override;
         bool receive_data(Peripheral uart, uint8_t* data,
                           uint32_t& length) override;
@@ -155,7 +155,7 @@ namespace MW_UART {
      */
     class UART : public IUART {
        public:
-        void send_data(Peripheral uart, uint8_t* data, uint32_t length,
+        void send_data(Peripheral uart, const uint8_t* data, uint32_t length,
                        uint32_t timeout) override;
         bool receive_data(Peripheral uart, uint8_t* data,
                           uint32_t& length) override;
