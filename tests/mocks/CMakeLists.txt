@@ -1,3 +1,13 @@
+add_library(MIDDLEWARE_MOCKS INTERFACE)
+target_include_directories(MIDDLEWARE_MOCKS 
+    INTERFACE
+        ${PROJECT_SOURCE_DIR}/lib/Middleware
+        ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(MIDDLEWARE_MOCKS
+    INTERFACE
+        GTest::gtest
+        GTest::gmock)
+
 add_library(SUBSYSTEMS_MOCKS INTERFACE)
 target_include_directories(SUBSYSTEMS_MOCKS 
     INTERFACE
@@ -10,3 +20,4 @@ target_link_libraries(SUBSYSTEMS_MOCKS
         LIB::UARM_INCLUDE
         GTest::gtest 
         GTest::gmock)
+
