@@ -1,5 +1,5 @@
-#ifndef __UC_UART_HPP
-#define __UC_UART_HPP
+#ifndef __UC_UART_INTERFACE_HPP
+#define __UC_UART_INTERFACE_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -26,13 +26,16 @@ namespace uc_uart {
         }
 
         // Receive a message from UART
-        bool process_receive_message(void* dst, uint8_t* buffer,
-                                     size_t length) {
+        [[nodiscard]] bool process_receive_message(void* dst, uint8_t* buffer,
+                                                   size_t length) {
             TProtocol* protocol = static_cast<TProtocol*>(this);
             return protocol.process_receive_message_impl(dst, buffer, length);
         }
 
-        bool is_start_of_frame(uint8_t* buffer, size_t length) {}
+        [[nodiscard]] bool is_start_of_frame(uint8_t* buffer, size_t length) {
+            TProtocol* protocol = static_cast<TProtocol*>(this);
+            return protocol.is_start_of_frame_impl(buffer, length);
+        }
     };
 
 }  // namespace uc_uart

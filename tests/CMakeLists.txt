@@ -48,6 +48,14 @@ target_link_libraries(ISOTP_TEST
         TEST_TARGET
         ISOTP)
 
+add_executable(UC_UARTV1_TEST uc_uartv1_test.cpp)
+target_link_libraries(UC_UARTV1_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        MIDDLEWARE_MOCKS
+        UC_UARTV1)
+
 
 include(GoogleTest)
 gtest_discover_tests(PID_TEST)
@@ -56,3 +64,4 @@ gtest_discover_tests(RAMP_TEST)
 gtest_discover_tests(MOCK_RTOS_QUEUE_TEST)
 gtest_discover_tests(MESSAGE_CENTER_TEST)
 gtest_discover_tests(ISOTP_TEST)
+gtest_discover_tests(UC_UARTV1_TEST)
