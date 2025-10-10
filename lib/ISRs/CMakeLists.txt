@@ -6,8 +6,9 @@ else()
         PUBLIC 
             SUBSYSTEMS::SUBSYSTEMS_INCLUDE
             FW::DEVICE::MOTOR_LIB
+            ROBOTS::TOPICS
             SUBSYSTEMS::MOTORS
-            SUBSYSTEMS::MESSAGE_CENTER)
+            MODULES::MESSAGE_CENTER)
     add_library(ISRS::CAN_ISR ALIAS CAN_ISR)
 
 
@@ -16,7 +17,8 @@ else()
     target_link_libraries(UART_ISR
         PUBLIC
             COMMON_INCLUDES
-            SUBSYSTEMS::MESSAGE_CENTER
+            ROBOTS::TOPICS
+            MODULES::MESSAGE_CENTER
             FW::PACK_HANDLER)
     add_library(ISRS::UART_ISR ALIAS UART_ISR)
 endif()

@@ -2,9 +2,10 @@
 #define __CAN_ISR_HPP
 
 #include "can.h"
+#include "message_center.hpp"
 #include "subsystems_interfaces.hpp"
-#include "subsystems_modules.hpp"
 #include "subsystems_types.hpp"
+#include "topics.hpp"
 
 // TODO: Add middleware layer instead of inclusion of can.h.
 namespace CAN_ISR {

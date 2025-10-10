@@ -3,19 +3,6 @@
 
 #include "subsystems_types.hpp"
 
-class IMessageCenter {
-   public:
-    virtual void init() = 0;
-    virtual uint8_t get_message(Topic_Name_t topic, void* data_ptr,
-                                int ticks_to_wait) = 0;
-    virtual uint8_t peek_message(Topic_Name_t topic, void* data_ptr,
-                                 int ticks_to_wait) = 0;
-    virtual uint8_t pub_message(Topic_Name_t topic, void* data_ptr) = 0;
-    virtual uint8_t pub_message_from_isr(Topic_Name_t topic, void* data_ptr,
-                                         uint8_t* will_context_switch) = 0;
-    virtual Topic_Handle_t& get_topic_handle(Topic_Name_t name) = 0;
-};
-
 class IMotors {
    public:
     virtual void init(Motor_Config_t config) = 0;

@@ -39,7 +39,7 @@ target_link_libraries(MESSAGE_CENTER_TEST
         GTest::gtest_main
         TEST_TARGET
         MW::MIDDLEWARE
-        SUBSYSTEMS::MESSAGE_CENTER)
+        MODULES::MESSAGE_CENTER)
 
 add_executable(ISOTP_TEST isotp_test.cpp)
 target_link_libraries(ISOTP_TEST

@@ -1,6 +1,7 @@
 #include "uart_isr.hpp"
 #include <cstring>
 #include "cmsis_os.h"
+#include "message_center.hpp"
 #include "pack_handler.h"
 #include "subsystems_classes.hpp"
 #include "subsystems_defines.hpp"

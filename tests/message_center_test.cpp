@@ -1,9 +1,7 @@
+#include "message_center.hpp"
 #include <gtest/gtest.h>
 #include <tuple>
 #include "middleware_classes.hpp"
-#include "middleware_interfaces.hpp"
-#include "middleware_types.hpp"
-#include "subsystems_modules.hpp"
 
 struct FloatTopic : mc2::Topic<2> {
     float field;

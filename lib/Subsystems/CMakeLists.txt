@@ -14,15 +14,6 @@ target_link_libraries(SUBSYSTEMS_INCLUDE
         LIB::UARM_MATH)
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
-add_library(MESSAGE_CENTER STATIC message_center.cpp)
-target_link_libraries(MESSAGE_CENTER 
-    PUBLIC 
-        SUBSYSTEMS_INCLUDE
-        LIB::UARM_OS
-        LIB::UARM_LIB
-        MW::MIDDLEWARE)
-add_library(SUBSYSTEMS::MESSAGE_CENTER ALIAS MESSAGE_CENTER)
-
 if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest")
 add_library(DEBUG STATIC debug.cpp)
 target_include_directories(DEBUG 

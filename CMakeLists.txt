@@ -71,6 +71,7 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 
 enable_language(C CXX ASM)
 
+set(ROBOTS_PATH ${PROJECT_SOURCE_DIR}/robots)
 set(APPLICATIONS_PATH ${PROJECT_SOURCE_DIR}/robots/Applications)
 set(FIRMWARE_PATH ${PROJECT_SOURCE_DIR}/robots/Firmware)
 set(CONFIGS_PATH ${PROJECT_SOURCE_DIR}/robots/Configs)
@@ -148,7 +149,7 @@ else()
         SUBSYSTEMS::AMMO_LID
         SUBSYSTEMS::PC_COMM
         SUBSYSTEMS::MOTORS
-        SUBSYSTEMS::MESSAGE_CENTER
+        MODULES::MESSAGE_CENTER
         SUBSYSTEMS::EVENT_CENTER
         SUBSYSTEMS::IMU
         SUBSYSTEMS::REF_UI

@@ -1,7 +1,6 @@
+#include "topics.hpp"
 #include <cstring>
-#include <utility>
-#include "subsystems_modules.hpp"
-#include "uarm_lib.hpp"
+#include "message_center.hpp"
 
 namespace mc2 {
     void GimbalCommand::encode(std::array<uint8_t, 200>& bytes) {

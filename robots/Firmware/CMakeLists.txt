@@ -23,5 +23,5 @@ target_include_directories(PACK_HANDLER
 target_link_libraries(PACK_HANDLER 
     PUBLIC 
         COMMON_INCLUDES
-        SUBSYSTEMS::MESSAGE_CENTER)
+        MODULES::MESSAGE_CENTER)
 add_library(FW::PACK_HANDLER ALIAS PACK_HANDLER)

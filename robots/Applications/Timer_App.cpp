@@ -29,9 +29,7 @@ TimerApp::TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
     : RTOSApp(_rtos),
       system_motors(system_motors_ref),
       mc(mc_ref),
-      debug(debug_ref) {
-    memset(&motor_tx_message, 0, sizeof(MotorSetMessage_t));
-}
+      debug(debug_ref) {}
 
 void TimerApp::init() {
     BoardStatus_t status = debug.get_board_status();

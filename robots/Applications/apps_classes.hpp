@@ -3,8 +3,8 @@
 
 #include "apps_interfaces.hpp"
 #include "apps_types.hpp"
+#include "message_center.hpp"
 #include "subsystems_interfaces.hpp"
-#include "subsystems_modules.hpp"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
@@ -326,7 +326,6 @@ class TimerApp
     mc2::RobotMC& mc;
     IDebug& debug;
     mc2::MotorSet motor_set;
-    MotorSetMessage_t motor_tx_message;
     BoardStatus_t board_status;
 
    public:

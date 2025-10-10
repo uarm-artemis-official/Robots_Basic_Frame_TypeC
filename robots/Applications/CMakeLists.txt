@@ -6,7 +6,9 @@ target_include_directories(APPS_INCLUDE
         ${ALGORITHMS_PATH}/control
         ${ALGORITHMS_PATH}/attitude
         ${SUBSYSTEMS_PATH}
+        ${MODULES_PATH}
         ${LIB_PATH}
+        ${ROBOTS_PATH}
         ${LIB_PATH}/Middleware
         ${FIRMWARE_PATH}/Device/motors)
 
@@ -16,6 +18,7 @@ target_link_libraries(CHASSIS_DRIVES
         APPS_INCLUDE
         ALGORITHMS::CONTROL_LIB
         SUBSYSTEMS::SUBSYSTEMS_INCLUDE
+        ROBOTS::TOPICS
         LIB::UARM_LIB
         LIB::UARM_MATH)
 
@@ -26,6 +29,8 @@ target_link_libraries(BASIC_APPS
         LIB::UARM_LIB
         LIB::UARM_MATH
         CHASSIS_DRIVES
+        ROBOTS::TOPICS
+        MODULES::MESSAGE_CENTER
         ALGORITHMS::ATTITUDE_LIB
         SUBSYSTEMS::SUBSYSTEMS_INCLUDE
         ALGORITHMS::CONTROL_LIB)
@@ -44,5 +49,7 @@ target_link_libraries(GENERIC_APPS
         APPS_INCLUDE
         LIB::UARM_LIB
         LIB::UARM_MATH
+        MODULES::MESSAGE_CENTER
+        ROBOTS::TOPICS
         SUBSYSTEMS::SUBSYSTEMS_INCLUDE
         ALGORITHMS::COMMS_LIB)

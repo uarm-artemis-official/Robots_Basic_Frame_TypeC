@@ -17,3 +17,13 @@ target_link_libraries(UC_UARTV1
     PUBLIC 
         LIB::UARM_LIB
         MW::MIDDLEWARE)
+
+add_library(MESSAGE_CENTER STATIC message_center.cpp)
+target_include_directories(MESSAGE_CENTER PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(MESSAGE_CENTER 
+    PUBLIC 
+        SUBSYSTEMS_INCLUDE
+        LIB::UARM_OS
+        LIB::UARM_LIB
+        MW::MIDDLEWARE)
+add_library(MODULES::MESSAGE_CENTER ALIAS MESSAGE_CENTER)
