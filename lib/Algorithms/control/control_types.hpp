@@ -22,31 +22,6 @@ typedef struct {
  * ====================================================================== */
 
 /**
- * @brief Basic PID controller structure
- *
- * Contains parameters and state variables for implementing a standard PID control loop.
- */
-typedef struct {
-    float kp;         /**< Proportional gain coefficient */
-    float ki;         /**< Integral gain coefficient */
-    float kd;         /**< Derivative gain coefficient */
-    float cur_val;    /**< Current process value */
-    float target_val; /**< Desired setpoint value */
-
-    float err;       /**< Current error value */
-    float last_err;  /**< Previous error value */
-    float llast_err; /**< Second previous error value */
-
-    float pout;      /**< Proportional term output */
-    float iout;      /**< Integral term output */
-    float dout;      /**< Derivative term output */
-    float max_out;   /**< Magntiude of maximum total output limit */
-    float max_err;   /**< Magntiude of maximum error value limit */
-    float max_i_out; /**< Magntiude of maximum integral term limit */
-    float total_out; /**< Total controller output */
-} PID_t;
-
-/**
  * @brief Enhanced PID controller structure with additional parameters
  *
  * Implements a PID controller with beta and yeta parameters for setpoint weighting.

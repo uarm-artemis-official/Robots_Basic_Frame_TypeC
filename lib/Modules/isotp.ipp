@@ -262,6 +262,10 @@ namespace isotp {
     template <typename FSend, typename FDelay>
     void ISOTP<FSend, FDelay>::set_send_state(ISOTPSendState new_state) {
         switch (new_state) {
+            case ISOTPSendState::Aborted:
+                break;
+            case ISOTPSendState::SendingSingleOrFirst:
+                break;
             case ISOTPSendState::Ready:
                 send_machine.send_message_length = 0;
                 send_machine.used_send_buffer_length = 0;
