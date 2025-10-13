@@ -75,6 +75,11 @@ namespace isotp {
      * https://ramn.readthedocs.io/en/latest/userguide/isotp_tutorial.html#iso-tp-basics
      * 
      * All frame types (single, first, consecutive, and flow control) are supported.
+     * 
+     * Template parameters FSend and FDelay are function objects that provide
+     * sending and delay functionality respectively. The send function should
+     * take a pointer to the message data (in bytes) and its length as parameters. The delay
+     * function should take the delay time in milliseconds as a parameter.
      */
     template <typename FSend, typename FDelay>
     class ISOTP {
@@ -111,7 +116,7 @@ namespace isotp {
          * 
          * This is the main function for sending. Processing will be done to
          * according to the current send_state. At most, during one iteration,
-         * a send frame will be sent.
+         * one frame will be sent.
          */
         void tick_send_process();
 
