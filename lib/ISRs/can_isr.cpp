@@ -1,10 +1,10 @@
-#include "stddef.h"
-#include "stdint.h"
-#include "string.h"
-
 #include "can_isr.hpp"
 #include "dji_motor.h"
 #include "lk_motor.h"
+#include "stddef.h"
+#include "stdint.h"
+#include "string.h"
+#include "uarm_lib.hpp"
 
 // TODO: Make ISRs into "Application" like classes and declare their
 // usage in Callbacks in main.cpp.
@@ -65,3 +65,34 @@ namespace CAN_ISR {
         }
     }
 }  // namespace CAN_ISR
+
+namespace isr {
+    namespace can {
+        CAN_ISR::CAN_ISR(MW_CAN::ICAN& can_ref) : can(can_ref) {}
+
+        bool CAN_ISR::init() {
+            bool success = true;
+            for (size_t i = 0; i < init_funcs_size; i++) {
+                success &= init_funcs[i](can);
+            }
+            return success;
+        }
+
+        void CAN_ISR::run_isr_routines(ECallbacks callback_running,
+                                       TISRState callback_state) {
+            switch (callback_running) {
+                case ECallbacks::MESSAGE_PENDING: {
+                    for (size_t i = 0; i < routines_size; i++) {
+                        if (routines[i].second == callback_running) {
+                            routines[i].first(can, callback_state);
+                        }
+                    }
+                    break;
+                }
+                default:
+                    ASSERT(false, "Unhandled CAN ISR callback.");
+                    break;
+            }
+        }
+    }  // namespace can
+}  // namespace isr

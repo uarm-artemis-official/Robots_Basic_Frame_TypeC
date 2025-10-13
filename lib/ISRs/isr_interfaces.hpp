@@ -8,18 +8,14 @@
 namespace isr {
     constexpr size_t MAX_REGISTERED_ROUTINES = 20;
 
-    template <enum ECallbacks, typename TISRRoutine, typename TInitFunc,
-              typename TMiddleware, typename TCallbackParam>
+    template <typename ECallbacks, typename TISRRoutine, typename TInitFunc,
+              typename TISRState>
     class ISR {
-        static_assert(std::is_invocable_r_v<void, TISRRoutine, TMiddleware,
-                                            TCallbackParam>);
-        static_assert(std::is_invocable_r_v<void, TInitFunc>);
-
        protected:
-        std::array<std::pair<TISRRoutine, ECallbacks> MAX_REGISTERED_ROUTINES>
+        std::array<std::pair<TISRRoutine, ECallbacks>, MAX_REGISTERED_ROUTINES>
             routines;
         size_t routines_size;
-        std::array<TISRRoutine, MAX_REGISTERED_ROUTINES> init_funcs;
+        std::array<TInitFunc, MAX_REGISTERED_ROUTINES> init_funcs;
         size_t init_funcs_size;
 
        public:
@@ -28,14 +24,19 @@ namespace isr {
             ASSERT(routines_size < MAX_REGISTERED_ROUTINES,
                    "Registered too many ISR routines.");
             routines[routines_size++] = {register_for, routine_func};
+            return true;
         }
 
         bool register_init(TInitFunc&& init_func) {
+            ASSERT(init_funcs_size < MAX_REGISTERED_ROUTINES,
+                   "Registered too many ISR routines.");
             init_funcs[init_funcs_size++] = init_func;
+            return true;
         }
 
-        virtual [[nodiscard]] bool init() = 0;
-        virtual void run_isr_routines(ECallbacks isr_running) = 0;
+        [[nodiscard]] virtual bool init() = 0;
+        virtual void run_isr_routines(ECallbacks callback_running,
+                                      TISRState callback_state) = 0;
     };
 }  // namespace isr
 
