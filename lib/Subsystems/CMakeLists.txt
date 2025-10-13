@@ -91,3 +91,13 @@ target_link_libraries(AMMO_LID
         LIB::UARM_LIB)
 add_library(SUBSYSTEMS::AMMO_LID ALIAS AMMO_LID)
 endif()
+
+add_library(COMMUNICATION INTERFACE)
+target_include_directories(COMMUNICATION INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(COMMUNICATION 
+    INTERFACE 
+        ROBOTS::TOPICS
+        ISRS::UART_ISR
+        ISRS::CAN_ISR
+        MODULES::UC_UARTV1
+        MODULES::ISOTP)
