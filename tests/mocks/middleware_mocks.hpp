@@ -34,12 +34,12 @@ class MockIPWM : public MW_TIM::IPWM {
 class MockICAN : public MW_CAN::ICAN {
    public:
     MOCK_METHOD(bool, send_data,
-                (MW_CAN::BUS bus, uint32_t id,
-                 (const std::array<uint8_t, 8>& data), uint32_t length),
+                (MW_CAN::BUS bus, uint32_t id, uint32_t ext_id, uint8_t* data,
+                 uint32_t length),
                 (override));
     MOCK_METHOD(bool, receive_data,
                 (MW_CAN::BUS bus, MW_CAN::FIFO fifo, uint32_t& id,
-                 uint32_t& length, (std::array<uint8_t, 8> & data)),
+                 uint32_t& ext_id, uint8_t* dst, uint32_t& length),
                 (override));
     MOCK_METHOD(bool, start, (MW_CAN::BUS bus), (override));
     MOCK_METHOD(bool, stop, (MW_CAN::BUS bus), (override));

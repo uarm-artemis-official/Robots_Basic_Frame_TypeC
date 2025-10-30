@@ -28,10 +28,10 @@ namespace MW_TIM {
 namespace MW_CAN {
     class TestCAN : public ICAN {
        public:
-        bool send_data(BUS bus, uint32_t id, const std::array<uint8_t, 8>& data,
-                       uint32_t length) override;
-        bool receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& length,
-                          std::array<uint8_t, 8>& data) override;
+        bool send_data(BUS bus, uint32_t id, uint32_t ext_id,
+                       const uint8_t* data, uint32_t length) override;
+        bool receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& ext_id,
+                          uint8_t* dst, uint32_t& length) override;
         bool start(BUS bus) override;
         bool stop(BUS bus) override;
         bool activate_notification(BUS bus, Notification notification) override;
@@ -135,10 +135,10 @@ namespace MW_CAN {
      */
     class CAN : public ICAN {
        public:
-        bool send_data(BUS bus, uint32_t id, const std::array<uint8_t, 8>& data,
-                       uint32_t length) override;
-        bool receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& length,
-                          std::array<uint8_t, 8>& data) override;
+        bool send_data(BUS bus, uint32_t id, uint32_t ext_id,
+                       const uint8_t* data, uint32_t length) override;
+        bool receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& ext_id,
+                          uint8_t* dst, uint32_t& length) override;
         bool start(BUS bus) override;
         bool stop(BUS bus) override;
         bool activate_notification(BUS bus, Notification notification) override;

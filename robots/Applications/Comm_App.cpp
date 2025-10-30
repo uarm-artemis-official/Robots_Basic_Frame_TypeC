@@ -9,6 +9,7 @@
 * All rights reserved.
 ******************************************************************************
 */
+#include <cstdint>
 #include <cstring>
 #include <limits>
 #include "apps_classes.hpp"
@@ -57,12 +58,22 @@ namespace CommApp {
         mc2::CommIn comm_in;
         auto comm_in_message_ts = mc.get_message(comm_in);
         if (comm_in_message_ts.has_value()) {
+            // Ensure that IDs are evaluated at compile-time.
+            constexpr uint32_t referee_out_topic_id =
+                mc2::get_comm_id<mc2::RefereeOut, mc2::RobotMC::Topics>();
+            constexpr uint32_t gimbal_command_topic_id =
+                mc2::get_comm_id<mc2::GimbalCommand, mc2::RobotMC::Topics>();
+            constexpr uint32_t shoot_command_topic_id =
+                mc2::get_comm_id<mc2::ShootCommand, mc2::RobotMC::Topics>();
+            constexpr uint32_t gimbal_relative_angles_topic_id =
+                mc2::get_comm_id<mc2::GimbalRelativeAngles,
+                                 mc2::RobotMC::Topics>();
+
             switch (comm_in.topic_name) {
-                case mc2::get_comm_id<mc2::RefereeOut, mc2::RobotMC::Topics>():
+                case referee_out_topic_id:
                     // TODO: Implement
                     break;
-                case mc2::get_comm_id<mc2::GimbalRelativeAngles,
-                                      mc2::RobotMC::Topics>(): {
+                case gimbal_relative_angles_topic_id: {
                     mc2::GimbalRelativeAngles rel_angles;
                     memcpy(&rel_angles.yaw, comm_in.bytes.data(),
                            sizeof(float));
@@ -70,8 +81,7 @@ namespace CommApp {
                            sizeof(float));
                     mc.pub_message(rel_angles);
                 } break;
-                case mc2::get_comm_id<mc2::GimbalCommand,
-                                      mc2::RobotMC::Topics>(): {
+                case gimbal_command_topic_id: {
                     mc2::GimbalCommand gimbal_command;
                     int16_t quantized_yaw;
                     int16_t quantized_pitch;
@@ -92,8 +102,7 @@ namespace CommApp {
                     mc.pub_message(gimbal_command);
                     break;
                 }
-                case mc2::get_comm_id<mc2::ShootCommand,
-                                      mc2::RobotMC::Topics>(): {
+                case shoot_command_topic_id: {
                     mc2::ShootCommand shoot_command;
                     std::memcpy(&(shoot_command.command_bits),
                                 comm_in.bytes.data(), sizeof(uint32_t));
@@ -110,8 +119,7 @@ namespace CommApp {
 
     bool CommApp::transmit_interboard_message(const uint32_t message_id,
                                               const uint8_t message_data[8]) {
-        std::array<uint8_t, 8> can_data;
-        memcpy(can_data.data(), message_data, sizeof(can_data));
-        return can.send_data(MW_CAN::BUS::CAN_2, message_id, can_data, 8);
+        return can.send_data(MW_CAN::BUS::CAN_2, message_id, 0, message_data,
+                             8);
     }
 }  // namespace CommApp

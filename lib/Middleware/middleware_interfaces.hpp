@@ -103,7 +103,7 @@ namespace MW_CAN {
      * @brief Interface describing CANBUS functionality required from middleware.
      * This interface requires methods to send and receive CAN messages, start and stop the CAN bus,
      * activate notifications, and configure filters.
-     * @note This interface assumes that hardware supports atleast CAN 2.0B standard and there are
+     * @note This interface assumes that hardware supports atleast CAN 2.0A standard and there are
      * two CAN buses available (CAN 1 and CAN 2). Finer configuration of CAN buses (e.g. baud rate, 
      * auto-retransmission) is not required.
      */
@@ -118,9 +118,8 @@ namespace MW_CAN {
          * @param[in] data The data to send.
          * @param[in] length The length of the data.
          */
-        virtual bool send_data(BUS bus, uint32_t id,
-                               const std::array<uint8_t, 8>& data,
-                               uint32_t length) = 0;
+        virtual bool send_data(BUS bus, uint32_t id, uint32_t ext_id,
+                               const uint8_t* data, uint32_t length) = 0;
 
         /**
          * @brief Receive data from the CAN bus.
@@ -132,8 +131,8 @@ namespace MW_CAN {
          * @param[out] data The buffer to store the received data.
          */
         virtual bool receive_data(BUS bus, FIFO fifo, uint32_t& id,
-                                  uint32_t& length,
-                                  std::array<uint8_t, 8>& data) = 0;
+                                  uint32_t& ext_id, uint8_t* dst,
+                                  uint32_t& length) = 0;
 
         /**
          * @brief Start the CAN bus communication.

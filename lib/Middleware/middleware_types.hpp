@@ -63,9 +63,14 @@ namespace MW_TIM {
 }  // namespace MW_TIM
 
 namespace MW_CAN {
+    // CAN bus identifiers.
+    // CAN_1B and CAN_2B refer to the same physical CAN buses as CAN_1 and CAN_2,
+    // but are used for extended ID messages.
     enum class BUS {
         CAN_1,
+        CAN_1B,
         CAN_2,
+        CAN_2B,
     };
 
     enum class Notification {

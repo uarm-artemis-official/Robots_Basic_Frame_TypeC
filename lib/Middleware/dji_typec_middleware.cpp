@@ -243,8 +243,12 @@ namespace MW_CAN {
     CAN_HandleTypeDef* get_hal_can_handle(BUS bus) {
         switch (bus) {
             case BUS::CAN_1:
+                [[fallthrough]];
+            case BUS::CAN_1B:
                 return &hcan1;
             case BUS::CAN_2:
+                [[fallthrough]];
+            case BUS::CAN_2B:
                 return &hcan2;
             default:
                 ASSERT(false, "Unsupported CAN bus");
@@ -274,17 +278,31 @@ namespace MW_CAN {
      * @param[in] data The data to send.
      * @param[in] length The length of the data.
      */
-    bool CAN::send_data(BUS bus, uint32_t id,
-                        const std::array<uint8_t, 8>& data, uint32_t length) {
+    bool CAN::send_data(BUS bus, uint32_t id, uint32_t ext_id,
+                        const uint8_t* data, uint32_t length) {
+        // TODO implement sending extended ID messages.
         ASSERT(0 < length && length <= 8,
                "0 bytes < CAN data length <= 8 bytes.");
         CAN_TxHeaderTypeDef tx_header;
-        tx_header.IDE = CAN_ID_STD;
+        switch (bus) {
+            case BUS::CAN_1:
+                [[fallthrough]];
+            case BUS::CAN_2:
+                tx_header.IDE = CAN_ID_STD;
+                tx_header.StdId = id;
+                break;
+            case BUS::CAN_1B:
+                [[fallthrough]];
+            case BUS::CAN_2B:
+                tx_header.IDE = CAN_ID_EXT;
+                tx_header.StdId = id;
+                tx_header.ExtId = ext_id;
+                break;
+        }
         tx_header.RTR = CAN_RTR_DATA;
         tx_header.DLC = length;
-        tx_header.StdId = id;
-        return HAL_CAN_AddTxMessage(get_hal_can_handle(bus), &tx_header,
-                                    data.data(), nullptr) == HAL_OK;
+        return HAL_CAN_AddTxMessage(get_hal_can_handle(bus), &tx_header, data,
+                                    nullptr) == HAL_OK;
     }
 
     /**
@@ -295,15 +313,21 @@ namespace MW_CAN {
      * @param[out] length The length of the received data.
      * @param[out] data The buffer to store the received data.
      */
-    bool CAN::receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& length,
-                           std::array<uint8_t, 8>& data) {
+    bool CAN::receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& ext_id,
+                           uint8_t* dst, uint32_t& length) {
+        // TODO implement receiving extended ID messages.
         CAN_RxHeaderTypeDef rx_header;
         if (HAL_CAN_GetRxMessage(get_hal_can_handle(bus), get_hal_fifo(fifo),
-                                 &rx_header, data.data()) != HAL_OK) {
+                                 &rx_header, dst) != HAL_OK) {
             return false;  // Error in receiving message
         } else {
             id = rx_header.StdId;
             length = rx_header.DLC;
+
+            if (rx_header.IDE == CAN_ID_EXT) {
+                ext_id = rx_header.ExtId;
+            }
+
             return true;
         }
     }
