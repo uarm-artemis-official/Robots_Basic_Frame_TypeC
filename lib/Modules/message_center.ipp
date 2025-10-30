@@ -2,6 +2,12 @@
 #define __MESSAGE_CENTER_IPP
 
 #include "uarm_lib.hpp"
+#include <cstdint>
+#include <array>
+#include <optional>
+#include <tuple>
+#include <type_traits>
+#include "middleware_interfaces.hpp"
 
 namespace mc2 {
     template <typename Tuple>
@@ -30,7 +36,7 @@ namespace mc2 {
     template <typename T, typename List, size_t... Is>
     constexpr auto get_type_present_array(std::index_sequence<Is...>) {
         return std::array<bool, std::tuple_size_v<List>> {
-            type_present_operator<T, List, Is> {}.template operator()()...
+            type_present_operator<T, List, Is> {}()...
         };
     }
 
@@ -39,6 +45,12 @@ namespace mc2 {
         return std::array<bool, std::tuple_size_v<List>> {
             interboard_present_operator<List, Is> {}.template operator()()...
         };
+    }
+
+    template <typename List, typename F, typename TFArgs, size_t... Is>
+    constexpr void for_each_topic(F&& f, TFArgs args,
+                                  std::index_sequence<Is...>) {
+        (f.template operator()<std::tuple_element_t<Is, List>>(args), ...);
     }
 
     template <int size>
