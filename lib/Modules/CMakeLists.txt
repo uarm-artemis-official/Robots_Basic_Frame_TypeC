@@ -29,3 +29,10 @@ target_link_libraries(MESSAGE_CENTER
         LIB::UARM_LIB
         MW::MIDDLEWARE)
 add_library(MODULES::MESSAGE_CENTER ALIAS MESSAGE_CENTER)
+
+add_library(CAN2_TP STATIC can2_tp.cpp)
+target_include_directories(CAN2_TP PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(CAN2_TP 
+    PUBLIC
+        LIB::UARM_LIB)
+add_library(MODULES::CAN2_TP ALIAS CAN2_TP)
