@@ -5,10 +5,14 @@
 #include <cstdint>
 
 namespace can2_tp {
+    // TODO: Add documentation about the protocol format and design.
 
     namespace v1 {
         constexpr size_t MAX_CAN2TP_MESSAGE_LENGTH = 2048;
         constexpr size_t MIN_SEGMENT_MESSAGE_LENGTH = 9;
+
+        // TODO: Use this instead of sizeof or magic numbers.
+        constexpr size_t FRAME_PAYLOAD_LENGTH = 8;
 
         enum class FrameType {
             SingleFrame = 0x1,
@@ -42,6 +46,13 @@ namespace can2_tp {
             uint8_t receive_source;
         };
 
+        /**
+         * These are utility functions to set and get various fields
+         * of the CAN2TP protocol identifiers (stdid and extid).
+         * Their implementations are relatively naive bit manipulations.
+         * There is some error checking in the setters to avoid invalid values.
+         */
+        // TODO: Add error handling/logging for invalid setter inputs.
         void set_frame_type(FrameType frame_type, uint32_t& stdid);
         FrameType get_frame_type(uint32_t stdid);
 
@@ -89,6 +100,9 @@ namespace can2_tp {
 
            public:
             CAN2TP(uint8_t _source) : source(_source) {};
+
+            // TODO: Possibly change the erroring behavior of various methods and add
+            // documentation about it in the can2_tp.hpp interface.
 
             /**
              * @brief Set the message to be sent using CAN2TP.
@@ -197,6 +211,12 @@ namespace can2_tp {
 
             /**
              * @brief Process a received control flow frame.
+             * 
+             * This function handles processing of received control flow frames.
+             * The result depends on the control flow type determined from the frame.
+             * Currently, there is only ping and pong control flow frames, therefore,
+             * message_received will be populated accordingly with an enum value of
+             * either ControlFlowID::Ping or ControlFlowID::Pong.
              * 
              * @param frame Reference to the received CAN2BFrame.
              * @param message_received Pointer to the buffer to copy the processed message.

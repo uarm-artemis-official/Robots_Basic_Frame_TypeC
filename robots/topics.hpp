@@ -25,6 +25,7 @@ namespace mc2 {
     struct GimbalCommand
         : Topic<1>,
           InterboardMessage<GimbalCommand, MessageNode::Gimbal> {
+        // yaw and pitch fields are in radians and requested changes in yaw/pitch (deltas).
         float yaw;
         float pitch;
         uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
@@ -73,6 +74,10 @@ namespace mc2 {
     struct GimbalRelativeAngles
         : Topic<1>,
           InterboardMessage<GimbalRelativeAngles, MessageNode::Chassis> {
+        // yaw and pitch are relative to chassis front and in radians.
+
+        // TODO: Verify sign conventions.
+        // Sign convention follows CCW-positive for yaw, and up-positive for pitch.
         float yaw;
         float pitch;
 
