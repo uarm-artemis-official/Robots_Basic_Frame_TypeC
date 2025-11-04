@@ -1,13 +1,13 @@
 #ifndef __MESSAGE_CENTER_IPP
 #define __MESSAGE_CENTER_IPP
 
-#include "uarm_lib.hpp"
-#include <cstdint>
 #include <array>
+#include <cstdint>
 #include <optional>
 #include <tuple>
 #include <type_traits>
-#include "middleware_interfaces.hpp"
+#include "message_center.hpp"
+#include "uarm_lib.hpp"
 
 namespace mc2 {
     template <typename Tuple>
@@ -36,8 +36,7 @@ namespace mc2 {
     template <typename T, typename List, size_t... Is>
     constexpr auto get_type_present_array(std::index_sequence<Is...>) {
         return std::array<bool, std::tuple_size_v<List>> {
-            type_present_operator<T, List, Is> {}()...
-        };
+            type_present_operator<T, List, Is> {}()...};
     }
 
     template <typename List, size_t... Is>

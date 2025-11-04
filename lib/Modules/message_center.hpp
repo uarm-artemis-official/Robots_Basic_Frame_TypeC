@@ -1,5 +1,5 @@
-#ifndef __SUBSYSTEMS_MODULES_HPP
-#define __SUBSYSTEMS_MODULES_HPP
+#ifndef __MESSAGE_CENTER_HPP
+#define __MESSAGE_CENTER_HPP
 
 #include <array>
 #include <cstdint>
@@ -71,6 +71,8 @@ namespace mc2 {
     };
 }  // namespace mc2
 
+#ifndef __MESSAGE_CENTER_IPP
 #include "message_center.ipp"
+#endif
 
 #endif
