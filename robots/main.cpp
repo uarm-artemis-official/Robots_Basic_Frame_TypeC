@@ -160,7 +160,7 @@ static ammo_lid::AmmoLid ammo_lid_(pwm);
 static RCComm rc_comm;
 static PCComm pc_comm;
 
-static CAN_ISR::CAN_ISR can_isr(mc);
+static isr::can::CAN_ISR can_isr(can);
 static UART_ISR::UART_ISR uart_isr(mc);
 
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
@@ -196,8 +196,8 @@ static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
 static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 #endif
 
-static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config);
-static TimerApp timer_app(rtos, motors, mc, debug);
+static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
+static TimerApp timer_app(rtos, motors, mc, debug, can_isr);
 static PCUARTApp pc_uart_app(rtos, mc, no_init_motors, pc_comm);
 static IMUApp imu_app(rtos, mc, event_center, imu, debug);
 static RefereeApp referee_app(rtos, mc, event_center, debug, ref_ui);
@@ -339,16 +339,8 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     dwt_init();
 
     UART_ISR::Config uart_config;
-    CAN_ISR::Config can_isr_config;
     if (debug.get_board_status() == CHASSIS_BOARD) {
         uart_config = UART_ISR::Config::CHASSIS;
-
-        if constexpr (robot_config::config_type ==
-                      robot_config::ConfigType::Sentry) {
-            can_isr_config = CAN_ISR::Config::SENTRY_CHASSIS;
-        } else {
-            can_isr_config = CAN_ISR::Config::NORMAL;
-        }
     } else {
         if constexpr (robot_config::config_type ==
                       robot_config::ConfigType::AutoAim) {
@@ -357,10 +349,9 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
         } else {
             uart_config = UART_ISR::Config::GIMBAL;
         }
-        can_isr_config = CAN_ISR::Config::NORMAL;
     }
     uart_isr.init(uart_config);
-    can_isr.init(can_isr_config);
+    ASSERT(can_isr.init(), "CAN ISR init failed.");
 
     return HAL_OK;
 }
@@ -413,7 +404,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-    can_isr.on_message_pending(hcan);
+    MW_CAN::BUS bus;
+    // TODO: Add differentiating logic between CAN_N and CAN_NB
+    // Check for extended ID in header?.
+    if (hcan == &hcan1) {
+        bus = MW_CAN::BUS::CAN_1;
+    } else if (hcan == &hcan2) {
+        bus = MW_CAN::BUS::CAN_2;
+    } else {
+        ASSERT(false, "Received message on unknown hcan.");
+    }
+    can_isr.run_isr_routines(isr::can::ECallbacks::MESSAGE_PENDING, bus);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {

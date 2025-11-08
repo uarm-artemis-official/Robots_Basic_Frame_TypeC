@@ -23,12 +23,21 @@
 
 namespace CommApp {
     CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                     IDebug& debug_ref, MW_CAN::ICAN& _can, Config _config)
+                     IDebug& debug_ref, MW_CAN::ICAN& _can, Config _config,
+                     isr::can::CAN_ISR& can_isr)
         : RTOSApp(_rtos),
           mc(mc_ref),
           debug(debug_ref),
           can(_can),
-          config(_config) {}
+          config(_config) {
+        can_isr.register_init(
+            [this](MW_CAN::ICAN&) { return can_isr_init(can); });
+        can_isr.register_routine(
+            isr::can::ECallbacks::MESSAGE_PENDING,
+            [this](MW_CAN::BUS bus, isr::can::CANFrame frame) {
+                can_isr_on_message_pending(bus, frame);
+            });
+    }
 
     void CommApp::init() {
         board_status = debug.get_board_status();
@@ -121,5 +130,18 @@ namespace CommApp {
                                               const uint8_t message_data[8]) {
         return can.send_data(MW_CAN::BUS::CAN_2, message_id, 0, message_data,
                              8);
+    }
+
+    bool CommApp::can_isr_init(MW_CAN::ICAN&) {
+        return true;
+    }
+
+    void CommApp::can_isr_on_message_pending(MW_CAN::BUS bus,
+                                             isr::can::CANFrame frame) {
+        mc2::CommIn comm_in;
+        if (bus == MW_CAN::BUS::CAN_2) {
+            std::memcpy(comm_in.bytes.data(), frame.payload,
+                        sizeof(uint8_t) * frame.payload_length);
+        }
     }
 }  // namespace CommApp

@@ -1,41 +1,25 @@
 #ifndef __CAN_ISR_HPP
 #define __CAN_ISR_HPP
 
-#include "can.h"
+#include <functional>
 #include "isr_interfaces.hpp"
-#include "message_center.hpp"
-#include "middleware_classes.hpp"
-#include "subsystems_interfaces.hpp"
-#include "subsystems_types.hpp"
-#include "topics.hpp"
-
-// TODO: Add middleware layer instead of inclusion of can.h.
-namespace CAN_ISR {
-    enum class Config { NORMAL, SENTRY_CHASSIS, SENTRY_GIMBAL };
-
-    class CAN_ISR {
-       private:
-        mc2::MotorRead motor_read {};
-        mc2::RobotMC& mc;
-        Config config;
-
-       public:
-        CAN_ISR(mc2::RobotMC& mc_ref) : mc(mc_ref) {}
-        void init(Config config);
-        uint8_t get_free_buffer(uint32_t stdId);
-        void read_motor_data(CAN_HandleTypeDef* hcan,
-                             CAN_RxHeaderTypeDef& rx_header);
-        void on_message_pending(CAN_HandleTypeDef* hcan);
-    };
-}  // namespace CAN_ISR
+#include "middleware_interfaces.hpp"
 
 namespace isr {
     namespace can {
+        // TODO: Incorporate this into CAN middleware.
+        struct CANFrame {
+            uint32_t stdid;
+            uint32_t extid;
+            uint32_t payload_length;
+            uint8_t payload[8];
+        };
+
         enum class ECallbacks { MESSAGE_PENDING };
 
         using TISRState = MW_CAN::BUS;
-        using TISRRoutine = void (*)(MW_CAN::ICAN&, TISRState);
-        using TInitFunc = bool (*)(MW_CAN::ICAN&);
+        using TISRRoutine = std::function<void(MW_CAN::BUS, CANFrame)>;
+        using TInitFunc = std::function<bool(MW_CAN::ICAN&)>;
 
         class CAN_ISR
             : public ISR<ECallbacks, TISRRoutine, TInitFunc, TISRState> {

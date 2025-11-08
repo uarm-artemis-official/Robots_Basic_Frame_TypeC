@@ -3,6 +3,8 @@
 
 #include "apps_interfaces.hpp"
 #include "apps_types.hpp"
+#include "can_isr.hpp"
+#include "communication.hpp"
 #include "message_center.hpp"
 #include "subsystems_interfaces.hpp"
 
@@ -327,12 +329,18 @@ class TimerApp
     IDebug& debug;
     mc2::MotorSet motor_set;
     BoardStatus_t board_status;
+    mc2::MotorRead motor_read;
+    CANISRConfig can_isr_config;
 
    public:
     explicit TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
-                      mc2::RobotMC& mc2_ref, IDebug& debug_ref);
+                      mc2::RobotMC& mc2_ref, IDebug& debug_ref,
+                      isr::can::CAN_ISR& can_isr);
     void init();
     void loop();
+    void parse_motor_feedback(isr::can::CANFrame frame);
+    bool can_isr_init(MW_CAN::ICAN& can);
+    void can_isr_message_receive(MW_CAN::BUS bus, isr::can::CANFrame frame);
 };
 
 class PCUARTApp
@@ -367,11 +375,15 @@ namespace CommApp {
 
        public:
         explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                         IDebug& debug, MW_CAN::ICAN& can, Config config);
+                         IDebug& debug, MW_CAN::ICAN& can, Config config,
+                         isr::can::CAN_ISR& can_isr);
         void init();
         void loop();
         bool transmit_interboard_message(const uint32_t message_id,
                                          const uint8_t message_data[8]);
+        bool can_isr_init(MW_CAN::ICAN& can);
+        void can_isr_on_message_pending(MW_CAN::BUS bus,
+                                        isr::can::CANFrame frame);
     };
 }  // namespace CommApp
 

@@ -57,23 +57,25 @@ namespace MW_TIM {
 }  // namespace MW_TIM
 
 namespace MW_CAN {
-    bool TestCAN::send_data(BUS bus, uint32_t id,
-                            const std::array<uint8_t, 8>& data,
-                            uint32_t length) {
+    bool TestCAN::send_data(BUS bus, uint32_t id, uint32_t ext_id,
+                            const uint8_t* data, uint32_t length) {
         (void) bus;
         (void) id;
+        (void) ext_id;
         (void) data;
         (void) length;
         // TODO: Implement CAN send logic
         return false;
     }
     bool TestCAN::receive_data(BUS bus, FIFO fifo, uint32_t& id,
-                               uint32_t& length, std::array<uint8_t, 8>& data) {
+                               uint32_t& ext_id, uint8_t* dst,
+                               uint32_t& length) {
         (void) bus;
         (void) fifo;
         (void) id;
+        (void) ext_id;
         (void) length;
-        (void) data;
+        (void) dst;
         // TODO: Implement CAN receive logic
         return false;
     }

@@ -12,6 +12,7 @@
 *******************************************************************************/
 
 #include <cstring>
+#include "ISRs/can_isr.hpp"
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
@@ -25,11 +26,19 @@
 */
 
 TimerApp::TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
-                   mc2::RobotMC& mc_ref, IDebug& debug_ref)
+                   mc2::RobotMC& mc2_ref, IDebug& debug_ref,
+                   isr::can::CAN_ISR& can_isr)
     : RTOSApp(_rtos),
       system_motors(system_motors_ref),
-      mc(mc_ref),
-      debug(debug_ref) {}
+      mc(mc2_ref),
+      debug(debug_ref) {
+    can_isr.register_init(
+        [this](MW_CAN::ICAN& can) { return can_isr_init(can); });
+    can_isr.register_routine(isr::can::ECallbacks::MESSAGE_PENDING,
+                             [this](MW_CAN::BUS bus, isr::can::CANFrame frame) {
+                                 can_isr_message_receive(bus, frame);
+                             });
+}
 
 void TimerApp::init() {
     BoardStatus_t status = debug.get_board_status();
@@ -73,4 +82,60 @@ void TimerApp::loop() {
 #ifndef DISABLE_MOTOR_SEND
     system_motors.send_motor_voltage();
 #endif
+}
+
+void TimerApp::parse_motor_feedback(isr::can::CANFrame frame) {
+    uint8_t free_index = 0xff;
+    for (int i = 0; i < 8; i++) {
+        if (motor_read.can_ids[i] == 0)
+            free_index = i;
+        if (motor_read.can_ids[i] == frame.stdid) {
+            break;
+        }
+    }
+
+    if (free_index < MAX_MOTOR_COUNT) {
+        std::memcpy(motor_read.feedback[free_index], frame.payload,
+                    sizeof(frame.payload_length));
+        motor_read.can_ids[free_index] =
+            static_cast<Motor_CAN_ID_t>(frame.stdid);
+        mc.pub_message_from_isr(motor_read);
+    }
+}
+
+void TimerApp::can_isr_message_receive(MW_CAN::BUS bus,
+                                       isr::can::CANFrame frame) {
+    if (bus == MW_CAN::BUS::CAN_1) {
+        parse_motor_feedback(frame);
+    } else if (bus == MW_CAN::BUS::CAN_2 &&
+               can_isr_config == CANISRConfig::SentryChassis) {
+        if (SWERVE_STEER_MOTOR1 <= frame.stdid &&
+            frame.stdid <= SWERVE_STEER_MOTOR4) {
+            parse_motor_feedback(frame);
+        }
+    }
+}
+
+bool TimerApp::can_isr_init(MW_CAN::ICAN&) {
+    std::memset(&motor_read, 0, sizeof(motor_read));
+
+    BoardStatus_t status = debug.get_board_status();
+    switch (status) {
+        case CHASSIS_BOARD: {
+#ifdef SWERVE_CHASSIS
+            can_isr_config = CANISRConfig::SentryChassis;
+#else
+            can_isr_config = CANISRConfig::OtherRobot;
+#endif
+            break;
+        }
+        case GIMBAL_BOARD: {
+            can_isr_config = CANISRConfig::OtherRobot;
+            break;
+        }
+        default:
+            ASSERT(0, "Unsupported board status in Timer.");
+    }
+
+    return true;
 }
