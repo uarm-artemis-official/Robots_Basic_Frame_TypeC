@@ -169,7 +169,7 @@ static constexpr float swerve_chassis_width = 0.352728f;
 static constexpr float swerve_dt = ChassisApp<SwerveDrive>::get_loop_period();
 static SwerveDrive swerve_drive(mc, no_init_motors, swerve_chassis_width,
                                 swerve_dt);
-static ChassisApp<SwerveDrive> chassis_app(swerve_drive, mc, debug);
+static ChassisApp<SwerveDrive> chassis_app(rtos, swerve_drive, mc, debug);
 #else
 
 #ifdef OMNI_CHASSIS
