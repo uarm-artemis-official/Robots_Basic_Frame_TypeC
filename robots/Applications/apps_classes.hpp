@@ -263,6 +263,7 @@ class RefereeApp
     IDebug& debug;
     IRefUI& ref_ui;  // Referee UI interface
 
+    mc2::RefereeIn uart_referee_in;
     Referee_t ref;
     uint16_t non_recv_count =
         0;  // Count the number of times referee data is not received
@@ -270,10 +271,15 @@ class RefereeApp
 
    public:
     explicit RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                        IEventCenter& evt_center, IDebug& debug,
-                        IRefUI& ref_ui);
+                        IEventCenter& evt_center, IDebug& debug, IRefUI& ref_ui,
+                        isr::uart::UART_ISR& uart_isr);
     void init();
     void loop();
+    bool uart_isr_init(MW_UART::IUART& uart);
+    void uart_isr_receive_complete(MW_UART::IUART& uart,
+                                   MW_UART::Peripheral peripheral);
+    void uart_isr_on_error(MW_UART::IUART& uart,
+                           MW_UART::Peripheral peripheral);
 
     void read_ref_data();
     void draw_all_ui();
@@ -288,6 +294,7 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
     // TODO: remove and replace with rc_rx_buffer.
     mc2::RCRaw rc_raw;
     Buffer rc_rx_buffer;
+    mc2::RCRaw uart_rx;
     RemoteControl_t rc;
     uint32_t rc_idle_count = 0;
 
@@ -298,10 +305,13 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
 
    public:
     explicit RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                   IRCComm& rc_comm_ref);
+                   IRCComm& rc_comm_ref, isr::uart::UART_ISR& uart_isr);
 
     void init();
     void loop();
+    bool uart_isr_init(MW_UART::IUART& uart);
+    void uart_isr_receive_complete(MW_UART::IUART& uart,
+                                   MW_UART::Peripheral peripheral);
 
     void parse_raw_rc();
     void map_switches_to_modes(BoardMode_t& board_mode,
@@ -354,12 +364,18 @@ class PCUARTApp
     mc2::UCPackIn uc_pack_in;
     uint8_t new_send_buffer[196];
     float recent_deltas[2];
+    mc2::UCPackIn uart_pack_in;
 
    public:
     explicit PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                       IMotors& motors_, IPCComm& pc_comm_);
+                       IMotors& motors_, IPCComm& pc_comm_,
+                       isr::uart::UART_ISR& uart_isr);
     void init();
     void loop();
+    bool uart_isr_init(MW_UART::IUART& uart);
+    void uart_isr_receive_complete(MW_UART::IUART& uart,
+                                   MW_UART::Peripheral peripheral);
+
     void send_swerve_data();
 };
 

@@ -38,6 +38,6 @@ endif()
 
 add_subdirectory(Middleware)
 add_subdirectory(Algorithms)
+add_subdirectory(ISRs)
 add_subdirectory(Modules)
 add_subdirectory(Subsystems)
-add_subdirectory(ISRs)

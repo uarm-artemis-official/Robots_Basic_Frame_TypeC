@@ -1,42 +1,34 @@
 #ifndef __UART_ISR_HPP
 #define __UART_ISR_HPP
 
-#include "subsystems_defines.hpp"
-#include "subsystems_interfaces.hpp"
-#include "topics.hpp"
-#include "usart.h"
+#include <functional>
+#include "isr_interfaces.hpp"
+#include "middleware_interfaces.hpp"
 
 #define DBUS_BUFFER_LEN 18
 
-// TODO: Add middleware layer instead of inclusion of usart.h.
-namespace UART_ISR {
-    enum class Config {
-        CHASSIS,
-        GIMBAL,
-        AUTO_AIM,
-        NONE,
-    };
+namespace isr {
+    namespace uart {
+        enum class ECallbacks { RECEIVE_COMPLETE, ON_ERROR };
 
-    struct UARTISRState {
-        uint32_t complete_count;
-        uint32_t error_count;
-        mc2::UCPackIn uc_pack_in;
-        mc2::RefereeIn referee_in;
-        mc2::RCRaw rc_raw;
-    };
+        using TISRState = MW_UART::Peripheral;
+        using TInitFunc = std::function<bool(MW_UART::IUART&)>;
+        using TISRRoutine =
+            std::function<void(MW_UART::IUART&, MW_UART::Peripheral)>;
 
-    class UART_ISR {
-       private:
-        Config config;
-        UARTISRState state;
-        mc2::RobotMC& mc;
+        class UART_ISR
+            : public ISR<ECallbacks, TISRRoutine, TInitFunc, TISRState> {
+           private:
+            MW_UART::IUART& uart;
 
-       public:
-        UART_ISR(mc2::RobotMC& mc_ref);
-        void init(Config _config);
-        void on_receive_complete(UART_HandleTypeDef* huart);
-        void on_error(UART_HandleTypeDef* huart);
-    };
-}  // namespace UART_ISR
+           public:
+            UART_ISR(MW_UART::IUART& uart);
+
+            [[nodiscard]] bool init() override;
+            void run_isr_routines(ECallbacks callback_running,
+                                  TISRState callback_state) override;
+        };
+    }  // namespace uart
+}  // namespace isr
 
 #endif

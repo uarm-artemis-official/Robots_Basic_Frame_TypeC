@@ -161,7 +161,7 @@ static RCComm rc_comm;
 static PCComm pc_comm;
 
 static isr::can::CAN_ISR can_isr(can);
-static UART_ISR::UART_ISR uart_isr(mc);
+static isr::uart::UART_ISR uart_isr(uart);
 
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
@@ -188,7 +188,7 @@ static OmniDrive omni_drive(mc, no_init_motors, mecanum_chassis_width,
 static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, debug);
 #endif
 
-static RCApp rc_app(rtos, mc, rc_comm);
+static RCApp rc_app(rtos, mc, rc_comm, uart_isr);
 
 #ifdef AUTO_AIM_RIG
 static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
@@ -198,9 +198,9 @@ static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 
 static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
 static TimerApp timer_app(rtos, motors, mc, debug, can_isr);
-static PCUARTApp pc_uart_app(rtos, mc, no_init_motors, pc_comm);
+static PCUARTApp pc_uart_app(rtos, mc, no_init_motors, pc_comm, uart_isr);
 static IMUApp imu_app(rtos, mc, event_center, imu, debug);
-static RefereeApp referee_app(rtos, mc, event_center, debug, ref_ui);
+static RefereeApp referee_app(rtos, mc, event_center, debug, ref_ui, uart_isr);
 static GimbalApp gimbal_app(rtos, mc, event_center, debug, no_init_motors);
 static ShootApp shoot_app(
     rtos, mc, ammo_lid_, no_init_motors,
@@ -338,19 +338,7 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     // referee_init(&referee);
     dwt_init();
 
-    UART_ISR::Config uart_config;
-    if (debug.get_board_status() == CHASSIS_BOARD) {
-        uart_config = UART_ISR::Config::CHASSIS;
-    } else {
-        if constexpr (robot_config::config_type ==
-                      robot_config::ConfigType::AutoAim) {
-            // Add mode for enabling PC UART and RC for one board.
-            uart_config = UART_ISR::Config::AUTO_AIM;
-        } else {
-            uart_config = UART_ISR::Config::GIMBAL;
-        }
-    }
-    uart_isr.init(uart_config);
+    ASSERT(uart_isr.init(), "UART ISR init failed.");
     ASSERT(can_isr.init(), "CAN ISR init failed.");
 
     return HAL_OK;
@@ -418,9 +406,28 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
-    uart_isr.on_receive_complete(huart);
+    MW_UART::Peripheral peripheral;
+    if (huart == &huart1) {
+        peripheral = MW_UART::Peripheral::UART1;
+    } else if (huart == &huart3) {
+        peripheral = MW_UART::Peripheral::UART3;
+    } else {
+        ASSERT(false, "Receive complete on unknown huart.");
+    }
+
+    uart_isr.run_isr_routines(isr::uart::ECallbacks::RECEIVE_COMPLETE,
+                              peripheral);
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
-    uart_isr.on_error(huart);
+    MW_UART::Peripheral peripheral;
+    if (huart == &huart1) {
+        peripheral = MW_UART::Peripheral::UART1;
+    } else if (huart == &huart3) {
+        peripheral = MW_UART::Peripheral::UART3;
+    } else {
+        ASSERT(false, "Receive complete on unknown huart.");
+    }
+
+    uart_isr.run_isr_routines(isr::uart::ECallbacks::ON_ERROR, peripheral);
 }

@@ -54,12 +54,28 @@
 //  * @retval    None
 //  */
 RefereeApp::RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                       IEventCenter& evt_center, IDebug& debug, IRefUI& ref_ui)
+                       IEventCenter& evt_center, IDebug& debug, IRefUI& ref_ui,
+                       isr::uart::UART_ISR& uart_isr)
     : RTOSApp(_rtos),
       mc(mc_ref),
       event_center(evt_center),
       debug(debug),
-      ref_ui(ref_ui) {}
+      ref_ui(ref_ui) {
+    uart_isr.register_init(
+        [this](MW_UART::IUART& uart) { return uart_isr_init(uart); });
+
+    uart_isr.register_routine(
+        isr::uart::ECallbacks::RECEIVE_COMPLETE,
+        [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
+            uart_isr_receive_complete(uart, peripheral);
+        });
+
+    uart_isr.register_routine(
+        isr::uart::ECallbacks::ON_ERROR,
+        [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
+            uart_isr_on_error(uart, peripheral);
+        });
+}
 
 void RefereeApp::init() {
     // Initialization code for referee app
@@ -110,6 +126,43 @@ void RefereeApp::loop() {
 
     // Update UI if necessary
     draw_all_ui();
+}
+
+bool RefereeApp::uart_isr_init(MW_UART::IUART& uart) {
+    return uart.receive_data(MW_UART::Peripheral::UART1,
+                             uart_referee_in.ref_bytes.data(),
+                             uart_referee_in.ref_bytes.size());
+}
+
+void RefereeApp::uart_isr_receive_complete(MW_UART::IUART& uart,
+                                           MW_UART::Peripheral peripheral) {
+    if (peripheral == MW_UART::Peripheral::UART1) {
+        mc.pub_message_from_isr(uart_referee_in);
+        memset(uart_referee_in.ref_bytes.data(), 0,
+               uart_referee_in.ref_bytes.size());
+        ASSERT(uart.receive_data(MW_UART::Peripheral::UART1,
+                                 uart_referee_in.ref_bytes.data(),
+                                 uart_referee_in.ref_bytes.size()),
+               "Failed to start another receive after receive complete.");
+    }
+}
+
+void RefereeApp::uart_isr_on_error(MW_UART::IUART& uart,
+                                   MW_UART::Peripheral peripheral) {
+    if (peripheral == MW_UART::Peripheral::UART1) {
+        uart.abort_receive(peripheral);
+        // Clear buffer
+        memset(uart_referee_in.ref_bytes.data(), 0,
+               sizeof(uart_referee_in.ref_bytes));
+
+        // Restart DMA
+        bool restart_reiceve_res =
+            uart.receive_data(peripheral, uart_referee_in.ref_bytes.data(),
+                              sizeof(uart_referee_in.ref_bytes));
+        ASSERT(
+            restart_reiceve_res,
+            "Failed to restart UART receive after error for referee frames.");
+    }
 }
 
 void RefereeApp::read_ref_data() {

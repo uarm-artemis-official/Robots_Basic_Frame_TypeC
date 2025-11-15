@@ -11,13 +11,25 @@
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
+#include "middleware_types.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
 PCUARTApp::PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                     IMotors& motors_, IPCComm& pc_comm_)
+                     IMotors& motors_, IPCComm& pc_comm_,
+                     isr::uart::UART_ISR& uart_isr)
     : RTOSApp(_rtos), mc(mc_ref), motors(motors_), pc_comm(pc_comm_) {
     memset(uc_pack_in.bytes.data(), 0, sizeof(uc_pack_in.bytes));
+
+    ASSERT(uart_isr.register_init(
+               [this](MW_UART::IUART& uart) { return uart_isr_init(uart); }),
+           "Failed to register UART ISR init function.");
+    ASSERT(uart_isr.register_routine(
+               isr::uart::ECallbacks::RECEIVE_COMPLETE,
+               [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
+                   uart_isr_receive_complete(uart, peripheral);
+               }),
+           "Failed to register UART ISR receive complete routine.");
 }
 
 void PCUARTApp::init() {
@@ -88,6 +100,23 @@ void PCUARTApp::loop() {
 #else
     send_swerve_data();
 #endif
+}
+
+bool PCUARTApp::uart_isr_init(MW_UART::IUART& uart) {
+    return uart.receive_data(MW_UART::Peripheral::UART1,
+                             uart_pack_in.bytes.data(),
+                             uart_pack_in.bytes.size());
+}
+
+void PCUARTApp::uart_isr_receive_complete(MW_UART::IUART& uart,
+                                          MW_UART::Peripheral peripheral) {
+    if (peripheral == MW_UART::Peripheral::UART1) {
+        mc.pub_message_from_isr(uart_pack_in);
+        ASSERT(uart.receive_data(MW_UART::Peripheral::UART1,
+                                 uart_pack_in.bytes.data(),
+                                 uart_pack_in.bytes.size()),
+               "Failed to start another UART receive after receive complete.");
+    }
 }
 
 void PCUARTApp::send_swerve_data() {

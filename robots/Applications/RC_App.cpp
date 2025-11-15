@@ -22,10 +22,12 @@
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
+#include "middleware_types.hpp"
 #include "quantize.hpp"
 #include "robot_config.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
+#include "uart_isr.hpp"
 
 /*********************************************************************************
  *  				  <   GENERAL CTRL OPERATION TABLE  >
@@ -100,8 +102,19 @@
  *    Note: Shift need to be combined with any of WASD keys.
  *
  *********************************************************************************/
-RCApp::RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref, IRCComm& rc_comm_ref)
-    : RTOSApp(_rtos), mc(mc_ref), rc_comm(rc_comm_ref) {}
+RCApp::RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref, IRCComm& rc_comm_ref,
+             isr::uart::UART_ISR& uart_isr)
+    : RTOSApp(_rtos), mc(mc_ref), rc_comm(rc_comm_ref) {
+    ASSERT(uart_isr.register_init(
+               [this](MW_UART::IUART& uart) { return uart_isr_init(uart); }),
+           "Failed to register UART ISR init function.");
+    ASSERT(uart_isr.register_routine(
+               isr::uart::ECallbacks::RECEIVE_COMPLETE,
+               [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
+                   uart_isr_receive_complete(uart, peripheral);
+               }),
+           "Failed to register UART ISR routine.");
+}
 
 void RCApp::init() {
     memset(rc_raw.rc_bytes.data(), 0, sizeof(rc_raw.rc_bytes));
@@ -132,6 +145,20 @@ void RCApp::loop() {
 
         parse_raw_rc();
         pub_command_messages();
+    }
+}
+
+bool RCApp::uart_isr_init(MW_UART::IUART& uart) {
+    return uart.receive_data(MW_UART::Peripheral::UART3,
+                             uart_rx.rc_bytes.data(), uart_rx.rc_bytes.size());
+}
+
+void RCApp::uart_isr_receive_complete(MW_UART::IUART& uart,
+                                      MW_UART::Peripheral peripheral) {
+    if (peripheral == MW_UART::Peripheral::UART3) {
+        mc.pub_message_from_isr(uart_rx);
+        uart.receive_data(MW_UART::Peripheral::UART3, uart_rx.rc_bytes.data(),
+                          uart_rx.rc_bytes.size());
     }
 }
 
