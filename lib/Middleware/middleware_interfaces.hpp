@@ -192,7 +192,7 @@ namespace MW_UART {
          * @pre 0 < length <= MAX_UART_BUFFER_SIZE
          */
         virtual bool receive_data(Peripheral uart, uint8_t* data,
-                                  uint32_t& length) = 0;
+                                  uint32_t length) = 0;
 
         /**
          * @brief Abort receiving data on the UART peripheral.
@@ -205,6 +205,13 @@ namespace MW_UART {
          * @param[in] uart The UART peripheral to abort.
          */
         virtual void abort_transmit(Peripheral uart) = 0;
+
+        /**
+         * @brief Clear low-level flags for a particular UART peripheral.
+         * @param[in] uart The UART peripheral to clear flags.
+         * @param[in] flags_to_clear Flags to clear.
+         */
+        virtual void clear_flags(Peripheral uart, uint32_t flags_to_clear) = 0;
     };
 }  // namespace MW_UART
 

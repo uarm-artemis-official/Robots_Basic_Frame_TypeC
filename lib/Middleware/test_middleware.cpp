@@ -113,7 +113,7 @@ namespace MW_UART {
         // TODO: Implement UART send logic
     }
     bool TestUART::receive_data(Peripheral uart, uint8_t* data,
-                                uint32_t& length) {
+                                uint32_t length) {
         (void) uart;
         (void) data;
         (void) length;
@@ -127,6 +127,12 @@ namespace MW_UART {
     void TestUART::abort_transmit(Peripheral uart) {
         (void) uart;
         // TODO: Implement UART abort transmit logic
+    }
+
+    void TestUART::clear_flags(Peripheral uart, uint32_t flags_to_clear) {
+        (void) uart;
+        (void) flags_to_clear;
+        // TODO: Implement UART clear flag logic
     }
 }  // namespace MW_UART
 

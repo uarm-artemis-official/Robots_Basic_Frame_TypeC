@@ -432,7 +432,7 @@ namespace MW_UART {
      * @param[out] length The length of the received data.
      * @return true if data was received successfully, false otherwise.
      */
-    bool UART::receive_data(Peripheral uart, uint8_t* data, uint32_t& length) {
+    bool UART::receive_data(Peripheral uart, uint8_t* data, uint32_t length) {
         ASSERT(data != nullptr, "Cannot receive data to nullptr.");
         HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
         return false;  // Placeholder for actual implementation
@@ -452,6 +452,10 @@ namespace MW_UART {
      */
     void UART::abort_transmit(Peripheral uart) {
         HAL_UART_AbortTransmit(get_hal_uart_handle(uart));
+    }
+
+    void UART::clear_flags(Peripheral uart, uint32_t flags_to_clear) {
+        __HAL_UART_CLEAR_FLAG(get_hal_uart_handle(uart), flags_to_clear);
     }
 }  // namespace MW_UART
 
