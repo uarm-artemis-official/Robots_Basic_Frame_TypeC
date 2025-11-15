@@ -1,33 +1,32 @@
 #ifndef __COMMUNICATION_HPP
 #define __COMMUNICATION_HPP
 
+#include "can2_tp.hpp"
 #include "can_isr.hpp"
-#include "isotp.hpp"
-#include "topics.hpp"
+#include "middleware_interfaces.hpp"
 #include "uart_isr.hpp"
-#include "uc_uart_interface.hpp"
+#include "uc_uart.hpp"
+
 
 namespace comm {
-    template <typename FCanSend, typename FUartSend, typename FDelay>
+    template <typename TMessageCenter>
     class Communication {
        private:
-        mc2::RobotMC& mc;
-        isr::can::CAN_ISR& can_isr;
-        isr::uart::UART_ISR& uart_isr;
-        uc_uart::v1::UC_UARTV1& uc_uart;
-        isotp::ISOTP<FUartSend, FDelay> uart_isotp;
-        isotp::ISOTP<FCanSend, FDelay> can_isotp;
+        TMessageCenter& message_center;
 
        public:
-        Communication(mc2::RobotMC& mc_ref, isr::can::CAN_ISR& can_ref,
-                      isr::uart::UART_ISR& uart_ref);
+        explicit Communication(TMessageCenter& _message_center,
+                               isr::can::CAN_ISR& can_isr);
         void init();
         void on_can_message_pending(MW_CAN::ICAN& can, MW_CAN::BUS bus);
         void on_uart_receive_complete(MW_UART::IUART& uart,
                                       MW_UART::Peripheral peripheral);
+        void process_internode_messages();
     };
 }  // namespace comm
 
+#ifndef __COMMUNICATION_IPP
 #include "communication.ipp"
+#endif
 
 #endif

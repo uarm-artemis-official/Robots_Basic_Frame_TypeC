@@ -160,10 +160,8 @@ namespace can2_tp {
                 set_frame_type(FrameType::ConsecutiveFrame, frame.stdid);
                 // extid low byte for consecutive frames used as index
                 // index = number of the fragment (1-based). Use integer division by max_payload.
-                uint8_t index =
-                    static_cast<uint8_t>(send_buffer.used_send_buffer_length /
-                                         max_payload) +
-                    1;
+                uint8_t index = static_cast<uint8_t>(
+                    send_buffer.used_send_buffer_length / max_payload);
                 set_index(index, frame.extid);
             }
 

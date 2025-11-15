@@ -6,7 +6,8 @@
 
 namespace uc_uart {
     // Implement a crc16 function or include your CRC library here
-    uint16_t crc16(const uint8_t* data, size_t length) {
+    // TODO: Move to algorithms file.
+    inline uint16_t crc16(const uint8_t* data, size_t length) {
         uint16_t crc = 0xFFFF;
         for (size_t i = 0; i < length; ++i) {
             crc ^= static_cast<uint16_t>(data[i]);

@@ -50,6 +50,7 @@ add_library(SUBSYSTEMS::EVENT_CENTER ALIAS EVENT_CENTER)
 add_library(MOTORS STATIC motors.cpp)
 target_link_libraries(MOTORS
     PUBLIC 
+        SUBSYSTEMS_INCLUDE
         FW::DEVICE::MOTOR_LIB
         LIB::UARM_LIB
         LIB::UARM_INCLUDE
@@ -96,8 +97,8 @@ add_library(COMMUNICATION INTERFACE)
 target_include_directories(COMMUNICATION INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(COMMUNICATION 
     INTERFACE 
-        ROBOTS::TOPICS
         ISRS::UART_ISR
         ISRS::CAN_ISR
-        MODULES::UC_UARTV1
-        MODULES::ISOTP)
+        MODULES::UC_UART
+        MODULES::CAN2_TP)
+add_library(SUBSYSTEMS::COMMUNICATION ALIAS COMMUNICATION)

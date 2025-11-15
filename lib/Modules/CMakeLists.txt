@@ -36,3 +36,8 @@ target_link_libraries(CAN2_TP
     PUBLIC
         LIB::UARM_LIB)
 add_library(MODULES::CAN2_TP ALIAS CAN2_TP)
+
+add_library(UC_UART INTERFACE)
+target_include_directories(UC_UART INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(UC_UART INTERFACE LIB::UARM_LIB)
+add_library(MODULES::UC_UART ALIAS UC_UART)
