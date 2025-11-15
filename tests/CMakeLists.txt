@@ -41,20 +41,13 @@ target_link_libraries(MESSAGE_CENTER_TEST
         MW::MIDDLEWARE
         MODULES::MESSAGE_CENTER)
 
-add_executable(ISOTP_TEST isotp_test.cpp)
-target_link_libraries(ISOTP_TEST
+add_executable(COMMUNICATION_TEST communication_test.cpp)
+target_link_libraries(COMMUNICATION_TEST
     PRIVATE
         GTest::gtest_main
-        TEST_TARGET
-        ISOTP)
-
-add_executable(UC_UARTV1_TEST uc_uartv1_test.cpp)
-target_link_libraries(UC_UARTV1_TEST
-    PRIVATE
-        GTest::gtest_main
-        TEST_TARGET
         MIDDLEWARE_MOCKS
-        UC_UARTV1)
+        SUBSYSTEMS::COMMUNICATION
+        MODULES::MESSAGE_CENTER)
 
 
 include(GoogleTest)
@@ -63,5 +56,4 @@ gtest_discover_tests(UARM_MATH_TEST)
 gtest_discover_tests(RAMP_TEST)
 gtest_discover_tests(MOCK_RTOS_QUEUE_TEST)
 gtest_discover_tests(MESSAGE_CENTER_TEST)
-gtest_discover_tests(ISOTP_TEST)
-gtest_discover_tests(UC_UARTV1_TEST)
+gtest_discover_tests(COMMUNICATION_TEST)
