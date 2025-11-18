@@ -68,6 +68,7 @@ namespace dsa {
         size_t size;
     };
 
+    // TODO: Implement wrapping and proper popping from the front of the queue.
     /**
      * @brief A variable-size FIFO (First In, First Out) queue implementation.
      * 
