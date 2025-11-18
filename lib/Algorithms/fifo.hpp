@@ -2,7 +2,9 @@
 #define __FIFO_HPP
 
 #include <array>
+#include <cstdint>
 #include <cstring>
+#include "uarm_lib.hpp"
 
 namespace dsa {
     /**
@@ -25,7 +27,7 @@ namespace dsa {
         size_t count;
 
        public:
-        RingBuffer() : head(0), tail(0), count(0) { buffer.fill(0); }
+        RingBuffer() : head(0), tail(0), count(0) { buffer.fill(T {}); }
 
         bool is_empty() const { return count == 0; }
 
@@ -66,6 +68,7 @@ namespace dsa {
         size_t size;
     };
 
+    // TODO: Implement wrapping and proper popping from the front of the queue.
     /**
      * @brief A variable-size FIFO (First In, First Out) queue implementation.
      * 
@@ -73,64 +76,99 @@ namespace dsa {
      * Items are stored in a fixed-size contiguous memory block. There is a maximum
      * total number of items is also limited. During a push, if the item cannot fit
      * in the pool or there are no available slots in the index buffer, it will be dropped.
-     * This DS does not manage the memory of the items, it only copies the data. There is
-     * no wrap-around during pushes, so when the FIFO is full, it will drop new items until
-     * there is space available.
+     * This DS copies items on push, so their original copies can be used without
+     * affecting the items in the FIFO.
      */
     template <size_t PoolSize, size_t MaxItemCount>
     class VarFIFO {
+        static_assert(PoolSize > 0, "PoolSize must be greater than 0");
+        static_assert(PoolSize >= MaxItemCount,
+                      "MaxItemCount must be less than or equal to PoolSize");
+        static_assert(MaxItemCount > 0, "MaxItemCount must be greater than 0");
+
        private:
         std::array<uint8_t, PoolSize> pool;
         RingBuffer<VarFIFOIndex, MaxItemCount> index_buffer;
         size_t capacity_used = 0;
-        size_t next_free_index = 0;
+        size_t back_index = 0;
+        size_t front_index = 0;
 
        public:
         VarFIFO() { pool.fill(0); }
 
         template <typename T>
         [[nodiscard]] bool push(T& item) {
-            size_t item_size = sizeof(T);
-            if (item_size + capacity_used > PoolSize ||
-                index_buffer.size() >= MaxItemCount) {
-                return false;  // Not enough space in pool or index buffer is full
+            constexpr size_t MIN_ITEM_SIZE = 1;
+            static_assert(sizeof(T) <= PoolSize,
+                          "Item too large for the pool.");
+            static_assert(sizeof(T) > MIN_ITEM_SIZE,
+                          "Item cannot be zero-sized.");
+
+            const size_t item_size = sizeof(T);
+
+            // Check index buffer availability
+            if (index_buffer.is_full()) {
+                return false;
             }
 
-            // Find the next free index in the pool
-            if (next_free_index + item_size > PoolSize) {
-                return false;  // Not enough contiguous space at the end of the pool
+            // Check pool capacity availability
+            if ((PoolSize - capacity_used) < item_size) {
+                return false;
             }
 
-            // Copy the item into the pool
-            std::memcpy(pool.data() + next_free_index, &item, item_size);
+            const size_t start = back_index;
+            const uint8_t* src = reinterpret_cast<const uint8_t*>(&item);
 
-            // Update the index buffer
-            VarFIFOIndex index_entry {next_free_index, item_size};
-            if (!index_buffer.push(index_entry)) {
-                return false;  // Should not happen as we checked earlier
+            // Copy into pool with wrap-around if necessary
+            if (start + item_size <= PoolSize) {
+                // contiguous copy
+                std::memcpy(pool.data() + start, src, item_size);
+            } else {
+                const size_t first_chunk = PoolSize - start;
+                std::memcpy(pool.data() + start, src, first_chunk);
+                std::memcpy(pool.data(), src + first_chunk,
+                            item_size - first_chunk);
             }
 
-            // Update capacity used and next free index
+            // Record index and size
+            VarFIFOIndex idx {start, item_size};
+            if (!index_buffer.push(idx)) {
+                // If pushing the index failed (should be rare because we checked),
+                // rollback capacity_used and leave back_index unchanged.
+                // We won't erase the copied bytes (not necessary), but they are not
+                // considered part of used capacity since we didn't update it.
+                return false;
+            }
+
             capacity_used += item_size;
-            next_free_index += item_size;
-
+            back_index = (start + item_size) % PoolSize;
             return true;
         }
 
         [[nodiscard]] bool pop(void* dst) {
-            VarFIFOIndex index_entry;
-            if (!index_buffer.pop(index_entry)) {
-                return false;  // Buffer is empty
+            ASSERT(dst != nullptr, "Destination pointer cannot be null.");
+
+            VarFIFOIndex idx;
+            if (!index_buffer.pop(idx)) {
+                return false;  // nothing to pop
             }
 
-            // Copy the item from the pool to the destination
-            std::memcpy(dst, pool.data() + index_entry.index, index_entry.size);
+            const size_t start = idx.index;
+            const size_t sz = idx.size;
+            uint8_t* dest = reinterpret_cast<uint8_t*>(dst);
 
-            // Update capacity used
-            capacity_used -= index_entry.size;
-            // Note: next_free_index is not decremented to avoid fragmentation.
-            // This is a simple implementation and does not wrap around memory.
+            // Copy out with wrap-around handling
+            if (start + sz <= PoolSize) {
+                std::memcpy(dest, pool.data() + start, sz);
+            } else {
+                const size_t first_chunk = PoolSize - start;
+                std::memcpy(dest, pool.data() + start, first_chunk);
+                std::memcpy(dest + first_chunk, pool.data(), sz - first_chunk);
+            }
 
+            // Update bookkeeping
+            capacity_used -= sz;
+            front_index = (start + sz) % PoolSize;
             return true;
         }
 
@@ -138,10 +176,11 @@ namespace dsa {
             pool.fill(0);
             index_buffer.clear();
             capacity_used = 0;
-            next_free_index = 0;
+            front_index = 0;
+            back_index = 0;
         }
 
-        size_t get_indices_used() const { return index_buffer.size(); }
+        size_t get_indices_used_count() const { return index_buffer.size(); }
         size_t get_capacity_used() const { return capacity_used; }
     };
 
@@ -152,7 +191,7 @@ namespace dsa {
      * concurrent push and pop operations. 
      */
     template <size_t PoolSize, size_t MaxItemCount>
-    class DoubleVarFIFO {}
+    class DoubleVarFIFO {};
 }  // namespace dsa
 
 #endif
