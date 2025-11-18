@@ -49,6 +49,13 @@ target_link_libraries(COMMUNICATION_TEST
         SUBSYSTEMS::COMMUNICATION
         MODULES::MESSAGE_CENTER)
 
+add_executable(FIFO_TEST fifo_test.cpp)
+target_link_libraries(FIFO_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        ALGORITHMS::FIFO)
+
 
 include(GoogleTest)
 gtest_discover_tests(PID_TEST)
@@ -57,3 +64,4 @@ gtest_discover_tests(RAMP_TEST)
 gtest_discover_tests(MOCK_RTOS_QUEUE_TEST)
 gtest_discover_tests(MESSAGE_CENTER_TEST)
 gtest_discover_tests(COMMUNICATION_TEST)
+gtest_discover_tests(FIFO_TEST)
