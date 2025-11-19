@@ -5,8 +5,8 @@
 
 // TODO: Make type safe memcpy/memset?
 #ifdef GTEST
-#include "assert.h"
-#include "stdlib.h"
+#include <cassert>
+#include <cstdlib>
 
 #define ASSERT(cond, msg) \
     if (!(cond))          \

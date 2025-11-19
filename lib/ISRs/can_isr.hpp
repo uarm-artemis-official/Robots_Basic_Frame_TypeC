@@ -2,8 +2,9 @@
 #define __CAN_ISR_HPP
 
 #include <functional>
+#include "../Middleware/middleware_interfaces.hpp"
 #include "isr_interfaces.hpp"
-#include "middleware_interfaces.hpp"
+
 
 namespace isr {
     namespace can {
