@@ -1,7 +1,10 @@
-#include "can2_tp.hpp"
+#ifndef __CAN2_TP_IPP
+#define __CAN2_TP_IPP
+
 #include <algorithm>
 #include <cstring>
-#include "uarm_lib.hpp"
+#include "../uarm_lib.hpp"
+#include "can2_tp.hpp"
 
 namespace can2_tp {
     namespace v1 {
@@ -104,6 +107,8 @@ namespace can2_tp {
             extid |= (val << LENGTH_SHIFT);
         }
 
+        // Length is additionally used for storing control flow IDs in some control flow frames
+        // (Ping and Pong).
         size_t get_length(uint32_t extid) {
             return static_cast<size_t>((extid & LENGTH_MASK) >> LENGTH_SHIFT);
         }
@@ -118,12 +123,17 @@ namespace can2_tp {
             return static_cast<uint8_t>((extid & MSGID_MASK) >> MSGID_SHIFT);
         }
 
-        void CAN2TP::set_send_message(const uint8_t* message, size_t length,
-                                      uint8_t message_id, uint8_t destination) {
-            ASSERT(length <= MAX_CAN2TP_MESSAGE_LENGTH,
+        // Template method implementations
+        template <size_t MaxMessageSize>
+        void CAN2TP<MaxMessageSize>::set_send_message(const uint8_t* message,
+                                                      size_t length,
+                                                      uint8_t message_id,
+                                                      uint8_t destination) {
+            ASSERT(length > MaxMessageSize,
                    "CAN2TP message length exceeds buffer capacity");
-            ASSERT(length >= MIN_SEGMENT_MESSAGE_LENGTH,
-                   "Message length must be greater than 8 for segmentation");
+            ASSERT(length < MIN_SEGMENT_MESSAGE_LENGTH,
+                   "Message length must be greater than "
+                   "MIN_SEGMENT_MESSAGE_LENGTH for segmentation");
 
             // initialize send buffer struct fields
             send_buffer.used_send_buffer_length = 0;
@@ -133,7 +143,9 @@ namespace can2_tp {
             memcpy(send_buffer.send_message_buffer, message, length);
         }
 
-        [[nodiscard]] bool CAN2TP::get_next_send_fragment(CAN2BFrame& frame) {
+        template <size_t MaxMessageSize>
+        [[nodiscard]] bool CAN2TP<MaxMessageSize>::get_next_send_fragment(
+            CAN2BFrame& frame) {
             // If nothing to send
             if (send_buffer.used_send_buffer_length >=
                 send_buffer.send_message_length) {
@@ -186,16 +198,26 @@ namespace can2_tp {
                    send_buffer.send_message_length;
         }
 
-        bool CAN2TP::process_segment_frame(const CAN2BFrame& frame) {
+        template <size_t MaxMessageSize>
+        bool CAN2TP<MaxMessageSize>::process_segment_frame(
+            const CAN2BFrame& frame) {
             switch (get_frame_type(frame.stdid)) {
                 case FrameType::FirstFrame: {
                     const size_t total_len = get_length(frame.extid);
-                    ASSERT(total_len <= MAX_CAN2TP_MESSAGE_LENGTH,
-                           "CAN2TP received first-frame total length exceeds "
-                           "buffer");
-                    ASSERT(total_len >= MIN_SEGMENT_MESSAGE_LENGTH,
-                           "CAN2TP received first-frame total length is less "
-                           "than minimum segmentation length");
+
+                    if (total_len > MaxMessageSize) {
+                        failure_message =
+                            "Detected first-frame total length exceeds buffer.";
+                        return false;
+                    }
+
+                    if (total_len <= MIN_SEGMENT_MESSAGE_LENGTH) {
+                        failure_message =
+                            "Detected first-frame total length is less than "
+                            "minimum segmentation length.";
+                        return false;
+                    }
+
                     receive_buffer.receive_message_length = total_len;
                     receive_buffer.used_receive_buffer_length = frame.length;
                     receive_buffer.receive_message_id =
@@ -203,9 +225,8 @@ namespace can2_tp {
                     receive_buffer.receive_source = get_source(frame.stdid);
                     memcpy(receive_buffer.receive_message_buffer, frame.payload,
                            frame.length);
-                    // not complete unless the first frame already contains whole message (rare)
-                    return receive_buffer.used_receive_buffer_length >=
-                           receive_buffer.receive_message_length;
+
+                    return true;
                 }
                 case FrameType::ConsecutiveFrame: {
                     // TODO: verify ordering using the index field (get_index(frame.extid))
@@ -215,9 +236,21 @@ namespace can2_tp {
                             ? (receive_buffer.receive_message_length -
                                receive_buffer.used_receive_buffer_length)
                             : 0;
-                    ASSERT(remaining >= frame.length,
-                           "CAN2TP received consecutive frame exceeds expected "
-                           "message length");
+
+                    if (remaining == 0) {
+                        failure_message =
+                            "Received consecutive frame but no message is "
+                            "being reassembled.";
+                        return false;
+                    }
+
+                    if (remaining < frame.length) {
+                        failure_message =
+                            "Received consecutive frame exceeds expected "
+                            "message length.";
+                        return false;
+                    }
+
                     const size_t to_copy =
                         std::min(remaining, static_cast<size_t>(frame.length));
                     if (to_copy > 0) {
@@ -226,9 +259,8 @@ namespace can2_tp {
                                frame.payload, to_copy);
                         receive_buffer.used_receive_buffer_length += to_copy;
                     }
-                    // return true if we've now completed the receive buffer
-                    return receive_buffer.used_receive_buffer_length >=
-                           receive_buffer.receive_message_length;
+
+                    return true;
                 }
                 default:
                     ASSERT(false,
@@ -236,20 +268,23 @@ namespace can2_tp {
             }
         }
 
-        bool CAN2TP::get_reassembled_message(void* message_received) {
+        template <size_t MaxMessageSize>
+        bool CAN2TP<MaxMessageSize>::get_reassembled_message(
+            void* message_received) {
             if (receive_buffer.used_receive_buffer_length >=
                 receive_buffer.receive_message_length) {
                 memcpy(message_received, receive_buffer.receive_message_buffer,
                        receive_buffer.receive_message_length);
                 return true;
             }
+            failure_message = "No complete message reassembled.";
             return false;
         }
 
-        [[nodiscard]] bool CAN2TP::get_single_frame(uint8_t* message,
-                                                    size_t& message_length,
-                                                    uint8_t destination,
-                                                    CAN2BFrame& frame) {
+        template <size_t MaxMessageSize>
+        [[nodiscard]] bool CAN2TP<MaxMessageSize>::get_single_frame(
+            uint8_t* message, size_t& message_length, uint8_t destination,
+            CAN2BFrame& frame) {
             // Check if message fits in a single frame
             ASSERT(message_length <= sizeof(frame.payload),
                    "Message too large for single frame");
@@ -274,20 +309,28 @@ namespace can2_tp {
             return true;
         }
 
-        [[nodiscard]] bool CAN2TP::process_single_frame(
+        template <size_t MaxMessageSize>
+        [[nodiscard]] bool CAN2TP<MaxMessageSize>::process_single_frame(
             const CAN2BFrame& frame, void* message_received) {
+            ASSERT(message_received != nullptr,
+                   "message_received pointer is null");
+
             // Verify frame type
-            ASSERT(get_frame_type(frame.stdid) != FrameType::SingleFrame,
-                   "Frame is not a single frame");
+            if (get_frame_type(frame.stdid) != FrameType::SingleFrame) {
+                failure_message =
+                    "Detected invalid frame type when processing single frame.";
+                return false;
+            }
 
             // Get length from extid
             const size_t length = get_length(frame.extid);
 
-            ASSERT(length <= sizeof(frame.payload),
-                   "Single frame length exceeds maximum payload size");
-            ASSERT(length > 0, "Single frame length must be greater than 0");
-            ASSERT(length <= frame.length,
-                   "Reported length greater than actual frame length");
+            if (length <= 0 || length > sizeof(frame.payload) ||
+                length > frame.length) {
+                failure_message =
+                    "Detected invalid length when processing single frame.";
+                return false;
+            }
 
             // Copy payload to output buffer
             memcpy(message_received, frame.payload, length);
@@ -295,10 +338,12 @@ namespace can2_tp {
             return true;
         }
 
-        bool CAN2TP::get_control_flow_frame(CAN2BFrame& frame,
-                                            ControlFlowID flow_id,
-                                            uint8_t destination, void* params) {
-            (void) params;  // unused for now
+        template <size_t MaxMessageSize>
+        bool CAN2TP<MaxMessageSize>::get_control_flow_frame(
+            CAN2BFrame& frame, ControlFlowID flow_id, uint8_t destination,
+            void* params) {
+            (void)
+                params;  // unused for all currenttly supported control flow frames.
             // Clear frame
             frame.stdid = 0;
             frame.extid = 0;
@@ -320,18 +365,24 @@ namespace can2_tp {
                                frame.extid);
                     break;
                 default:
-                    ASSERT(false, "Invalid control flow ID");
+                    ASSERT(false,
+                           "Attempting to get invalid control flow frame with "
+                           "unknown ID.");
                     return false;
             }
-
             return true;
         }
 
-        bool CAN2TP::process_control_flow_frame(const CAN2BFrame& frame,
-                                                void* message_received) {
+        template <size_t MaxMessageSize>
+        bool CAN2TP<MaxMessageSize>::process_control_flow_frame(
+            const CAN2BFrame& frame, void* message_received) {
+            ASSERT(message_received != nullptr,
+                   "message_received pointer is null");
             // Verify frame type
             if (get_frame_type(frame.stdid) != FrameType::FlowControlFrame) {
-                ASSERT(false, "Not a flow control frame");
+                failure_message =
+                    "Detected invalid frame type when processing control flow "
+                    "frame.";
                 return false;
             }
 
@@ -348,12 +399,11 @@ namespace can2_tp {
                     *flow_id = ControlFlowID::Pong;
                     break;
                 default:
-                    ASSERT(false, "Invalid control flow ID received");
                     return false;
             }
 
             return true;
         }
-
     }  // namespace v1
 }  // namespace can2_tp
+#endif
