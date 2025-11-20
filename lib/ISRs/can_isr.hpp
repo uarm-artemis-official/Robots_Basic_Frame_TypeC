@@ -31,7 +31,8 @@ namespace isr {
             CAN_ISR(MW_CAN::ICAN& can_ref);
 
             [[nodiscard]] bool init() override;
-
+            [[nodiscard]] bool on_register_init(size_t init_func_idx) override;
+            [[nodiscard]] bool on_register_routine(size_t routine_func_idx) override;
             void run_isr_routines(ECallbacks callback_running,
                                   TISRState callback_state) override;
         };

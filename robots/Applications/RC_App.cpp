@@ -103,18 +103,8 @@
  *
  *********************************************************************************/
 RCApp::RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref, IRCComm& rc_comm_ref,
-             isr::uart::UART_ISR& uart_isr)
-    : RTOSApp(_rtos), mc(mc_ref), rc_comm(rc_comm_ref) {
-    ASSERT(uart_isr.register_init(
-               [this](MW_UART::IUART& uart) { return uart_isr_init(uart); }),
-           "Failed to register UART ISR init function.");
-    ASSERT(uart_isr.register_routine(
-               isr::uart::ECallbacks::RECEIVE_COMPLETE,
-               [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
-                   uart_isr_receive_complete(uart, peripheral);
-               }),
-           "Failed to register UART ISR routine.");
-}
+             isr::uart::UART_ISR& _uart_isr)
+    : RTOSApp(_rtos), mc(mc_ref), rc_comm(rc_comm_ref), uart_isr(_uart_isr) {}
 
 void RCApp::init() {
     memset(rc_raw.rc_bytes.data(), 0, sizeof(rc_raw.rc_bytes));
@@ -132,6 +122,17 @@ void RCApp::init() {
     pc_act_mode = INDPET_MODE;
     pc_shoot_mode = SHOOT_CEASE;
     pc_ammo_status = ammo_lid::LidStatus::CLOSED;
+
+    ASSERT(uart_isr.register_routine(
+               isr::uart::ECallbacks::RECEIVE_COMPLETE,
+               [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
+                   uart_isr_receive_complete(uart, peripheral);
+               }),
+           "Failed to register UART ISR routine.");
+
+    ASSERT(uart_isr.register_init(
+               [this](MW_UART::IUART& uart) { return uart_isr_init(uart); }),
+           "Failed to register UART ISR init function.");
 }
 
 void RCApp::loop() {

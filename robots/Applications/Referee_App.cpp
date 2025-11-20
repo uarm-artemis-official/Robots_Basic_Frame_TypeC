@@ -55,27 +55,13 @@
 //  */
 RefereeApp::RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
                        IEventCenter& evt_center, IDebug& debug, IRefUI& ref_ui,
-                       isr::uart::UART_ISR& uart_isr)
+                       isr::uart::UART_ISR& _uart_isr)
     : RTOSApp(_rtos),
       mc(mc_ref),
       event_center(evt_center),
       debug(debug),
-      ref_ui(ref_ui) {
-    uart_isr.register_init(
-        [this](MW_UART::IUART& uart) { return uart_isr_init(uart); });
-
-    uart_isr.register_routine(
-        isr::uart::ECallbacks::RECEIVE_COMPLETE,
-        [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
-            uart_isr_receive_complete(uart, peripheral);
-        });
-
-    uart_isr.register_routine(
-        isr::uart::ECallbacks::ON_ERROR,
-        [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
-            uart_isr_on_error(uart, peripheral);
-        });
-}
+      ref_ui(ref_ui),
+      uart_isr(_uart_isr) {}
 
 void RefereeApp::init() {
     // Initialization code for referee app
@@ -96,6 +82,21 @@ void RefereeApp::init() {
     ref.robot_status_data.robot_level = 1;
     ref.ref_cmd_id = IDLE_ID;
     ref.robot_color = UNKOWN;
+
+    uart_isr.register_routine(
+        isr::uart::ECallbacks::RECEIVE_COMPLETE,
+        [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
+            uart_isr_receive_complete(uart, peripheral);
+        });
+
+    uart_isr.register_routine(
+        isr::uart::ECallbacks::ON_ERROR,
+        [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
+            uart_isr_on_error(uart, peripheral);
+        });
+
+    uart_isr.register_init(
+        [this](MW_UART::IUART& uart) { return uart_isr_init(uart); });
 }
 
 void RefereeApp::loop() {

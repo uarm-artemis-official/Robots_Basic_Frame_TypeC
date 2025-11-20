@@ -47,6 +47,7 @@ namespace isr {
                    "Registered too many ISR routines.");
             routines[routines_size++] =
                 std::make_pair(std::function(routine_func), register_for);
+            on_register_routine(routines_size - 1);
             return true;
         }
 
@@ -58,10 +59,16 @@ namespace isr {
             ASSERT(init_funcs_size < MAX_REGISTERED_ROUTINES,
                    "Registered too many ISR routines.");
             init_funcs[init_funcs_size++] = std::function(init_func);
+            on_register_init(init_funcs_size - 1);
             return true;
         }
 
         [[nodiscard]] virtual bool init() = 0;
+
+        // Event handlers for successful registration of routines and init functions.
+        [[nodiscard]] virtual bool on_register_init(size_t init_func_idx) = 0;
+        [[nodiscard]] virtual bool on_register_routine(size_t routine_func_idx) = 0;
+
         virtual void run_isr_routines(ECallbacks callback_running,
                                       TISRState callback_state) = 0;
     };

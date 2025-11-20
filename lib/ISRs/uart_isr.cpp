@@ -5,13 +5,8 @@ namespace isr {
     namespace uart {
         UART_ISR::UART_ISR(MW_UART::IUART& _uart) : uart(_uart) {}
 
-        // TODO: Add resource reservation to avoid conflicts.
         bool UART_ISR::init() {
-            bool success = true;
-            for (size_t i = 0; i < init_funcs_size; i++) {
-                success &= init_funcs[i](uart);
-            }
-            return success;
+            return true;
         }
 
         void UART_ISR::run_isr_routines(ECallbacks callback_running,
@@ -37,6 +32,15 @@ namespace isr {
                     ASSERT(false, "Unhandled CAN ISR callback.");
                     break;
             }
+        }
+
+        bool UART_ISR::on_register_init(size_t init_func_idx) {
+            return init_funcs[init_func_idx](uart);
+        }
+
+        bool UART_ISR::on_register_routine(size_t routine_func_idx) {
+            (void) routine_func_idx;
+            return true;
         }
     }  // namespace uart
 }  // namespace isr

@@ -27,18 +27,12 @@
 
 TimerApp::TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
                    mc2::RobotMC& mc2_ref, IDebug& debug_ref,
-                   isr::can::CAN_ISR& can_isr)
+                   isr::can::CAN_ISR& _can_isr)
     : RTOSApp(_rtos),
       system_motors(system_motors_ref),
       mc(mc2_ref),
-      debug(debug_ref) {
-    can_isr.register_init(
-        [this](MW_CAN::ICAN& can) { return can_isr_init(can); });
-    can_isr.register_routine(isr::can::ECallbacks::MESSAGE_PENDING,
-                             [this](MW_CAN::BUS bus, isr::can::CANFrame frame) {
-                                 can_isr_message_receive(bus, frame);
-                             });
-}
+      debug(debug_ref),
+      can_isr(_can_isr) {}
 
 void TimerApp::init() {
     BoardStatus_t status = debug.get_board_status();
@@ -64,6 +58,16 @@ void TimerApp::init() {
             ASSERT(0, "Unsupported board status in Timer.");
     }
     system_motors.init(config);
+
+    ASSERT(can_isr.register_routine(
+               isr::can::ECallbacks::MESSAGE_PENDING,
+               [this](MW_CAN::BUS bus, isr::can::CANFrame frame) {
+                   can_isr_message_receive(bus, frame);
+               }),
+           "Failed to register CAN ISR routine.");
+    ASSERT(can_isr.register_init(
+               [this](MW_CAN::ICAN& can) { return can_isr_init(can); }),
+           "Failed to register CAN ISR init function.");
 }
 
 void TimerApp::loop() {
@@ -90,11 +94,12 @@ void TimerApp::parse_motor_feedback(isr::can::CANFrame frame) {
         if (motor_read.can_ids[i] == 0)
             free_index = i;
         if (motor_read.can_ids[i] == frame.stdid) {
+            free_index = i;
             break;
         }
     }
 
-    if (free_index < MAX_MOTOR_COUNT) {
+    if (free_index != 0xff && free_index < MAX_MOTOR_COUNT) {
         std::memcpy(motor_read.feedback[free_index], frame.payload,
                     sizeof(frame.payload_length));
         motor_read.can_ids[free_index] =

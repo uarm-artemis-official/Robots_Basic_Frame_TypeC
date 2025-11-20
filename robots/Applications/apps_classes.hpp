@@ -262,6 +262,7 @@ class RefereeApp
     IEventCenter& event_center;
     IDebug& debug;
     IRefUI& ref_ui;  // Referee UI interface
+    isr::uart::UART_ISR& uart_isr;
 
     mc2::RefereeIn uart_referee_in;
     Referee_t ref;
@@ -272,7 +273,7 @@ class RefereeApp
    public:
     explicit RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
                         IEventCenter& evt_center, IDebug& debug, IRefUI& ref_ui,
-                        isr::uart::UART_ISR& uart_isr);
+                        isr::uart::UART_ISR& _uart_isr);
     void init();
     void loop();
     bool uart_isr_init(MW_UART::IUART& uart);
@@ -290,6 +291,7 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
     IRCComm& rc_comm;
+    isr::uart::UART_ISR& uart_isr;
 
     // TODO: remove and replace with rc_rx_buffer.
     mc2::RCRaw rc_raw;
@@ -331,12 +333,14 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
 class TimerApp
     : public RTOSApp<TimerApp, apps_defines::timer_task_loop_period_ms> {
    private:
-    const std::array<Motor_CAN_ID_t, 4> swerve_ids = {
-        SWERVE_STEER_MOTOR1, SWERVE_STEER_MOTOR2, SWERVE_STEER_MOTOR3,
-        SWERVE_STEER_MOTOR4};
     IMotors& system_motors;
     mc2::RobotMC& mc;
     IDebug& debug;
+    isr::can::CAN_ISR& can_isr;
+
+    const std::array<Motor_CAN_ID_t, 4> swerve_ids = {
+        SWERVE_STEER_MOTOR1, SWERVE_STEER_MOTOR2, SWERVE_STEER_MOTOR3,
+        SWERVE_STEER_MOTOR4};
     mc2::MotorSet motor_set;
     BoardStatus_t board_status;
     mc2::MotorRead motor_read;
@@ -359,6 +363,7 @@ class PCUARTApp
     mc2::RobotMC& mc;
     IMotors& motors;
     IPCComm& pc_comm;
+    isr::uart::UART_ISR& uart_isr;
 
     uint32_t idle_count = 0;
     mc2::UCPackIn uc_pack_in;
@@ -369,7 +374,7 @@ class PCUARTApp
    public:
     explicit PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
                        IMotors& motors_, IPCComm& pc_comm_,
-                       isr::uart::UART_ISR& uart_isr);
+                       isr::uart::UART_ISR& _uart_isr);
     void init();
     void loop();
     bool uart_isr_init(MW_UART::IUART& uart);
@@ -386,6 +391,8 @@ namespace CommApp {
         mc2::RobotMC& mc;
         IDebug& debug;
         MW_CAN::ICAN& can;
+        isr::can::CAN_ISR& can_isr;
+
         BoardStatus_t board_status;
         Config config;
 

@@ -434,8 +434,8 @@ namespace MW_UART {
      */
     bool UART::receive_data(Peripheral uart, uint8_t* data, uint32_t length) {
         ASSERT(data != nullptr, "Cannot receive data to nullptr.");
-        HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
-        return false;  // Placeholder for actual implementation
+        HAL_StatusTypeDef res = HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
+        return res == HAL_OK;  // Placeholder for actual implementation
     }
 
     /**

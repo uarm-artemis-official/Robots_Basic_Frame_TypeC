@@ -17,23 +17,27 @@
 
 PCUARTApp::PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
                      IMotors& motors_, IPCComm& pc_comm_,
-                     isr::uart::UART_ISR& uart_isr)
-    : RTOSApp(_rtos), mc(mc_ref), motors(motors_), pc_comm(pc_comm_) {
+                     isr::uart::UART_ISR& _uart_isr)
+    : RTOSApp(_rtos),
+      mc(mc_ref),
+      motors(motors_),
+      pc_comm(pc_comm_),
+      uart_isr(_uart_isr) {
     memset(uc_pack_in.bytes.data(), 0, sizeof(uc_pack_in.bytes));
+}
 
-    ASSERT(uart_isr.register_init(
-               [this](MW_UART::IUART& uart) { return uart_isr_init(uart); }),
-           "Failed to register UART ISR init function.");
+void PCUARTApp::init() {
+    pc_comm.start_receive(uc_pack_in.bytes.data());
+
     ASSERT(uart_isr.register_routine(
                isr::uart::ECallbacks::RECEIVE_COMPLETE,
                [this](MW_UART::IUART& uart, MW_UART::Peripheral peripheral) {
                    uart_isr_receive_complete(uart, peripheral);
                }),
            "Failed to register UART ISR receive complete routine.");
-}
-
-void PCUARTApp::init() {
-    pc_comm.start_receive(uc_pack_in.bytes.data());
+    ASSERT(uart_isr.register_init(
+               [this](MW_UART::IUART& uart) { return uart_isr_init(uart); }),
+           "Failed to register UART ISR init function.");
 }
 
 void PCUARTApp::loop() {
