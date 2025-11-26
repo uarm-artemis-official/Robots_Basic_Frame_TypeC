@@ -187,7 +187,7 @@ namespace MW_UART {
          * @note This method cannot be blocking.
          * @param[in] uart The UART peripheral to receive data from.
          * @param[out] data The buffer to store the received data.
-         * @param[out] length The length of the received data.
+         * @param[out] length The expected length of data to receive.
          * @return true if data was received successfully, false otherwise.
          * @pre 0 < length <= MAX_UART_BUFFER_SIZE
          */

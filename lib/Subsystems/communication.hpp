@@ -9,7 +9,6 @@
 #include "../Modules/uc_uart.hpp"
 
 // TODO: Implement communication system.
-// TODO: Design testing strategy for template classes.
 // TODO: Integrate communication system into robot.
 
 namespace comm {
