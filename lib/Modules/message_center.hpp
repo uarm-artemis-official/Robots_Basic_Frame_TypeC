@@ -17,14 +17,11 @@ namespace mc2 {
         static constexpr size_t queue_size = _queue_size;
     };
 
-    template <typename TMessage, MessageNode _destination,
+    template <size_t queue_size, typename TMessage, MessageNode _destination,
               bool _also_local = false>
-    struct InterboardMessage {
+    struct InterboardMessage : Topic<queue_size> {
         static constexpr MessageNode destination = _destination;
         static constexpr bool also_local = _also_local;
-
-        virtual void encode(std::array<uint8_t, 200>& bytes) = 0;
-        virtual void decode(std::array<uint8_t, 200>& bytes) = 0;
     };
 
     struct TopicHandle {

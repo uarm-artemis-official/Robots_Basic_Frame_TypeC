@@ -6,9 +6,9 @@
 #include <optional>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include "../uarm_lib.hpp"
 #include "message_center.hpp"
-
 
 namespace mc2 {
     template <typename Tuple>
@@ -23,14 +23,19 @@ namespace mc2 {
         }
     };
 
+    template <typename T, typename = void>
+    constexpr bool is_interboard_message = false;
+
+    // TODO: Add more robust check for InterboardMessage inheritance?
+    template <typename T>
+    constexpr bool
+        is_interboard_message<T, std::void_t<decltype(T::Serializer)>> = true;
+
     template <typename List, int index>
     struct interboard_present_operator {
         constexpr bool operator()() {
             using TypeAtIndex = std::tuple_element_t<index, List>;
-            return std::is_base_of<
-                TypeAtIndex,
-                InterboardMessage<TypeAtIndex, TypeAtIndex::destination,
-                                  TypeAtIndex::also_local>>::value;
+            return is_interboard_message<TypeAtIndex>;
         }
     };
 
@@ -43,8 +48,7 @@ namespace mc2 {
     template <typename List, size_t... Is>
     constexpr auto get_interboard_present_array(std::index_sequence<Is...>) {
         return std::array<bool, std::tuple_size_v<List>> {
-            interboard_present_operator<List, Is> {}.template operator()()...
-        };
+            is_interboard_message<std::tuple_element_t<Is, List>>...};
     }
 
     template <typename List, typename F, typename TFArgs, size_t... Is>
@@ -137,6 +141,19 @@ namespace mc2 {
                                       MW_RTOS::IRTOS& rtos) {
         return std::array<TopicHandle, std::tuple_size_v<TopicRegistry>> {
             generate_topic_handle<Is, TopicRegistry>(rtos)...};
+    }
+
+    template <typename TopicRegistry, typename Op, int index>
+    void interboard_foreach_impl(Op& op) {
+        using TopicType = std::tuple_element_t<index, TopicRegistry>;
+        if constexpr (is_interboard_message<TopicType>) {
+            op.template operator()<TopicType>();
+        }
+    }
+
+    template <typename TopicRegistry, typename Op, size_t... Is>
+    auto interboard_foreach(Op& op, std::index_sequence<Is...>) {
+        (interboard_foreach_impl<TopicRegistry, Op, Is>(op), ...);
     }
 
     template <typename TopicRegistry>
