@@ -233,9 +233,7 @@ namespace CommApp {
 
         void CommApp::publish_new_mesage_from_buffer(uint8_t message_id) {
             publisher.temp_span = std::span(message_temp_buffer);
-            mc2::run_on_topic_comm_id<mc2::RobotMC::Topics>(
-                message_id, publisher,
-                mc2::get_tuple_index<mc2::RobotMC::Topics>());
+            // TODO: Finish implementation to map message_id to topic type.
         }
 
         void CommApp::loop() {
