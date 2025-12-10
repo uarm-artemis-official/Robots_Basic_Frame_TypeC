@@ -1,9 +1,14 @@
+include(GoogleTest)
+
 add_subdirectory(mocks)
+add_subdirectory(fakes)
 add_subdirectory(fixtures)
 
 add_library(TEST_TARGET INTERFACE)
 target_compile_options(TEST_TARGET INTERFACE --coverage)
 target_link_options(TEST_TARGET INTERFACE --coverage)
+
+add_subdirectory(regression)
 
 add_executable(PID_TEST pid_test.cpp)
 target_link_libraries(PID_TEST 
@@ -41,6 +46,16 @@ target_link_libraries(MESSAGE_CENTER_TEST
         MW::MIDDLEWARE
         MODULES::MESSAGE_CENTER)
 
+add_executable(FAKE_MESSAGE_CENTER_TEST fake_message_center_test.cpp)
+target_link_libraries(FAKE_MESSAGE_CENTER_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        MW::MIDDLEWARE
+        MIDDLEWARE_MOCKS
+        MODULES::MESSAGE_CENTER
+        LIB::FAKE_MESSAGE_CENTER)
+
 add_executable(COMMUNICATION_TEST communication_test.cpp)
 target_link_libraries(COMMUNICATION_TEST
     PRIVATE
@@ -57,11 +72,11 @@ target_link_libraries(FIFO_TEST
         ALGORITHMS::FIFO)
 
 
-include(GoogleTest)
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)
 gtest_discover_tests(RAMP_TEST)
 gtest_discover_tests(MOCK_RTOS_QUEUE_TEST)
 gtest_discover_tests(MESSAGE_CENTER_TEST)
+gtest_discover_tests(FAKE_MESSAGE_CENTER_TEST)
 gtest_discover_tests(COMMUNICATION_TEST)
 gtest_discover_tests(FIFO_TEST)

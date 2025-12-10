@@ -96,15 +96,10 @@ namespace dsa {
        public:
         VarFIFO() { pool.fill(0); }
 
-        template <typename T>
-        [[nodiscard]] bool push(T& item) {
+        [[nodiscard]] bool push(const uint8_t* item, size_t item_size) {
             constexpr size_t MIN_ITEM_SIZE = 1;
-            static_assert(sizeof(T) <= PoolSize,
-                          "Item too large for the pool.");
-            static_assert(sizeof(T) > MIN_ITEM_SIZE,
-                          "Item cannot be zero-sized.");
-
-            const size_t item_size = sizeof(T);
+            ASSERT(item_size <= PoolSize, "Item too large for the pool.");
+            ASSERT(item_size >= MIN_ITEM_SIZE, "Item cannot be zero-sized.");
 
             // Check index buffer availability
             if (index_buffer.is_full()) {
@@ -117,16 +112,15 @@ namespace dsa {
             }
 
             const size_t start = back_index;
-            const uint8_t* src = reinterpret_cast<const uint8_t*>(&item);
 
             // Copy into pool with wrap-around if necessary
             if (start + item_size <= PoolSize) {
                 // contiguous copy
-                std::memcpy(pool.data() + start, src, item_size);
+                std::memcpy(pool.data() + start, item, item_size);
             } else {
                 const size_t first_chunk = PoolSize - start;
-                std::memcpy(pool.data() + start, src, first_chunk);
-                std::memcpy(pool.data(), src + first_chunk,
+                std::memcpy(pool.data() + start, item, first_chunk);
+                std::memcpy(pool.data(), item + first_chunk,
                             item_size - first_chunk);
             }
 
@@ -145,7 +139,7 @@ namespace dsa {
             return true;
         }
 
-        [[nodiscard]] bool pop(void* dst) {
+        [[nodiscard]] bool pop(uint8_t* dst, size_t& out_size) {
             ASSERT(dst != nullptr, "Destination pointer cannot be null.");
 
             VarFIFOIndex idx;
@@ -155,20 +149,21 @@ namespace dsa {
 
             const size_t start = idx.index;
             const size_t sz = idx.size;
-            uint8_t* dest = reinterpret_cast<uint8_t*>(dst);
 
             // Copy out with wrap-around handling
             if (start + sz <= PoolSize) {
-                std::memcpy(dest, pool.data() + start, sz);
+                std::memcpy(dst, pool.data() + start, sz);
             } else {
                 const size_t first_chunk = PoolSize - start;
-                std::memcpy(dest, pool.data() + start, first_chunk);
-                std::memcpy(dest + first_chunk, pool.data(), sz - first_chunk);
+                std::memcpy(dst, pool.data() + start, first_chunk);
+                std::memcpy(dst + first_chunk, pool.data(), sz - first_chunk);
             }
 
             // Update bookkeeping
             capacity_used -= sz;
             front_index = (start + sz) % PoolSize;
+            out_size = sz;
+
             return true;
         }
 
