@@ -1,48 +1,57 @@
 #ifndef __TOPICS__HPP
 #define __TOPICS__HPP
 
+#include <cstdint>
 #include <cstring>
+#include <span>
 #include "message_center.hpp"
 #include "subsystems_types.hpp"
 #include "uarm_lib.hpp"
 
 namespace mc2 {
-    struct ShootCommand
-        : InterboardMessage<1, ShootCommand, MessageNode::Gimbal> {
+    struct ShootCommand : InterboardMessage<1, 6, MessageNode::Gimbal> {
         uint32_t command_bits;
         uint32_t extra_bits;
 
-        static void serialize(const ShootCommand& msg, uint8_t* dst) {
+        static void serialize(const ShootCommand& msg,
+                              std::span<uint8_t, serialized_size> dst) {
             ASSERT((msg.extra_bits & 0xffff0000) == 0,
                    "Incoming extra_bits must not have 16 MSB set.");
             uint32_t encoded_command_bits = msg.command_bits;
             uint16_t encoded_extra_bits = msg.extra_bits & 0xffff;
-            memcpy(dst, &encoded_command_bits, sizeof(uint32_t));
-            memcpy(dst + sizeof(uint32_t), &encoded_extra_bits,
-                   sizeof(uint16_t));
+
+            dst[0] = encoded_command_bits & 0xFF;
+            dst[1] = (encoded_command_bits >> 8) & 0xFF;
+            dst[2] = (encoded_command_bits >> 16) & 0xFF;
+            dst[3] = (encoded_command_bits >> 24) & 0xFF;
+
+            dst[4] = encoded_extra_bits & 0xFF;
+            dst[5] = (encoded_extra_bits >> 8) & 0xFF;
         }
 
-        static void deserialize(ShootCommand& msg, const uint8_t* src) {
+        static void deserialize(ShootCommand& msg,
+                                std::span<const uint8_t, serialized_size> src) {
             uint32_t encoded_command_bits;
             uint16_t encoded_extra_bits;
-            memcpy(&encoded_command_bits, src, sizeof(uint32_t));
-            memcpy(&encoded_extra_bits, src + sizeof(uint32_t),
-                   sizeof(uint16_t));
+            encoded_command_bits = static_cast<uint32_t>(src[0]) |
+                                   (static_cast<uint32_t>(src[1]) << 8) |
+                                   (static_cast<uint32_t>(src[2]) << 16) |
+                                   (static_cast<uint32_t>(src[3]) << 24);
+            encoded_extra_bits = static_cast<uint16_t>(src[4]) |
+                                 (static_cast<uint16_t>(src[5]) << 8);
             msg.command_bits = encoded_command_bits;
             msg.extra_bits = encoded_extra_bits & 0xffff;
-            ASSERT((msg.extra_bits & 0xffff0000) == 0,
-                   "Incoming extra_bits must not have 16 MSB set.");
         }
     };
 
-    struct GimbalCommand
-        : InterboardMessage<1, GimbalCommand, MessageNode::Gimbal> {
+    struct GimbalCommand : InterboardMessage<1, 6, MessageNode::Gimbal> {
         // yaw and pitch fields are in radians and requested changes in yaw/pitch (deltas).
         float yaw;
         float pitch;
         uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
 
-        static void serialize(const GimbalCommand& msg, uint8_t* dst) {
+        static void serialize(const GimbalCommand& msg,
+                              std::span<uint8_t, serialized_size> dst) {
             ASSERT(-2 * PI < msg.yaw && msg.yaw < 2 * PI,
                    "Outgoing yaw out of acceptable range (-2PI, 2PI).");
             ASSERT(-2 * PI < msg.pitch && msg.pitch < 2 * PI,
@@ -52,20 +61,27 @@ namespace mc2 {
             int16_t encoded_yaw = msg.yaw * 5000;
             int16_t encoded_pitch = msg.pitch * 5000;
             uint16_t encoded_command_bits = msg.command_bits & 0xffff;
-            memcpy(dst, &encoded_yaw, sizeof(int16_t));
-            memcpy(dst + sizeof(int16_t), &encoded_pitch, sizeof(int16_t));
-            memcpy(dst + sizeof(int16_t) + sizeof(int16_t),
-                   &encoded_command_bits, sizeof(uint16_t));
+
+            dst[0] = encoded_yaw & 0xFF;
+            dst[1] = (encoded_yaw >> 8) & 0xFF;
+            dst[2] = encoded_pitch & 0xFF;
+            dst[3] = (encoded_pitch >> 8) & 0xFF;
+            dst[4] = encoded_command_bits & 0xFF;
+            dst[5] = (encoded_command_bits >> 8) & 0xFF;
         }
 
-        static void deserialize(GimbalCommand& msg, const uint8_t* src) {
+        static void deserialize(GimbalCommand& msg,
+                                std::span<const uint8_t, serialized_size> src) {
             int16_t encoded_yaw;
             int16_t encoded_pitch;
             uint16_t encoded_command_bits;
-            memcpy(&encoded_yaw, src, sizeof(int16_t));
-            memcpy(&encoded_pitch, src + sizeof(int16_t), sizeof(int16_t));
-            memcpy(&encoded_command_bits,
-                   src + sizeof(int16_t) + sizeof(int16_t), sizeof(uint16_t));
+
+            encoded_yaw = static_cast<int16_t>(src[0]) |
+                          (static_cast<int16_t>(src[1]) << 8);
+            encoded_pitch = static_cast<int16_t>(src[2]) |
+                            (static_cast<int16_t>(src[3]) << 8);
+            encoded_command_bits = static_cast<uint16_t>(src[4]) |
+                                   (static_cast<uint16_t>(src[5]) << 8);
             msg.yaw = static_cast<float>(encoded_yaw) / 5000;
             msg.pitch = static_cast<float>(encoded_pitch) / 5000;
             msg.command_bits = static_cast<uint32_t>(encoded_command_bits);
@@ -79,7 +95,7 @@ namespace mc2 {
     };
 
     struct GimbalRelativeAngles
-        : InterboardMessage<1, GimbalRelativeAngles, MessageNode::Chassis> {
+        : InterboardMessage<1, 4, MessageNode::Chassis> {
         // yaw and pitch are relative to chassis front and in radians.
 
         // TODO: Verify sign conventions.
@@ -87,22 +103,28 @@ namespace mc2 {
         float yaw;
         float pitch;
 
-        static void serialize(const GimbalRelativeAngles& msg, uint8_t* dst) {
+        static void serialize(const GimbalRelativeAngles& msg,
+                              std::span<uint8_t, serialized_size> dst) {
             ASSERT(-PI < msg.yaw && msg.yaw < PI,
                    "Outgoing yaw out of acceptable range (-PI, PI).");
             ASSERT(-PI < msg.pitch && msg.pitch < PI,
                    "Outgoing pitch out of acceptable range (-PI, PI).");
             int16_t encoded_yaw = msg.yaw * 10000;
             int16_t encoded_pitch = msg.pitch * 10000;
-            memcpy(dst, &encoded_yaw, sizeof(int16_t));
-            memcpy(dst + sizeof(int16_t), &encoded_pitch, sizeof(int16_t));
+            dst[0] = encoded_yaw & 0xFF;
+            dst[1] = (encoded_yaw >> 8) & 0xFF;
+            dst[2] = encoded_pitch & 0xFF;
+            dst[3] = (encoded_pitch >> 8) & 0xFF;
         }
 
-        static void deserialize(GimbalRelativeAngles& msg, const uint8_t* src) {
+        static void deserialize(GimbalRelativeAngles& msg,
+                                std::span<const uint8_t, serialized_size> src) {
             int16_t encoded_yaw;
             int16_t encoded_pitch;
-            memcpy(&encoded_yaw, src, sizeof(int16_t));
-            memcpy(&encoded_pitch, src + sizeof(int16_t), sizeof(int16_t));
+            encoded_yaw = static_cast<int16_t>(src[0]) |
+                          (static_cast<int16_t>(src[1]) << 8);
+            encoded_pitch = static_cast<int16_t>(src[2]) |
+                            (static_cast<int16_t>(src[3]) << 8);
             msg.yaw = static_cast<float>(encoded_yaw) / 10000;
             msg.pitch = static_cast<float>(encoded_pitch) / 10000;
             ASSERT(-PI < msg.yaw && msg.yaw < PI,
@@ -112,20 +134,21 @@ namespace mc2 {
         }
     };
 
-    struct RefereeInfo
-        : InterboardMessage<1, RefereeInfo, MessageNode::Gimbal> {
+    struct RefereeInfo : InterboardMessage<1, 8, MessageNode::Gimbal> {
         uint8_t robot_id;
         uint8_t robot_level;
         uint16_t shoot_barrel_cooling_rate;
         uint16_t shoot_barrel_heat_limit;
         uint16_t chassis_power_limit;
 
-        static void serialize(const RefereeInfo& msg, uint8_t* dst) {
+        static void serialize(const RefereeInfo& msg,
+                              std::span<uint8_t, serialized_size> dst) {
             (void) msg;
             (void) dst;
         }
 
-        static void deserialize(RefereeInfo& msg, const uint8_t* src) {
+        static void deserialize(RefereeInfo& msg,
+                                std::span<const uint8_t, serialized_size> src) {
             (void) msg;
             (void) src;
         }
@@ -196,7 +219,7 @@ namespace mc2 {
 
     // TODO: Add create registry template function to impose restrictions on valid types
     // for use as topics. Check that all types eventually derive from Topic<> and that
-    // topics that derive from InterboardMessage<> implement serializer() and deserialize()
+    // topics that derive from InterboardMessage<> implement serialize() and deserialize()
     // static methods.
     using RobotTopics =
         std::tuple<MotorSet, MotorRead, ChassisCommand, GimbalCommand,

@@ -152,8 +152,22 @@ namespace mc2 {
     }
 
     template <typename TopicRegistry, typename Op, size_t... Is>
-    auto interboard_foreach(Op& op, std::index_sequence<Is...>) {
+    auto interboard_foreach(Op&& op, std::index_sequence<Is...>) {
         (interboard_foreach_impl<TopicRegistry, Op, Is>(op), ...);
+    }
+
+    template <typename TopicList, size_t index, typename F>
+    void run_on_topic_comm_id_impl(int i, F& f) {
+        using IndexedTopic = std::tuple_element_t<index, TopicList>;
+        constexpr size_t topic_comm_id = get_comm_id<IndexedTopic, TopicList>();
+        if (i == topic_comm_id) {
+            f.template operator()<IndexedTopic>();
+        }
+    }
+
+    template <typename TopicList, typename F, size_t... Is>
+    void run_on_topic_comm_id(int i, F& f, std::index_sequence<Is...>) {
+        (run_on_topic_comm_id_impl<TopicList, Is>(i, f), ...);
     }
 
     template <typename TopicRegistry>

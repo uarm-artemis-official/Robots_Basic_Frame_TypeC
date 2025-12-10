@@ -385,29 +385,83 @@ class PCUARTApp
 };
 
 namespace CommApp {
-    class CommApp
-        : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
-       private:
-        mc2::RobotMC& mc;
-        IDebug& debug;
-        MW_CAN::ICAN& can;
-        isr::can::CAN_ISR& can_isr;
+    inline namespace v1 {
+        class CommApp
+            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
+           private:
+            mc2::RobotMC& mc;
+            IDebug& debug;
+            MW_CAN::ICAN& can;
+            isr::can::CAN_ISR& can_isr;
 
-        BoardStatus_t board_status;
-        Config config;
+            BoardStatus_t board_status;
+            Config config;
 
-       public:
-        explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                         IDebug& debug, MW_CAN::ICAN& can, Config config,
-                         isr::can::CAN_ISR& can_isr);
-        void init();
-        void loop();
-        bool transmit_interboard_message(const uint32_t message_id,
-                                         const uint8_t message_data[8]);
-        bool can_isr_init(MW_CAN::ICAN& can);
-        void can_isr_on_message_pending(MW_CAN::BUS bus,
-                                        isr::can::CANFrame frame);
-    };
+           public:
+            explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                             IDebug& debug, MW_CAN::ICAN& can, Config config,
+                             isr::can::CAN_ISR& can_isr);
+            void init();
+            void loop();
+            bool transmit_interboard_message(const uint32_t message_id,
+                                             const uint8_t message_data[8]);
+            bool can_isr_init(MW_CAN::ICAN& can);
+            void can_isr_on_message_pending(MW_CAN::BUS bus,
+                                            isr::can::CANFrame frame);
+        };
+    }  // namespace v1
+
+    namespace v2 {
+        // Future CommApp v2 implementation.
+        class CommApp
+            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
+           private:
+            mc2::RobotMC& mc;
+            IDebug& debug;
+            comm::CANComm<> can_comm;
+            comm::UARTComm<> uart_comm;
+            uint8_t message_temp_buffer[256];
+
+            BoardStatus_t board_status;
+            struct InterboardOperator {
+                mc2::MessageNode current_node;
+                mc2::RobotMC& mc;
+                comm::CANComm<>& can_comm;
+                comm::UARTComm<>& uart_comm;
+                uint8_t temp_buffer[256];
+
+                InterboardOperator(mc2::MessageNode node, mc2::RobotMC& mc_ref,
+                                   comm::CANComm<>& can_comm_ref,
+                                   comm::UARTComm<>& uart_comm_ref)
+                    : current_node(node),
+                      mc(mc_ref),
+                      can_comm(can_comm_ref),
+                      uart_comm(uart_comm_ref) {}
+
+                template <typename T>
+                void operator()();
+            } op;
+
+            struct CommPublisher {
+                mc2::RobotMC& mc;
+                std::span<uint8_t> temp_span;
+
+                CommPublisher(mc2::RobotMC& mc_ref) : mc(mc_ref) {}
+
+                template <typename T>
+                void operator()();
+            } publisher;
+
+           public:
+            explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                             IDebug& debug_ref, comm::CANComm<>& can_comm_ref,
+                             comm::UARTComm<>& uart_comm_ref);
+            void init();
+            void loop();
+            void queue_interboard_messages();
+            void publish_new_mesage_from_buffer(uint8_t message_id);
+        };
+    }  // namespace v2
 }  // namespace CommApp
 
 #endif

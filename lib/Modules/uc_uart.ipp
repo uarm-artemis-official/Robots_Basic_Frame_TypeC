@@ -32,7 +32,8 @@ namespace uc_uart {
 
         // Construct header
         send_payload_buffer[0] =
-            PROTOCOL_MAGIC << 4 | static_cast<uint8_t>(FrameType::Data);
+            PROTOCOL_MAGIC << 4 |
+            static_cast<uint8_t>(comm::protocol::FrameType::Data);
         send_payload_buffer[1] =
             create_source_destination_byte(source_address, destination);
         send_payload_buffer[2] = message_id;
@@ -50,9 +51,34 @@ namespace uc_uart {
     }
 
     template <size_t MAX_MESSAGE_SIZE>
+    bool UC_UART<MAX_MESSAGE_SIZE>::format_send_data(
+        const uint8_t* payload, comm::protocol::TopicMessageMeta meta,
+        uint8_t* dst_buffer) {
+        ASSERT(payload != nullptr, "Payload pointer is null.");
+        ASSERT(dst_buffer != nullptr, "Destination buffer pointer is null.");
+        ASSERT(meta.payload_length <= MAX_MESSAGE_SIZE,
+               "Payload length exceeds maximum message size.");
+        // Construct header
+        dst_buffer[0] = PROTOCOL_MAGIC << 4 |
+                        static_cast<uint8_t>(comm::protocol::FrameType::Data);
+        dst_buffer[1] =
+            create_source_destination_byte(meta.source, meta.destination);
+        dst_buffer[2] = meta.message_id;
+        dst_buffer[3] = static_cast<uint8_t>(meta.payload_length);
+        // Copy payload
+        memcpy(&dst_buffer[HEADER_SIZE], payload, meta.payload_length);
+        // Compute and append trailer (simple checksum)
+        uint16_t checksum =
+            crc16(dst_buffer, HEADER_SIZE + meta.payload_length);
+        memcpy(&dst_buffer[HEADER_SIZE + meta.payload_length], &checksum,
+               sizeof(checksum));
+        return true;
+    }
+
+    template <size_t MAX_MESSAGE_SIZE>
     [[nodiscard]] bool UC_UART<MAX_MESSAGE_SIZE>::get_control_flow_frame(
         uint8_t* frame_destination, uint8_t destination, ControlFlowID flow_id,
-        void* params) {
+        void* params) const {
         (void) params;  // Unused for now since ping/pong have no parameters
         ASSERT(flow_id == ControlFlowID::Ping || flow_id == ControlFlowID::Pong,
                "Unsupported ControlFlowID");
@@ -61,7 +87,8 @@ namespace uc_uart {
                HEADER_SIZE + TRAILER_SIZE);  // Clear frame buffer
         // Construct header
         frame_destination[0] =
-            PROTOCOL_MAGIC << 4 | static_cast<uint8_t>(FrameType::ControlFlow);
+            PROTOCOL_MAGIC << 4 |
+            static_cast<uint8_t>(comm::protocol::FrameType::ControlFlow);
         frame_destination[1] =
             create_source_destination_byte(source_address, destination);
         frame_destination[2] = 0;  // Length is 1 byte (just the flow ID)
@@ -141,21 +168,32 @@ namespace uc_uart {
     }
 
     template <size_t MAX_MESSAGE_SIZE>
-    FrameType UC_UART<MAX_MESSAGE_SIZE>::get_frame_type(const uint8_t* frame,
-                                                        size_t frame_length) {
+    comm::protocol::FrameType UC_UART<MAX_MESSAGE_SIZE>::get_frame_type(
+        const uint8_t* frame, size_t frame_length) {
         if (frame_length < HEADER_SIZE + TRAILER_SIZE) {
-            return FrameType::Invalid;
+            return comm::protocol::FrameType::Invalid;
         }
 
         uint8_t frame_id = frame[0] & 0x0F;
         switch (frame_id) {
-            case static_cast<uint8_t>(FrameType::Data):
+            case static_cast<uint8_t>(comm::protocol::FrameType::Data):
                 [[fallthrough]];
-            case static_cast<uint8_t>(FrameType::ControlFlow):
-                return static_cast<FrameType>(frame_id);
+            case static_cast<uint8_t>(comm::protocol::FrameType::ControlFlow):
+                return static_cast<comm::protocol::FrameType>(frame_id);
             default:
-                return FrameType::Invalid;
+                return comm::protocol::FrameType::Invalid;
         }
+    }
+
+    template <size_t MAX_MESSAGE_SIZE>
+    comm::protocol::TopicMessageMeta
+    UC_UART<MAX_MESSAGE_SIZE>::parse_meta_from_headers(
+        const uint8_t* header) const {
+        comm::protocol::TopicMessageMeta meta;
+        parse_source_destination(header, meta.source, meta.destination);
+        parse_message_id(header, meta.message_id);
+        parse_length(header, meta.payload_length);
+        return meta;
     }
 
 };  // namespace uc_uart

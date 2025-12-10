@@ -5,25 +5,6 @@
 #include <gtest/gtest.h>
 #include "subsystems_interfaces.hpp"
 
-class MockMessageCenter : public IMessageCenter {
-   public:
-    MOCK_METHOD(void, init, (), (override));
-    MOCK_METHOD(uint8_t, get_message,
-                (Topic_Name_t topic, void* data_ptr, int ticks_to_wait),
-                (override));
-    MOCK_METHOD(uint8_t, peek_message,
-                (Topic_Name_t topic, void* data_ptr, int ticks_to_wait),
-                (override));
-    MOCK_METHOD(uint8_t, pub_message, (Topic_Name_t topic, void* data_ptr),
-                (override));
-    MOCK_METHOD(uint8_t, pub_message_from_isr,
-                (Topic_Name_t topic, void* data_ptr,
-                 uint8_t* will_context_switch),
-                (override));
-    MOCK_METHOD(Topic_Handle_t&, get_topic_handle, (Topic_Name_t name),
-                (override));
-};
-
 class MockMotors : public IMotors {
    public:
     MOCK_METHOD(void, init, (Motor_Config_t config), (override));
@@ -72,7 +53,56 @@ class MockDebug : public IDebug {
 class MockAmmoLid : public IAmmoLid {
    public:
     MOCK_METHOD(void, init, (), (override));
-    MOCK_METHOD(void, set_lid_status, (LidStatus new_status), (override));
+    MOCK_METHOD(void, set_lid_status, (ammo_lid::LidStatus new_status),
+                (override));
+};
+
+class MockRefUI : public IRefUI {
+   public:
+    MOCK_METHOD(void, init, (), (override));
+    MOCK_METHOD(void, set_ui_data,
+                (referee_ui_type_t ui_type, uint8_t robot_id,
+                 ref_ui_info_t ref_ui_info),
+                (override));
+    MOCK_METHOD(void, send_ui_data,
+                (uint16_t cmd_id, uint16_t len, referee_ui_type_t ui_type),
+                (override));
+    MOCK_METHOD(void, draw_marks, (), (override));
+    MOCK_METHOD(void, draw_vaild_info, (uint32_t act_mode, uint32_t level),
+                (override));
+};
+
+class MockRCComm : public IRCComm {
+   public:
+    MOCK_METHOD(void, buffer_init, (Buffer & buffer), (override));
+    MOCK_METHOD(void, key_object_init, (KeyObject & key), (override));
+    MOCK_METHOD(void, keyboard_init, (Keyboard & keyboard), (override));
+    MOCK_METHOD(void, mouse_init, (Mouse & mouse), (override));
+    MOCK_METHOD(void, pc_init, (PC & pc), (override));
+    MOCK_METHOD(void, controller_init, (Controller & controller), (override));
+    MOCK_METHOD(void, parse_switches,
+                (Buffer & buffer, ESwitchState & s1, ESwitchState & s2),
+                (override));
+    MOCK_METHOD(void, parse_controller, (Buffer & buffer, Controller & controller),
+                (override));
+    MOCK_METHOD(void, parse_pc, (Buffer & buffer, PC & pc), (override));
+    MOCK_METHOD(void, key_scan,
+                (KeyObject & key, uint16_t key_buffer,
+                 EKeyBitIndex key_bit_index),
+                (override));
+};
+
+class MockPCComm : public IPCComm {
+   public:
+    MOCK_METHOD(uint8_t, uc_check_pack_integrity,
+                (uint8_t * pack_bytes, uint8_t pack_size), (override));
+    MOCK_METHOD(void, send_bytes, (uint8_t * bytes, uint32_t size), (override));
+    MOCK_METHOD(uint8_t, get_data_size, (uint8_t header_id), (override));
+    MOCK_METHOD(void, start_receive, (uint8_t * pack_buffer), (override));
+    MOCK_METHOD(void, restart_receive, (uint8_t * pack_buffer), (override));
+    MOCK_METHOD(UC_Checksum_t, calc_checksum,
+                (void* buffer_ptr, size_t buffer_size), (override));
+    MOCK_METHOD(uint8_t, is_valid_header, (uint8_t * input_buffer), (override));
 };
 
 #endif

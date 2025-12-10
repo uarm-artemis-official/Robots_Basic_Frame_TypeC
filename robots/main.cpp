@@ -393,12 +393,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
     MW_CAN::BUS bus;
-    // TODO: Add differentiating logic between CAN_N and CAN_NB
-    // Check for extended ID in header?.
+
+    // TODO: Refactor in cause of using FIFO1 in the future.
+    uint32_t frame_ide =
+        CAN_RI0R_IDE & hcan->Instance->sFIFOMailBox[CAN_RX_FIFO0].RIR;
+    bool is_extended_id = frame_ide == CAN_ID_EXT;
     if (hcan == &hcan1) {
-        bus = MW_CAN::BUS::CAN_1;
+        bus = is_extended_id ? MW_CAN::BUS::CAN_1B : MW_CAN::BUS::CAN_1;
     } else if (hcan == &hcan2) {
-        bus = MW_CAN::BUS::CAN_2;
+        bus = is_extended_id ? MW_CAN::BUS::CAN_2B : MW_CAN::BUS::CAN_2;
     } else {
         ASSERT(false, "Received message on unknown hcan.");
     }

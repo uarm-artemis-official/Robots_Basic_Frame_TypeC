@@ -6,9 +6,8 @@
 #include "../uarm_lib.hpp"
 #include "can2_tp.hpp"
 
-namespace can2_tp {
-    namespace v1 {
-
+namespace comm::can2_tp {
+    inline namespace v1 {
         // constexpr helpers for readable mask generation
         constexpr uint32_t bit_mask(unsigned bits) noexcept {
             return (bits >= 32) ? 0xFFFFFFFFu : ((1u << bits) - 1u);
@@ -42,29 +41,19 @@ namespace can2_tp {
         constexpr unsigned MSGID_BITS = 8;
         constexpr uint32_t MSGID_MASK = field_mask(MSGID_SHIFT, MSGID_BITS);
 
-        void set_frame_type(FrameType frame_type, uint32_t& stdid) {
+        inline void set_frame_type(comm::protocol::FrameType frame_type,
+                                   uint32_t& stdid) {
             stdid &= ~FRAME_MASK;
             stdid |= ((static_cast<uint32_t>(frame_type) & bit_mask(FRAME_BITS))
                       << FRAME_SHIFT);
         }
 
-        FrameType get_frame_type(uint32_t stdid) {
+        inline comm::protocol::FrameType get_frame_type(uint32_t stdid) {
             uint32_t v = (stdid & FRAME_MASK) >> FRAME_SHIFT;
-            switch (v) {
-                case 0x1:
-                    return FrameType::SingleFrame;
-                case 0x2:
-                    return FrameType::FirstFrame;
-                case 0x3:
-                    return FrameType::ConsecutiveFrame;
-                case 0x4:
-                    return FrameType::FlowControlFrame;
-                default:
-                    return FrameType::SingleFrame;
-            }
+            return static_cast<comm::protocol::FrameType>(v);
         }
 
-        void set_destination(uint8_t destination, uint32_t& stdid) {
+        inline void set_destination(uint8_t destination, uint32_t& stdid) {
             if (destination == 0 || destination > bit_mask(DEST_BITS))
                 return;
             stdid &= ~DEST_MASK;
@@ -72,11 +61,11 @@ namespace can2_tp {
                      << DEST_SHIFT;
         }
 
-        uint8_t get_destination(uint32_t stdid) {
+        inline uint8_t get_destination(uint32_t stdid) {
             return static_cast<uint8_t>((stdid & DEST_MASK) >> DEST_SHIFT);
         }
 
-        void set_source(uint8_t source, uint32_t& stdid) {
+        inline void set_source(uint8_t source, uint32_t& stdid) {
             if (source == 0 || source > bit_mask(SRC_BITS))
                 return;
             stdid &= ~SRC_MASK;
@@ -84,23 +73,23 @@ namespace can2_tp {
                      << SRC_SHIFT;
         }
 
-        uint8_t get_source(uint32_t stdid) {
+        inline uint8_t get_source(uint32_t stdid) {
             return static_cast<uint8_t>((stdid & SRC_MASK) >> SRC_SHIFT);
         }
 
-        void set_index(uint8_t index, uint32_t& extid) {
+        inline void set_index(uint8_t index, uint32_t& extid) {
             // write index into bits [7:0] of the provided id (treated as extid)
             extid &= ~LENGTH_MASK;
             extid |= (static_cast<uint32_t>(index) & bit_mask(LENGTH_BITS))
                      << LENGTH_SHIFT;
         }
 
-        uint8_t get_index(uint32_t extid) {
+        inline uint8_t get_index(uint32_t extid) {
             // read low 8 bits (index/length field)
             return static_cast<uint8_t>((extid & LENGTH_MASK) >> LENGTH_SHIFT);
         }
 
-        void set_length(size_t length, uint32_t& extid) {
+        inline void set_length(size_t length, uint32_t& extid) {
             uint32_t val =
                 static_cast<uint32_t>(length) & bit_mask(LENGTH_BITS);
             extid &= ~LENGTH_MASK;
@@ -109,17 +98,17 @@ namespace can2_tp {
 
         // Length is additionally used for storing control flow IDs in some control flow frames
         // (Ping and Pong).
-        size_t get_length(uint32_t extid) {
+        inline size_t get_length(uint32_t extid) {
             return static_cast<size_t>((extid & LENGTH_MASK) >> LENGTH_SHIFT);
         }
 
-        void set_message_id(uint8_t message_id, uint32_t& extid) {
+        inline void set_message_id(uint8_t message_id, uint32_t& extid) {
             extid &= ~MSGID_MASK;
             extid |= (static_cast<uint32_t>(message_id) & bit_mask(MSGID_BITS))
                      << MSGID_SHIFT;
         }
 
-        uint8_t get_message_id(uint32_t extid) {
+        inline uint8_t get_message_id(uint32_t extid) {
             return static_cast<uint8_t>((extid & MSGID_MASK) >> MSGID_SHIFT);
         }
 
@@ -137,10 +126,21 @@ namespace can2_tp {
 
             // initialize send buffer struct fields
             send_buffer.used_send_buffer_length = 0;
-            send_buffer.send_message_length = length;
-            send_buffer.send_message_id = message_id;
-            send_buffer.send_destination = destination;
+
+            // update meta
+            send_buffer.meta.source = source;
+            send_buffer.meta.destination = destination;
+            send_buffer.meta.payload_length = length;
+            send_buffer.meta.message_id = message_id;
+
             memcpy(send_buffer.send_message_buffer, message, length);
+        }
+
+        template <size_t MaxMessageSize>
+        bool CAN2TP<MaxMessageSize>::is_sending_message() {
+            return send_buffer.used_send_buffer_length ==
+                       send_buffer.payload_length &&
+                   send_buffer.payload_length != 0;
         }
 
         template <size_t MaxMessageSize>
@@ -148,11 +148,11 @@ namespace can2_tp {
             CAN2BFrame& frame) {
             // If nothing to send
             if (send_buffer.used_send_buffer_length >=
-                send_buffer.send_message_length) {
+                send_buffer.meta.payload_length) {
                 return false;
             }
 
-            const size_t remaining = send_buffer.send_message_length -
+            const size_t remaining = send_buffer.meta.payload_length -
                                      send_buffer.used_send_buffer_length;
             const size_t max_payload = sizeof(frame.payload);  // 8
             const size_t chunk =
@@ -164,12 +164,14 @@ namespace can2_tp {
 
             if (send_buffer.used_send_buffer_length == 0) {
                 // First Frame
-                set_frame_type(FrameType::FirstFrame, frame.stdid);
+                set_frame_type(comm::protocol::FrameType::FirstFrame,
+                               frame.stdid);
                 // extid low byte for first frame contains the total length per API note
-                set_length(send_buffer.send_message_length, frame.extid);
+                set_length(send_buffer.meta.payload_length, frame.extid);
             } else {
                 // Consecutive Frame
-                set_frame_type(FrameType::ConsecutiveFrame, frame.stdid);
+                set_frame_type(comm::protocol::FrameType::ConsecutiveFrame,
+                               frame.stdid);
                 // extid low byte for consecutive frames used as index
                 // index = number of the fragment (1-based). Use integer division by max_payload.
                 uint8_t index = static_cast<uint8_t>(
@@ -195,14 +197,14 @@ namespace can2_tp {
 
             // return true if more fragments remain
             return send_buffer.used_send_buffer_length <
-                   send_buffer.send_message_length;
+                   send_buffer.meta.payload_length;
         }
 
         template <size_t MaxMessageSize>
         bool CAN2TP<MaxMessageSize>::process_segment_frame(
             const CAN2BFrame& frame) {
             switch (get_frame_type(frame.stdid)) {
-                case FrameType::FirstFrame: {
+                case comm::protocol::FrameType::FirstFrame: {
                     const size_t total_len = get_length(frame.extid);
 
                     if (total_len > MaxMessageSize) {
@@ -218,22 +220,27 @@ namespace can2_tp {
                         return false;
                     }
 
-                    receive_buffer.receive_message_length = total_len;
                     receive_buffer.used_receive_buffer_length = frame.length;
-                    receive_buffer.receive_message_id =
-                        get_message_id(frame.extid);
-                    receive_buffer.receive_source = get_source(frame.stdid);
                     memcpy(receive_buffer.receive_message_buffer, frame.payload,
                            frame.length);
 
+                    // update receive meta
+                    receive_buffer.meta.source = get_source(frame.stdid);
+                    receive_buffer.meta.destination =
+                        get_destination(frame.stdid);
+                    receive_buffer.meta.payload_length = total_len;
+                    receive_buffer.meta.message_id =
+                        get_message_id(frame.extid);
+
                     return true;
                 }
-                case FrameType::ConsecutiveFrame: {
+                case comm::protocol::FrameType::ConsecutiveFrame: {
+                    // TODO: Add checks for source, destination, message_id match
                     // TODO: verify ordering using the index field (get_index(frame.extid))
                     const size_t remaining =
-                        (receive_buffer.receive_message_length >
+                        (receive_buffer.meta.payload_length >
                          receive_buffer.used_receive_buffer_length)
-                            ? (receive_buffer.receive_message_length -
+                            ? (receive_buffer.meta.payload_length -
                                receive_buffer.used_receive_buffer_length)
                             : 0;
 
@@ -270,20 +277,29 @@ namespace can2_tp {
 
         template <size_t MaxMessageSize>
         bool CAN2TP<MaxMessageSize>::get_reassembled_message(
-            void* message_received) {
-            if (receive_buffer.used_receive_buffer_length >=
-                receive_buffer.receive_message_length) {
+            void* message_received, protocol::TopicMessageMeta& message_meta) {
+            if (receive_buffer.used_receive_buffer_length >
+                receive_buffer.meta.payload_length) {
+                failure_message =
+                    "Reassembled message length exceeds expected length.";
+                return false;
+            }
+
+            if (receive_buffer.used_receive_buffer_length ==
+                receive_buffer.meta.payload_length) {
                 memcpy(message_received, receive_buffer.receive_message_buffer,
-                       receive_buffer.receive_message_length);
+                       receive_buffer.meta.payload_length);
+                message_meta = receive_buffer.meta;
                 return true;
             }
+
             failure_message = "No complete message reassembled.";
             return false;
         }
 
         template <size_t MaxMessageSize>
         [[nodiscard]] bool CAN2TP<MaxMessageSize>::get_single_frame(
-            uint8_t* message, size_t& message_length, uint8_t destination,
+            uint8_t* message, size_t message_length, uint8_t destination,
             CAN2BFrame& frame) {
             // Check if message fits in a single frame
             ASSERT(message_length <= sizeof(frame.payload),
@@ -295,7 +311,7 @@ namespace can2_tp {
             frame.extid = 0;
 
             // Set frame type and addressing
-            set_frame_type(FrameType::SingleFrame, frame.stdid);
+            set_frame_type(comm::protocol::FrameType::SingleFrame, frame.stdid);
             set_source(source, frame.stdid);
             set_destination(destination, frame.stdid);
 
@@ -316,7 +332,8 @@ namespace can2_tp {
                    "message_received pointer is null");
 
             // Verify frame type
-            if (get_frame_type(frame.stdid) != FrameType::SingleFrame) {
+            if (get_frame_type(frame.stdid) !=
+                comm::protocol::FrameType::SingleFrame) {
                 failure_message =
                     "Detected invalid frame type when processing single frame.";
                 return false;
@@ -350,7 +367,7 @@ namespace can2_tp {
             frame.length = 0;  // Control flow frames carry no payload
 
             // Set frame type and addressing
-            set_frame_type(FrameType::FlowControlFrame, frame.stdid);
+            set_frame_type(comm::protocol::FrameType::ControlFlow, frame.stdid);
             set_source(source, frame.stdid);
             set_destination(destination, frame.stdid);
 
@@ -379,7 +396,8 @@ namespace can2_tp {
             ASSERT(message_received != nullptr,
                    "message_received pointer is null");
             // Verify frame type
-            if (get_frame_type(frame.stdid) != FrameType::FlowControlFrame) {
+            if (get_frame_type(frame.stdid) !=
+                comm::protocol::FrameType::ControlFlow) {
                 failure_message =
                     "Detected invalid frame type when processing control flow "
                     "frame.";
@@ -404,6 +422,18 @@ namespace can2_tp {
 
             return true;
         }
+
+        template <size_t MaxMessageSize>
+        protocol::TopicMessageMeta
+        CAN2TP<MaxMessageSize>::parse_meta_from_headers(uint32_t stdid,
+                                                        uint32_t extid) const {
+            protocol::TopicMessageMeta meta;
+            meta.source = get_source(stdid);
+            meta.destination = get_destination(stdid);
+            meta.message_id = get_message_id(extid);
+            meta.payload_length = get_length(extid);
+            return meta;
+        }
     }  // namespace v1
-}  // namespace can2_tp
+}  // namespace comm::can2_tp
 #endif

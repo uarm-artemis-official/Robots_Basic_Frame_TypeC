@@ -11,7 +11,8 @@
 // This method is meant to disable all bot functionality and disable a message on a
 // connected OLED display.
 //
-// Future Work: make fail-safe function/add ability to recover from certain error states.
+// TODO Future Work: make fail-safe function/add ability to recover from certain error states.
+// TODO: Add buzzer beeping (preferrably not continuous) to signal entering error_handler.
 __attribute__((noreturn)) void error_handler(const char* msg) {
     __disable_irq();
     ssd1306_init();

@@ -9,7 +9,7 @@
 namespace mc2 {
     constexpr size_t MAX_TOPIC_QUEUE_SIZE = 20;
 
-    enum class MessageNode { Telemetry, Chassis, Gimbal, All };
+    enum class MessageNode { Telemetry = 1, Chassis, Gimbal, MiniPC, All };
 
     template <size_t _queue_size>
     struct Topic {
@@ -17,11 +17,13 @@ namespace mc2 {
         static constexpr size_t queue_size = _queue_size;
     };
 
-    template <size_t queue_size, typename TMessage, MessageNode _destination,
-              bool _also_local = false>
+    // TODO: Add parameter to set size of message.
+    template <size_t queue_size, size_t _serialized_size,
+              MessageNode _destination, bool _also_local = false>
     struct InterboardMessage : Topic<queue_size> {
         static constexpr MessageNode destination = _destination;
         static constexpr bool also_local = _also_local;
+        static constexpr size_t serialized_size = _serialized_size;
     };
 
     struct TopicHandle {
