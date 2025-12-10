@@ -17,7 +17,7 @@
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
-#include "message_center.ipp"
+#include "message_center.hpp"
 #include "quantize.hpp"
 #include "string.h"
 #include "subsystems_modules.hpp"

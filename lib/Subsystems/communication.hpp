@@ -301,7 +301,7 @@ namespace comm {
 
         void queue_send_message(const uint8_t* payload,
                                 protocol::TopicMessageMeta meta) {
-            send_fifo.push(payload, meta);
+            send_fifo.push(payload, meta.payload_length, meta);
         }
 
         void send_next_frame() {
