@@ -60,6 +60,12 @@ namespace comm {
             return data_pushed && meta_pushed;
         }
 
+        bool push(std::span<const std::byte> data, const MessageMeta& meta) {
+            bool data_pushed = data_fifo.push(data.first(meta.payload_length));
+            bool meta_pushed = meta_buffer.push(meta);
+            return data_pushed && meta_pushed;
+        }
+
         /**
          * @brief Pop a message and its metadata from the FIFO.
          * 
@@ -73,6 +79,13 @@ namespace comm {
          * @return true if the message and metadata were successfully popped, false otherwise.
          */
         bool pop(uint8_t* data, MessageMeta& meta) {
+            bool meta_popped = meta_buffer.pop(meta);
+            size_t data_length = 0;
+            bool data_popped = data_fifo.pop(data, data_length);
+            return meta_popped && data_popped;
+        }
+
+        bool pop(std::span<std::byte> data, MessageMeta& meta) {
             bool meta_popped = meta_buffer.pop(meta);
             size_t data_length = 0;
             bool data_popped = data_fifo.pop(data, data_length);
@@ -126,27 +139,15 @@ namespace comm {
               uart_ref(_uart_ref),
               uart_isr_ref(_uart_isr_ref) {};
 
-        bool init() {
-            bool register_init_success = uart_isr_ref.register_init(
-                [this](MW_UART::IUART& uart_instance) {
-                    return this->uart_isr_init(uart_instance);
-                });
-            bool register_rountine_success = uart_isr_ref.register_routine(
-                isr::uart::ECallbacks::RECEIVE_COMPLETE,
-                [this](MW_UART::IUART& uart_instance,
-                       MW_UART::Peripheral peripheral) {
-                    this->uart_isr_receive_complete(uart_instance, peripheral);
-                });
-            return register_init_success && register_rountine_success;
-        }
+        bool init() { return true; }
 
-        bool uart_isr_init(MW_UART::IUART& uart) {
+        bool start_receive(MW_UART::IUART& uart) {
             uart.receive_data(MW_UART::Peripheral::UART1, rx_buffer, 1);
             return true;
         }
 
-        void uart_isr_receive_complete(MW_UART::IUART& uart,
-                                       MW_UART::Peripheral peripheral) {
+        void on_receive_complete(MW_UART::IUART& uart,
+                                 MW_UART::Peripheral peripheral) {
             if (peripheral == MW_UART::Peripheral::UART1) {
                 if (is_valid_uart_magic) {
                     if (is_valid_uart_header) {
@@ -198,6 +199,11 @@ namespace comm {
             send_fifo.push(payload, meta);
         }
 
+        void queue_send_message(std::span<const std::byte> payload,
+                                protocol::TopicMessageMeta meta) {
+            send_fifo.push(payload, meta);
+        }
+
         void send_next_frame() {
             uint8_t payload[MAX_SINGLE_MESSAGE_SIZE];
             protocol::TopicMessageMeta meta;
@@ -212,6 +218,11 @@ namespace comm {
         }
 
         bool get_message(uint8_t* payload, protocol::TopicMessageMeta& meta) {
+            return receive_fifo.pop(payload, meta);
+        }
+
+        bool get_message(std::span<std::byte> payload,
+                         protocol::TopicMessageMeta& meta) {
             return receive_fifo.pop(payload, meta);
         }
     };
@@ -304,6 +315,11 @@ namespace comm {
             send_fifo.push(payload, meta.payload_length, meta);
         }
 
+        void queue_send_message(std::span<const std::byte> payload,
+                                protocol::TopicMessageMeta meta) {
+            send_fifo.push(payload, meta);
+        }
+
         void send_next_frame() {
             can2_tp::CAN2BFrame next_frame;
             if (!can2tp_ref.is_sending_message()) {
@@ -333,6 +349,11 @@ namespace comm {
         }
 
         bool get_message(uint8_t* payload, protocol::TopicMessageMeta& meta) {
+            return receive_fifo.pop(payload, meta);
+        }
+
+        bool get_message(std::span<std::byte> payload,
+                         protocol::TopicMessageMeta& meta) {
             return receive_fifo.pop(payload, meta);
         }
     };
