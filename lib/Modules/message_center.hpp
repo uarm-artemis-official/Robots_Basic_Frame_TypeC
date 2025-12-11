@@ -59,6 +59,7 @@ namespace mc2 {
         */
 
         constexpr size_t MAX_TOPIC_QUEUE_SIZE = 20;
+        constexpr size_t TOPIC_ID_OFFSET = 100;
 
         enum class MessageNode { Telemetry = 1, Chassis, Gimbal, MiniPC, All };
 
@@ -81,7 +82,33 @@ namespace mc2 {
             MW_RTOS::QueueHandle queue;
             std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> timestamps;
             size_t recent_timestamp_index;
+            uint8_t topic_id;
+            size_t queue_size;
+            size_t item_size;
         };
+
+        template <typename T>
+        concept MessageTopic = requires {
+            T::queue_size;
+        };
+
+        template <typename T>
+        concept InterboardMessageTopic =
+            requires(T & msg, std::span<uint8_t, T::serialized_size> dst,
+                     std::span<const uint8_t, T::serialized_size> src) {
+            requires MessageTopic<T>;
+            requires std::same_as<decltype(T::destination), mc2::MessageNode>;
+            requires std::same_as<decltype(T::serialized_size), const size_t>;
+            requires std::invocable<decltype(T::serialize), const T&,
+                                    std::span<uint8_t, T::serialized_size>>;
+            { T::serialize(msg, dst) } -> std::same_as<bool>;
+            requires std::invocable<decltype(T::deserialize), T&,
+                                    std::span<uint8_t, T::serialized_size>>;
+            { T::deserialize(msg, src) } -> std::same_as<bool>;
+        };
+
+        template <MessageTopic... Topics>
+        using create_topic_registry_t = std::tuple<Topics...>;
 
         template <typename TopicRegistry>
         constexpr size_t registry_size_v = std::tuple_size_v<TopicRegistry>;
@@ -215,26 +242,30 @@ namespace mc2 {
 
         template <int index, typename TopicRegistry>
         TopicHandle generate_topic_handle(MW_RTOS::IRTOS& rtos) {
+            using Topic = std::tuple_element_t<index, TopicRegistry>;
             size_t queue_length = get_topic_queue_size<index, TopicRegistry>();
             size_t item_size = get_topic_type_size<index, TopicRegistry>();
             TopicHandle topic;
             rtos.queue_create(topic.queue, queue_length, item_size);
             topic.timestamps = std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> {};
             topic.recent_timestamp_index = 0;
+            topic.queue_size = Topic::queue_size;
+            topic.item_size = sizeof(Topic);
+            topic.topic_id = get_comm_id<Topic, TopicRegistry>();
             return topic;
         }
 
         /**
-     * @brief Generate an array of TopicHandles for all topics in the TopicRegistry.
-     * This function creates a TopicHandle for each topic registered in TopicRegistry.
-     * 
-     * TODO: Replace with consteval function that generates queue info at compile-time.
-     *       The RTOS queues can then be created at runtime using simpler logic.
-     * 
-     * @param TopicRegistry A tuple type containing all registered topic types.
-     * @param rtos Reference to the RTOS interface for queue creation.
-     * @return std::array<TopicHandle, registry_size> Array of TopicHandles for each topic.
-     */
+         * @brief Generate an array of TopicHandles for all topics in the TopicRegistry.
+         * This function creates a TopicHandle for each topic registered in TopicRegistry.
+         * 
+         * TODO: Replace with consteval function that generates queue info at compile-time.
+         *       The RTOS queues can then be created at runtime using simpler logic.
+         * 
+         * @param TopicRegistry A tuple type containing all registered topic types.
+         * @param rtos Reference to the RTOS interface for queue creation.
+         * @return std::array<TopicHandle, registry_size> Array of TopicHandles for each topic.
+         */
         template <typename TopicRegistry>
         auto generate_topic_handles_array(MW_RTOS::IRTOS& rtos) {
             constexpr size_t registry_size = std::tuple_size_v<TopicRegistry>;
@@ -258,51 +289,90 @@ namespace mc2 {
         }
 
         template <typename Registry, size_t index>
-        consteval auto generate_deserialize_directory_impl() {
+        consteval auto generate_deserializer_directory_impl() {
             using T = std::tuple_element_t<index, Registry>;
             static_assert(std::is_trivially_copyable_v<T>);
             return [&](std::span<std::byte> dst, std::span<std::byte> src) {
-                T msg;
-                T::deserialize(msg, src.first<sizeof(T)>());
-                std::memcpy(dst.data(), &msg, sizeof(T));
-                return false;
+                if constexpr (InterboardMessageTopic<T>) {
+                    T msg;
+                    bool success = T::deserialize(msg, src.first<sizeof(T)>());
+                    if (success) {
+                        std::memcpy(dst.data(), &msg, sizeof(T));
+                    }
+                    return success;
+                } else {
+                    return true;
+                }
             };
         }
 
-        using IndexedDeserializer =
+        using IndexableDeserializer =
             std::function<bool(std::span<std::byte>, std::span<std::byte>)>;
 
         template <typename Registry>
-        constexpr auto generate_deserialize_directory() {
+        constexpr auto generate_deserializer_directory() {
             constexpr size_t registry_size = std::tuple_size_v<Registry>;
             return [&]<size_t... Is>(std::index_sequence<Is...>) {
-                return std::array<IndexedDeserializer, registry_size> {
-                    generate_deserialize_directory_impl<Registry, Is>()...};
+                return std::array<IndexableDeserializer, registry_size> {
+                    generate_deserializer_directory_impl<Registry, Is>()...};
             }(std::make_index_sequence<registry_size> {});
         }
 
-        template <typename T>
-        concept MessageTopic = requires {
-            T::queue_size;
-        };
+        /**
+         * @brief Generate an array of IDs for InterboardMessageTopic types in a TopicRegistry.
+         * 
+         * The IDs are calculated as 100 + the index of the type in the TopicRegistry.
+         * Only types satisfying the InterboardMessageTopic concept are included.
+         * 
+         * @tparam TopicRegistry A tuple of types following the MessageTopic concept.
+         * @return std::array<uint8_t, N> Array of IDs for InterboardMessageTopic types in increasing order.
+         */
+        template <typename TopicRegistry>
+        consteval auto generate_interboard_topic_ids() {
+            constexpr size_t registry_size = std::tuple_size_v<TopicRegistry>;
+            constexpr size_t ID_OFFSET = 100;
 
-        template <typename T>
-        concept InterboardMessageTopic =
-            requires(T & msg, std::span<uint8_t, T::serialized_size> dst,
-                     std::span<const uint8_t, T::serialized_size> src) {
-            requires MessageTopic<T>;
-            requires std::same_as<decltype(T::destination), mc2::MessageNode>;
-            requires std::same_as<decltype(T::serialized_size), const size_t>;
-            requires std::invocable<decltype(T::serialize), const T&,
-                                    std::span<uint8_t, T::serialized_size>>;
-            { T::serialize(msg, dst) } -> std::same_as<bool>;
-            requires std::invocable<decltype(T::deserialize), T&,
-                                    std::span<uint8_t, T::serialized_size>>;
-            { T::deserialize(msg, src) } -> std::same_as<bool>;
-        };
+            // 1. Collect indices of InterboardMessageTopic types at compile-time.
+            //    This is the core fix to avoid the runtime loop issue.
+            constexpr auto collect_interboard_indices = []<size_t... Is>(
+                                                            std::index_sequence<
+                                                                Is...>) {
+                constexpr size_t MaxInterboardTopics = sizeof...(Is);
+                std::array<size_t, MaxInterboardTopics> indices = {};
+                size_t count = 0;
 
-        template <MessageTopic... Topics>
-        using create_topic_registry_t = std::tuple<Topics...>;
+                (
+                    [&] {
+                        using TopicType =
+                            std::tuple_element_t<Is, TopicRegistry>;
+                        if constexpr (InterboardMessageTopic<TopicType>) {
+                            indices[count++] = Is;
+                        }
+                    }(),
+                    ...);
+
+                // Use std::span (or a custom struct) to return only the used part
+                // Since this is C++20, let's use a std::array and rely on its size.
+                // We return an array that potentially contains garbage data past 'count',
+                // but 'count' determines the final size.
+                return std::make_pair(indices, count);
+            }(std::make_index_sequence<registry_size> {});
+
+            // The number of interboard topics is now a true compile-time constant
+            constexpr size_t interboard_count =
+                collect_interboard_indices.second;
+
+            // 2. Map the collected indices to the final IDs (index + offset).
+            //    This uses the true compile-time constant 'interboard_count' for the array size.
+            std::array<uint8_t, interboard_count> ids = {};
+            for (size_t i = 0; i < interboard_count; ++i) {
+                // The index stored in the first part of the pair is the original topic index
+                size_t topic_index = collect_interboard_indices.first[i];
+                ids[i] = static_cast<uint8_t>(ID_OFFSET + topic_index);
+            }
+
+            return ids;
+        }
 
         template <typename TopicRegistry>
         class MC2 {
@@ -317,12 +387,12 @@ namespace mc2 {
             MC2(MW_RTOS::IRTOS& _rtos) : rtos(_rtos) {}
 
             /**
-         * @brief Initialize message center internals for tracking activity for topics in TopicRegistry.
-         * 
-         * This function creates FIFO queues for each topic based on their corresponding topic message structs.
-         * 
-         * @return true if initialization succeeded, false otherwise.
-         */
+             * @brief Initialize message center internals for tracking activity for topics in TopicRegistry.
+             * 
+             * This function creates FIFO queues for each topic based on their corresponding topic message structs.
+             * 
+             * @return true if initialization succeeded, false otherwise.
+             */
             bool init() {
                 static_assert(all_unique_types<TopicRegistry>(
                                   get_tuple_index<TopicRegistry>()),
@@ -334,15 +404,15 @@ namespace mc2 {
             }
 
             /**
-         * @brief Get a message of type T from its corresponding topic queue.
-         * 
-         * The oldest message is retrieved, removed from the queue, and set to the message reference.
-         * 
-         * @tparam T Message type to retrieve.
-         * @param message Reference to store the retrieved message.
-         * @param ticks_to_wait Maximum ticks to wait for a message.
-         * @return Optional containing the tick count when the message was published, or nullopt if no message was available.
-         */
+             * @brief Get a message of type T from its corresponding topic queue.
+             * 
+             * The oldest message is retrieved, removed from the queue, and set to the message reference.
+             * 
+             * @tparam T Message type to retrieve.
+             * @param message Reference to store the retrieved message.
+             * @param ticks_to_wait Maximum ticks to wait for a message.
+             * @return Optional containing the tick count when the message was published, or nullopt if no message was available.
+             */
             template <typename T>
             std::optional<MW_RTOS::TickType> get_message(
                 T& message, MW_RTOS::TickType ticks_to_wait = 0) {
@@ -369,15 +439,15 @@ namespace mc2 {
             }
 
             /**
-         * @brief Peek at the next message of type T in its corresponding topic queue without removing it.
-         * 
-         * This is a read-only operation; the message remains in the queue.
-         * 
-         * @tparam T Message type to peek at.
-         * @param message Reference to store the peeked message.
-         * @param ticks_to_wait Maximum ticks to wait for a message.
-         * @return Optional containing the tick count when the message was peeked, or nullopt if no message was available.
-         */
+             * @brief Peek at the next message of type T in its corresponding topic queue without removing it.
+             * 
+             * This is a read-only operation; the message remains in the queue.
+             * 
+             * @tparam T Message type to peek at.
+             * @param message Reference to store the peeked message.
+             * @param ticks_to_wait Maximum ticks to wait for a message.
+             * @return Optional containing the tick count when the message was peeked, or nullopt if no message was available.
+             */
             template <typename T>
             std::optional<MW_RTOS::TickType> peek_message(
                 T& message, MW_RTOS::TickType ticks_to_wait = 0) {
@@ -400,16 +470,16 @@ namespace mc2 {
             }
 
             /**
-         * @brief Publish a message of type T to its corresponding topic queue.
-         * 
-         * The message is added to the end of the queue. If the queue is full, the behavior depends on the topic's queue size configuration.
-         * If the queue size is 1, the existing message is overwritten. Otherwise, the function waits up to ticks_to_wait ticks for space to become available.
-         * 
-         * @tparam T Message type to publish.
-         * @param message Reference to the message to publish.
-         * @param ticks_to_wait Maximum ticks to wait if the queue is full.
-         * @return Optional containing the tick count when the message was published, or nullopt if the message could not be published.
-         */
+             * @brief Publish a message of type T to its corresponding topic queue.
+             * 
+             * The message is added to the end of the queue. If the queue is full, the behavior depends on the topic's queue size configuration.
+             * If the queue size is 1, the existing message is overwritten. Otherwise, the function waits up to ticks_to_wait ticks for space to become available.
+             * 
+             * @tparam T Message type to publish.
+             * @param message Reference to the message to publish.
+             * @param ticks_to_wait Maximum ticks to wait if the queue is full.
+             * @return Optional containing the tick count when the message was published, or nullopt if the message could not be published.
+             */
             template <typename T>
             std::optional<MW_RTOS::TickType> pub_message(
                 T& message, MW_RTOS::TickType ticks_to_wait = 0) {
@@ -442,25 +512,57 @@ namespace mc2 {
                 }
             }
 
+            std::optional<MW_RTOS::TickType> pub_message_with_bytes(
+                std::span<const std::byte> bytes, uint8_t message_id,
+                MW_RTOS::TickType ticks_to_wait = 0) {
+                TopicHandle& topic_handle =
+                    topic_handles[message_id - TOPIC_ID_OFFSET];
+                if (topic_handle.queue == nullptr) {
+                    return {};
+                }
+
+                if (bytes.size() != topic_handle.item_size) {
+                    return {};
+                }
+
+                bool result = rtos.queue_pushback(
+                    topic_handle.queue,
+                    const_cast<void*>(static_cast<const void*>(bytes.data())),
+                    ticks_to_wait);
+
+                if (result) {
+                    MW_RTOS::TickType recent_tick = rtos.get_current_tick();
+                    topic_handle.recent_timestamp_index =
+                        (topic_handle.recent_timestamp_index + 1) %
+                        topic_handle.timestamps.size();
+                    topic_handle
+                        .timestamps[topic_handle.recent_timestamp_index] =
+                        recent_tick;
+                    return std::make_optional(recent_tick);
+                } else {
+                    return {};
+                }
+            }
+
             /**
-         * @brief Publish a message of type T to its corresponding topic queue from an ISR context.
-         * 
-         * This function has the same behavior as pub_message, but is safe to call from an ISR.
-         * 
-         * @tparam T Message type to publish.
-         * @param message Reference to the message to publish.
-         * @param will_context_switch Pointer to a boolean that will be set to true if a context switch is required after publishing.
-         * @return Optional containing the tick count when the message was published, or nullopt if the message could not be published.
-         */
+             * @brief Publish a message of type T to its corresponding topic queue from an ISR context.
+             * 
+             * This function has the same behavior as pub_message, but is safe to call from an ISR.
+             * 
+             * @tparam T Message type to publish.
+             * @param message Reference to the message to publish.
+             * @param will_context_switch Pointer to a boolean that will be set to true if a context switch is required after publishing.
+             * @return Optional containing the tick count when the message was published, or nullopt if the message could not be published.
+             */
             template <typename T>
             std::optional<MW_RTOS::TickType> pub_message_from_isr(
                 T& message, bool* will_context_switch = nullptr) {
                 TopicHandle& topic_handle =
                     topic_handles.at(get_topic_index<TopicRegistry, T>());
                 MW_RTOS::QueueHandle topic_queue = topic_handle.queue;
-                ASSERT(
-                    topic_queue != nullptr,
-                    "Cannot get message from message_center for NULL pointer.");
+                ASSERT(topic_queue != nullptr,
+                       "Cannot get message from message_center for NULL "
+                       "pointer.");
                 bool result;
                 if (get_topic_queue_size<get_topic_index<TopicRegistry, T>(),
                                          TopicRegistry>() == 1) {
