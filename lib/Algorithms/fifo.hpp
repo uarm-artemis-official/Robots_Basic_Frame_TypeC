@@ -1,9 +1,11 @@
 #ifndef __FIFO_HPP
 #define __FIFO_HPP
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <span>
 #include "uarm_lib.hpp"
 
 namespace dsa {
@@ -87,15 +89,89 @@ namespace dsa {
         static_assert(MaxItemCount > 0, "MaxItemCount must be greater than 0");
 
        private:
-        std::array<uint8_t, PoolSize> pool;
+        std::array<std::byte, PoolSize> pool;  // Changed to std::byte
         RingBuffer<VarFIFOIndex, MaxItemCount> index_buffer;
         size_t capacity_used = 0;
         size_t back_index = 0;
         size_t front_index = 0;
 
        public:
-        VarFIFO() { pool.fill(0); }
+        VarFIFO() { pool.fill(std::byte {0}); }  // Initialize with std::byte{0}
 
+        [[nodiscard]] bool push(std::span<const std::byte> item) {
+            constexpr size_t MIN_ITEM_SIZE = 1;
+            ASSERT(item.size() <= PoolSize, "Item too large for the pool.");
+            ASSERT(item.size() >= MIN_ITEM_SIZE, "Item cannot be zero-sized.");
+
+            // Check index buffer availability
+            if (index_buffer.is_full()) {
+                return false;
+            }
+
+            // Check pool capacity availability
+            if ((PoolSize - capacity_used) < item.size()) {
+                return false;
+            }
+
+            const size_t start = back_index;
+
+            // Copy into pool with wrap-around if necessary
+            if (start + item.size() <= PoolSize) {
+                // contiguous copy
+                std::copy(item.begin(), item.end(), pool.begin() + start);
+            } else {
+                const size_t first_chunk = PoolSize - start;
+                std::copy(item.begin(), item.begin() + first_chunk,
+                          pool.begin() + start);
+                std::copy(item.begin() + first_chunk, item.end(), pool.begin());
+            }
+
+            // Record index and size
+            VarFIFOIndex idx {start, item.size()};
+            if (!index_buffer.push(idx)) {
+                return false;
+            }
+
+            capacity_used += item.size();
+            back_index = (start + item.size()) % PoolSize;
+            return true;
+        }
+
+        [[nodiscard]] bool pop(std::span<std::byte> dst, size_t& out_size) {
+            ASSERT(!dst.empty(), "Destination span cannot be empty.");
+
+            VarFIFOIndex idx;
+            if (!index_buffer.pop(idx)) {
+                return false;  // nothing to pop
+            }
+
+            const size_t start = idx.index;
+            const size_t sz = idx.size;
+
+            ASSERT(dst.size() >= sz, "Destination span is too small.");
+
+            // Copy out with wrap-around handling
+            if (start + sz <= PoolSize) {
+                std::copy(pool.begin() + start, pool.begin() + start + sz,
+                          dst.begin());
+            } else {
+                const size_t first_chunk = PoolSize - start;
+                std::copy(pool.begin() + start,
+                          pool.begin() + start + first_chunk, dst.begin());
+                std::copy(pool.begin(), pool.begin() + (sz - first_chunk),
+                          dst.begin() + first_chunk);
+            }
+
+            // Update bookkeeping
+            capacity_used -= sz;
+            front_index = (start + sz) % PoolSize;
+            out_size = sz;
+
+            return true;
+        }
+
+        // Old overloads with uint8_t pointers for compatibility.
+        // TODO: Phase out these overloads and use std::span<std::byte> instead.
         [[nodiscard]] bool push(const uint8_t* item, size_t item_size) {
             constexpr size_t MIN_ITEM_SIZE = 1;
             ASSERT(item_size <= PoolSize, "Item too large for the pool.");
@@ -127,10 +203,6 @@ namespace dsa {
             // Record index and size
             VarFIFOIndex idx {start, item_size};
             if (!index_buffer.push(idx)) {
-                // If pushing the index failed (should be rare because we checked),
-                // rollback capacity_used and leave back_index unchanged.
-                // We won't erase the copied bytes (not necessary), but they are not
-                // considered part of used capacity since we didn't update it.
                 return false;
             }
 
@@ -168,7 +240,7 @@ namespace dsa {
         }
 
         void clear() {
-            pool.fill(0);
+            pool.fill(std::byte {0});  // Clear with std::byte{0}
             index_buffer.clear();
             capacity_used = 0;
             front_index = 0;
