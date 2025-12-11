@@ -1,6 +1,7 @@
 #ifndef __APPS_CLASSES_HPP
 #define __APPS_CLASSES_HPP
 
+#include <array>
 #include "apps_interfaces.hpp"
 #include "apps_types.hpp"
 #include "can_isr.hpp"
@@ -420,7 +421,11 @@ namespace CommApp {
             IDebug& debug;
             comm::CANComm<> can_comm;
             comm::UARTComm<> uart_comm;
-            uint8_t message_temp_buffer[256];
+            isr::uart::UART_ISR& uart_isr;
+            std::array<std::byte, 256> message_temp_buffer;
+            std::array<mc2::IndexableDeserializer,
+                       mc2::registry_size_v<mc2::RobotMC::Topics>>
+                deserialize_directory;
 
             BoardStatus_t board_status;
             struct InterboardOperator {
@@ -442,24 +447,16 @@ namespace CommApp {
                 void operator()();
             } op;
 
-            struct CommPublisher {
-                mc2::RobotMC& mc;
-                std::span<uint8_t> temp_span;
-
-                CommPublisher(mc2::RobotMC& mc_ref) : mc(mc_ref) {}
-
-                template <typename T>
-                void operator()();
-            } publisher;
-
            public:
             explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
                              IDebug& debug_ref, comm::CANComm<>& can_comm_ref,
-                             comm::UARTComm<>& uart_comm_ref);
+                             comm::UARTComm<>& uart_comm_ref,
+                             isr::uart::UART_ISR& uart_isr_ref);
             void init();
             void loop();
             void queue_interboard_messages();
-            void publish_new_mesage_from_buffer(uint8_t message_id);
+            void publish_new_mesage_from_buffer(
+                const comm::protocol::TopicMessageMeta& meta);
         };
     }  // namespace v2
 }  // namespace CommApp

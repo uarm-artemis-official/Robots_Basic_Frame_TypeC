@@ -12,11 +12,13 @@
 #include <cstdint>
 #include <cstring>
 #include <limits>
+#include <span>
 #include <type_traits>
 #include <utility>
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
+#include "comm_protocol_interface.hpp"
 #include "message_center.hpp"
 #include "quantize.hpp"
 #include "string.h"
@@ -24,6 +26,7 @@
 #include "topics.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
+#include "uart_isr.hpp"
 
 namespace CommApp {
 
@@ -195,30 +198,40 @@ namespace CommApp {
             }
         }
 
-        template <typename T>
-        void CommApp::CommPublisher::operator()() {
-            T new_message;
-            T::deserialize(new_message, temp_span);
-            mc.pub_message_from_isr(new_message);
-        }
-
         // Future CommApp v2 implementation.
         CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
                          IDebug& debug_ref, comm::CANComm<>& can_comm_ref,
-                         comm::UARTComm<>& uart_comm_ref)
+                         comm::UARTComm<>& uart_comm_ref,
+                         isr::uart::UART_ISR& uart_isr_ref)
             : RTOSApp(_rtos),
               mc(mc2_ref),
               debug(debug_ref),
               can_comm(can_comm_ref),
               uart_comm(uart_comm_ref),
-              op(mc2::MessageNode::All, mc2_ref, can_comm_ref, uart_comm_ref),
-              publisher(mc2_ref) {}
+              uart_isr(uart_isr_ref),
+              op(mc2::MessageNode::All, mc2_ref, can_comm_ref, uart_comm_ref) {}
 
         void CommApp::init() {
+            deserialize_directory =
+                mc2::generate_deserializer_directory<mc2::RobotMC::Topics>();
+
             board_status = debug.get_board_status();
 
             if (board_status == BoardStatus_t::GIMBAL_BOARD) {
-                uart_comm.init();
+                bool register_init_success =
+                    uart_isr.register_init([&](MW_UART::IUART& uart_instance) {
+                        return uart_comm.start_receive(uart_instance);
+                    });
+                bool register_rountine_success = uart_isr.register_routine(
+                    isr::uart::ECallbacks::RECEIVE_COMPLETE,
+                    [&](MW_UART::IUART& uart_instance,
+                        MW_UART::Peripheral peripheral) {
+                        uart_comm.on_receive_complete(uart_instance,
+                                                      peripheral);
+                    });
+                ASSERT(register_init_success && register_rountine_success,
+                       "Failed to register both UART ISR init and routnine "
+                       "functions.");
                 op.current_node = mc2::MessageNode::Gimbal;
             } else {
                 op.current_node = mc2::MessageNode::Chassis;
@@ -231,9 +244,17 @@ namespace CommApp {
                 op, mc2::get_tuple_index<mc2::RobotMC::Topics>());
         }
 
-        void CommApp::publish_new_mesage_from_buffer(uint8_t message_id) {
-            publisher.temp_span = std::span(message_temp_buffer);
-            // TODO: Finish implementation to map message_id to topic type.
+        void CommApp::publish_new_mesage_from_buffer(
+            const comm::protocol::TopicMessageMeta& meta) {
+            std::byte dst_buffer[256];
+            size_t index = meta.message_id - mc2::TOPIC_ID_OFFSET;
+            bool success = deserialize_directory[index](
+                std::span(dst_buffer), std::span(message_temp_buffer));
+            if (success) {
+                mc.pub_message_with_bytes(dst_buffer, meta.message_id);
+            } else {
+                ASSERT(false, "Failed to deserialize interboard message.");
+            }
         }
 
         void CommApp::loop() {
@@ -255,15 +276,31 @@ namespace CommApp {
 
                         // Publish to message center topic.
                         if (meta.destination ==
-                            static_cast<uint8_t>(mc2::MessageNode::All)) {
-                            publish_new_mesage_from_buffer(meta.message_id);
+                                static_cast<uint8_t>(mc2::MessageNode::All) ||
+                            meta.destination == static_cast<uint8_t>(
+                                                    mc2::MessageNode::Gimbal)) {
+                            publish_new_mesage_from_buffer(meta);
                         }
                     }
                 }
             }
 
             if (board_status == BoardStatus_t::CHASSIS_BOARD) {
-                for (int i = 0; i < 5; i++) {}
+                for (int i = 0; i < 5; i++) {
+                    comm::protocol::TopicMessageMeta meta;
+                    bool has_new_message =
+                        can_comm.get_message(message_temp_buffer, meta);
+                    if (has_new_message) {
+                        // Publish to message center topic.
+                        if (meta.destination ==
+                                static_cast<uint8_t>(mc2::MessageNode::All) ||
+                            meta.destination ==
+                                static_cast<uint8_t>(
+                                    mc2::MessageNode::Chassis)) {
+                            publish_new_mesage_from_buffer(meta);
+                        }
+                    }
+                }
             }
         }
     }  // namespace v2
