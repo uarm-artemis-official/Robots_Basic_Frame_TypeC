@@ -8,6 +8,7 @@
 #include "communication.hpp"
 #include "message_center.hpp"
 #include "subsystems_interfaces.hpp"
+#include "topics.hpp"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
@@ -423,10 +424,16 @@ namespace CommApp {
             comm::UARTComm<> uart_comm;
             isr::uart::UART_ISR& uart_isr;
             std::array<std::byte, 256> message_temp_buffer;
+            std::array<std::byte, 256> to_publish_buffer;
+            std::array<std::byte, 256> to_publish_serialized_buffer;
             std::array<mc2::IndexableDeserializer,
                        mc2::registry_size_v<mc2::RobotMC::Topics>>
                 deserialize_directory;
-            std::array<uint8_t, >;
+
+            std::array<mc2::IndexableSerializer,
+                       mc2::registry_size_v<mc2::RobotMC::Topics>>
+                byte_serializers;
+            mc2::InterboardTopicIDs<mc2::RobotMC::Topics> interboard_topic_ids;
 
             BoardStatus_t board_status;
             struct InterboardOperator {

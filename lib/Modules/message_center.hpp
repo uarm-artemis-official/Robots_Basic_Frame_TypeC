@@ -65,13 +65,22 @@ namespace mc2 {
 
         enum class MessageNode { Telemetry = 1, Chassis, Gimbal, MiniPC, All };
 
+        struct TopicMeta {
+            uint8_t topic_id;
+            size_t queue_size;
+            size_t item_size;
+
+            // Only for InterboardMessageTopics.
+            // Fields are zero for regular MessageTopics.
+            uint8_t destination;
+            size_t serialized_size;
+        };
+
         struct TopicHandle {
             MW_RTOS::QueueHandle queue;
             std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> timestamps;
             size_t recent_timestamp_index;
-            uint8_t topic_id;
-            size_t queue_size;
-            size_t item_size;
+            TopicMeta meta;
         };
 
         template <typename T>
@@ -211,11 +220,15 @@ namespace mc2 {
             return count_true<arr.size()>(arr) == arr.size();
         }
 
+        constexpr uint8_t get_topic_id_from_index(size_t index) {
+            return static_cast<uint8_t>(TOPIC_ID_OFFSET + index);
+        }
+
         // TODO: Remove?
         template <typename T, typename TopicRegistry>
         constexpr size_t get_comm_id() {
             constexpr size_t index = get_topic_index<TopicRegistry, T>();
-            return index + TOPIC_ID_OFFSET;
+            return get_topic_id_from_index(index);
         }
 
         constexpr size_t get_index_from_topic_id(uint8_t topic_id) {
@@ -241,9 +254,19 @@ namespace mc2 {
             rtos.queue_create(topic.queue, queue_length, item_size);
             topic.timestamps = std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> {};
             topic.recent_timestamp_index = 0;
-            topic.queue_size = Topic::queue_size;
-            topic.item_size = sizeof(Topic);
-            topic.topic_id = get_comm_id<Topic, TopicRegistry>();
+            topic.meta.queue_size = Topic::queue_size;
+            topic.meta.item_size = sizeof(Topic);
+            topic.meta.topic_id = get_comm_id<Topic, TopicRegistry>();
+
+            if constexpr (InterboardMessageTopic<Topic>) {
+                topic.meta.destination =
+                    static_cast<uint8_t>(Topic::destination);
+                topic.meta.serialized_size = Topic::serialized_size;
+            } else {
+                topic.meta.destination = 0;
+                topic.meta.serialized_size = 0;
+            }
+
             return topic;
         }
 
@@ -281,10 +304,10 @@ namespace mc2 {
         }
 
         template <typename Registry, size_t index>
-        consteval auto generate_deserializer_directory_impl() {
+        consteval auto generate_byte_deserializers_impl() {
             using T = std::tuple_element_t<index, Registry>;
-            static_assert(std::is_trivially_copyable_v<T>);
-            return [&](std::span<std::byte> dst, std::span<std::byte> src) {
+            return [&](std::span<std::byte> dst,
+                       std::span<const std::byte> src) {
                 if constexpr (InterboardMessageTopic<T>) {
                     T msg;
                     bool success = T::deserialize(msg, src.first<sizeof(T)>());
@@ -293,27 +316,57 @@ namespace mc2 {
                     }
                     return success;
                 } else {
-                    return true;
+                    return false;
                 }
             };
         }
 
-        using IndexableDeserializer =
-            std::function<bool(std::span<std::byte>, std::span<std::byte>)>;
+        using IndexableDeserializer = std::function<bool(
+            std::span<std::byte>, std::span<const std::byte>)>;
 
         template <typename Registry>
-        constexpr auto generate_deserializer_directory() {
+        constexpr auto generate_byte_deserializers() {
             constexpr size_t registry_size = std::tuple_size_v<Registry>;
             return [&]<size_t... Is>(std::index_sequence<Is...>) {
                 return std::array<IndexableDeserializer, registry_size> {
-                    generate_deserializer_directory_impl<Registry, Is>()...};
+                    generate_byte_deserializers_impl<Registry, Is>()...};
             }(std::make_index_sequence<registry_size> {});
         }
 
-        template <typename TopicRegistry>
-        consteval size_t get_interboard_topics_size() {
-            
-            return 0;
+        template <typename Registry, size_t index>
+        consteval auto generate_byte_serializers_impl() {
+            using T = std::tuple_element_t<index, Registry>;
+            return
+                [&](std::span<std::byte> dst, std::span<const std::byte> src) {
+                    if constexpr (InterboardMessageTopic<T>) {
+                        T msg;
+
+                        if (src.size() < sizeof(T) ||
+                            dst.size() < T::serialized_size) {
+                            return false;
+                        }
+
+                        std::memcpy(src.data(), &msg, sizeof(T));
+
+                        bool success =
+                            T::serialize(msg, dst.first<T::serialized_size>());
+                        return success;
+                    } else {
+                        return false;
+                    }
+                };
+        }
+
+        using IndexableSerializer = std::function<bool(
+            std::span<std::byte>, std::span<const std::byte>)>;
+
+        template <typename Registry>
+        constexpr auto generate_byte_serializers() {
+            constexpr size_t registry_size = std::tuple_size_v<Registry>;
+            return [&]<size_t... Is>(std::index_sequence<Is...>) {
+                return std::array<IndexableSerializer, registry_size> {
+                    generate_byte_serializers_impl<Registry, Is>()...};
+            }(std::make_index_sequence<registry_size> {});
         }
 
         /**
@@ -328,7 +381,6 @@ namespace mc2 {
         template <typename TopicRegistry>
         consteval auto generate_interboard_topic_ids() {
             constexpr size_t registry_size = std::tuple_size_v<TopicRegistry>;
-            constexpr size_t ID_OFFSET = 100;
 
             // 1. Collect indices of InterboardMessageTopic types at compile-time.
             //    This is the core fix to avoid the runtime loop issue.
@@ -366,11 +418,15 @@ namespace mc2 {
             for (size_t i = 0; i < interboard_count; ++i) {
                 // The index stored in the first part of the pair is the original topic index
                 size_t topic_index = collect_interboard_indices.first[i];
-                ids[i] = static_cast<uint8_t>(ID_OFFSET + topic_index);
+                ids[i] = get_topic_id_from_index(topic_index);
             }
 
             return ids;
         }
+
+        template <typename TopicRegistry>
+        using InterboardTopicIDs =
+            decltype(generate_interboard_topic_ids<TopicRegistry>());
 
         template <typename TopicRegistry>
         class MC2 {
@@ -450,14 +506,14 @@ namespace mc2 {
                 ASSERT(topic_handle.queue != nullptr,
                        "Cannot get message from message_center for NULL "
                        "pointer.");
-                ASSERT(dst.size() >= topic_handle.item_size,
+                ASSERT(dst.size() >= topic_handle.meta.item_size,
                        "Destination buffer too small for message_center "
                        "byte message retrieval.");
 
                 bool res = rtos.queue_get(topic_handle.queue, dst.data(),
                                           ticks_to_wait);
                 if (res) {
-                    message_size = topic_handle.item_size;
+                    message_size = topic_handle.meta.item_size;
                     MW_RTOS::TickType recent_message_timestamp =
                         topic_handle.timestamps.at(
                             topic_handle.recent_timestamp_index);
@@ -559,7 +615,7 @@ namespace mc2 {
                     return {};
                 }
 
-                if (bytes.size() != topic_handle.item_size) {
+                if (bytes.size() != topic_handle.meta.item_size) {
                     return {};
                 }
 
@@ -624,6 +680,15 @@ namespace mc2 {
                 } else {
                     return {};
                 }
+            }
+
+            const TopicMeta& get_topic_meta(uint8_t topic_id) {
+                size_t index = get_index_from_topic_id(topic_id);
+
+                ASSERT(index < registry_size_v<TopicRegistry>,
+                       "Topic ID does not correspond to a valid topic.");
+
+                return topic_handles[index].meta;
             }
         };
     }  // namespace v2

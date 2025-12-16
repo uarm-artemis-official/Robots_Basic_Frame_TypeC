@@ -213,7 +213,11 @@ namespace CommApp {
 
         void CommApp::init() {
             deserialize_directory =
-                mc2::generate_deserializer_directory<mc2::RobotMC::Topics>();
+                mc2::generate_byte_deserializers<mc2::RobotMC::Topics>();
+            byte_serializers =
+                mc2::generate_byte_serializers<mc2::RobotMC::Topics>();
+            interboard_topic_ids =
+                mc2::generate_interboard_topic_ids<mc2::RobotMC::Topics>();
 
             board_status = debug.get_board_status();
 
@@ -240,8 +244,60 @@ namespace CommApp {
         }
 
         void CommApp::queue_interboard_messages() {
-            mc2::interboard_foreach<mc2::RobotMC::Topics>(
-                op, mc2::get_tuple_index<mc2::RobotMC::Topics>());
+            for (uint8_t id : interboard_topic_ids) {
+                const mc2::TopicMeta& topic_meta = mc.get_topic_meta(id);
+                std::span<std::byte> byte_message_span =
+                    std::span(to_publish_buffer.begin(), topic_meta.item_size);
+
+                size_t byte_message_size = 0;
+                auto res = mc.get_byte_message(byte_message_span,
+                                               byte_message_size, id);
+
+                ASSERT(byte_message_size == topic_meta.item_size,
+                       "Message size mismatch in interboard message queuing.");
+
+                if (res.has_value()) {
+                    comm::protocol::TopicMessageMeta meta;
+
+                    mc2::MessageNode current_node;
+                    if (board_status == BoardStatus_t::GIMBAL_BOARD) {
+                        current_node = mc2::MessageNode::Gimbal;
+                    } else {
+                        current_node = mc2::MessageNode::Chassis;
+                    }
+
+                    meta.source = static_cast<uint8_t>(current_node);
+                    meta.destination =
+                        static_cast<uint8_t>(topic_meta.destination);
+                    meta.message_id = id;
+                    meta.payload_length = topic_meta.serialized_size;
+
+                    size_t topic_index = mc2::get_index_from_topic_id(id);
+
+                    std::span<std::byte> serialized_span(
+                        to_publish_serialized_buffer.begin(),
+                        topic_meta.serialized_size);
+                    bool has_serialized = byte_serializers[topic_index](
+                        serialized_span, byte_message_span);
+
+                    if (has_serialized) {
+                        if (meta.destination ==
+                                static_cast<uint8_t>(
+                                    mc2::MessageNode::Chassis) ||
+                            meta.destination ==
+                                static_cast<uint8_t>(mc2::MessageNode::All)) {
+                            can_comm.queue_send_message(serialized_span, meta);
+                        }
+
+                        if (meta.destination == static_cast<uint8_t>(
+                                                    mc2::MessageNode::Gimbal) ||
+                            meta.destination ==
+                                static_cast<uint8_t>(mc2::MessageNode::All)) {
+                            uart_comm.queue_send_message(serialized_span, meta);
+                        }
+                    }
+                }
+            }
         }
 
         void CommApp::publish_new_mesage_from_buffer(
