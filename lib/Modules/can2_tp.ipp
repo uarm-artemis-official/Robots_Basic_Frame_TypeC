@@ -139,8 +139,8 @@ namespace comm::can2_tp {
         template <size_t MaxMessageSize>
         bool CAN2TP<MaxMessageSize>::is_sending_message() {
             return send_buffer.used_send_buffer_length ==
-                       send_buffer.payload_length &&
-                   send_buffer.payload_length != 0;
+                       send_buffer.meta.payload_length &&
+                   send_buffer.meta.payload_length != 0;
         }
 
         template <size_t MaxMessageSize>
@@ -180,9 +180,9 @@ namespace comm::can2_tp {
             }
 
             // message id is always stored in extid upper byte
-            set_message_id(send_buffer.send_message_id, frame.extid);
+            set_message_id(send_buffer.meta.message_id, frame.extid);
             set_source(source, frame.stdid);
-            set_destination(send_buffer.send_destination, frame.stdid);
+            set_destination(send_buffer.meta.destination, frame.stdid);
 
             // copy payload
             memcpy(

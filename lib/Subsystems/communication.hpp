@@ -239,6 +239,7 @@ namespace comm {
         MessageFIFO<protocol::TopicMessageMeta, MAX_SINGLE_MESSAGE_SIZE * 4>
             receive_fifo, send_fifo;
 
+        // TODO: Refactor CAN ISR handling to Comm App.
        public:
         explicit CANComm(
             can2_tp::v1::CAN2TP<MAX_SINGLE_MESSAGE_SIZE>& _can2tp_ref,
@@ -322,26 +323,29 @@ namespace comm {
 
         void send_next_frame() {
             can2_tp::CAN2BFrame next_frame;
-            if (!can2tp_ref.is_sending_message()) {
+            bool has_next_frame = false;
+            if (can2tp_ref.is_sending_message()) {
+                has_next_frame = can2tp_ref.get_next_send_fragment(next_frame);
+            } else {
                 uint8_t next_payload[MAX_SINGLE_MESSAGE_SIZE];
                 protocol::TopicMessageMeta next_meta;
                 if (send_fifo.pop(next_payload, next_meta)) {
                     if (next_meta.payload_length <
                         can2_tp::MIN_SEGMENT_MESSAGE_LENGTH) {
-                        (void) can2tp_ref.get_single_frame(
+                        has_next_frame = can2tp_ref.get_single_frame(
                             next_payload, next_meta.payload_length,
                             next_meta.destination, next_frame);
                     } else {
                         can2tp_ref.set_send_message(
                             next_payload, next_meta.payload_length,
                             next_meta.message_id, next_meta.destination);
-                        can2tp_ref.get_next_send_fragment(next_frame);
+                        has_next_frame =
+                            can2tp_ref.get_next_send_fragment(next_frame);
                     }
                 }
             }
 
-            if (next_frame.stdid != 0 && next_frame.extid != 0 &&
-                next_frame.length != 0) {
+            if (has_next_frame) {
                 can_ref.send_data(MW_CAN::BUS::CAN_2B, next_frame.stdid,
                                   next_frame.extid, next_frame.payload,
                                   next_frame.length);

@@ -426,6 +426,7 @@ namespace CommApp {
             std::array<mc2::IndexableDeserializer,
                        mc2::registry_size_v<mc2::RobotMC::Topics>>
                 deserialize_directory;
+            std::array<uint8_t, >;
 
             BoardStatus_t board_status;
             struct InterboardOperator {

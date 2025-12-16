@@ -1,6 +1,7 @@
 #ifndef __MESSAGE_CENTER_HPP
 #define __MESSAGE_CENTER_HPP
 
+#include <algorithm>
 #include <array>
 #include <concepts>
 #include <cstdint>
@@ -13,6 +14,7 @@
 #include <utility>
 #include "../uarm_lib.hpp"
 #include "middleware_interfaces.hpp"
+#include "portmacro.h"
 
 namespace mc2 {
     inline namespace v2 {
@@ -63,21 +65,6 @@ namespace mc2 {
 
         enum class MessageNode { Telemetry = 1, Chassis, Gimbal, MiniPC, All };
 
-        template <size_t _queue_size>
-        struct Topic {
-            static_assert(_queue_size <= MAX_TOPIC_QUEUE_SIZE);
-            static constexpr size_t queue_size = _queue_size;
-        };
-
-        // TODO: Add parameter to set size of message.
-        template <size_t queue_size, size_t _serialized_size,
-                  MessageNode _destination, bool _also_local = false>
-        struct InterboardMessage : Topic<queue_size> {
-            static constexpr MessageNode destination = _destination;
-            static constexpr bool also_local = _also_local;
-            static constexpr size_t serialized_size = _serialized_size;
-        };
-
         struct TopicHandle {
             MW_RTOS::QueueHandle queue;
             std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> timestamps;
@@ -90,6 +77,7 @@ namespace mc2 {
         template <typename T>
         concept MessageTopic = requires {
             T::queue_size;
+            T::queue_size <= MAX_TOPIC_QUEUE_SIZE;
         };
 
         template <typename T>
@@ -227,7 +215,11 @@ namespace mc2 {
         template <typename T, typename TopicRegistry>
         constexpr size_t get_comm_id() {
             constexpr size_t index = get_topic_index<TopicRegistry, T>();
-            return index + 100;
+            return index + TOPIC_ID_OFFSET;
+        }
+
+        constexpr size_t get_index_from_topic_id(uint8_t topic_id) {
+            return static_cast<size_t>(topic_id) - TOPIC_ID_OFFSET;
         }
 
         template <int index, typename List>
@@ -316,6 +308,12 @@ namespace mc2 {
                 return std::array<IndexableDeserializer, registry_size> {
                     generate_deserializer_directory_impl<Registry, Is>()...};
             }(std::make_index_sequence<registry_size> {});
+        }
+
+        template <typename TopicRegistry>
+        consteval size_t get_interboard_topics_size() {
+            
+            return 0;
         }
 
         /**
@@ -438,6 +436,41 @@ namespace mc2 {
                 }
             }
 
+            std::optional<MW_RTOS::TickType> get_byte_message(
+                std::span<std::byte> dst, size_t& message_size,
+                uint8_t topic_id, TickType_t ticks_to_wait = 0) {
+                size_t index = get_index_from_topic_id(topic_id);
+
+                if (index >= registry_size_v<TopicRegistry> || index < 0) {
+                    return {};
+                }
+
+                TopicHandle& topic_handle = topic_handles[index];
+
+                ASSERT(topic_handle.queue != nullptr,
+                       "Cannot get message from message_center for NULL "
+                       "pointer.");
+                ASSERT(dst.size() >= topic_handle.item_size,
+                       "Destination buffer too small for message_center "
+                       "byte message retrieval.");
+
+                bool res = rtos.queue_get(topic_handle.queue, dst.data(),
+                                          ticks_to_wait);
+                if (res) {
+                    message_size = topic_handle.item_size;
+                    MW_RTOS::TickType recent_message_timestamp =
+                        topic_handle.timestamps.at(
+                            topic_handle.recent_timestamp_index);
+                    topic_handle.recent_timestamp_index =
+                        (topic_handle.recent_timestamp_index - 1 +
+                         MAX_TOPIC_QUEUE_SIZE) %
+                        MAX_TOPIC_QUEUE_SIZE;
+                    return std::make_optional(recent_message_timestamp);
+                } else {
+                    return {};
+                }
+            }
+
             /**
              * @brief Peek at the next message of type T in its corresponding topic queue without removing it.
              * 
@@ -454,9 +487,9 @@ namespace mc2 {
                 TopicHandle& topic_handle =
                     topic_handles.at(get_topic_index<TopicRegistry, T>());
                 MW_RTOS::QueueHandle topic_queue = topic_handle.queue;
-                ASSERT(
-                    topic_queue != nullptr,
-                    "Cannot get message from message_center for NULL pointer.");
+                ASSERT(topic_queue != nullptr,
+                       "Cannot get message from message_center for NULL "
+                       "pointer.");
                 bool result = rtos.queue_peek(
                     topic_queue, static_cast<void*>(&message), ticks_to_wait);
                 if (result) {
@@ -486,9 +519,9 @@ namespace mc2 {
                 TopicHandle& topic_handle =
                     topic_handles.at(get_topic_index<TopicRegistry, T>());
                 MW_RTOS::QueueHandle topic_queue = topic_handle.queue;
-                ASSERT(
-                    topic_queue != nullptr,
-                    "Cannot get message from message_center for NULL pointer.");
+                ASSERT(topic_queue != nullptr,
+                       "Cannot get message from message_center for NULL "
+                       "pointer.");
                 bool result;
                 if (get_topic_queue_size<get_topic_index<TopicRegistry, T>(),
                                          TopicRegistry>() == 1) {
@@ -512,11 +545,16 @@ namespace mc2 {
                 }
             }
 
-            std::optional<MW_RTOS::TickType> pub_message_with_bytes(
-                std::span<const std::byte> bytes, uint8_t message_id,
+            std::optional<MW_RTOS::TickType> pub_byte_message(
+                std::span<const std::byte> bytes, uint8_t topic_id,
                 MW_RTOS::TickType ticks_to_wait = 0) {
-                TopicHandle& topic_handle =
-                    topic_handles[message_id - TOPIC_ID_OFFSET];
+                size_t index = get_index_from_topic_id(topic_id);
+
+                if (index >= registry_size_v<TopicRegistry> || index < 0) {
+                    return {};
+                }
+
+                TopicHandle& topic_handle = topic_handles[index];
                 if (topic_handle.queue == nullptr) {
                     return {};
                 }

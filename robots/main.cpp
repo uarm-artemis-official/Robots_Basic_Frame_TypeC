@@ -88,6 +88,7 @@
 #include "dma.h"
 #include "gpio.h"
 #include "i2c.h"
+#include "message_center.hpp"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -196,7 +197,24 @@ static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
 static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 #endif
 
+#ifdef OLD_COMM_APP
 static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
+#else
+
+static constexpr size_t MAX_MESSAGE_SIZE = 256;
+
+// TODO: Move source address setting to runtime instead of constructor.
+static comm::can2_tp::v1::CAN2TP<MAX_MESSAGE_SIZE> _can2tp(
+    static_cast<uint8_t>(mc2::MessageNode::Gimbal));
+static comm::CANComm<MAX_MESSAGE_SIZE> can_comm(_can2tp, can_isr, can);
+
+static uc_uart::UC_UART<MAX_MESSAGE_SIZE> _uc_uart(
+    static_cast<uint8_t>(mc2::MessageNode::Gimbal));
+static comm::UARTComm<MAX_MESSAGE_SIZE> uart_comm(_uc_uart, uart, uart_isr);
+static CommApp::v2::CommApp comm_app(rtos, mc, debug, can_comm, uart_comm,
+                                     uart_isr);
+#endif
+
 static TimerApp timer_app(rtos, motors, mc, debug, can_isr);
 static PCUARTApp pc_uart_app(rtos, mc, no_init_motors, pc_comm, uart_isr);
 static IMUApp imu_app(rtos, mc, event_center, imu, debug);

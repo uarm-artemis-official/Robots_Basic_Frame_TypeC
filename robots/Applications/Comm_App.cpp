@@ -251,7 +251,7 @@ namespace CommApp {
             bool success = deserialize_directory[index](
                 std::span(dst_buffer), std::span(message_temp_buffer));
             if (success) {
-                mc.pub_message_with_bytes(dst_buffer, meta.message_id);
+                mc.pub_byte_message(dst_buffer, meta.message_id);
             } else {
                 ASSERT(false, "Failed to deserialize interboard message.");
             }
@@ -285,7 +285,8 @@ namespace CommApp {
                 }
             }
 
-            if (board_status == BoardStatus_t::CHASSIS_BOARD) {
+            if (board_status == BoardStatus_t::CHASSIS_BOARD ||
+                board_status == BoardStatus_t::GIMBAL_BOARD) {
                 for (int i = 0; i < 5; i++) {
                     comm::protocol::TopicMessageMeta meta;
                     bool has_new_message =
@@ -301,6 +302,10 @@ namespace CommApp {
                         }
                     }
                 }
+            }
+
+            for (int i = 0; i < 5; i++) {
+                can_comm.send_next_frame();
             }
         }
     }  // namespace v2
