@@ -147,77 +147,35 @@ namespace mc2 {
             }
         }
 
-        template <typename Tuple>
-        constexpr auto get_tuple_index() {
-            return std::make_index_sequence<std::tuple_size_v<Tuple>> {};
+        template <typename T, typename TopicRegistry>
+        constexpr auto get_type_present_array() {
+            [&]<size_t... Is>(std::index_sequence<Is...>) {
+                return std::array<bool, std::tuple_size_v<TopicRegistry>> {
+                    []() {
+                        return std::is_same_v<
+                            T, std::tuple_element_t<Is, TopicRegistry>>;
+                    }()...};
+            }(std::make_index_sequence<registry_size_v<TopicRegistry>> {});
         }
 
-        template <typename T, typename List, int index>
-        struct type_present_operator {
-            constexpr bool operator()() {
-                return std::is_same_v<T, std::tuple_element_t<index, List>>;
-            }
-        };
-
-        template <typename T, typename = void>
-        constexpr bool is_interboard_message = false;
-
-        // TODO: Add more robust check for InterboardMessage inheritance?
-        template <typename T>
-        constexpr bool
-            is_interboard_message<T, std::void_t<decltype(T::Serializer)>> =
-                true;
-
-        template <typename List, int index>
-        struct interboard_present_operator {
-            constexpr bool operator()() {
-                using TypeAtIndex = std::tuple_element_t<index, List>;
-                return is_interboard_message<TypeAtIndex>;
-            }
-        };
-
-        template <typename T, typename List, size_t... Is>
-        constexpr auto get_type_present_array(std::index_sequence<Is...>) {
-            return std::array<bool, std::tuple_size_v<List>> {
-                type_present_operator<T, List, Is> {}()...};
+        template <int index, typename List>
+        constexpr bool is_unique() {
+            return [&]<size_t... Is>(std::index_sequence<Is...>) {
+                std::array<bool, std::tuple_size_v<List>> arr =
+                    get_type_present_array<std::tuple_element_t<index, List>,
+                                           List>();
+                return std::ranges::count(arr, true) == 1;
+            }(std::make_index_sequence<std::tuple_size_v<List>> {});
         }
 
-        template <typename List, size_t... Is>
-        constexpr auto get_interboard_present_array(
-            std::index_sequence<Is...>) {
-            return std::array<bool, std::tuple_size_v<List>> {
-                is_interboard_message<std::tuple_element_t<Is, List>>...};
-        }
+        template <typename List>
+        constexpr bool all_unique_types() {
+            return [&]<size_t... Is>(std::index_sequence<Is...>) {
+                std::array<bool, std::tuple_size_v<List>> arr {
+                    is_unique<Is, List>()...};
 
-        template <typename List, typename F, typename TFArgs, size_t... Is>
-        constexpr void for_each_topic(F&& f, TFArgs args,
-                                      std::index_sequence<Is...>) {
-            (f.template operator()<std::tuple_element_t<Is, List>>(args), ...);
-        }
-
-        template <int size>
-        constexpr int count_true(std::array<bool, size> arr) {
-            int count = 0;
-            for (bool x : arr) {
-                if (x)
-                    count++;
-            }
-            return count;
-        }
-
-        template <int index, typename List, size_t... Is>
-        constexpr bool is_unique(std::index_sequence<Is...>) {
-            std::array<bool, std::tuple_size_v<List>> arr =
-                get_type_present_array<std::tuple_element_t<index, List>, List>(
-                    get_tuple_index<List>());
-            return count_true<arr.size()>(arr) == 1;
-        }
-
-        template <typename List, size_t... Is>
-        constexpr bool all_unique_types(std::index_sequence<Is...>) {
-            std::array<bool, std::tuple_size_v<List>> arr {
-                is_unique<Is, List>(get_tuple_index<List>())...};
-            return count_true<arr.size()>(arr) == arr.size();
+                return std::ranges::count(arr, true) == arr.size();
+            }(std::make_index_sequence<std::tuple_size_v<List>> {});
         }
 
         constexpr uint8_t get_topic_id_from_index(size_t index) {
@@ -288,19 +246,6 @@ namespace mc2 {
                 return std::array<TopicHandle, registry_size> {
                     generate_topic_handle<Is, TopicRegistry>(rtos)...};
             }(std::make_index_sequence<registry_size> {});
-        }
-
-        template <typename TopicRegistry, typename Op, int index>
-        void interboard_foreach_impl(Op& op) {
-            using TopicType = std::tuple_element_t<index, TopicRegistry>;
-            if constexpr (is_interboard_message<TopicType>) {
-                op.template operator()<TopicType>();
-            }
-        }
-
-        template <typename TopicRegistry, typename Op, size_t... Is>
-        auto interboard_foreach(Op&& op, std::index_sequence<Is...>) {
-            (interboard_foreach_impl<TopicRegistry, Op, Is>(op), ...);
         }
 
         template <typename Registry, size_t index>
@@ -448,8 +393,7 @@ namespace mc2 {
              * @return true if initialization succeeded, false otherwise.
              */
             bool init() {
-                static_assert(all_unique_types<TopicRegistry>(
-                                  get_tuple_index<TopicRegistry>()),
+                static_assert(all_unique_types<TopicRegistry>(),
                               "Only unique topics within TopicRegistry");
                 topic_handles =
                     generate_topic_handles_array<TopicRegistry>(rtos);
