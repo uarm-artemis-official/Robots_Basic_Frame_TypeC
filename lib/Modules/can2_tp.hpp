@@ -8,6 +8,7 @@
 namespace comm {
     namespace can2_tp {
         /*
+       * TODO: (Fairly okay AI generated docuemntation) Review more thoroughly and edit as needed.
        * CAN2-TP Protocol Overview (ASCII diagrams)
        * -----------------------------------------
        * This transport protocol runs on CAN 2.0B frames. It encodes
@@ -135,24 +136,24 @@ namespace comm {
          * There is some error checking in the setters to avoid invalid values.
          */
             // TODO: Add error handling/logging for invalid setter inputs.
-            // inline void set_frame_type(protocol::FrameType frame_type,
-            //                            uint32_t& stdid);
-            // inline protocol::FrameType get_frame_type(uint32_t stdid);
+            inline void set_frame_type(protocol::FrameType frame_type,
+                                       uint32_t& stdid);
+            inline protocol::FrameType get_frame_type(uint32_t stdid);
 
-            // inline void set_destination(uint8_t destination, uint32_t& stdid);
-            // inline uint8_t get_destination(uint32_t stdid);
+            inline void set_destination(uint8_t destination, uint32_t& stdid);
+            inline uint8_t get_destination(uint32_t stdid);
 
-            // inline void set_source(uint8_t source, uint32_t& stdid);
-            // inline uint8_t get_source(uint32_t stdid);
+            inline void set_source(uint8_t source, uint32_t& stdid);
+            inline uint8_t get_source(uint32_t stdid);
 
-            // inline void set_index(uint8_t index, uint32_t& extid);
-            // inline uint8_t get_index(uint32_t extid);
+            inline void set_index(uint8_t index, uint32_t& extid);
+            inline uint8_t get_index(uint32_t extid);
 
-            // inline void set_length(size_t length, uint32_t& extid);
-            // inline size_t get_length(uint32_t extid);
+            inline void set_length(size_t length, uint32_t& extid);
+            inline size_t get_length(uint32_t extid);
 
-            // inline void set_message_id(uint8_t message_id, uint32_t& extid);
-            // inline uint8_t get_message_id(uint32_t extid);
+            inline void set_message_id(uint8_t message_id, uint32_t& extid);
+            inline uint8_t get_message_id(uint32_t extid);
 
             /**
             * @brief Transport Protocol for sending message center topic messages over CAN2.0B.
@@ -322,19 +323,19 @@ namespace comm {
                                             uint8_t destination, void* params);
 
                 /**
-             * @brief Process a received control flow frame.
-             * 
-             * This function handles processing of received control flow frames.
-             * The result depends on the control flow type determined from the frame.
-             * Currently, there is only ping and pong control flow frames, therefore,
-             * message_received will be populated accordingly with an enum value of
-             * either ControlFlowID::Ping or ControlFlowID::Pong.
-             * 
-             * @param frame Reference to the received CAN2BFrame.
-             * @param message_received Pointer to the buffer to copy the processed message.
-             * 
-             * @return true if the control flow frame was processed successfully, false otherwise.
-             */
+                * @brief Process a received control flow frame.
+                * 
+                * This function handles processing of received control flow frames.
+                * The result depends on the control flow type determined from the frame.
+                * Currently, there is only ping and pong control flow frames, therefore,
+                * message_received will be populated accordingly with an enum value of
+                * either ControlFlowID::Ping or ControlFlowID::Pong.
+                * 
+                * @param frame Reference to the received CAN2BFrame.
+                * @param message_received Pointer to the buffer to copy the processed message.
+                * 
+                * @return true if the control flow frame was processed successfully, false otherwise.
+                */
                 bool process_control_flow_frame(const CAN2BFrame& frame,
                                                 void* message_received);
 
