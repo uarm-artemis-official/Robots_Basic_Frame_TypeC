@@ -7,7 +7,111 @@
 
 namespace comm {
     namespace can2_tp {
-        // TODO: Add documentation about the protocol format and design.
+        /*
+       * CAN2-TP Protocol Overview (ASCII diagrams)
+       * -----------------------------------------
+       * This transport protocol runs on CAN 2.0B frames. It encodes
+       * protocol fields into the 11-bit standard identifier (`stdid`) and
+       * the extended identifier (`extid`), and uses the 8-byte CAN data
+       * payload for message bytes. The implementation stores the following
+       * fields (bit layouts are described LSB -> MSB):
+       *
+       * stdid (11-bit identifier packed as lower bits of a 32-bit value):
+       *  [ frame_type:3 ][ source:4 ][ destination:4 ]
+       *  LSB -------------------------------> MSB
+       *
+       *  Visual (bit groups):
+       *  +-----------------------------------------------+
+       *  | DEST(4) | SRC(4) | TYPE(3) | (remaining bits) |
+       *  +-----------------------------------------------+
+       *              ^       ^        ^
+       *              |       |        `-- frame type (Single/First/CF/Control)
+       *              |       `-- source node id (1..15)
+       *              `-- destination node id (1..15)
+       *
+       * extid (extended identifier; low bytes used):
+       *  [ length/index:8 ][ message_id:8 ][ reserved... ]
+       *  LSB -------------------------------> MSB
+       *
+       *  Visual (byte order in low 16 bits):
+       *  +----------------+----------------+
+       *  | LENGTH/INDEX(8) | MSG_ID(8) |
+       *  +----------------+----------------+
+       *      ^ low byte           ^ high byte
+       *
+       * Frame types (how fields are used)
+       * ----------------------------------
+       * 1) Single Frame
+       *    - stdid: TYPE=SingleFrame, SRC, DEST
+       *    - extid: LENGTH = payload length (1..8) (MSG_ID may be set optionally)
+       *    - payload: up to 8 bytes of message data
+       *
+       *    +-------------------------------+
+       *    | stdid (TYPE=SINGLE, SRC, DST) |
+       *    +-------------------------------+
+       *    | extid low = LENGTH (<=8)      |
+       *    +-------------------------------+
+       *    | payload[0] ... payload[N-1]   |
+       *    +-------------------------------+
+       *
+       * 2) First Frame (begin segmented transfer)
+       *    - stdid: TYPE=FirstFrame, SRC, DEST
+       *    - extid: LENGTH = total message length (may be >8)
+       *    - extid high byte: MSG_ID for the message
+       *    - payload: first fragment (up to 8 bytes)
+       *
+       *    +---------------------------------------------+
+       *    | stdid (TYPE=FIRST, SRC, DST)                |
+       *    +---------------------------------------------+
+       *    | extid low = TOTAL_LENGTH | extid high = MSG |
+       *    +---------------------------------------------+
+       *    | payload[0] ... payload[7]  (first chunk)    |
+       *    +---------------------------------------------+
+       *
+       * 3) Consecutive Frame (subsequent fragments)
+       *    - stdid: TYPE=ConsecutiveFrame, SRC, DEST
+       *    - extid: INDEX = fragment index (1-based in this implementation)
+       *    - extid high byte: MSG_ID (must match first frame)
+       *    - payload: next fragment (up to 8 bytes)
+       *
+       *    +---------------------------------------------+
+       *    | stdid (TYPE=CONSECUTIVE, SRC, DST)          |
+       *    +---------------------------------------------+
+       *    | extid low = INDEX         | extid high = MSG |
+       *    +---------------------------------------------+
+       *    | payload[0] ... payload[7]  (next chunk)     |
+       *    +---------------------------------------------+
+       *
+       * 4) Control Flow Frame (ping / pong)
+       *    - stdid: TYPE=ControlFlow, SRC, DEST
+       *    - extid low byte: stores ControlFlowID (e.g. Ping=0, Pong=1)
+       *    - no payload (length field used to encode control id)
+       *
+       *    +---------------------------------------------+
+       *    | stdid (TYPE=CONTROL_FLOW, SRC, DST)         |
+       *    +---------------------------------------------+
+       *    | extid low = CONTROL_ID (Ping/Pong)          |
+       *    +---------------------------------------------+
+       *
+       * Reassembly behavior (receiver side)
+       * ------------------------------------
+       * - On FirstFrame: read total length from extid low byte, allocate/prepare
+       *   receive buffer, copy payload to buffer start, store MSG_ID and addressing.
+       * - On ConsecutiveFrame: read index (extid low) and MSG_ID (extid high),
+       *   verify matching MSG_ID/source/destination (implementation currently
+       *   notes these checks as TODO), append payload at current write offset.
+       * - Completion: when total bytes copied == total length, the message is
+       *   considered reassembled and can be retrieved with get_reassembled_message().
+       *
+       * Notes / Implementation specifics
+       * - Single frames are used for messages <=8 bytes.
+       * - Segmented messages use a FirstFrame followed by one or more ConsecutiveFrames.
+       * - The implementation stores `length` in the low byte of `extid` for FirstFrame
+       *   (total length) and for ConsecutiveFrame (index). The `message_id` is stored
+       *   in the upper byte of `extid` to correlate fragments.
+       * - `stdid` packs the 3-bit frame type in the lowest bits to allow a compact
+       *   identifier when transmitted on CAN 2.0B.
+       */
 
         inline namespace v1 {
             constexpr size_t MAX_CAN2TP_MESSAGE_LENGTH = 2048;
@@ -51,26 +155,26 @@ namespace comm {
             // inline uint8_t get_message_id(uint32_t extid);
 
             /**
-         * @brief Transport Protocol for sending message center topic messages over CAN2.0B.
-         * 
-         * This is a custom transport layer protocol designed to work over CAN2.0B frames.
-         * It is inspired by ISO-TP but tailored for specific use cases in the UARM project.
-         * This class provides methods for segmenting and reassembling messages, and 
-         * sending/parsing flow control.
-         * 
-         * It has the following features:
-         *  - Segmentation of large messages into multiple CAN2.0B frames.
-         *  - Reassembly of messages from received CAN2.0B frames.
-         *  - Flow control to determine connection status with different destinations (ping/pong).
-         *  
-         * Only one segmented message can be reassembled at a time. New messages will overwrite
-         * the previous message being reassembled. However, control flow frames and single message
-         * frames can be processed at any time without affecting reassembly of another message.
-         * 
-         * @note this class does not handle sending or receiving CAN2.0B frames directly. It
-         * is expected that the user of this class will handle CAN2.0B frame transmission and
-         * reception, and call the appropriate methods in this class to process them.
-         */
+            * @brief Transport Protocol for sending message center topic messages over CAN2.0B.
+            * 
+            * This is a custom transport layer protocol designed to work over CAN2.0B frames.
+            * It is inspired by ISO-TP but tailored for specific use cases in the UARM project.
+            * This class provides methods for segmenting and reassembling messages, and 
+            * sending/parsing flow control.
+            * 
+            * It has the following features:
+            *  - Segmentation of large messages into multiple CAN2.0B frames.
+            *  - Reassembly of messages from received CAN2.0B frames.
+            *  - Flow control to determine connection status with different destinations (ping/pong).
+            *  
+            * Only one segmented message can be reassembled at a time. New messages will overwrite
+            * the previous message being reassembled. However, control flow frames and single message
+            * frames can be processed at any time without affecting reassembly of another message.
+            * 
+            * @note this class does not handle sending or receiving CAN2.0B frames directly. It
+            * is expected that the user of this class will handle CAN2.0B frame transmission and
+            * reception, and call the appropriate methods in this class to process them.
+            */
             template <size_t MaxMessageSize>
             class CAN2TP {
                 static_assert(
