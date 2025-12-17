@@ -14,7 +14,6 @@
 #include <utility>
 #include "../uarm_lib.hpp"
 #include "middleware_interfaces.hpp"
-#include "portmacro.h"
 
 namespace mc2 {
     inline namespace v2 {
@@ -149,7 +148,7 @@ namespace mc2 {
 
         template <typename T, typename TopicRegistry>
         constexpr auto get_type_present_array() {
-            [&]<size_t... Is>(std::index_sequence<Is...>) {
+            return [&]<size_t... Is>(std::index_sequence<Is...>) {
                 return std::array<bool, std::tuple_size_v<TopicRegistry>> {
                     []() {
                         return std::is_same_v<
@@ -438,7 +437,7 @@ namespace mc2 {
 
             std::optional<MW_RTOS::TickType> get_byte_message(
                 std::span<std::byte> dst, size_t& message_size,
-                uint8_t topic_id, TickType_t ticks_to_wait = 0) {
+                uint8_t topic_id, MW_RTOS::TickType ticks_to_wait = 0) {
                 size_t index = get_index_from_topic_id(topic_id);
 
                 if (index >= registry_size_v<TopicRegistry> || index < 0) {

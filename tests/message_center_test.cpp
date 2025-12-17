@@ -3,18 +3,23 @@
 #include <tuple>
 #include "middleware_classes.hpp"
 
-struct FloatTopic : mc2::Topic<2> {
+struct FloatTopic {
+    static constexpr size_t queue_size = 2;
+
     float field;
 };
 
-struct StructTopic : mc2::Topic<5> {
+struct StructTopic {
+    static constexpr size_t queue_size = 5;
+
     uint8_t byte;
     float f;
     int16_t hw;
     uint32_t w;
 };
 
-struct MailboxTopic : mc2::Topic<1> {
+struct MailboxTopic {
+    static constexpr size_t queue_size = 1;
     uint8_t field;
 };
 
@@ -231,11 +236,11 @@ TEST_F(MessageCenterTest, PeekEmptyTopicFails) {
 
 TEST_F(MessageCenterTest, StructTopicMultiplePubAndGetSequence) {
     // Fill the queue with 5 messages (StructTopic queue size is 5)
-    StructTopic s1 {{}, 0x01, 1.1f, 11, 0x11111111};
-    StructTopic s2 {{}, 0x02, 2.2f, 22, 0x22222222};
-    StructTopic s3 {{}, 0x03, 3.3f, 33, 0x33333333};
-    StructTopic s4 {{}, 0x04, 4.4f, 44, 0x44444444};
-    StructTopic s5 {{}, 0x05, 5.5f, 55, 0x55555555};
+    StructTopic s1 {0x01, 1.1f, 11, 0x11111111};
+    StructTopic s2 {0x02, 2.2f, 22, 0x22222222};
+    StructTopic s3 {0x03, 3.3f, 33, 0x33333333};
+    StructTopic s4 {0x04, 4.4f, 44, 0x44444444};
+    StructTopic s5 {0x05, 5.5f, 55, 0x55555555};
 
     ASSERT_TRUE(mc2->pub_message(s1).has_value());
     ASSERT_TRUE(mc2->pub_message(s2).has_value());
@@ -255,8 +260,8 @@ TEST_F(MessageCenterTest, StructTopicMultiplePubAndGetSequence) {
     ASSERT_TRUE(mc2->pub_message(s5).has_value());
 
     // Now queue should have s2, s3, s4, s5 (in order)
-    StructTopic s6 {{}, 0x06, 6.6f, 66, 0x66666666};
-    StructTopic s7 {{}, 0x07, 7.7f, 77, 0x77777777};
+    StructTopic s6 {0x06, 6.6f, 66, 0x66666666};
+    StructTopic s7 {0x07, 7.7f, 77, 0x77777777};
     ASSERT_TRUE(mc2->pub_message(s6).has_value());
     ASSERT_FALSE(mc2->pub_message(s7).has_value());
 

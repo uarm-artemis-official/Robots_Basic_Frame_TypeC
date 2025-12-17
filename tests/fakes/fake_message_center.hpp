@@ -31,7 +31,8 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
     void set_get_return_value(const T& value) {
         static_assert(std::is_trivially_copyable_v<T>,
                       "set_get_return_value requires trivially copyable types");
-        constexpr size_t idx = mc2::get_index<T, TopicRegistry>();
+        constexpr size_t idx = mc2::get_topic_index<TopicRegistry, T>();
+        ASSERT(idx < NUM_TOPICS, "Invalid topic type for fake_message_center");
         auto& c = counters_.at(idx);
         c.return_value_bytes.resize(sizeof(T));
         std::memcpy(c.return_value_bytes.data(), &value, sizeof(T));
@@ -40,7 +41,10 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
     // Retrieve counters for a message type
     template <typename T>
     Counters* get_counters() {
-        constexpr size_t idx = mc2::get_index<T, TopicRegistry>();
+        constexpr size_t idx = mc2::get_topic_index<TopicRegistry, T>();
+        if (!(idx < NUM_TOPICS)) {
+            return nullptr;
+        }
         return &counters_[idx];
     }
 
@@ -55,7 +59,10 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
         static_assert(std::is_trivially_copyable_v<T>,
                       "get_message in fake requires trivially copyable types");
         (void) ticks_to_wait;
-        constexpr size_t idx = mc2::get_index<T, TopicRegistry>();
+        constexpr size_t idx = mc2::get_topic_index<TopicRegistry, T>();
+        if (!(idx < NUM_TOPICS)) {
+            return std::nullopt;
+        }
         auto& c = counters_.at(idx);
         ++c.get_count;
         if (c.return_value_bytes.size() >= sizeof(T)) {
@@ -80,7 +87,10 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
                       "pub_message in fake requires trivially copyable types");
         (void) ticks_to_wait;
 
-        constexpr size_t idx = mc2::get_index<T, TopicRegistry>();
+        constexpr size_t idx = mc2::get_topic_index<TopicRegistry, T>();
+        if (!(idx < NUM_TOPICS)) {
+            return std::nullopt;
+        }
         auto& c = counters_.at(idx);
         ++c.pub_count;
         c.last_pub_bytes.resize(sizeof(T));
