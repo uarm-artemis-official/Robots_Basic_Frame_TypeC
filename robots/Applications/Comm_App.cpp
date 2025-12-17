@@ -167,36 +167,38 @@ namespace CommApp {
     }  // namespace v1
 
     namespace v2 {
-        template <typename T>
-        void CommApp::InterboardOperator::operator()() {
-            static_assert(
-                std::is_trivially_copyable<T>(),
-                "Interboard message types must be trivially copyable.");
-            // Implementation for interboard operation on type T
 
-            if (T::destination != current_node) {
-                std::span<uint8_t> temp_span(temp_buffer, T::serialized_size);
-                T message;
-                mc.get_message(message);
-                T::serialize(message, temp_span);
+        // TODO: Remove after testing alternative enqueue implementation.
+        // template <typename T>
+        // void CommApp::InterboardOperator::operator()() {
+        //     static_assert(
+        //         std::is_trivially_copyable<T>(),
+        //         "Interboard message types must be trivially copyable.");
+        //     // Implementation for interboard operation on type T
 
-                comm::protocol::TopicMessageMeta meta;
-                meta.source = static_cast<uint8_t>(current_node);
-                meta.destination = static_cast<uint8_t>(T::destination);
-                meta.message_id = mc2::get_comm_id<T, mc2::RobotMC::Topics>();
-                meta.payload_length = T::serialized_size;
+        //     if (T::destination != current_node) {
+        //         std::span<uint8_t> temp_span(temp_buffer, T::serialized_size);
+        //         T message;
+        //         mc.get_message(message);
+        //         T::serialize(message, temp_span);
 
-                if (T::destination == mc2::MessageNode::Chassis ||
-                    T::destination == mc2::MessageNode::All) {
-                    can_comm.queue_send_message(temp_span.data(), meta);
-                }
+        //         comm::protocol::TopicMessageMeta meta;
+        //         meta.source = static_cast<uint8_t>(current_node);
+        //         meta.destination = static_cast<uint8_t>(T::destination);
+        //         meta.message_id = mc2::get_comm_id<T, mc2::RobotMC::Topics>();
+        //         meta.payload_length = T::serialized_size;
 
-                if (T::destination == mc2::MessageNode::Gimbal ||
-                    T::destination == mc2::MessageNode::All) {
-                    uart_comm.queue_send_message(temp_span.data(), meta);
-                }
-            }
-        }
+        //         if (T::destination == mc2::MessageNode::Chassis ||
+        //             T::destination == mc2::MessageNode::All) {
+        //             can_comm.queue_send_message(temp_span.data(), meta);
+        //         }
+
+        //         if (T::destination == mc2::MessageNode::Gimbal ||
+        //             T::destination == mc2::MessageNode::All) {
+        //             uart_comm.queue_send_message(temp_span.data(), meta);
+        //         }
+        //     }
+        // }
 
         // Future CommApp v2 implementation.
         CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
@@ -208,8 +210,7 @@ namespace CommApp {
               debug(debug_ref),
               can_comm(can_comm_ref),
               uart_comm(uart_comm_ref),
-              uart_isr(uart_isr_ref),
-              op(mc2::MessageNode::All, mc2_ref, can_comm_ref, uart_comm_ref) {}
+              uart_isr(uart_isr_ref) {}
 
         void CommApp::init() {
             deserialize_directory =
@@ -236,9 +237,6 @@ namespace CommApp {
                 ASSERT(register_init_success && register_rountine_success,
                        "Failed to register both UART ISR init and routnine "
                        "functions.");
-                op.current_node = mc2::MessageNode::Gimbal;
-            } else {
-                op.current_node = mc2::MessageNode::Chassis;
             }
             can_comm.init();
         }

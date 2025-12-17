@@ -434,26 +434,7 @@ namespace CommApp {
                        mc2::registry_size_v<mc2::RobotMC::Topics>>
                 byte_serializers;
             mc2::InterboardTopicIDs<mc2::RobotMC::Topics> interboard_topic_ids;
-
             BoardStatus_t board_status;
-            struct InterboardOperator {
-                mc2::MessageNode current_node;
-                mc2::RobotMC& mc;
-                comm::CANComm<>& can_comm;
-                comm::UARTComm<>& uart_comm;
-                uint8_t temp_buffer[256];
-
-                InterboardOperator(mc2::MessageNode node, mc2::RobotMC& mc_ref,
-                                   comm::CANComm<>& can_comm_ref,
-                                   comm::UARTComm<>& uart_comm_ref)
-                    : current_node(node),
-                      mc(mc_ref),
-                      can_comm(can_comm_ref),
-                      uart_comm(uart_comm_ref) {}
-
-                template <typename T>
-                void operator()();
-            } op;
 
            public:
             explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
