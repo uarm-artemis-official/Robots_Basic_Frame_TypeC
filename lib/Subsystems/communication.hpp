@@ -119,33 +119,51 @@ namespace comm {
                       "MAX_SINGLE_MESSAGE_SIZE must be greater than 0");
 
        private:
+        /// Dependencies.
         uc_uart::UC_UART<MAX_SINGLE_MESSAGE_SIZE>& uc_uart_ref;
         MW_UART::IUART& uart_ref;
-        isr::uart::UART_ISR& uart_isr_ref;
-        MessageFIFO<protocol::TopicMessageMeta, MAX_SINGLE_MESSAGE_SIZE * 4>
-            receive_fifo, send_fifo;
 
+        /// State variables for UART receive complete routine function.
         bool is_valid_uart_magic = false;
         bool is_valid_uart_header = false;
         size_t uart_expected_payload_length = 0;
         uint8_t rx_buffer[MAX_SINGLE_MESSAGE_SIZE + uc_uart::HEADER_SIZE +
                           uc_uart::TRAILER_SIZE] {0};
 
+        MessageFIFO<protocol::TopicMessageMeta, MAX_SINGLE_MESSAGE_SIZE * 4>
+            receive_fifo, send_fifo;
+
        public:
         explicit UARTComm(
             uc_uart::UC_UART<MAX_SINGLE_MESSAGE_SIZE>& _uc_uart_ref,
-            MW_UART::IUART& _uart_ref, isr::uart::UART_ISR& _uart_isr_ref)
-            : uc_uart_ref(_uc_uart_ref),
-              uart_ref(_uart_ref),
-              uart_isr_ref(_uart_isr_ref) {};
+            MW_UART::IUART& _uart_ref)
+            : uc_uart_ref(_uc_uart_ref), uart_ref(_uart_ref) {};
 
         bool init() { return true; }
 
+        /** 
+         * @brief Start receiving data on the UART interface.
+         * 
+         * This method should be registered as a UART ISR init function.
+         * 
+         * @param uart Reference to the UART interface.
+         * @return true if reception was started successfully, false otherwise.
+         */
         bool start_receive(MW_UART::IUART& uart) {
-            uart.receive_data(MW_UART::Peripheral::UART1, rx_buffer, 1);
-            return true;
+            return uart.receive_data(MW_UART::Peripheral::UART1, rx_buffer, 1);
         }
 
+        /**
+         * @brief UART receive complete ISR handler.
+         * 
+         * This method handles the UART receive complete interrupt and 
+         * should be registered as a UART ISR routine function.
+         * It processes incoming data, checks for valid headers,
+         * and stores complete messages into the receive FIFO.
+         * 
+         * @param uart Reference to the UART interface.
+         * @param peripheral The UART peripheral that triggered the interrupt.
+         */
         void on_receive_complete(MW_UART::IUART& uart,
                                  MW_UART::Peripheral peripheral) {
             if (peripheral == MW_UART::Peripheral::UART1) {
@@ -194,16 +212,40 @@ namespace comm {
             }
         }
 
+        /**
+         * @brief Queue a message for sending over UART.
+         * 
+         * TODO: Remove and replace with std::span overload only.
+         * 
+         * @param payload Pointer to the message payload data.
+         * @param meta Metadata associated with the message.
+         */
         void queue_send_message(const uint8_t* payload,
                                 protocol::TopicMessageMeta meta) {
             send_fifo.push(payload, meta);
         }
 
+        /**
+         * @brief Overload of queue_send_message to accept std::span.
+         * 
+         * @param payload std::span containing the message payload data.
+         * @param meta Metadata associated with the message.
+         */
         void queue_send_message(std::span<const std::byte> payload,
                                 protocol::TopicMessageMeta meta) {
             send_fifo.push(payload, meta);
         }
 
+        /**
+         * @brief Send the next message frame from the send FIFO over UART.
+         * 
+         * This method retrieves the next message from the send FIFO,
+         * formats it using the UC_UART module, and sends it over the UART interface.
+         * Since messages do not require segmentation, a single frame is sent each time this
+         * method is called.
+         * 
+         * TODO: Make method non-blocking.
+         */
         void send_next_frame() {
             uint8_t payload[MAX_SINGLE_MESSAGE_SIZE];
             protocol::TopicMessageMeta meta;
@@ -217,10 +259,26 @@ namespace comm {
                                5);
         }
 
+        /**
+         * @brief Retrieve a received message from the receive FIFO.
+         * 
+         * TODO: Remove and replace with std::span overload only.
+         * 
+         * @param payload Pointer to the buffer where the message payload will be copied.
+         * @param meta Reference to the metadata object where the message metadata will be stored.
+         * @return true if a message was successfully retrieved, false otherwise.
+         */
         bool get_message(uint8_t* payload, protocol::TopicMessageMeta& meta) {
             return receive_fifo.pop(payload, meta);
         }
 
+        /**
+         * @brief Overload of get_message to accept std::span.
+         * 
+         * @param payload std::span containing the message payload data.
+         * @param meta Reference to the metadata object where the message metadata will be stored.
+         * @return true if a message was successfully retrieved, false otherwise.
+         */
         bool get_message(std::span<std::byte> payload,
                          protocol::TopicMessageMeta& meta) {
             return receive_fifo.pop(payload, meta);
