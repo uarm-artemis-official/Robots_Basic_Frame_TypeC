@@ -1,5 +1,5 @@
-set(CMAKE_SYSTEM_NAME               Windows)
-set(CMAKE_SYSTEM_PROCESSOR          AMD64)
+set(CMAKE_SYSTEM_NAME               Generic)
+set(CMAKE_SYSTEM_PROCESSOR          x86_64)
 
 set(CMAKE_C_COMPILER_ID GNU)
 set(CMAKE_CXX_COMPILER_ID GNU)
@@ -11,9 +11,9 @@ set(CMAKE_LINKER                    g++)
 set(CMAKE_OBJCOPY                   objcopy)
 set(CMAKE_SIZE                      size)
 
-set(CMAKE_EXECUTABLE_SUFFIX_ASM     ".exe")
-set(CMAKE_EXECUTABLE_SUFFIX_C       ".exe")
-set(CMAKE_EXECUTABLE_SUFFIX_CXX     ".exe")
+set(CMAKE_EXECUTABLE_SUFFIX_ASM     ".elf")
+set(CMAKE_EXECUTABLE_SUFFIX_C       ".elf")
+set(CMAKE_EXECUTABLE_SUFFIX_CXX     ".elf")
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
