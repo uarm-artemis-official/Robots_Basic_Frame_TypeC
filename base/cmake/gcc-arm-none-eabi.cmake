@@ -35,8 +35,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Os -g0")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions -fno-threadsafe-statics")
 
+
+cmake_path(APPEND linker_script_path "${PROJECT_SOURCE_DIR}" "base/STM32F407XX_FLASH.ld")
 set(CMAKE_C_LINK_FLAGS "${TARGET_FLAGS}")
-set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -T \"${PROJECT_SOURCE_DIR}/base/STM32F407XX_FLASH.ld\"")
+set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -T ${linker_script_path}")
 set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} --specs=nano.specs")
 set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -Wl,-Map=${CMAKE_PROJECT_NAME}.map -Wl,--gc-sections")
 set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -Wl,--start-group -lc -lm -Wl,--end-group")
