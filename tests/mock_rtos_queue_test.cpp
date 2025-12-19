@@ -32,12 +32,10 @@ namespace {
         free(queue);
     }
 
-    TEST_F(MockRTOSQueueTest, QueueCreateReturnsFalseIfMallocFails) {
+    TEST_F(MockRTOSQueueTest, QueueCreateDeathIfQueueTooLarge) {
         // Simulate malloc failure by passing too large sizes.
         QueueHandle bad_queue = nullptr;
-        bool result = rtos.queue_create(bad_queue, 1000000, 1000000);
-
-        EXPECT_FALSE(result);
+        ASSERT_DEATH(rtos.queue_create(bad_queue, 1000000, 1000000), ".*");
     }
 
     TEST_F(MockRTOSQueueTest, QueuePushbackFloatSuccess) {

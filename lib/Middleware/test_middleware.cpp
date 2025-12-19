@@ -4,6 +4,7 @@
 #include <cstring>
 #include "middleware_classes.hpp"
 #include "middleware_interfaces.hpp"
+#include "uarm_lib.hpp"
 
 namespace MW_GPIO {
     void TestGPIO::write_pin(Port port, Pin pin, State state) {
@@ -194,6 +195,10 @@ namespace MW_RTOS {
 
     bool TestRTOS::queue_create(QueueHandle& queue, size_t queue_length,
                                 size_t item_size) {
+                                    constexpr size_t MAX_QUEUE_SIZE = 5000;
+        ASSERT(queue_length * item_size > 0, "Queue length and item size must be greater than zero");
+        ASSERT(queue_length * item_size <= MAX_QUEUE_SIZE, "Requested queue size too large for test environment");
+
         queue = static_cast<QueueHandle>(malloc(sizeof(MockRTOSQueue)));
         if (queue == nullptr) {
             return false;

@@ -23,6 +23,10 @@ else()
     target_include_directories(TEST_MIDDLEWARE 
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(TEST_MIDDLEWARE 
+        PUBLIC 
+            LIB::UARM_LIB)
+
     target_link_libraries(MIDDLEWARE 
         INTERFACE 
             TEST_MIDDLEWARE)
