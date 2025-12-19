@@ -210,7 +210,7 @@ static comm::CANComm<MAX_MESSAGE_SIZE> can_comm(_can2tp, can_isr, can);
 
 static uc_uart::UC_UART<MAX_MESSAGE_SIZE> _uc_uart(
     static_cast<uint8_t>(mc2::MessageNode::Gimbal));
-static comm::UARTComm<MAX_MESSAGE_SIZE> uart_comm(_uc_uart, uart, uart_isr);
+static comm::UARTComm<MAX_MESSAGE_SIZE> uart_comm(_uc_uart, uart);
 static CommApp::v2::CommApp comm_app(rtos, mc, debug, can_comm, uart_comm,
                                      uart_isr);
 #endif

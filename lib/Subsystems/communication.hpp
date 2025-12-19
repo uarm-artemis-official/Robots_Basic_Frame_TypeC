@@ -292,8 +292,8 @@ namespace comm {
 
        private:
         can2_tp::v1::CAN2TP<MAX_SINGLE_MESSAGE_SIZE>& can2tp_ref;
-        MW_CAN::ICAN& can_ref;
         isr::can::CAN_ISR& can_isr_ref;
+        MW_CAN::ICAN& can_ref;
         MessageFIFO<protocol::TopicMessageMeta, MAX_SINGLE_MESSAGE_SIZE * 4>
             receive_fifo, send_fifo;
 

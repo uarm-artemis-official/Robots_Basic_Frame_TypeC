@@ -5,7 +5,7 @@ namespace {
     class UCUARTTest : public ::testing::Test {
        protected:
         static constexpr size_t max_size = 128;
-        comm::uc_uart::UCUART<max_size> uart_comm {1};  // source = 1
+        uc_uart::UC_UART<max_size> uart_comm {1};  // source = 1
 
         // Build a deterministic payload of length n (0..255 repeating)
         static std::vector<uint8_t> BuildPayload(size_t n) {

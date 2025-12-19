@@ -440,7 +440,7 @@ namespace mc2 {
                 uint8_t topic_id, MW_RTOS::TickType ticks_to_wait = 0) {
                 size_t index = get_index_from_topic_id(topic_id);
 
-                if (index >= registry_size_v<TopicRegistry> || index < 0) {
+                if (index >= registry_size_v<TopicRegistry>) {
                     return {};
                 }
 
@@ -549,7 +549,7 @@ namespace mc2 {
                 MW_RTOS::TickType ticks_to_wait = 0) {
                 size_t index = get_index_from_topic_id(topic_id);
 
-                if (index >= registry_size_v<TopicRegistry> || index < 0) {
+                if (index >= registry_size_v<TopicRegistry>) {
                     return {};
                 }
 
