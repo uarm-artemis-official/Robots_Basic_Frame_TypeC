@@ -221,8 +221,10 @@ namespace comm {
              * 
              * @param message Pointer to the message data to send.
              * @param length Length of the message to send.
+             * @pre length must be between MIN_SEGMENT_MESSAGE_LENGTH and MaxMessageSize inclusive.
              * @param message_id Identifier for the message.
              * @param destination Identifier for the message destination.
+             * @pre destination must be a valid node ID (1..15).
              */
                 void set_send_message(const uint8_t* message, size_t length,
                                       uint8_t message_id, uint8_t destination);
@@ -243,7 +245,7 @@ namespace comm {
              * 
              * @param frame Reference to a CAN2BFrame structure to populate with the next fragment.
              * 
-             * @return true if there are more fragments to send, false if all fragments have been sent.
+             * @return true successfully got next fragment, false if cannot get another fragment.
              */
                 [[nodiscard]] bool get_next_send_fragment(CAN2BFrame& frame);
 
@@ -284,6 +286,7 @@ namespace comm {
              * 
              * @param message Pointer to the message data to send.
              * @param message_length Length of the message to send.
+             * @pre message_length must be between 1 and 8 inclusive.
              * @param destination Identifier for the message destination.
              * @param frame Reference to a CAN2BFrame structure to populate with the single frame.
              * 

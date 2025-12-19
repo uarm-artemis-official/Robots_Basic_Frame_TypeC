@@ -118,9 +118,9 @@ namespace comm::can2_tp {
                                                       size_t length,
                                                       uint8_t message_id,
                                                       uint8_t destination) {
-            ASSERT(length > MaxMessageSize,
+            ASSERT(length <= MaxMessageSize,
                    "CAN2TP message length exceeds buffer capacity");
-            ASSERT(length < MIN_SEGMENT_MESSAGE_LENGTH,
+            ASSERT(length >= MIN_SEGMENT_MESSAGE_LENGTH,
                    "Message length must be greater than "
                    "MIN_SEGMENT_MESSAGE_LENGTH for segmentation");
 
@@ -138,7 +138,7 @@ namespace comm::can2_tp {
 
         template <size_t MaxMessageSize>
         bool CAN2TP<MaxMessageSize>::is_sending_message() {
-            return send_buffer.used_send_buffer_length ==
+            return send_buffer.used_send_buffer_length <
                        send_buffer.meta.payload_length &&
                    send_buffer.meta.payload_length != 0;
         }
@@ -196,7 +196,7 @@ namespace comm::can2_tp {
             send_buffer.used_send_buffer_length += chunk;
 
             // return true if more fragments remain
-            return send_buffer.used_send_buffer_length <
+            return send_buffer.used_send_buffer_length <=
                    send_buffer.meta.payload_length;
         }
 

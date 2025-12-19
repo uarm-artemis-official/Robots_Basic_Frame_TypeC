@@ -71,6 +71,20 @@ target_link_libraries(FIFO_TEST
         TEST_TARGET
         ALGORITHMS::FIFO)
 
+add_executable(CAN2TP_TEST can2_tp_test.cpp)
+target_link_libraries(CAN2TP_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        MODULES::CAN2_TP)
+
+add_executable(UC_UART_TEST uc_uart_test.cpp)
+target_link_libraries(UC_UART_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        MODULES::UC_UART)
+
 
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)
@@ -80,3 +94,5 @@ gtest_discover_tests(MESSAGE_CENTER_TEST)
 gtest_discover_tests(FAKE_MESSAGE_CENTER_TEST)
 gtest_discover_tests(COMMUNICATION_TEST)
 gtest_discover_tests(FIFO_TEST)
+gtest_discover_tests(CAN2TP_TEST)
+gtest_discover_tests(UC_UART_TEST)

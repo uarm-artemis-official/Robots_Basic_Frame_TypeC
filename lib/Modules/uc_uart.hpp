@@ -103,8 +103,10 @@ namespace uc_uart {
          * @brief Formats a payload and its metadata into a UC_UART data frame.
          * 
          * @param payload Pointer to the message payload data.
+         * @pre payload pointer is not nullptr.
          * @param meta Metadata associated with the message (source, destination, length, message ID).
          * @param dst_buffer Pointer to the destination buffer to hold the formatted data frame.
+         * @pre dst_buffer pointer is not nullptr.
          * @return true if formatting was successful, otherwise false.
          * @note The current implementation of this method returns true or errors, it does not return false.
          */
@@ -112,6 +114,17 @@ namespace uc_uart {
             const uint8_t* payload, comm::protocol::TopicMessageMeta meta,
             uint8_t* dst_buffer);
 
+        /**
+         * @brief Creates a control flow frame.
+         * 
+         * @param frame_destination Pointer to the destination buffer to hold the created control flow frame.
+         * @pre frame_destination pointer is not nullptr.
+         * @param destination Identifier for the message destination.
+         * @pre destination must be a valid node ID (1..15).
+         * @param flow_id The type of control flow frame to create.
+         * @param params Pointer to additional parameters for frame creation.
+         * @note Currently there are no additional parameters used for any control flow frames.
+         */
         [[nodiscard]] bool get_control_flow_frame(uint8_t* frame_destination,
                                                   uint8_t destination,
                                                   ControlFlowID flow_id,
