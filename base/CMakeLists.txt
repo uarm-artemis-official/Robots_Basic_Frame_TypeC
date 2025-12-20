@@ -126,3 +126,14 @@ endif()
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
 )
+
+# Define the source and destination paths
+set(LINKER_SCRIPT_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/STM32F407XX_FLASH.ld")
+set(LINKER_SCRIPT_BUILD "${CMAKE_CURRENT_BINARY_DIR}/STM32F407XX_FLASH.ld")
+
+# Copy the linker script to the build directory
+configure_file(
+    "${LINKER_SCRIPT_SOURCE}"
+    "${LINKER_SCRIPT_BUILD}"
+    COPYONLY # Use COPYONLY to simply copy the file
+)
