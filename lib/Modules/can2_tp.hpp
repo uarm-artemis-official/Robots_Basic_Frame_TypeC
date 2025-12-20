@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include "comm_protocol_interface.hpp"
 
 namespace comm {
@@ -126,6 +127,22 @@ namespace comm {
                 uint32_t extid;
                 uint8_t payload[8];
                 size_t length;
+
+                constexpr explicit CAN2BFrame()
+                    : stdid(0), extid(0), payload {0}, length(0) {};
+
+                constexpr explicit CAN2BFrame(uint32_t _stdid, uint32_t _extid,
+                                             const uint8_t* _payload,
+                                             size_t _length)
+                    : stdid(_stdid),
+                      extid(_extid),
+                      payload {0},
+                      length(_length) {
+                    memcpy(payload, _payload,
+                           (_length < FRAME_PAYLOAD_LENGTH)
+                               ? _length
+                               : FRAME_PAYLOAD_LENGTH);
+                };
             };
 
             enum struct ControlFlowID { Ping = 0x0, Pong = 0x1 };
@@ -185,13 +202,13 @@ namespace comm {
                private:
                 struct SendBuffer {
                     uint8_t send_message_buffer[MaxMessageSize];
-                    size_t used_send_buffer_length;
+                    size_t used_send_buffer_length = 0;
                     protocol::TopicMessageMeta meta;
                 } send_buffer;
 
                 struct ReceiveBuffer {
                     uint8_t receive_message_buffer[MaxMessageSize];
-                    size_t used_receive_buffer_length;
+                    size_t used_receive_buffer_length = 0;
                     protocol::TopicMessageMeta meta;
                 } receive_buffer;
 

@@ -12,6 +12,13 @@ namespace comm {
                 size_t payload_length;
                 uint8_t message_id;
 
+                constexpr explicit TopicMessageMeta() {
+                    source = 0;
+                    destination = 0;
+                    payload_length = 0;
+                    message_id = 0;
+                }
+
                 bool operator==(const TopicMessageMeta& other) const {
                     return source == other.source &&
                            destination == other.destination &&
