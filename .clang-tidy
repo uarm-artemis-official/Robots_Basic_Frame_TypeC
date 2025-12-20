@@ -1,0 +1,25 @@
+# .clang-tidy - enable all bugprone checks
+# Place this file in your project root (or workspace root) so clang-tidy used by VSCode/CMake picks it up.
+
+Checks: '-*,bugprone-*,readability-magic-numbers,readability-duplicate-include'
+
+# Treat nothing as errors by default; to make all bugprone findings errors change to: "WarningsAsErrors: 'bugprone-*'"
+WarningsAsErrors: ''
+
+# Apply to all headers in project (use a more restrictive regex if you want)
+HeaderFilterRegex: '.*'
+
+# Let clang-tidy use your .clang-format if present
+FormatStyle: file
+
+# Enable destructor analysis for temporaries (useful for some bugprone checks)
+AnalyzeTemporaryDtors: true
+
+# If your project needs specific compiler flags (language standard, include paths), add them here:
+# ExtraArgs: ['-std=c++20', '-I', 'path/to/include']
+# or set ExtraArgsBefore for arguments that must come before the compile command.
+
+# Optional: Fine-grained check options can be added under CheckOptions if you want to tune specific checks.
+# CheckOptions:
+#   - key: some-check.option
+#     value: 'value'

@@ -4,7 +4,10 @@
         "options": {
             "shell": {
                 "executable": "cmd.exe",
-                "args": ["/d", "/c"]
+                "args": [
+                    "/d",
+                    "/c"
+                ]
             }
         }
     },
@@ -36,7 +39,7 @@
                 "CubeProg: Flash project (SWD)",
             ]
         },
-                {
+        {
             "type": "cmake",
             "label": "CMake: clean rebuild",
             "command": "cleanRebuild",
@@ -52,11 +55,107 @@
             "type": "shell",
             "label": "CubeProg: List all available communication interfaces",
             "command": "STM32_Programmer_CLI",
-            "args": ["--list"],
+            "args": [
+                "--list"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "GCOVR: generate test coverage (HTML)",
+            // Make sure to select .venv python interpreter otherwise it
+            // will not work.
+            // use "python: select interpreter" in command palette.
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "-m",
+                "gcovr",
+                "--html-self-contained",
+                "--html-details",
+                "./out/coverage/"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "GCOVR: Open in Browser",
+            "command": "start",
+            "args": [
+                "./out/coverage/coverage_details.html"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Doxygen: upload unto github",
+            // Make sure to select .venv python interpreter otherwise it
+            // will not work.
+            // use "python: select interpreter" in command palette.
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "-m",
+                "ghp_import",
+                "-n",
+                "-p",
+                "-r",
+                "origin",
+                "-b",
+                "gh-pages",
+                "out/doxygen/html",
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "Doxygen: Open in Browser",
+            "command": "start",
+            "args": [
+                "./out/doxygen/html/index.html"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build All Presets",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build Mecanum",
+                "Build Omni",
+                "Build Swerve",
+                "Build Hero",
+                "Build GTest"
+            ]
+        },
+        // Tasks are only intended for use in build all presets.
+        {
+            "label": "Build Mecanum",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=Mecanum"
+        },
+        {
+            "label": "Build Omni",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=Omni",
+        },
+        {
+            "label": "Build Swerve",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=Swerve"
+        },
+        {
+            "label": "Build Hero",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=Hero"
+        },
+        {
+            "label": "Build GTest",
+            "type": "shell",
+            "hide": true,
+            "command": "cmake --build --preset=GTest"
         }
     ]
 }

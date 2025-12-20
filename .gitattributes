@@ -1,0 +1,19 @@
+# 1. Handle line endings automatically for files detected as text
+# and normalize them to LF in the repo.
+* text=auto
+
+# 2. Explicitly declare text files you want to always be LF 
+# (Common for scripts and configuration files)
+*.sh      text eol=lf
+*.js      text eol=lf
+*.json    text eol=lf
+
+# 3. Explicitly declare files that MUST be CRLF (mostly Windows-only files)
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+# 4. Denote binary files (Git should NOT touch line endings in these)
+*.png     binary
+*.jpg     binary
+*.gif     binary
+*.pdf     binary

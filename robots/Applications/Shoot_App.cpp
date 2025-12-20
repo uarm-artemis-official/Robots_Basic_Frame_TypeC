@@ -1,0 +1,283 @@
+/*******************************************************************************
+* @file           : Shoot_App.c
+* @brief          : the shooting task handling fric and magazine motor
+* @restructed     : Jul, 2023
+* @maintainer     : Haoran, AzureRin
+******************************************************************************
+* Copyright (c) 2023 UARM Artemis.
+* All rights reserved.
+*******************************************************************************/
+#include <cstring>
+#include "apps_classes.hpp"
+#include "apps_defines.hpp"
+#include "apps_types.hpp"
+#include "pid.h"
+#include "ramp.hpp"
+#include "robot_config.hpp"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
+
+namespace {
+    constexpr size_t LEFT_FLYWHEEL_INDEX = 0;
+    constexpr size_t RIGHT_FLYWHEEL_INDEX = 1;
+}  // namespace
+
+ShootApp::ShootApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                   IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
+                   float loader_active_rpm_, float flywheel_target_rpm_,
+                   float max_flywheel_accel)
+    : RTOSApp(_rtos),
+      mc(mc_ref),
+      ammo_lid(ammo_lid_ref),
+      motors(motors_ref),
+      LOADER_ACTIVE_RPM(loader_active_rpm_),
+      FLYWHEEL_ACTIVE_TARGET_RPM(flywheel_target_rpm_),
+      MAX_FLYWHEEL_ACCEL(max_flywheel_accel) {}
+
+void ShootApp::init() {
+    ammo_lid.init();
+
+    loader_control.stdid = SHOOT_LOADER;
+    pid2_init(loader_control.speed_pid,
+              robot_config::shoot_params::KP_LOADER_SPEED,
+              robot_config::shoot_params::KI_LOADER_SPEED,
+              robot_config::shoot_params::KD_LOADER_SPEED,
+              robot_config::shoot_params::BETA_LOADER_SPEED,
+              robot_config::shoot_params::YETA_LOADER_SPEED,
+              robot_config::shoot_params::MIN_OUT_LOADER_SPEED,
+              robot_config::shoot_params::MAX_OUT_LOADER_SPEED);
+    std::memset(&(loader_control.feedback), 0, sizeof(Motor_Feedback_t));
+
+    flywheel_controls[LEFT_FLYWHEEL_INDEX].stdid = SHOOT_LEFT_FRIC;
+    pid2_init(flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid,
+              robot_config::shoot_params::KP_FLYWHEEL_SPEED,
+              robot_config::shoot_params::KI_FLYWHEEL_SPEED,
+              robot_config::shoot_params::KD_FLYWHEEL_SPEED,
+              robot_config::shoot_params::BETA_FLYWHEEL_SPEED,
+              robot_config::shoot_params::YETA_FLYWHEEL_SPEED,
+              robot_config::shoot_params::MIN_OUT_FLYWHEEL_SPEED,
+              robot_config::shoot_params::MAX_OUT_FLYWHEEL_SPEED);
+    ramp_init(flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp,
+              MAX_FLYWHEEL_ACCEL);
+    std::memset(&(flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback), 0,
+                sizeof(Motor_Feedback_t));
+
+    flywheel_controls[RIGHT_FLYWHEEL_INDEX].stdid = SHOOT_RIGHT_FRIC;
+    pid2_init(flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
+              robot_config::shoot_params::KP_FLYWHEEL_SPEED,
+              robot_config::shoot_params::KI_FLYWHEEL_SPEED,
+              robot_config::shoot_params::KD_FLYWHEEL_SPEED,
+              robot_config::shoot_params::BETA_FLYWHEEL_SPEED,
+              robot_config::shoot_params::YETA_FLYWHEEL_SPEED,
+              robot_config::shoot_params::MIN_OUT_FLYWHEEL_SPEED,
+              robot_config::shoot_params::MAX_OUT_FLYWHEEL_SPEED);
+    ramp_init(flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp,
+              MAX_FLYWHEEL_ACCEL);
+    std::memset(&(flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback), 0,
+                sizeof(Motor_Feedback_t));
+
+    std::memset(&(shoot), 0, sizeof(Shoot));
+    shoot.shoot_state = ShootState::NORMAL;
+    shoot.antijam_direction = 1;
+
+    /* set shoot mode */
+    set_shoot_mode(SHOOT_CEASE);
+    ammo_lid.set_lid_status(ammo_lid::LidStatus::CLOSED);
+}
+
+void ShootApp::loop() {
+    process_commands();
+    get_motor_feedback();
+    detect_loader_stall();
+
+    calc_targets();
+    calc_motor_outputs();
+
+    send_motor_outputs();
+}
+
+void ShootApp::process_commands() {
+    mc2::ShootCommand shoot_command;
+    auto message_ts = mc.get_message(shoot_command);
+
+    if (message_ts.has_value()) {
+        ShootActMode_t shoot_mode =
+            static_cast<ShootActMode_t>(shoot_command.command_bits);
+        set_shoot_mode(shoot_mode);
+
+        uint8_t open_ammo_lid = static_cast<uint8_t>(shoot_command.extra_bits);
+        if (open_ammo_lid == 1) {
+            ammo_lid.set_lid_status(ammo_lid::LidStatus::OPEN);
+        } else {
+            ammo_lid.set_lid_status(ammo_lid::LidStatus::CLOSED);
+        }
+    }
+}
+
+void ShootApp::get_motor_feedback() {
+    mc2::MotorRead motor_read;
+    auto message_ts = mc.peek_message(motor_read);
+    if (message_ts.has_value()) {
+        std::array<std::pair<uint32_t, Motor_Feedback_t*>, 3> feedbacks = {
+            std::make_pair(loader_control.stdid, &(loader_control.feedback)),
+            std::make_pair(flywheel_controls[LEFT_FLYWHEEL_INDEX].stdid,
+                           &(flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback)),
+            std::make_pair(flywheel_controls[RIGHT_FLYWHEEL_INDEX].stdid,
+                           &(flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback)),
+        };
+
+        for (size_t i = 0; i < feedbacks.size(); i++) {
+            for (size_t j = 0; j < MAX_MOTOR_COUNT; j++) {
+                if (motor_read.can_ids[j] == feedbacks[i].first) {
+                    motors.get_raw_feedback(feedbacks[i].first,
+                                            motor_read.feedback[j],
+                                            feedbacks[i].second);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void ShootApp::detect_loader_stall() {
+    int16_t current_loader_rpm = loader_control.feedback.rx_rpm;
+    float current_loader_current = loader_control.speed_pid.total_out;
+    float current_loader_output = loader_control.speed_pid.total_out;
+
+    if (fabs(current_loader_output) > 0 &&
+        abs(current_loader_rpm) <
+            robot_config::shoot_params::JAM_LOADER_RPM_THRESHOLD &&
+        fabs(current_loader_current - current_loader_output) /
+                current_loader_current <
+            robot_config::shoot_params::
+                JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD) {
+        shoot.stall_duration += ShootApp::get_loop_period();
+    } else {
+        shoot.stall_duration = 0;
+        shoot.no_stall_duration += ShootApp::get_loop_period();
+    }
+
+    if (shoot.stall_duration >
+        robot_config::shoot_params::JAM_STALL_DURATION_THRESHOLD) {
+        shoot.shoot_state = ShootState::ANTIJAM;
+        shoot.antijam_direction *= -1;
+        shoot.no_stall_duration = 0;
+    }
+
+    if (shoot.no_stall_duration >
+        robot_config::shoot_params::JAM_NO_STALL_DURATION_THRESHOLD) {
+        shoot.shoot_state = ShootState::NORMAL;
+    }
+}
+
+void ShootApp::calc_targets() {
+    switch (shoot.shoot_act_mode) {
+        case SHOOT_CEASE:
+            shoot.shoot_state = ShootState::NORMAL;
+            shoot.antijam_direction = -1;
+            set_loader_target(0);
+
+            if (shoot.loader_delay_counter >= 100) {
+                set_flywheel_target(0);
+            }
+            shoot.loader_delay_counter =
+                value_limit(shoot.loader_delay_counter + 1, 0, 1000);
+            break;
+        case SHOOT_CONT:
+            shoot.loader_delay_counter = 0;
+            if (shoot.shoot_state == ShootState::NORMAL) {
+                set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
+                float average_flywheel_rpm =
+                    (fabs(flywheel_controls[0].feedback.rx_rpm) +
+                     fabs(flywheel_controls[1].feedback.rx_rpm)) /
+                    2;
+                if (average_flywheel_rpm >= FLYWHEEL_ACTIVE_TARGET_RPM * 0.8) {
+                    set_loader_target(LOADER_ACTIVE_RPM);
+                }
+            } else if (shoot.shoot_state == ShootState::ANTIJAM) {
+                set_loader_target(shoot.antijam_direction * LOADER_ACTIVE_RPM);
+                set_flywheel_target(shoot.antijam_direction *
+                                    FLYWHEEL_ACTIVE_TARGET_RPM);
+            } else {
+                ASSERT(false, "Unknown shoot state.");
+            }
+            break;
+        default:
+            set_loader_target(0);
+            set_flywheel_target(0);
+            shoot.loader_delay_counter = 0;
+    }
+}
+
+void ShootApp::calc_motor_outputs() {
+    // TODO: Loader calculations.
+    ramp_calc_output(flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp,
+                     ShootApp::get_loop_period());
+
+    ramp_calc_output(flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp,
+                     ShootApp::get_loop_period());
+
+    pid2_single_loop_control(
+        flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid,
+        flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp.output,
+        flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback.rx_rpm,
+        ShootApp::get_loop_period());
+
+    pid2_single_loop_control(
+        flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
+        flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp.output,
+        flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
+        ShootApp::get_loop_period());
+
+    if (shoot.loader_target_rpm == 0) {
+        loader_control.speed_pid.i_out = 0;
+        loader_control.speed_pid.prev_d_error = 0;
+        loader_control.speed_pid.total_out = 0;
+        loader_control.speed_pid.prev_total_out = 0;
+    } else {
+        pid2_single_loop_control(
+            loader_control.speed_pid,
+            shoot.loader_target_rpm *
+                robot_config::gimbal_params::LOADER_GEAR_RATIO,
+            loader_control.feedback.rx_rpm, ShootApp::get_loop_period());
+    }
+}
+
+void ShootApp::send_motor_outputs() {
+    mc2::MotorSet motor_set {};
+    motor_set.motor_can_volts[0] = loader_control.speed_pid.total_out;
+    motor_set.can_ids[0] = loader_control.stdid;
+    motor_set.motor_can_volts[1] =
+        flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid.total_out;
+    motor_set.can_ids[1] = flywheel_controls[LEFT_FLYWHEEL_INDEX].stdid;
+    motor_set.motor_can_volts[2] =
+        flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid.total_out;
+    motor_set.can_ids[2] = flywheel_controls[RIGHT_FLYWHEEL_INDEX].stdid;
+
+    mc.pub_message(motor_set);
+}
+
+void ShootApp::set_shoot_mode(ShootActMode_t new_mode) {
+    switch (new_mode) {
+        case SHOOT_CEASE:
+        case SHOOT_CONT:
+            shoot.shoot_act_mode = new_mode;
+            break;
+        default:
+            return;
+    }
+}
+
+void ShootApp::set_loader_target(float new_target) {
+    shoot.loader_target_rpm = new_target;
+}
+
+void ShootApp::set_flywheel_target(float new_target) {
+    shoot.flywheel_target_rpm = new_target;
+    ramp_set_target(flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp,
+                    flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback.rx_rpm,
+                    -new_target);
+    ramp_set_target(flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp,
+                    flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
+                    new_target);
+}

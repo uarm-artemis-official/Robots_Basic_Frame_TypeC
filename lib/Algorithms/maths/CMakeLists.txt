@@ -1,0 +1,4 @@
+add_library(DIGITAL_FILTERS STATIC digital_filters.cpp)
+target_include_directories(DIGITAL_FILTERS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(DIGITAL_FILTERS PUBLIC LIB::UARM_LIB)
+add_library(ALGORITHMS::DIGITAL_FILTERS ALIAS DIGITAL_FILTERS)
