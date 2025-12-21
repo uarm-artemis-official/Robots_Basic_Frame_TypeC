@@ -127,6 +127,11 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
 )
 
+# Below snippet copies the linker script to the build directory
+# this is necessary for github actions to find the linker script 
+# during the build process. For some reason this is a problem only
+# in the CI environment and not local builds.
+
 # Define the source and destination paths
 set(LINKER_SCRIPT_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/STM32F407XX_FLASH.ld")
 set(LINKER_SCRIPT_BUILD "${CMAKE_CURRENT_BINARY_DIR}/STM32F407XX_FLASH.ld")
