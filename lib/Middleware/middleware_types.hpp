@@ -1,6 +1,8 @@
 #ifndef __MIDDLEWARE_TYPES_HPP
 #define __MIDDLEWARE_TYPES_HPP
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
 
 #ifndef GTEST
@@ -107,6 +109,23 @@ namespace MW_CAN {
             slave_start_filter_bank; /**< Start filter bank for slave CAN instance (used for dual CAN). */
     };
 
+    // TODO: Modify MW_CAN interfaces to use CANFrame struct.
+    struct CANFrame {
+        uint32_t sid; /**< CAN identifier */
+        uint32_t eid; /**< Extended CAN identifier */
+        uint8_t dlc;  /**< Data Length Code (number of bytes in data payload) */
+        bool is_extended_id;
+        std::array<std::byte, 8> payload; /**< Data payload (up to 8 bytes) */
+
+        CANFrame()
+            : sid(0),
+              eid(0),
+              dlc(0),
+              is_extended_id(false),
+              payload {std::byte {0}, std::byte {0}, std::byte {0},
+                       std::byte {0}, std::byte {0}, std::byte {0},
+                       std::byte {0}, std::byte {0}} {}
+    };
 }  // namespace MW_CAN
 
 namespace MW_UART {
