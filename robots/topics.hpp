@@ -160,12 +160,14 @@ namespace mc2 {
                               std::span<uint8_t, serialized_size> dst) {
             (void) msg;
             (void) dst;
+            ASSERT(false, "");
         }
 
         static void deserialize(RefereeInfo& msg,
                                 std::span<const uint8_t, serialized_size> src) {
             (void) msg;
             (void) src;
+            ASSERT(false, "");
         }
     };
 
