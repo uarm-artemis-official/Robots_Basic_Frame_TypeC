@@ -85,7 +85,14 @@ target_link_libraries(UC_UART_TEST
         TEST_TARGET
         MODULES::UC_UART)
 
+add_executable(SIMPLE_COMM_TEST simple_comm_test.cpp)
+target_link_libraries(SIMPLE_COMM_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        MODULES::SIMPLE_COMM)
 
+gtest_discover_tests(SIMPLE_COMM_TEST)
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)
 gtest_discover_tests(RAMP_TEST)

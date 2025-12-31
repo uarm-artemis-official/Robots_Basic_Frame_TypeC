@@ -5,13 +5,58 @@
 #include <array>
 #include <span>
 #include "Algorithms/fifo.hpp"
-#include "fifo.hpp"
 #include "middleware_interfaces.hpp"
 #include "middleware_types.hpp"
 #include "uarm_lib.hpp"
 
 namespace simple_comm {
     inline namespace v1 {
+        /*
+        CAN2 Simple Comm Protocol Specification
+        Metadata is stored in standard and extended ID fields.
+        These are necessary for identifying the simple comm protocol, routing
+        messages, and deserializing topics. The metadata is formated as follows:
+
+        Standard ID (11 bits: SID[10:0]):
+        bit: 10  9  8  7 6 5 4  3 2 1 0
+            ┌───┬──────┬──────┐
+            │MTB│ DEST │ SRC  │
+            │(3)│ (4)  │ (4)  │
+            └───┴──────┴──────┘
+        fields:
+        bits10..8 : MAGIC_TRIBIT (3 bits) (0x1)
+        bits7..4  : message destination (4 bits)
+        bits3..0  : message source (4 bits)
+
+        Extended ID (EID bits [18:0] shown; higher bits omitted):
+        bits: 18 .................. 11 10 .......... 0
+                ┌────message_id────┐ ┌unused (11)┐
+                │  topic_id (8b)   │ │ bits10..0 │
+                └──────────────────┘ └───────────┘
+        Note: frame.eid = (topic_id << 11); EID bits [10:0] (the lowest 11 bits) are 
+        currently unused. It is assumed that the topic IDs for both the destination 
+        and source nodes are known a priori by both nodes. If this is not the case, 
+        deserialization will not behave as intended.
+
+        
+        UART Simple Comm Protocol Specification
+
+        The UART protocol contains the same information as the CAN2 version of 
+        simple comm, but with a slightly different format. Each message consists of
+        4-byte header + payload + 2-byte trailer.
+
+        Header (4 bytes): MAGIC_TRIBIT (8b), DEST/SRC (1 byte), topic_id (8b), length (8b)
+        Payload: 0..8 bytes
+        Trailer: 2-byte checksum (LSB first)
+
+        Bytes (UART):
+        index:  0     1            2         3        4 .. (4+N-1)   4+N   5+N
+                ┌───┬────────────┬──────────┬────────┬────────────┬─────┬─────┐
+        byte:   │MTB│ DEST | SRC │ topic_id │ length │   payload  │ cksL│ cksH│
+        bits:   │(8)│ 4b   | 4b  │  (8b)    │  (8b)  │(0..8 bytes)│(8b) │(8b) │
+                └───┴────────────┴──────────┴────────┴────────────┴─────┴─────┘
+        */
+
         constexpr std::byte MAGIC_TRIBIT = std::byte {0x1};
         constexpr size_t MAX_PAYLOAD_SIZE = 8;
 
@@ -20,6 +65,11 @@ namespace simple_comm {
         constexpr size_t UART_MAX_MESSAGE_SIZE =
             UART_HEADER_SIZE + MAX_PAYLOAD_SIZE + UART_TRAILER_SIZE;
 
+        /**
+         * @brief SimpleMessage structure representing a single data message.
+         *  @note Payload serialization/deserialization is assumed to be handled
+         * elsewhere.
+         */
         struct SimpleMessage {
             uint8_t source;
             uint8_t destination;
@@ -28,12 +78,24 @@ namespace simple_comm {
             std::array<std::byte, MAX_PAYLOAD_SIZE> payload;
         };
 
+        /**
+         * @brief UART receive finite state machine states.
+         */
         enum class UARTFSMState {
             WAIT_FOR_TRIBIT,
             WAIT_FOR_HEADER,
             WAIT_FOR_REST_MESSAGE
         };
 
+        /**
+         * @brief Simple communication module for sending single data messages.
+         * 
+         * This module supports sending and receiving messages over CAN and UART.
+         * Each message consists of a source ID, destination ID, topic ID, and a payload.
+         * Messages received are stored in a FIFO buffer for later processing.
+         * 
+         * @tparam RxFIFOSize Size of the receive FIFO buffer.
+         */
         template <size_t RxFIFOSize>
         class SimpleComm {
            private:
@@ -47,6 +109,16 @@ namespace simple_comm {
                   uart_temp_rx_buffer {},
                   uart_rx_fsm_state(UARTFSMState::WAIT_FOR_TRIBIT) {};
 
+            /**
+             * @brief CAN message pending interrupt service routine.
+             * 
+             * This function should be called from the CAN message pending ISR.
+             * It extracts the SimpleMessage from the CAN frame and pushes it
+             * to the RX buffer.
+             * 
+             * @param bus The CAN bus where the message was received.
+             * @param frame The received CAN frame.
+             */
             void can_isr_message_pending(MW_CAN::BUS bus,
                                          MW_CAN::CANFrame frame) {
                 if (bus == MW_CAN::BUS::CAN_2B) {
@@ -65,6 +137,17 @@ namespace simple_comm {
                 }
             }
 
+            /**
+             * @brief Initializes the UART receive interrupt service routine.
+             * 
+             * This function sets up the UART to begin receiving data and
+             * initializes the FSM state for parsing incoming messages. Simple
+             * Comm UART operates on UART1 peripheral (which is the four-pin 
+             * UART on the Type-C).
+             * 
+             * @param uart Reference to the UART interface.
+             * @return true if initialization was successful, false otherwise.
+             */
             bool uart_isr_init(MW_UART::IUART& uart) {
                 bool res = uart.receive_data(MW_UART::Peripheral::UART1,
                                              uart_temp_rx_buffer.data(), 1);
@@ -72,6 +155,38 @@ namespace simple_comm {
                 return res;
             }
 
+            /**
+             * @brief UART receive complete interrupt service routine.
+             * 
+             * This function should be called from the UART receive complete ISR.
+             * It implements a finite state machine (FSM) to parse incoming UART
+             * messages according to the simple comm protocol. The transition function
+             * looks like the following:
+             * 
+             * UART ISR FSM transition table for `UARTFSMState` used in `uart_isr_receive_complete`
+             * +----------------------+----------------------------------------------+-----------------------------------------------------------+-------------------------+
+             * | Current State        | Event / Condition                            | Action(s)                                                 | Next State              |
+             * +----------------------+----------------------------------------------+-----------------------------------------------------------+-------------------------+
+             * | WAIT_FOR_TRIBIT      | received byte == MAGIC_TRIBIT                | receive (UART_HEADER_SIZE - 1) bytes into buffer[1..3]    | WAIT_FOR_HEADER         |
+             * |                      | received byte != MAGIC_TRIBIT                | receive 1 byte into buffer[0] (keep waiting)              | WAIT_FOR_TRIBIT         |
+             * +----------------------+----------------------------------------------+-----------------------------------------------------------+-------------------------+
+             * | WAIT_FOR_HEADER      | header received AND 0 < payload_size <= MAX  | receive (payload_size + UART_TRAILER_SIZE) into buffer    | WAIT_FOR_REST_MESSAGE   |
+             * |                      | header received AND (payload_size == 0 OR >MAX) | receive 1 byte into buffer[0] (restart sync)          | WAIT_FOR_TRIBIT         |
+             * +----------------------+----------------------------------------------+-----------------------------------------------------------+-------------------------+
+             * | WAIT_FOR_REST_MESSAGE| payload+trailer received                      | calc checksum over header+payload; compare with trailer   | WAIT_FOR_TRIBIT         |
+             * |                      | checksum == received_checksum                | parse src/dest/topic/payload; push message to RX buffer;  | WAIT_FOR_TRIBIT         |
+             * |                      |                                              | call receive_data(...,1)                                   |                         |
+             * |                      | checksum != received_checksum                | discard; call receive_data(...,1)                         | WAIT_FOR_TRIBIT         |
+             * +----------------------+----------------------------------------------+-----------------------------------------------------------+-------------------------+
+             * 
+             * Notes:
+             *  - Header byte indexes: [0]=MTB (MAGIC_TRIBIT), [1]=DEST|SRC, [2]=topic_id, [3]=length.
+             *  - Trailer is 2-byte checksum (LSB first) located at UART_HEADER_SIZE + payload_size and +1.
+             *  - All flows end by re-arming reception for 1 byte and returning to WAIT_FOR_TRIBIT.
+             * 
+             * @param uart Reference to the UART interface.
+             * @param peripheral The UART peripheral that triggered the ISR.
+             */
             void uart_isr_receive_complete(MW_UART::IUART& uart,
                                            MW_UART::Peripheral peripheral) {
                 if (peripheral != MW_UART::Peripheral::UART1) {
@@ -168,14 +283,47 @@ namespace simple_comm {
                 }
             }
 
+            /**
+             * @brief Retrieves the next received SimpleMessage from the RX buffer.
+             * 
+             * The RX buffer operates as RingBuffer FIFO, if there is an overflow,
+             * the oldest messages will be discarded. If there are no messages
+             * available, this function will return false.
+             * 
+             * @param dst Reference to store the retrieved SimpleMessage.
+             */
             bool get_rx_message(SimpleMessage& dst) {
                 return message_rx_buffer.pop(dst);
             }
 
-            void format_uart_message(
-                const SimpleMessage& msg,
-                std::span<std::byte, UART_MAX_MESSAGE_SIZE>& out_buffer,
-                size_t& out_length) {
+            /**
+             * @brief Formats a SimpleMessage for UART transmission.
+             * 
+             * This function simply formats the contents of SimpleMessage and 
+             * does not modify its contents at all. Serialization of payload
+             * data is assumed to be handled elsewhere. Errors in SimpleMessage
+             * metadata will result in an assertion error. See preconditions.
+             * 
+             * @param msg The SimpleMessage to format.
+             * @pre msg.payload_size <= MAX_PAYLOAD_SIZE
+             * @pre msg.destination <= 0x0F
+             * @pre msg.source <= 0x0F
+             * 
+             * @param out_buffer The output buffer to store the formatted UART message.
+             * @pre out_buffer.size() >= UART_MAX_MESSAGE_SIZE
+             * @param out_length The length of the formatted message.
+             */
+            void format_uart_message(const SimpleMessage& msg,
+                                     std::span<std::byte>& out_buffer,
+                                     size_t& out_length) {
+                ASSERT(msg.payload_size <= MAX_PAYLOAD_SIZE,
+                       "Payload size exceeds maximum allowed.");
+                ASSERT(msg.destination <= 0x0F,
+                       "Destination ID exceeds 4-bit limit.");
+                ASSERT(msg.source <= 0x0F, "Source ID exceeds 4-bit limit.");
+                ASSERT(out_buffer.size() >= UART_MAX_MESSAGE_SIZE,
+                       "Output buffer too small for UART message.");
+
                 out_buffer[0] = MAGIC_TRIBIT;
                 out_buffer[1] = std::byte {static_cast<uint8_t>(
                     (msg.destination << 4) | (msg.source & 0x0F))};
@@ -199,8 +347,28 @@ namespace simple_comm {
                     UART_HEADER_SIZE + msg.payload_size + UART_TRAILER_SIZE;
             }
 
+            /**
+             * @brief Formats a SimpleMessage for CAN transmission.
+             * 
+             * This function simply formats the contents of SimpleMessage and
+             * does not modify its contents at all. Serialization of payload
+             * data is assumed to be handled elsewhere. Errors in SimpleMessage
+             * metadata will result in an assertion error. See preconditions.
+             * 
+             * @param msg The SimpleMessage to format.
+             * @pre msg.payload_size <= MAX_PAYLOAD_SIZE
+             * @pre msg.destination <= 0x0F
+             * @pre msg.source <= 0x0F
+             * @param frame The CAN frame to store the formatted CAN message.
+             */
             void format_can_message(const SimpleMessage& msg,
                                     MW_CAN::CANFrame& frame) {
+                ASSERT(msg.payload_size <= MAX_PAYLOAD_SIZE,
+                       "Payload size exceeds maximum allowed.");
+                ASSERT(msg.destination <= 0x0F,
+                       "Destination ID exceeds 4-bit limit.");
+                ASSERT(msg.source <= 0x0F, "Source ID exceeds 4-bit limit.");
+
                 frame.sid =
                     (static_cast<uint32_t>(MAGIC_TRIBIT) << 8) |
                     ((static_cast<uint32_t>(msg.destination) & 0x0F) << 4) |

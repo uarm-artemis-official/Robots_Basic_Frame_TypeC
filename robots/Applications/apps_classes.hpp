@@ -7,6 +7,7 @@
 #include "can_isr.hpp"
 #include "communication.hpp"
 #include "message_center.hpp"
+#include "simple_comm.hpp"
 #include "subsystems_interfaces.hpp"
 #include "topics.hpp"
 
@@ -448,6 +449,48 @@ namespace CommApp {
                 const comm::protocol::TopicMessageMeta& meta);
         };
     }  // namespace v2
+
+    namespace v3 {
+        constexpr size_t MAX_SIMPLE_COMM_FX_FIFO_SIZE = 10;
+        constexpr size_t INTERNAL_FIFO_SIZE = MAX_SIMPLE_COMM_FX_FIFO_SIZE * 2;
+        class CommApp {
+           private:
+            isr::can::CAN_ISR& can_isr;
+            isr::uart::UART_ISR& uart_isr;
+            simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>& simple_comm;
+            mc2::RobotMC mc;
+            MW_CAN::ICAN& can;
+            MW_UART::IUART& uart;
+            mc2::MessageNode current_node;
+            std::array<mc2::IndexableDeserializer,
+                       mc2::registry_size_v<mc2::RobotMC::Topics>>
+                byte_deserializers;
+            std::array<mc2::IndexableSerializer,
+                       mc2::registry_size_v<mc2::RobotMC::Topics>>
+                byte_serializers;
+            std::array<std::byte, 32> deserialize_message_buffer;
+            std::array<std::byte, 128> to_publish_buffer;
+            std::array<std::byte, simple_comm::UART_MAX_MESSAGE_SIZE>
+                uart_out_buffer;
+            dsa::StrictRingBuffer<simple_comm::SimpleMessage,
+                                  INTERNAL_FIFO_SIZE>
+                messages_to_process_buffer;
+
+           public:
+            explicit CommApp(
+                isr::can::CAN_ISR& _can_isr, isr::uart::UART_ISR& _uart_isr,
+                simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>&
+                    _simple_comm,
+                MW_CAN::ICAN& _can, MW_UART::IUART& _uart, mc2::RobotMC mc2_ref,
+                mc2::MessageNode node);
+
+            bool init();
+            void loop();
+            bool send_message_via_can(const simple_comm::SimpleMessage& msg);
+            bool send_message_via_uart(const simple_comm::SimpleMessage& msg);
+            void enqueue_interboard_messages();
+        };
+    }  // namespace v3
 }  // namespace CommApp
 
 #endif
