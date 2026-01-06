@@ -453,23 +453,25 @@ namespace CommApp {
     namespace v3 {
         constexpr size_t MAX_SIMPLE_COMM_FX_FIFO_SIZE = 10;
         constexpr size_t INTERNAL_FIFO_SIZE = MAX_SIMPLE_COMM_FX_FIFO_SIZE * 2;
-        class CommApp {
+        constexpr size_t TO_PUBLISH_BUFFER_SIZE = 128;
+        class CommApp
+            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
            private:
             isr::can::CAN_ISR& can_isr;
             isr::uart::UART_ISR& uart_isr;
             simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>& simple_comm;
-            mc2::RobotMC mc;
+            mc2::RobotMC& mc;
             MW_CAN::ICAN& can;
             MW_UART::IUART& uart;
+            IDebug& debug;
             mc2::MessageNode current_node;
-            std::array<mc2::IndexableDeserializer,
-                       mc2::registry_size_v<mc2::RobotMC::Topics>>
-                byte_deserializers;
-            std::array<mc2::IndexableSerializer,
-                       mc2::registry_size_v<mc2::RobotMC::Topics>>
-                byte_serializers;
             std::array<std::byte, 32> deserialize_message_buffer;
-            std::array<std::byte, 128> to_publish_buffer;
+
+            static_assert(TO_PUBLISH_BUFFER_SIZE >
+                              simple_comm::UART_MAX_MESSAGE_SIZE,
+                          "TO_PUBLISH_BUFFER_SIZE must be larger than "
+                          "UART_MAX_MESSAGE_SIZE.");
+            std::array<std::byte, TO_PUBLISH_BUFFER_SIZE> to_publish_buffer;
             std::array<std::byte, simple_comm::UART_MAX_MESSAGE_SIZE>
                 uart_out_buffer;
             dsa::StrictRingBuffer<simple_comm::SimpleMessage,
@@ -478,11 +480,12 @@ namespace CommApp {
 
            public:
             explicit CommApp(
-                isr::can::CAN_ISR& _can_isr, isr::uart::UART_ISR& _uart_isr,
+                MW_RTOS::IRTOS& _rtos, isr::can::CAN_ISR& _can_isr,
+                isr::uart::UART_ISR& _uart_isr,
                 simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>&
                     _simple_comm,
-                MW_CAN::ICAN& _can, MW_UART::IUART& _uart, mc2::RobotMC mc2_ref,
-                mc2::MessageNode node);
+                MW_CAN::ICAN& _can, MW_UART::IUART& _uart,
+                mc2::RobotMC& mc2_ref, IDebug& debug_ref);
 
             bool init();
             void loop();

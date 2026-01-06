@@ -191,6 +191,7 @@ static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, debug);
 
 static RCApp rc_app(rtos, mc, rc_comm, uart_isr);
 
+// TODO: Add loopback mode for auto-aim jig.
 #ifdef AUTO_AIM_RIG
 static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
 #else
@@ -200,19 +201,10 @@ static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 #ifdef OLD_COMM_APP
 static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
 #else
-
-static constexpr size_t MAX_MESSAGE_SIZE = 256;
-
-// TODO: Move source address setting to runtime instead of constructor.
-static comm::can2_tp::v1::CAN2TP<MAX_MESSAGE_SIZE> _can2tp(
-    static_cast<uint8_t>(mc2::MessageNode::Gimbal));
-static comm::CANComm<MAX_MESSAGE_SIZE> can_comm(_can2tp, can_isr, can);
-
-static uc_uart::UC_UART<MAX_MESSAGE_SIZE> _uc_uart(
-    static_cast<uint8_t>(mc2::MessageNode::Gimbal));
-static comm::UARTComm<MAX_MESSAGE_SIZE> uart_comm(_uc_uart, uart);
-static CommApp::v2::CommApp comm_app(rtos, mc, debug, can_comm, uart_comm,
-                                     uart_isr);
+static simple_comm::SimpleComm<CommApp::v3::MAX_SIMPLE_COMM_FX_FIFO_SIZE>
+    _simple_comm;
+static CommApp::v3::CommApp comm_app(rtos, can_isr, uart_isr, _simple_comm, can,
+                                     uart, mc, debug);
 #endif
 
 static TimerApp timer_app(rtos, motors, mc, debug, can_isr);

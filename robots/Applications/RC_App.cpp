@@ -252,23 +252,30 @@ void RCApp::detect_rc_loss() {
 
 void RCApp::send_gimbal_can_comm(float yaw, float pitch, BoardMode_t board_mode,
                                  BoardActMode_t act_mode) {
-    int16_t quantized_yaw =
-        quantize_float(yaw, -PI, PI, std::numeric_limits<int16_t>::min(),
-                       std::numeric_limits<int16_t>::max());
-    int16_t quantized_pitch =
-        quantize_float(pitch, -PI, PI, std::numeric_limits<int16_t>::min(),
-                       std::numeric_limits<int16_t>::max());
-    uint32_t command_bits = ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
-                            (static_cast<uint8_t>(act_mode) & 0x7);
+    // int16_t quantized_yaw =
+    //     quantize_float(yaw, -PI, PI, std::numeric_limits<int16_t>::min(),
+    //                    std::numeric_limits<int16_t>::max());
+    // int16_t quantized_pitch =
+    //     quantize_float(pitch, -PI, PI, std::numeric_limits<int16_t>::min(),
+    //                    std::numeric_limits<int16_t>::max());
+    // uint32_t command_bits = ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
+    //                         (static_cast<uint8_t>(act_mode) & 0x7);
 
-    mc2::CommOut comm_out;
-    comm_out.topic_name =
-        mc2::get_comm_id<mc2::GimbalCommand, mc2::RobotMC::Topics>();
-    std::memcpy(comm_out.bytes.data(), &quantized_yaw, sizeof(int16_t));
-    std::memcpy(&(comm_out.bytes.data()[2]), &quantized_pitch, sizeof(int16_t));
-    std::memcpy(&(comm_out.bytes.data()[4]), &command_bits, sizeof(uint32_t));
+    // mc2::CommOut comm_out;
+    // comm_out.topic_name =
+    //     mc2::get_comm_id<mc2::GimbalCommand, mc2::RobotMC::Topics>();
+    // std::memcpy(comm_out.bytes.data(), &quantized_yaw, sizeof(int16_t));
+    // std::memcpy(&(comm_out.bytes.data()[2]), &quantized_pitch, sizeof(int16_t));
+    // std::memcpy(&(comm_out.bytes.data()[4]), &command_bits, sizeof(uint32_t));
 
-    mc.pub_message(comm_out);
+    // mc.pub_message(comm_out);
+    mc2::GimbalCommand gimbal_command;
+    gimbal_command.yaw = yaw;
+    gimbal_command.pitch = pitch;
+    gimbal_command.command_bits =
+        ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
+        (static_cast<uint8_t>(act_mode) & 0x7);
+    mc.pub_message(gimbal_command);
 }
 
 void RCApp::send_chassis_command(float v_parallel, float v_perp, float wz,

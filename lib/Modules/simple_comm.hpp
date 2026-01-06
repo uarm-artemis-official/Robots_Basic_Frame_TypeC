@@ -13,30 +13,27 @@ namespace simple_comm {
     inline namespace v1 {
         /*
         CAN2 Simple Comm Protocol Specification
-        Metadata is stored in standard and extended ID fields.
-        These are necessary for identifying the simple comm protocol, routing
-        messages, and deserializing topics. The metadata is formated as follows:
+        All Simple Comm metadata for CAN frames is stored in the 29-bit
+        Extended ID (EID). Metadata is used to identify the Simple Comm
+        protocol, route messages and allow deserialization of topic payloads.
 
-        Standard ID (11 bits: SID[10:0]):
-        bit: 10  9  8  7 6 5 4  3 2 1 0
-            ┌───┬──────┬──────┐
-            │MTB│ DEST │ SRC  │
-            │(3)│ (4)  │ (4)  │
-            └───┴──────┴──────┘
+        Extended ID (29 bits: EID[28:0]) layout (most-significant bits on left):
+        bits: 28..26 25..22 21..18 17.....10 9.......0
+              ┌───┬──────┬──────┬────────┬──────────┐
+              │MTB│ DEST │ SRC  │topic_id│ unused   │
+              │(3)│ (4)  │ (4)  │ (8)    │ (10)     │
+              └───┴──────┴──────┴────────┴──────────┘
+
         fields:
-        bits10..8 : MAGIC_TRIBIT (3 bits) (0x1)
-        bits7..4  : message destination (4 bits)
-        bits3..0  : message source (4 bits)
+        EID[28..26] : MAGIC_TRIBIT (3 bits)
+        EID[25..22] : message destination (4 bits)
+        EID[21..18] : message source (4 bits)
+        EID[17..10] : topic_id (8 bits)
+        EID[9..0]   : currently unused (10 bits)
 
-        Extended ID (EID bits [18:0] shown; higher bits omitted):
-        bits: 18 .................. 11 10 .......... 0
-                ┌────message_id────┐ ┌unused (11)┐
-                │  topic_id (8b)   │ │ bits10..0 │
-                └──────────────────┘ └───────────┘
-        Note: frame.eid = (topic_id << 11); EID bits [10:0] (the lowest 11 bits) are 
-        currently unused. It is assumed that the topic IDs for both the destination 
-        and source nodes are known a priori by both nodes. If this is not the case, 
-        deserialization will not behave as intended.
+        Note: Implementations must verify the MAGIC_TRIBIT in EID[28..26]
+        before treating a frame as a Simple Comm message. The Standard ID
+        (SID) is unused for Simple Comm frames when the EID is populated.
 
         
         UART Simple Comm Protocol Specification
@@ -122,13 +119,22 @@ namespace simple_comm {
             void can_isr_message_pending(MW_CAN::BUS bus,
                                          MW_CAN::CANFrame frame) {
                 if (bus == MW_CAN::BUS::CAN_2B) {
+                    // All Simple Comm metadata is stored in the 29-bit EID.
+                    // Layout (EID[28:0]): [MAGIC(3)][DEST(4)][SRC(4)][TOPIC(8)][UNUSED(10)]
+                    uint8_t magic =
+                        static_cast<uint8_t>((frame.eid >> 26) & 0x07);
+                    if (magic != static_cast<uint8_t>(MAGIC_TRIBIT)) {
+                        // Not a Simple Comm frame
+                        return;
+                    }
+
                     SimpleMessage new_msg;
                     new_msg.destination =
-                        static_cast<uint8_t>((frame.sid >> 4) & 0x0F);
+                        static_cast<uint8_t>((frame.eid >> 22) & 0x0F);
                     new_msg.source =
-                        static_cast<uint8_t>((frame.sid >> 0) & 0x0F);
+                        static_cast<uint8_t>((frame.eid >> 18) & 0x0F);
                     new_msg.topic_id =
-                        static_cast<uint8_t>((frame.eid >> 11) & 0xFF);
+                        static_cast<uint8_t>((frame.eid >> 10) & 0xFF);
                     new_msg.payload_size = frame.dlc;
                     std::copy(frame.payload.begin(),
                               frame.payload.begin() + frame.dlc,
@@ -369,11 +375,19 @@ namespace simple_comm {
                        "Destination ID exceeds 4-bit limit.");
                 ASSERT(msg.source <= 0x0F, "Source ID exceeds 4-bit limit.");
 
-                frame.sid =
-                    (static_cast<uint32_t>(MAGIC_TRIBIT) << 8) |
-                    ((static_cast<uint32_t>(msg.destination) & 0x0F) << 4) |
-                    (static_cast<uint32_t>(msg.source) & 0x0F);
-                frame.eid = (static_cast<uint32_t>(msg.topic_id) << 11);
+                // Pack all metadata into the 29-bit Extended ID (EID).
+                // Layout (EID[28:0]): [MAGIC(3)][DEST(4)][SRC(4)][TOPIC(8)][UNUSED(10)]
+                uint32_t eid = 0;
+                eid |= (static_cast<uint32_t>(
+                            static_cast<uint8_t>(MAGIC_TRIBIT) & 0x07)
+                        << 26);
+                eid |= (static_cast<uint32_t>(msg.destination & 0x0F) << 22);
+                eid |= (static_cast<uint32_t>(msg.source & 0x0F) << 18);
+                eid |= (static_cast<uint32_t>(msg.topic_id) << 10);
+
+                frame.eid = eid;
+                frame.sid = 0;  // clear/unused when using extended ID
+                frame.is_extended_id = true;
                 frame.dlc = msg.payload_size;
                 std::copy_n(msg.payload.begin(), msg.payload_size,
                             frame.payload.begin());

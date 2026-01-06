@@ -1,6 +1,7 @@
 #ifndef __TOPICS__HPP
 #define __TOPICS__HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <span>
@@ -17,34 +18,45 @@ namespace mc2 {
         uint32_t command_bits;
         uint32_t extra_bits;
 
-        static void serialize(const ShootCommand& msg,
-                              std::span<uint8_t, serialized_size> dst) {
+        static bool serialize(const ShootCommand& msg,
+                              std::span<std::byte, serialized_size> dst) {
             ASSERT((msg.extra_bits & 0xffff0000) == 0,
                    "Incoming extra_bits must not have 16 MSB set.");
             uint32_t encoded_command_bits = msg.command_bits;
             uint16_t encoded_extra_bits = msg.extra_bits & 0xffff;
+            dst[0] =
+                std::byte {static_cast<uint8_t>(encoded_command_bits & 0xFF)};
+            dst[1] = std::byte {
+                static_cast<uint8_t>((encoded_command_bits >> 8) & 0xFF)};
+            dst[2] = std::byte {
+                static_cast<uint8_t>((encoded_command_bits >> 16) & 0xFF)};
+            dst[3] = std::byte {
+                static_cast<uint8_t>((encoded_command_bits >> 24) & 0xFF)};
 
-            dst[0] = encoded_command_bits & 0xFF;
-            dst[1] = (encoded_command_bits >> 8) & 0xFF;
-            dst[2] = (encoded_command_bits >> 16) & 0xFF;
-            dst[3] = (encoded_command_bits >> 24) & 0xFF;
-
-            dst[4] = encoded_extra_bits & 0xFF;
-            dst[5] = (encoded_extra_bits >> 8) & 0xFF;
+            dst[4] =
+                std::byte {static_cast<uint8_t>(encoded_extra_bits & 0xFF)};
+            dst[5] = std::byte {
+                static_cast<uint8_t>((encoded_extra_bits >> 8) & 0xFF)};
+            return true;
         }
 
-        static void deserialize(ShootCommand& msg,
-                                std::span<const uint8_t, serialized_size> src) {
+        static bool deserialize(
+            ShootCommand& msg,
+            std::span<const std::byte, serialized_size> src) {
             uint32_t encoded_command_bits;
             uint16_t encoded_extra_bits;
-            encoded_command_bits = static_cast<uint32_t>(src[0]) |
-                                   (static_cast<uint32_t>(src[1]) << 8) |
-                                   (static_cast<uint32_t>(src[2]) << 16) |
-                                   (static_cast<uint32_t>(src[3]) << 24);
-            encoded_extra_bits = static_cast<uint16_t>(src[4]) |
-                                 (static_cast<uint16_t>(src[5]) << 8);
+            encoded_command_bits =
+                static_cast<uint32_t>(std::to_integer<uint8_t>(src[0])) |
+                (static_cast<uint32_t>(std::to_integer<uint8_t>(src[1])) << 8) |
+                (static_cast<uint32_t>(std::to_integer<uint8_t>(src[2]))
+                 << 16) |
+                (static_cast<uint32_t>(std::to_integer<uint8_t>(src[3])) << 24);
+            encoded_extra_bits =
+                static_cast<uint16_t>(std::to_integer<uint8_t>(src[4])) |
+                (static_cast<uint16_t>(std::to_integer<uint8_t>(src[5])) << 8);
             msg.command_bits = encoded_command_bits;
             msg.extra_bits = encoded_extra_bits & 0xffff;
+            return true;
         }
     };
 
@@ -58,8 +70,8 @@ namespace mc2 {
         float pitch;
         uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
 
-        static void serialize(const GimbalCommand& msg,
-                              std::span<uint8_t, serialized_size> dst) {
+        static bool serialize(const GimbalCommand& msg,
+                              std::span<std::byte, serialized_size> dst) {
             ASSERT(-2 * PI < msg.yaw && msg.yaw < 2 * PI,
                    "Outgoing yaw out of acceptable range (-2PI, 2PI).");
             ASSERT(-2 * PI < msg.pitch && msg.pitch < 2 * PI,
@@ -69,27 +81,35 @@ namespace mc2 {
             int16_t encoded_yaw = msg.yaw * 5000;
             int16_t encoded_pitch = msg.pitch * 5000;
             uint16_t encoded_command_bits = msg.command_bits & 0xffff;
-
-            dst[0] = encoded_yaw & 0xFF;
-            dst[1] = (encoded_yaw >> 8) & 0xFF;
-            dst[2] = encoded_pitch & 0xFF;
-            dst[3] = (encoded_pitch >> 8) & 0xFF;
-            dst[4] = encoded_command_bits & 0xFF;
-            dst[5] = (encoded_command_bits >> 8) & 0xFF;
+            dst[0] = std::byte {static_cast<uint8_t>(encoded_yaw & 0xFF)};
+            dst[1] =
+                std::byte {static_cast<uint8_t>((encoded_yaw >> 8) & 0xFF)};
+            dst[2] = std::byte {static_cast<uint8_t>(encoded_pitch & 0xFF)};
+            dst[3] =
+                std::byte {static_cast<uint8_t>((encoded_pitch >> 8) & 0xFF)};
+            dst[4] =
+                std::byte {static_cast<uint8_t>(encoded_command_bits & 0xFF)};
+            dst[5] = std::byte {
+                static_cast<uint8_t>((encoded_command_bits >> 8) & 0xFF)};
+            return true;
         }
 
-        static void deserialize(GimbalCommand& msg,
-                                std::span<const uint8_t, serialized_size> src) {
+        static bool deserialize(
+            GimbalCommand& msg,
+            std::span<const std::byte, serialized_size> src) {
             int16_t encoded_yaw;
             int16_t encoded_pitch;
             uint16_t encoded_command_bits;
 
-            encoded_yaw = static_cast<int16_t>(src[0]) |
-                          (static_cast<int16_t>(src[1]) << 8);
-            encoded_pitch = static_cast<int16_t>(src[2]) |
-                            (static_cast<int16_t>(src[3]) << 8);
-            encoded_command_bits = static_cast<uint16_t>(src[4]) |
-                                   (static_cast<uint16_t>(src[5]) << 8);
+            encoded_yaw = static_cast<int16_t>(
+                static_cast<uint16_t>(std::to_integer<uint8_t>(src[0])) |
+                (static_cast<uint16_t>(std::to_integer<uint8_t>(src[1])) << 8));
+            encoded_pitch = static_cast<int16_t>(
+                static_cast<uint16_t>(std::to_integer<uint8_t>(src[2])) |
+                (static_cast<uint16_t>(std::to_integer<uint8_t>(src[3])) << 8));
+            encoded_command_bits = static_cast<uint16_t>(
+                static_cast<uint16_t>(std::to_integer<uint8_t>(src[4])) |
+                (static_cast<uint16_t>(std::to_integer<uint8_t>(src[5])) << 8));
             msg.yaw = static_cast<float>(encoded_yaw) / 5000;
             msg.pitch = static_cast<float>(encoded_pitch) / 5000;
             msg.command_bits = static_cast<uint32_t>(encoded_command_bits);
@@ -99,6 +119,7 @@ namespace mc2 {
                    "Incoming pitch out of acceptable range (-2PI, 2PI).");
             ASSERT((msg.command_bits & 0xffff0000) == 0,
                    "Incoming command_bits must not have 8 MSB set.");
+            return true;
         }
     };
 
@@ -114,34 +135,41 @@ namespace mc2 {
         float yaw;
         float pitch;
 
-        static void serialize(const GimbalRelativeAngles& msg,
-                              std::span<uint8_t, serialized_size> dst) {
+        static bool serialize(const GimbalRelativeAngles& msg,
+                              std::span<std::byte, serialized_size> dst) {
             ASSERT(-PI < msg.yaw && msg.yaw < PI,
                    "Outgoing yaw out of acceptable range (-PI, PI).");
             ASSERT(-PI < msg.pitch && msg.pitch < PI,
                    "Outgoing pitch out of acceptable range (-PI, PI).");
             int16_t encoded_yaw = msg.yaw * 10000;
             int16_t encoded_pitch = msg.pitch * 10000;
-            dst[0] = encoded_yaw & 0xFF;
-            dst[1] = (encoded_yaw >> 8) & 0xFF;
-            dst[2] = encoded_pitch & 0xFF;
-            dst[3] = (encoded_pitch >> 8) & 0xFF;
+            dst[0] = std::byte {static_cast<uint8_t>(encoded_yaw & 0xFF)};
+            dst[1] =
+                std::byte {static_cast<uint8_t>((encoded_yaw >> 8) & 0xFF)};
+            dst[2] = std::byte {static_cast<uint8_t>(encoded_pitch & 0xFF)};
+            dst[3] =
+                std::byte {static_cast<uint8_t>((encoded_pitch >> 8) & 0xFF)};
+            return true;
         }
 
-        static void deserialize(GimbalRelativeAngles& msg,
-                                std::span<const uint8_t, serialized_size> src) {
+        static bool deserialize(
+            GimbalRelativeAngles& msg,
+            std::span<const std::byte, serialized_size> src) {
             int16_t encoded_yaw;
             int16_t encoded_pitch;
-            encoded_yaw = static_cast<int16_t>(src[0]) |
-                          (static_cast<int16_t>(src[1]) << 8);
-            encoded_pitch = static_cast<int16_t>(src[2]) |
-                            (static_cast<int16_t>(src[3]) << 8);
+            encoded_yaw = static_cast<int16_t>(
+                static_cast<uint16_t>(std::to_integer<uint8_t>(src[0])) |
+                (static_cast<uint16_t>(std::to_integer<uint8_t>(src[1])) << 8));
+            encoded_pitch = static_cast<int16_t>(
+                static_cast<uint16_t>(std::to_integer<uint8_t>(src[2])) |
+                (static_cast<uint16_t>(std::to_integer<uint8_t>(src[3])) << 8));
             msg.yaw = static_cast<float>(encoded_yaw) / 10000;
             msg.pitch = static_cast<float>(encoded_pitch) / 10000;
             ASSERT(-PI < msg.yaw && msg.yaw < PI,
                    "Incoming yaw out of acceptable range (-PI, PI).");
             ASSERT(-PI < msg.pitch && msg.pitch < PI,
                    "Incoming pitch out of acceptable range (-PI, PI).");
+            return true;
         }
     };
 
@@ -156,18 +184,20 @@ namespace mc2 {
         uint16_t shoot_barrel_heat_limit;
         uint16_t chassis_power_limit;
 
-        static void serialize(const RefereeInfo& msg,
-                              std::span<uint8_t, serialized_size> dst) {
+        static bool serialize(const RefereeInfo& msg,
+                              std::span<std::byte, serialized_size> dst) {
             (void) msg;
             (void) dst;
             ASSERT(false, "");
+            return false;
         }
 
-        static void deserialize(RefereeInfo& msg,
-                                std::span<const uint8_t, serialized_size> src) {
+        static bool deserialize(
+            RefereeInfo& msg, std::span<const std::byte, serialized_size> src) {
             (void) msg;
             (void) src;
             ASSERT(false, "");
+            return false;
         }
     };
 

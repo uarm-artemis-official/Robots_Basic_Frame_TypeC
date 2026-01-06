@@ -271,13 +271,11 @@ namespace CommApp {
                     meta.message_id = id;
                     meta.payload_length = topic_meta.serialized_size;
 
-                    size_t topic_index = mc2::get_index_from_topic_id(id);
-
                     std::span<std::byte> serialized_span(
                         to_publish_serialized_buffer.begin(),
                         topic_meta.serialized_size);
-                    bool has_serialized = byte_serializers[topic_index](
-                        serialized_span, byte_message_span);
+                    bool has_serialized = mc.serialize_by_topic_id(
+                        id, serialized_span, byte_message_span);
 
                     if (has_serialized) {
                         if (meta.destination ==
@@ -367,52 +365,62 @@ namespace CommApp {
 
     namespace v3 {
         CommApp::CommApp(
-            isr::can::CAN_ISR& _can_isr, isr::uart::UART_ISR& _uart_isr,
+            MW_RTOS::IRTOS& _rtos, isr::can::CAN_ISR& _can_isr,
+            isr::uart::UART_ISR& _uart_isr,
             simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>& _simple_comm,
-            MW_CAN::ICAN& _can, MW_UART::IUART& _uart, mc2::RobotMC mc2_ref,
-            mc2::MessageNode node)
-            : can_isr(_can_isr),
+            MW_CAN::ICAN& _can, MW_UART::IUART& _uart, mc2::RobotMC& mc2_ref,
+            IDebug& debug_ref)
+            : RTOSApp(_rtos),
+              can_isr(_can_isr),
               uart_isr(_uart_isr),
               simple_comm(_simple_comm),
               mc(mc2_ref),
               can(_can),
               uart(_uart),
-              current_node(node) {}
+              debug(debug_ref) {}
 
         bool CommApp::init() {
-            byte_deserializers =
-                mc2::generate_byte_deserializers<mc2::RobotMC::Topics>();
-            byte_serializers =
-                mc2::generate_byte_serializers<mc2::RobotMC::Topics>();
+            BoardStatus_t board_status = debug.get_board_status();
+            if (board_status == BoardStatus_t::GIMBAL_BOARD) {
+                current_node = mc2::MessageNode::Gimbal;
+            } else {
+                current_node = mc2::MessageNode::Chassis;
+            }
 
             bool can_routine_success = can_isr.register_routine(
                 isr::can::ECallbacks::MESSAGE_PENDING,
                 [&](MW_CAN::BUS bus, isr::can::CANFrame frame) {
-                    // TODO: Remove after changing CANFrame definition in ISR.
-                    MW_CAN::CANFrame mw_frame;
-                    mw_frame.sid = frame.stdid;
-                    mw_frame.eid = frame.extid;
-                    mw_frame.dlc = frame.payload_length;
-                    mw_frame.is_extended_id = bus == MW_CAN::BUS::CAN_2B ||
-                                              bus == MW_CAN::BUS::CAN_1B;
-                    for (size_t i = 0; i < frame.payload_length; ++i) {
-                        mw_frame.payload[i] = std::byte {frame.payload[i]};
+                    if (bus == MW_CAN::BUS::CAN_2B) {
+                        // TODO: Remove after changing CANFrame definition in ISR.
+                        MW_CAN::CANFrame mw_frame;
+                        mw_frame.sid = frame.stdid;
+                        mw_frame.eid = frame.extid;
+                        mw_frame.dlc = frame.payload_length;
+                        my_frame.is_extended_id = true;
+                        for (size_t i = 0; i < frame.payload_length; ++i) {
+                            mw_frame.payload[i] = std::byte {frame.payload[i]};
+                        }
+                        simple_comm.can_isr_message_pending(bus, mw_frame);
                     }
-                    simple_comm.can_isr_message_pending(bus, mw_frame);
                 });
 
-            bool uart_init_success =
-                uart_isr.register_init([&](MW_UART::IUART& uart_instance) {
-                    return simple_comm.uart_isr_init(uart_instance);
-                });
+            bool uart_init_success = true;
+            bool uart_routine_success = true;
+            if (board_status == BoardStatus_t::GIMBAL_BOARD) {
+                uart_init_success =
+                    uart_isr.register_init([&](MW_UART::IUART& uart_instance) {
+                        return simple_comm.uart_isr_init(uart_instance);
+                    });
 
-            bool uart_routine_success = uart_isr.register_routine(
-                isr::uart::ECallbacks::RECEIVE_COMPLETE,
-                [&](MW_UART::IUART& uart_instance,
-                    MW_UART::Peripheral peripheral) {
-                    simple_comm.uart_isr_receive_complete(uart_instance,
-                                                          peripheral);
-                });
+                uart_routine_success = uart_isr.register_routine(
+                    isr::uart::ECallbacks::RECEIVE_COMPLETE,
+                    [&](MW_UART::IUART& uart_instance,
+                        MW_UART::Peripheral peripheral) {
+                        simple_comm.uart_isr_receive_complete(uart_instance,
+                                                              peripheral);
+                    });
+            }
+
             return can_routine_success && uart_init_success &&
                    uart_routine_success;
         }
@@ -422,7 +430,7 @@ namespace CommApp {
                 simple_comm::SimpleMessage msg;
                 bool has_new_message = simple_comm.get_rx_message(msg);
                 if (has_new_message) {
-                    messages_to_process_buffer.push(msg);
+                    (void) messages_to_process_buffer.push(msg);
                 } else {
                     break;
                 }
@@ -439,16 +447,14 @@ namespace CommApp {
                         static_cast<mc2::MessageNode>(msg.destination);
                     if (msg_destination == current_node ||
                         msg_destination == mc2::MessageNode::All) {
-                        size_t topic_index =
-                            mc2::get_index_from_topic_id(msg.topic_id);
                         std::span<const std::byte> payload_span(
                             msg.payload.data(), msg.payload_size);
                         std::span<std::byte> dst_span(
                             deserialize_message_buffer.begin(),
                             mc.get_topic_meta(msg.topic_id).item_size);
-                        bool deserialized = byte_deserializers[topic_index](
-                            dst_span, payload_span);
-                        if (deserialized) {
+                        bool has_deserialized = mc.deserialize_by_topic_id(
+                            msg.topic_id, dst_span, payload_span);
+                        if (has_deserialized) {
                             mc.pub_byte_message(deserialize_message_buffer,
                                                 msg.topic_id);
                         } else {
@@ -518,10 +524,11 @@ namespace CommApp {
                 auto res = mc.get_byte_message(byte_message_span,
                                                byte_message_size, id);
 
-                ASSERT(byte_message_size == topic_meta.item_size,
-                       "Message size mismatch in interboard message queuing.");
-
                 if (res.has_value()) {
+                    ASSERT(
+                        byte_message_size == topic_meta.item_size,
+                        "Message size mismatch in interboard message queuing.");
+
                     simple_comm::SimpleMessage msg;
 
                     msg.source = static_cast<uint8_t>(current_node);
@@ -531,15 +538,13 @@ namespace CommApp {
                     msg.payload_size = topic_meta.serialized_size;
                     msg.payload.fill(std::byte {0});
 
-                    size_t topic_index = mc2::get_index_from_topic_id(id);
-
                     std::span<std::byte> serialized_span(
                         msg.payload.begin(), topic_meta.serialized_size);
-                    bool has_serialized = byte_serializers[topic_index](
-                        serialized_span, byte_message_span);
+                    bool has_serialized = mc.serialize_by_topic_id(
+                        id, serialized_span, byte_message_span);
 
                     if (has_serialized) {
-                        messages_to_process_buffer.push(msg);
+                        (void) messages_to_process_buffer.push(msg);
                     } else {
                         ASSERT(false,
                                "Failed to serialize interboard message.");
