@@ -323,8 +323,8 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
                                BoardActMode_t& act_mode,
                                ShootActMode_t& shoot_mode);
     void detect_rc_loss();
-    void send_gimbal_can_comm(float yaw, float pitch, BoardMode_t board_mode,
-                              BoardActMode_t act_mode);
+    void send_gimbal_command(float yaw, float pitch, BoardMode_t board_mode,
+                             BoardActMode_t act_mode);
     void send_chassis_command(float v_parallel, float v_perp, float wz,
                               BoardMode_t board_mode, BoardActMode_t act_mode);
     void send_shoot_command(ShootActMode_t shoot_mode,

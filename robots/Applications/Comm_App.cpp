@@ -396,7 +396,7 @@ namespace CommApp {
                         mw_frame.sid = frame.stdid;
                         mw_frame.eid = frame.extid;
                         mw_frame.dlc = frame.payload_length;
-                        my_frame.is_extended_id = true;
+                        mw_frame.is_extended_id = true;
                         for (size_t i = 0; i < frame.payload_length; ++i) {
                             mw_frame.payload[i] = std::byte {frame.payload[i]};
                         }
@@ -455,8 +455,7 @@ namespace CommApp {
                         bool has_deserialized = mc.deserialize_by_topic_id(
                             msg.topic_id, dst_span, payload_span);
                         if (has_deserialized) {
-                            mc.pub_byte_message(deserialize_message_buffer,
-                                                msg.topic_id);
+                            mc.pub_byte_message(dst_span, msg.topic_id);
                         } else {
                             // TODO: Add warning logging for deserialization failure.
                         }
@@ -517,37 +516,40 @@ namespace CommApp {
                 mc2::generate_interboard_topic_ids<mc2::RobotMC::Topics>();
             for (uint8_t id : interboard_topic_ids) {
                 const mc2::TopicMeta& topic_meta = mc.get_topic_meta(id);
-                std::span<std::byte> byte_message_span =
-                    std::span(to_publish_buffer.begin(), topic_meta.item_size);
+                if (topic_meta.destination !=
+                    static_cast<uint8_t>(current_node)) {
+                    std::span<std::byte> byte_message_span = std::span(
+                        to_publish_buffer.begin(), topic_meta.item_size);
 
-                size_t byte_message_size = 0;
-                auto res = mc.get_byte_message(byte_message_span,
-                                               byte_message_size, id);
+                    size_t byte_message_size = 0;
+                    auto res = mc.get_byte_message(byte_message_span,
+                                                   byte_message_size, id);
 
-                if (res.has_value()) {
-                    ASSERT(
-                        byte_message_size == topic_meta.item_size,
-                        "Message size mismatch in interboard message queuing.");
+                    if (res.has_value()) {
+                        ASSERT(byte_message_size == topic_meta.item_size,
+                               "Message size mismatch in interboard message "
+                               "queuing.");
 
-                    simple_comm::SimpleMessage msg;
+                        simple_comm::SimpleMessage msg;
 
-                    msg.source = static_cast<uint8_t>(current_node);
-                    msg.destination =
-                        static_cast<uint8_t>(topic_meta.destination);
-                    msg.topic_id = id;
-                    msg.payload_size = topic_meta.serialized_size;
-                    msg.payload.fill(std::byte {0});
+                        msg.source = static_cast<uint8_t>(current_node);
+                        msg.destination =
+                            static_cast<uint8_t>(topic_meta.destination);
+                        msg.topic_id = id;
+                        msg.payload_size = topic_meta.serialized_size;
+                        msg.payload.fill(std::byte {0});
 
-                    std::span<std::byte> serialized_span(
-                        msg.payload.begin(), topic_meta.serialized_size);
-                    bool has_serialized = mc.serialize_by_topic_id(
-                        id, serialized_span, byte_message_span);
+                        std::span<std::byte> serialized_span(
+                            msg.payload.begin(), topic_meta.serialized_size);
+                        bool has_serialized = mc.serialize_by_topic_id(
+                            id, serialized_span, byte_message_span);
 
-                    if (has_serialized) {
-                        (void) messages_to_process_buffer.push(msg);
-                    } else {
-                        ASSERT(false,
-                               "Failed to serialize interboard message.");
+                        if (has_serialized) {
+                            (void) messages_to_process_buffer.push(msg);
+                        } else {
+                            ASSERT(false,
+                                   "Failed to serialize interboard message.");
+                        }
                     }
                 }
             }

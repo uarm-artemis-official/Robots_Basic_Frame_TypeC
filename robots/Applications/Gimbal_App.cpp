@@ -14,6 +14,7 @@
 #include "apps_types.hpp"
 #include "pid.h"
 #include "robot_config.hpp"
+#include "topics.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
@@ -433,15 +434,10 @@ void GimbalApp::process_commands() {
 }
 
 void GimbalApp::send_rel_angles() {
-    mc2::CommOut comm_out;
-    comm_out.topic_name =
-        mc2::get_comm_id<mc2::GimbalRelativeAngles, mc2::RobotMC::Topics>();
-
-    memcpy(comm_out.bytes.data(), &gimbal.yaw_ecd_angle, sizeof(float));
-    memcpy(&(comm_out.bytes.data()[4]), &(gimbal.pitch_rel_angle),
-           sizeof(float));
-
-    mc.pub_message(comm_out);
+    mc2::GimbalRelativeAngles relative_angles;
+    relative_angles.yaw = gimbal.yaw_ecd_angle;
+    relative_angles.pitch = gimbal.pitch_ecd_angle;
+    mc.pub_message(relative_angles);
 }
 
 void GimbalApp::update_headings() {

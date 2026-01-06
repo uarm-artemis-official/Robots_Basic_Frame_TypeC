@@ -238,7 +238,7 @@ void RCApp::map_switches_to_modes(BoardMode_t& board_mode,
 void RCApp::detect_rc_loss() {
     if (rc_idle_count >= 500) {
         send_chassis_command(0, 0, 0, IDLE_MODE, INDPET_MODE);
-        send_gimbal_can_comm(0, 0, IDLE_MODE, INDPET_MODE);
+        send_gimbal_command(0, 0, IDLE_MODE, INDPET_MODE);
     }
 
     auto message_ts = mc.peek_message(rc_raw);
@@ -250,25 +250,8 @@ void RCApp::detect_rc_loss() {
     }
 }
 
-void RCApp::send_gimbal_can_comm(float yaw, float pitch, BoardMode_t board_mode,
-                                 BoardActMode_t act_mode) {
-    // int16_t quantized_yaw =
-    //     quantize_float(yaw, -PI, PI, std::numeric_limits<int16_t>::min(),
-    //                    std::numeric_limits<int16_t>::max());
-    // int16_t quantized_pitch =
-    //     quantize_float(pitch, -PI, PI, std::numeric_limits<int16_t>::min(),
-    //                    std::numeric_limits<int16_t>::max());
-    // uint32_t command_bits = ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
-    //                         (static_cast<uint8_t>(act_mode) & 0x7);
-
-    // mc2::CommOut comm_out;
-    // comm_out.topic_name =
-    //     mc2::get_comm_id<mc2::GimbalCommand, mc2::RobotMC::Topics>();
-    // std::memcpy(comm_out.bytes.data(), &quantized_yaw, sizeof(int16_t));
-    // std::memcpy(&(comm_out.bytes.data()[2]), &quantized_pitch, sizeof(int16_t));
-    // std::memcpy(&(comm_out.bytes.data()[4]), &command_bits, sizeof(uint32_t));
-
-    // mc.pub_message(comm_out);
+void RCApp::send_gimbal_command(float yaw, float pitch, BoardMode_t board_mode,
+                                BoardActMode_t act_mode) {
     mc2::GimbalCommand gimbal_command;
     gimbal_command.yaw = yaw;
     gimbal_command.pitch = pitch;
@@ -303,15 +286,7 @@ void RCApp::send_shoot_command(ShootActMode_t shoot_mode,
         shoot_command.extra_bits = 0;
     }
 
-    mc2::CommOut comm_out;
-    comm_out.topic_name =
-        mc2::get_comm_id<mc2::ShootCommand, mc2::RobotMC::Topics>();
-    std::memcpy(comm_out.bytes.data(), &(shoot_command.command_bits),
-                sizeof(uint32_t));
-    std::memcpy(&(comm_out.bytes.data()[4]), &(shoot_command.extra_bits),
-                sizeof(uint32_t));
-
-    mc.pub_message(comm_out);
+    mc.pub_message(shoot_command);
 }
 
 void RCApp::pub_command_messages() {
@@ -366,7 +341,7 @@ void RCApp::pub_command_messages() {
                         -apps_defines::rc::mouse_max_pitch_magnitude_out,
                         apps_defines::rc::mouse_max_pitch_magnitude_out);
 
-        send_gimbal_can_comm(0, pitch, pc_board_mode, pc_act_mode);
+        send_gimbal_command(0, pitch, pc_board_mode, pc_act_mode);
         send_shoot_command(pc_shoot_mode, pc_ammo_status);
     } else {
         BoardMode_t board_mode;
@@ -415,7 +390,7 @@ void RCApp::pub_command_messages() {
         if (fabs(pitch) < apps_defines::rc::gimbal_joystick_send_threshold)
             pitch = 0;
 
-        send_gimbal_can_comm(yaw, pitch, board_mode, act_mode);
+        send_gimbal_command(yaw, pitch, board_mode, act_mode);
 
         if (rc.ctrl.wheel > 0) {
             send_shoot_command(shoot_mode, ammo_lid::LidStatus::OPEN);

@@ -290,12 +290,13 @@ namespace MW_CAN {
             case BUS::CAN_2:
                 tx_header.IDE = CAN_ID_STD;
                 tx_header.StdId = id;
+                tx_header.ExtId = 0;
                 break;
             case BUS::CAN_1B:
                 [[fallthrough]];
             case BUS::CAN_2B:
                 tx_header.IDE = CAN_ID_EXT;
-                tx_header.StdId = id;
+                tx_header.StdId = 0;
                 tx_header.ExtId = ext_id;
                 break;
         }
@@ -321,11 +322,14 @@ namespace MW_CAN {
                                  &rx_header, dst) != HAL_OK) {
             return false;  // Error in receiving message
         } else {
-            id = rx_header.StdId;
             length = rx_header.DLC;
 
             if (rx_header.IDE == CAN_ID_EXT) {
+                id = 0;
                 ext_id = rx_header.ExtId;
+            } else {
+                id = rx_header.StdId;
+                ext_id = 0;
             }
 
             return true;
@@ -434,7 +438,8 @@ namespace MW_UART {
      */
     bool UART::receive_data(Peripheral uart, uint8_t* data, uint32_t length) {
         ASSERT(data != nullptr, "Cannot receive data to nullptr.");
-        HAL_StatusTypeDef res = HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
+        HAL_StatusTypeDef res =
+            HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
         return res == HAL_OK;  // Placeholder for actual implementation
     }
 

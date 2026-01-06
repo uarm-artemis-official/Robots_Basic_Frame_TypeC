@@ -581,7 +581,7 @@ namespace mc2 {
             }
 
             std::optional<MW_RTOS::TickType> pub_byte_message(
-                std::span<const std::byte> bytes, uint8_t topic_id,
+                std::span<const std::byte> src, uint8_t topic_id,
                 MW_RTOS::TickType ticks_to_wait = 0) {
                 size_t index = get_index_from_topic_id(topic_id);
 
@@ -590,18 +590,24 @@ namespace mc2 {
                 }
 
                 TopicHandle& topic_handle = topic_handles[index];
-                if (topic_handle.queue == nullptr) {
-                    return {};
-                }
+                ASSERT(topic_handle.queue != nullptr,
+                       "Cannot publish byte message to message_center for "
+                       "NULL pointer.");
+                ASSERT(src.size() == topic_handle.meta.item_size,
+                       "Source span size does not match topic item size.");
 
-                if (bytes.size() != topic_handle.meta.item_size) {
-                    return {};
+                bool result;
+                if (topic_handle.meta.queue_size == 1) {
+                    result = rtos.queue_overwrite(
+                        topic_handle.queue,
+                        const_cast<void*>(
+                            static_cast<const void*>(src.data())));
+                } else {
+                    result = rtos.queue_pushback(
+                        topic_handle.queue,
+                        const_cast<void*>(static_cast<const void*>(src.data())),
+                        ticks_to_wait);
                 }
-
-                bool result = rtos.queue_pushback(
-                    topic_handle.queue,
-                    const_cast<void*>(static_cast<const void*>(bytes.data())),
-                    ticks_to_wait);
 
                 if (result) {
                     MW_RTOS::TickType recent_tick = rtos.get_current_tick();
