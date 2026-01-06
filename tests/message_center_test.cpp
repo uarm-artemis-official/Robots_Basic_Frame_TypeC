@@ -3,6 +3,67 @@
 #include <tuple>
 #include "middleware_classes.hpp"
 
+// Additional test topics
+struct ExtraNormalTopic {
+    static constexpr size_t queue_size = 3;
+    int32_t i;
+    float f;
+    char c;
+};
+
+struct InterTopicA {
+    static constexpr mc2::MessageNode destination = mc2::MessageNode::Chassis;
+    static constexpr size_t serialized_size = 3;  // 1 + 2 bytes
+    static constexpr size_t queue_size = 2;
+
+    uint8_t a;
+    uint16_t b;
+
+    static bool serialize(const InterTopicA& msg,
+                          std::span<std::byte, serialized_size> dst) {
+        dst[0] = std::byte {static_cast<uint8_t>(msg.a)};
+        dst[1] = std::byte {static_cast<uint8_t>(msg.b & 0xFF)};
+        dst[2] = std::byte {static_cast<uint8_t>((msg.b >> 8) & 0xFF)};
+        return true;
+    }
+
+    static bool deserialize(InterTopicA& msg,
+                            std::span<const std::byte, serialized_size> src) {
+        msg.a = std::to_integer<uint8_t>(src[0]);
+        msg.b = static_cast<uint16_t>(std::to_integer<uint8_t>(src[1])) |
+                (static_cast<uint16_t>(std::to_integer<uint8_t>(src[2])) << 8);
+        return true;
+    }
+};
+
+struct InterTopicB {
+    static constexpr mc2::MessageNode destination = mc2::MessageNode::Gimbal;
+    static constexpr size_t serialized_size = 8;  // 8 bytes
+    static constexpr size_t queue_size = 1;
+
+    uint64_t v;
+
+    static bool serialize(const InterTopicB& msg,
+                          std::span<std::byte, serialized_size> dst) {
+        uint64_t val = msg.v;
+        for (size_t i = 0; i < serialized_size; ++i) {
+            dst[i] = std::byte {static_cast<uint8_t>((val >> (8 * i)) & 0xFF)};
+        }
+        return true;
+    }
+
+    static bool deserialize(InterTopicB& msg,
+                            std::span<const std::byte, serialized_size> src) {
+        uint64_t val = 0;
+        for (size_t i = 0; i < serialized_size; ++i) {
+            val |= static_cast<uint64_t>(std::to_integer<uint8_t>(src[i]))
+                   << (8 * i);
+        }
+        msg.v = val;
+        return true;
+    }
+};
+
 struct FloatTopic {
     static constexpr size_t queue_size = 2;
 
@@ -24,6 +85,9 @@ struct MailboxTopic {
 };
 
 using TopicRegistry = std::tuple<FloatTopic, StructTopic, MailboxTopic>;
+using ExtendedTopicRegistry =
+    std::tuple<FloatTopic, StructTopic, MailboxTopic, ExtraNormalTopic,
+               InterTopicA, InterTopicB>;
 
 class MessageCenterTest : public ::testing::Test {
    protected:
@@ -36,6 +100,28 @@ class MessageCenterTest : public ::testing::Test {
         mc2 = new mc2::MC2<TopicRegistry>(*rtos);
         mc2->init();
         rtos->delay(start_ts);
+    }
+
+    void TearDown() override {
+        delete mc2;
+        delete rtos;
+    }
+};
+
+class ExtendedMessageCenterTest : public ::testing::Test {
+   protected:
+    MW_RTOS::TestRTOS* rtos;
+    mc2::MC2<ExtendedTopicRegistry>* mc;
+
+    void SetUp() override {
+        rtos = new MW_RTOS::TestRTOS();
+        mc = new mc2::MC2<ExtendedTopicRegistry>(*rtos);
+        mc->init();
+    }
+
+    void TearDown() override {
+        delete mc;
+        delete rtos;
     }
 };
 
@@ -281,4 +367,109 @@ TEST_F(MessageCenterTest, StructTopicMultiplePubAndGetSequence) {
     StructTopic empty;
     auto ts_empty = mc2->get_message(empty, 0);
     ASSERT_FALSE(ts_empty.has_value());
+}
+
+TEST_F(ExtendedMessageCenterTest, SerializeByTopicIDHappyPath) {
+    InterTopicA orig {};
+    orig.a = 0x5;
+    orig.b = 0x1234;
+
+    std::array<std::byte, sizeof(InterTopicA)> src_bytes {};
+    std::memcpy(src_bytes.data(), &orig, sizeof(orig));
+
+    std::array<std::byte, InterTopicA::serialized_size> serialized_by_method {};
+    std::array<std::byte, InterTopicA::serialized_size> serialized_by_type {};
+
+    uint8_t topic_id = static_cast<uint8_t>(
+        mc2::get_comm_id<InterTopicA, ExtendedTopicRegistry>());
+    bool s_ok = mc->serialize_by_topic_id(
+        topic_id, std::span(serialized_by_method), std::span(src_bytes));
+    ASSERT_TRUE(s_ok);
+
+    bool s_ok_type = InterTopicA::serialize(
+        orig,
+        std::span<std::byte, InterTopicA::serialized_size>(serialized_by_type));
+
+    ASSERT_TRUE(s_ok_type);
+
+    for (size_t i = 0; i < InterTopicA::serialized_size; ++i) {
+        ASSERT_EQ(serialized_by_method[i], serialized_by_type[i]);
+    }
+}
+
+TEST_F(ExtendedMessageCenterTest, DeserializeByTopicIDHappyPath) {
+    InterTopicB orig {};
+    orig.v = 0x1122334455667788;
+
+    std::array<std::byte, InterTopicB::serialized_size> src_bytes {};
+    InterTopicB::serialize(
+        orig, std::span<std::byte, InterTopicB::serialized_size>(src_bytes));
+
+    std::array<std::byte, sizeof(InterTopicB)> deserialized_by_method {};
+    std::array<std::byte, sizeof(InterTopicB)> deserialized_by_type {};
+
+    uint8_t topic_id = static_cast<uint8_t>(
+        mc2::get_comm_id<InterTopicB, ExtendedTopicRegistry>());
+    bool d_ok = mc->deserialize_by_topic_id(topic_id, std::span(src_bytes),
+                                            std::span(deserialized_by_method));
+    ASSERT_TRUE(d_ok);
+
+    InterTopicB temp;
+    bool d_ok_type = InterTopicB::deserialize(
+        temp,
+        std::span<const std::byte, InterTopicB::serialized_size>(src_bytes));
+    ASSERT_TRUE(d_ok_type);
+    std::memcpy(deserialized_by_type.data(), &temp, sizeof(InterTopicB));
+
+    for (size_t i = 0; i < sizeof(InterTopicB); ++i) {
+        ASSERT_EQ(deserialized_by_method[i], deserialized_by_type[i]);
+    }
+}
+
+TEST_F(ExtendedMessageCenterTest, SerializeDeserializeByTopicIDHappyPath) {
+    InterTopicA orig {};
+    orig.a = 0x9;
+    orig.b = 0xBEEF;
+
+    std::array<std::byte, sizeof(InterTopicA)> src_bytes {};
+    std::memcpy(src_bytes.data(), &orig, sizeof(orig));
+
+    std::array<std::byte, InterTopicA::serialized_size> serialized {};
+    std::array<std::byte, sizeof(InterTopicA)> deserialized {};
+
+    uint8_t topic_id = static_cast<uint8_t>(
+        mc2::get_comm_id<InterTopicA, ExtendedTopicRegistry>());
+    bool s_ok = mc->serialize_by_topic_id(topic_id, std::span(serialized),
+                                          std::span(src_bytes));
+    ASSERT_TRUE(s_ok);
+
+    bool d_ok = mc->deserialize_by_topic_id(topic_id, std::span(deserialized),
+                                            std::span(serialized));
+    ASSERT_TRUE(d_ok);
+
+    for (size_t i = 0; i < sizeof(InterTopicA); ++i) {
+        ASSERT_EQ(deserialized[i], src_bytes[i]);
+    }
+}
+
+TEST_F(ExtendedMessageCenterTest, Serialize_Fail_NonInterboardTopic) {
+    ExtraNormalTopic t {};
+    t.i = 1;
+    t.f = 1.5f;
+    t.c = 'x';
+
+    std::array<std::byte, sizeof(ExtraNormalTopic)> src_bytes {};
+    std::memcpy(src_bytes.data(), &t, sizeof(t));
+
+    std::array<std::byte, 4> dst {};  // arbitrary
+
+    uint8_t topic_id = static_cast<uint8_t>(
+        mc2::get_comm_id<ExtraNormalTopic, ExtendedTopicRegistry>());
+    bool s_ok = mc->serialize_by_topic_id(topic_id, std::span(dst),
+                                          std::span(src_bytes));
+    ASSERT_FALSE(s_ok);
+
+    bool d_ok = mc->deserialize_by_topic_id(topic_id, std::span(src_bytes),
+                                            std::span(dst));
+    ASSERT_FALSE(d_ok);
 }
