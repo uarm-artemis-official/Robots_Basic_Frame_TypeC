@@ -27,8 +27,6 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     include("base/cmake/mingw64-gcc.cmake") # toolchain file
     set(CMAKE_C_FLAGS_GTEST "-O0 -g3 -fprofile-arcs -ftest-coverage -DGTEST")
     set(CMAKE_CXX_FLAGS_GTEST "-O0 -g3 -fprofile-arcs -ftest-coverage  -DGTEST")
-    # set(CMAKE_C_LINKER_FLAGS_GTEST "--coverage")
-    # set(CMAKE_CXX_LINKER_FLAGS_GTEST "--coverage")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Swerve")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Swerve)
     include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
@@ -54,6 +52,11 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Auto_Aim_Rig")
     include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_AUTO_AIM_RIG "-O0 -g3 -DAUTO_AIM_RIG")
     set(CMAKE_CXX_FLAGS_AUTO_AIM_RIG "-O0 -g3 -DAUTO_AIM_RIG")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Kiddie_Mode")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Kiddie_Mode)
+    include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_KIDDIE_MODE "-O0 -g3 -DKIDDIE_MODE -DINFANTRY")
+    set(CMAKE_CXX_FLAGS_KIDDIE_MODE "-O0 -g3 -DKIDDIE_MODE -DINFANTRY")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Doxygen)
 else()
