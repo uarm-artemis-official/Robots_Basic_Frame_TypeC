@@ -10,14 +10,6 @@
             "cacheVariables": {}
         },
         {
-            "name": "Mecanum",
-            "inherits": "default",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Mecanum",
-                "CMAKE_VERBOSE_MAKEFILE": "ON"
-            }
-        },
-        {
             "name": "Omni",
             "inherits": "default",
             "cacheVariables": {
@@ -80,10 +72,6 @@
         {
             "name": "Omni",
             "configurePreset": "Omni"
-        },
-        {
-            "name": "Mecanum",
-            "configurePreset": "Mecanum"
         },
         {
             "name": "Swerve",

@@ -94,7 +94,7 @@ namespace gimbal_params {
 namespace shoot_params {
     // Shoot targets.
     constexpr float LOADER_ACTIVE_RPM = 75;
-    constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
+    constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 2000;
     constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
     static_assert(MAX_FLYWHEEL_ACCEL >= 0);
 
@@ -121,9 +121,9 @@ namespace shoot_params {
 
 namespace chassis_params {
     // Movement targets.
-    constexpr float MAX_TRANSLATION = 8;  // m/s
-    constexpr float MAX_ROTATION = 5;     // rad/s
-    constexpr float GYRO_SPEED = 5;       // rad/s
+    constexpr float MAX_TRANSLATION = 2;  // m/s
+    constexpr float MAX_ROTATION = 2;     // rad/s
+    constexpr float GYRO_SPEED = 2;       // rad/s
     static_assert(MAX_TRANSLATION >= 0);
     static_assert(MAX_ROTATION >= 0);
     static_assert(MAX_ROTATION >= GYRO_SPEED);

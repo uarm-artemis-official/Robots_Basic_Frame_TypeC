@@ -8,6 +8,7 @@
 #include "message_center.hpp"
 #include "subsystems_types.hpp"
 #include "uarm_lib.hpp"
+#include "uarm_math.hpp"
 
 namespace mc2 {
     struct ShootCommand {
@@ -78,8 +79,9 @@ namespace mc2 {
                    "Outgoing pitch out of acceptable range (-2PI, 2PI).");
             ASSERT((msg.command_bits & 0xffff0000) == 0,
                    "Outgoing command_bits must not have 8 MSB set.");
-            int16_t encoded_yaw = msg.yaw * 5000;
-            int16_t encoded_pitch = msg.pitch * 5000;
+            int16_t encoded_yaw = value_limit(msg.yaw, -PI * 2, PI * 2) * 5000;
+            int16_t encoded_pitch =
+                value_limit(msg.pitch, -PI * 2, PI * 2) * 5000;
             uint16_t encoded_command_bits = msg.command_bits & 0xffff;
             dst[0] = std::byte {static_cast<uint8_t>(encoded_yaw & 0xFF)};
             dst[1] =
@@ -137,12 +139,16 @@ namespace mc2 {
 
         static bool serialize(const GimbalRelativeAngles& msg,
                               std::span<std::byte, serialized_size> dst) {
-            ASSERT(-PI < msg.yaw && msg.yaw < PI,
-                   "Outgoing yaw out of acceptable range (-PI, PI).");
-            ASSERT(-PI < msg.pitch && msg.pitch < PI,
+            constexpr float TOLERANCE = 0.0001f;
+            constexpr float endpoint_magnitude = PI + TOLERANCE;
+            ASSERT(
+                -endpoint_magnitude < msg.yaw && msg.yaw < endpoint_magnitude,
+                "Outgoing yaw out of acceptable range (-PI, PI).");
+            ASSERT(-endpoint_magnitude < msg.pitch &&
+                       msg.pitch < endpoint_magnitude,
                    "Outgoing pitch out of acceptable range (-PI, PI).");
-            int16_t encoded_yaw = msg.yaw * 10000;
-            int16_t encoded_pitch = msg.pitch * 10000;
+            int16_t encoded_yaw = value_limit(msg.yaw, -PI, PI) * 10000;
+            int16_t encoded_pitch = value_limit(msg.pitch, -PI, PI) * 10000;
             dst[0] = std::byte {static_cast<uint8_t>(encoded_yaw & 0xFF)};
             dst[1] =
                 std::byte {static_cast<uint8_t>((encoded_yaw >> 8) & 0xFF)};
@@ -163,11 +169,18 @@ namespace mc2 {
             encoded_pitch = static_cast<int16_t>(
                 static_cast<uint16_t>(std::to_integer<uint8_t>(src[2])) |
                 (static_cast<uint16_t>(std::to_integer<uint8_t>(src[3])) << 8));
-            msg.yaw = static_cast<float>(encoded_yaw) / 10000;
-            msg.pitch = static_cast<float>(encoded_pitch) / 10000;
-            ASSERT(-PI < msg.yaw && msg.yaw < PI,
-                   "Incoming yaw out of acceptable range (-PI, PI).");
-            ASSERT(-PI < msg.pitch && msg.pitch < PI,
+            msg.yaw =
+                value_limit(static_cast<float>(encoded_yaw) / 10000, -PI, PI);
+            msg.pitch =
+                value_limit(static_cast<float>(encoded_pitch) / 10000, -PI, PI);
+
+            constexpr float TOLERANCE = 0.0001f;
+            constexpr float endpoint_magnitude = PI + TOLERANCE;
+            ASSERT(
+                -endpoint_magnitude < msg.yaw && msg.yaw < endpoint_magnitude,
+                "Incoming yaw out of acceptable range (-PI, PI).");
+            ASSERT(-endpoint_magnitude < msg.pitch &&
+                       msg.pitch < endpoint_magnitude,
                    "Incoming pitch out of acceptable range (-PI, PI).");
             return true;
         }
