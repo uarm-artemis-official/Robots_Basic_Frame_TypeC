@@ -113,6 +113,12 @@ namespace MW_UART {
         (void) timeout;
         // TODO: Implement UART send logic
     }
+    void TestUART::send_data(Peripheral uart, std::span<const std::byte> data,
+                             uint32_t timeout) {
+        (void) uart;
+        (void) data;
+        (void) timeout;
+    }
     bool TestUART::receive_data(Peripheral uart, uint8_t* data,
                                 uint32_t length) {
         (void) uart;
@@ -195,9 +201,11 @@ namespace MW_RTOS {
 
     bool TestRTOS::queue_create(QueueHandle& queue, size_t queue_length,
                                 size_t item_size) {
-                                    constexpr size_t MAX_QUEUE_SIZE = 5000;
-        ASSERT(queue_length * item_size > 0, "Queue length and item size must be greater than zero");
-        ASSERT(queue_length * item_size <= MAX_QUEUE_SIZE, "Requested queue size too large for test environment");
+        constexpr size_t MAX_QUEUE_SIZE = 5000;
+        ASSERT(queue_length * item_size > 0,
+               "Queue length and item size must be greater than zero");
+        ASSERT(queue_length * item_size <= MAX_QUEUE_SIZE,
+               "Requested queue size too large for test environment");
 
         queue = static_cast<QueueHandle>(malloc(sizeof(MockRTOSQueue)));
         if (queue == nullptr) {

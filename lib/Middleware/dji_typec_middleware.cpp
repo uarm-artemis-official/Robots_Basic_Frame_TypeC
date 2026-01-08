@@ -429,6 +429,21 @@ namespace MW_UART {
     }
 
     /**
+     * @brief Send data over UART.
+     * @pre 0 < length <= MAX_UART_BUFFER_SIZE.
+     * @param[in] uart The UART peripheral to send data on.
+     * @param[in] data The data to send.
+     * @param[in] length The length of the data.
+     * @param[in] timeout The timeout for the transmission.
+     */
+    void UART::send_data(Peripheral uart, std::span<const std::byte> data,
+                         uint32_t timeout) {
+        HAL_UART_Transmit(get_hal_uart_handle(uart),
+                          reinterpret_cast<const uint8_t*>(data.data()),
+                          data.size(), timeout);
+    }
+
+    /**
      * @brief Start reception of data from UART via DMA.
      * @pre 0 < length <= MAX_UART_BUFFER_SIZE
      * @param[in] uart The UART peripheral to receive data from.
