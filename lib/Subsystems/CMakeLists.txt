@@ -15,15 +15,15 @@ target_link_libraries(SUBSYSTEMS_INCLUDE
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
 if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest")
-add_library(DEBUG STATIC debug.cpp)
-target_include_directories(DEBUG 
+add_library(SUBSYSTEM_DEBUG STATIC debug.cpp)
+target_include_directories(SUBSYSTEM_DEBUG 
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(DEBUG
+target_link_libraries(SUBSYSTEM_DEBUG
     PUBLIC
         SUBSYSTEMS_INCLUDE
         LIB::UARM_LIB)
-add_library(SUBSYSTEMS::DEBUG ALIAS DEBUG)
+add_library(SUBSYSTEMS::DEBUG ALIAS SUBSYSTEM_DEBUG)
 
 
 add_library(IMU STATIC imu.cpp)
