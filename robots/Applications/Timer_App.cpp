@@ -26,19 +26,19 @@
 */
 
 TimerApp::TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
-                   mc2::RobotMC& mc2_ref, IDebug& debug_ref,
+                   mc2::RobotMC& mc2_ref, modules::debug::Debug _debug,
                    isr::can::CAN_ISR& _can_isr)
     : RTOSApp(_rtos),
       system_motors(system_motors_ref),
       mc(mc2_ref),
-      debug(debug_ref),
+      debug(_debug),
       can_isr(_can_isr) {}
 
 void TimerApp::init() {
-    BoardStatus_t status = debug.get_board_status();
+    modules::debug::BoardConfig status = debug.get_board_config();
     Motor_Config_t config;
     switch (status) {
-        case CHASSIS_BOARD: {
+        case modules::debug::BoardConfig::CHASSIS: {
 #ifdef SWERVE_CHASSIS
 #ifdef SWERVE_CALIBRATE
             config = SWERVE_ZERO;
@@ -50,7 +50,7 @@ void TimerApp::init() {
 #endif
             break;
         }
-        case GIMBAL_BOARD: {
+        case modules::debug::BoardConfig::GIMBAL: {
             config = DJI_GIMBAL;
             break;
         }
@@ -124,9 +124,9 @@ void TimerApp::can_isr_message_receive(MW_CAN::BUS bus,
 bool TimerApp::can_isr_init(MW_CAN::ICAN&) {
     std::memset(&motor_read, 0, sizeof(motor_read));
 
-    BoardStatus_t status = debug.get_board_status();
+    modules::debug::BoardConfig status = debug.get_board_config();
     switch (status) {
-        case CHASSIS_BOARD: {
+        case modules::debug::BoardConfig::CHASSIS: {
 #ifdef SWERVE_CHASSIS
             can_isr_config = CANISRConfig::SentryChassis;
 #else
@@ -134,7 +134,7 @@ bool TimerApp::can_isr_init(MW_CAN::ICAN&) {
 #endif
             break;
         }
-        case GIMBAL_BOARD: {
+        case modules::debug::BoardConfig::GIMBAL: {
             can_isr_config = CANISRConfig::OtherRobot;
             break;
         }

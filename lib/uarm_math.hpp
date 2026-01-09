@@ -38,8 +38,11 @@ float fast_inv_sqrt(float x);
 float realign(float theta, float pos);
 
 float value_limit(float x, float min_x, float max_x);
+int32_t relative_difference(int32_t a, int32_t b, int32_t mod);
 float relative_angle(float angle1, float angle2);
 float relative_angle_rad(float angle1, float angle2);
+
+float rpm_to_radps(float rpm);
 
 /* generic filters */
 void init_folp_filter(first_order_low_pass_t* folp, float a);

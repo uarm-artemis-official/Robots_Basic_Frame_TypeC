@@ -19,6 +19,7 @@
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
 #include "comm_protocol_interface.hpp"
+#include "debug.hpp"
 #include "message_center.hpp"
 #include "quantize.hpp"
 #include "simple_comm.hpp"
@@ -30,143 +31,6 @@
 #include "uart_isr.hpp"
 
 namespace CommApp {
-
-    inline namespace v1 {
-        CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                         IDebug& debug_ref, MW_CAN::ICAN& _can, Config _config,
-                         isr::can::CAN_ISR& _can_isr)
-            : RTOSApp(_rtos),
-              mc(mc_ref),
-              debug(debug_ref),
-              can(_can),
-              can_isr(_can_isr),
-              config(_config) {}
-
-        void CommApp::init() {
-            board_status = debug.get_board_status();
-
-            ASSERT(can_isr.register_routine(
-                       isr::can::ECallbacks::MESSAGE_PENDING,
-                       [this](MW_CAN::BUS bus, isr::can::CANFrame frame) {
-                           can_isr_on_message_pending(bus, frame);
-                       }),
-                   "Failed to register CAN ISR routine.");
-            ASSERT(can_isr.register_init(
-                       [this](MW_CAN::ICAN&) { return can_isr_init(can); }),
-                   "Failed to register CAN ISR init function.");
-        }
-
-        void CommApp::loop() {
-            mc2::CommOut comm_out;
-            auto comm_out_message_ts = mc.get_message(comm_out);
-            if (comm_out_message_ts.has_value()) {
-                switch (config.op_mode) {
-                    case OperationMode::Normal:
-                        transmit_interboard_message(comm_out.topic_name,
-                                                    comm_out.bytes.data());
-                        break;
-                    case OperationMode::Loopback: {
-                        mc2::CommIn comm_in;
-                        memcpy(comm_in.bytes.data(), comm_out.bytes.data(),
-                               sizeof(comm_in.bytes));
-                        mc.pub_message(comm_in);
-                        break;
-                    }
-                    default:
-                        ASSERT(false, "Unsupported Comm App operation mode.");
-                }
-            }
-
-            mc2::CommIn comm_in;
-            auto comm_in_message_ts = mc.get_message(comm_in);
-            if (comm_in_message_ts.has_value()) {
-                // Ensure that IDs are evaluated at compile-time.
-                constexpr uint32_t referee_out_topic_id =
-                    mc2::get_comm_id<mc2::RefereeOut, mc2::RobotMC::Topics>();
-                constexpr uint32_t gimbal_command_topic_id =
-                    mc2::get_comm_id<mc2::GimbalCommand,
-                                     mc2::RobotMC::Topics>();
-                constexpr uint32_t shoot_command_topic_id =
-                    mc2::get_comm_id<mc2::ShootCommand, mc2::RobotMC::Topics>();
-                constexpr uint32_t gimbal_relative_angles_topic_id =
-                    mc2::get_comm_id<mc2::GimbalRelativeAngles,
-                                     mc2::RobotMC::Topics>();
-
-                switch (comm_in.topic_name) {
-                    case referee_out_topic_id:
-                        // TODO: Implement
-                        break;
-                    case gimbal_relative_angles_topic_id: {
-                        mc2::GimbalRelativeAngles rel_angles;
-                        memcpy(&rel_angles.yaw, comm_in.bytes.data(),
-                               sizeof(float));
-                        memcpy(&rel_angles.pitch, &comm_in.bytes.data()[4],
-                               sizeof(float));
-                        mc.pub_message(rel_angles);
-                    } break;
-                    case gimbal_command_topic_id: {
-                        mc2::GimbalCommand gimbal_command;
-                        int16_t quantized_yaw;
-                        int16_t quantized_pitch;
-
-                        std::memcpy(&quantized_yaw, comm_in.bytes.data(),
-                                    sizeof(int16_t));
-                        std::memcpy(&quantized_pitch,
-                                    &(comm_in.bytes.data()[2]),
-                                    sizeof(int16_t));
-                        std::memcpy(&(gimbal_command.command_bits),
-                                    &(comm_in.bytes.data()[4]),
-                                    sizeof(uint32_t));
-
-                        gimbal_command.yaw = inv_quantize_float(
-                            quantized_yaw, std::numeric_limits<int16_t>::min(),
-                            std::numeric_limits<int16_t>::max(), -PI, PI);
-                        gimbal_command.pitch = inv_quantize_float(
-                            quantized_pitch,
-                            std::numeric_limits<int16_t>::min(),
-                            std::numeric_limits<int16_t>::max(), -PI, PI);
-                        mc.pub_message(gimbal_command);
-                        break;
-                    }
-                    case shoot_command_topic_id: {
-                        mc2::ShootCommand shoot_command;
-                        std::memcpy(&(shoot_command.command_bits),
-                                    comm_in.bytes.data(), sizeof(uint32_t));
-                        std::memcpy(&(shoot_command.extra_bits),
-                                    &(comm_in.bytes.data()[4]),
-                                    sizeof(uint32_t));
-                        mc.pub_message(shoot_command);
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            }
-        };
-
-        bool CommApp::transmit_interboard_message(
-            const uint32_t message_id, const uint8_t message_data[8]) {
-            return can.send_data(MW_CAN::BUS::CAN_2, message_id, 0,
-                                 message_data, 8);
-        }
-
-        bool CommApp::can_isr_init(MW_CAN::ICAN&) {
-            return true;
-        }
-
-        void CommApp::can_isr_on_message_pending(MW_CAN::BUS bus,
-                                                 isr::can::CANFrame frame) {
-            mc2::CommIn comm_in;
-            if (bus == MW_CAN::BUS::CAN_2) {
-                comm_in.topic_name = frame.stdid;
-                std::memcpy(comm_in.bytes.data(), frame.payload,
-                            sizeof(uint8_t) * frame.payload_length);
-                mc.pub_message_from_isr(comm_in);
-            }
-        }
-
-    }  // namespace v1
-
     namespace v2 {
 
         // TODO: Remove after testing alternative enqueue implementation.
@@ -203,12 +67,13 @@ namespace CommApp {
 
         // Future CommApp v2 implementation.
         CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                         IDebug& debug_ref, comm::CANComm<>& can_comm_ref,
+                         modules::debug::Debug _debug,
+                         comm::CANComm<>& can_comm_ref,
                          comm::UARTComm<>& uart_comm_ref,
                          isr::uart::UART_ISR& uart_isr_ref)
             : RTOSApp(_rtos),
               mc(mc2_ref),
-              debug(debug_ref),
+              debug(_debug),
               can_comm(can_comm_ref),
               uart_comm(uart_comm_ref),
               uart_isr(uart_isr_ref) {}
@@ -221,9 +86,9 @@ namespace CommApp {
             interboard_topic_ids =
                 mc2::generate_interboard_topic_ids<mc2::RobotMC::Topics>();
 
-            board_status = debug.get_board_status();
+            board_status = debug.get_board_config();
 
-            if (board_status == BoardStatus_t::GIMBAL_BOARD) {
+            if (board_status == modules::debug::BoardConfig::GIMBAL) {
                 bool register_init_success =
                     uart_isr.register_init([&](MW_UART::IUART& uart_instance) {
                         return uart_comm.start_receive(uart_instance);
@@ -259,7 +124,7 @@ namespace CommApp {
                     comm::protocol::TopicMessageMeta meta;
 
                     mc2::MessageNode current_node;
-                    if (board_status == BoardStatus_t::GIMBAL_BOARD) {
+                    if (board_status == modules::debug::BoardConfig::GIMBAL) {
                         current_node = mc2::MessageNode::Gimbal;
                     } else {
                         current_node = mc2::MessageNode::Chassis;
@@ -313,7 +178,7 @@ namespace CommApp {
         void CommApp::loop() {
             queue_interboard_messages();
 
-            if (board_status == BoardStatus_t::GIMBAL_BOARD) {
+            if (board_status == modules::debug::BoardConfig::GIMBAL) {
 
                 for (int i = 0; i < 5; i++) {
                     comm::protocol::TopicMessageMeta meta;
@@ -338,8 +203,8 @@ namespace CommApp {
                 }
             }
 
-            if (board_status == BoardStatus_t::CHASSIS_BOARD ||
-                board_status == BoardStatus_t::GIMBAL_BOARD) {
+            if (board_status == modules::debug::BoardConfig::CHASSIS ||
+                board_status == modules::debug::BoardConfig::GIMBAL) {
                 for (int i = 0; i < 5; i++) {
                     comm::protocol::TopicMessageMeta meta;
                     bool has_new_message =
@@ -369,7 +234,7 @@ namespace CommApp {
             isr::uart::UART_ISR& _uart_isr,
             simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>& _simple_comm,
             MW_CAN::ICAN& _can, MW_UART::IUART& _uart, mc2::RobotMC& mc2_ref,
-            IDebug& debug_ref)
+            modules::debug::Debug _debug)
             : RTOSApp(_rtos),
               can_isr(_can_isr),
               uart_isr(_uart_isr),
@@ -377,14 +242,17 @@ namespace CommApp {
               mc(mc2_ref),
               can(_can),
               uart(_uart),
-              debug(debug_ref) {}
+              debug(_debug) {}
 
         bool CommApp::init() {
-            BoardStatus_t board_status = debug.get_board_status();
-            if (board_status == BoardStatus_t::GIMBAL_BOARD) {
+            modules::debug::BoardConfig board_status = debug.get_board_config();
+            if (board_status == modules::debug::BoardConfig::GIMBAL) {
                 current_node = mc2::MessageNode::Gimbal;
-            } else {
+            } else if (board_status == modules::debug::BoardConfig::CHASSIS) {
                 current_node = mc2::MessageNode::Chassis;
+            } else {
+                ASSERT(false, "Unknown board configuration.");
+                return false;
             }
 
             bool can_routine_success = can_isr.register_routine(
@@ -406,7 +274,7 @@ namespace CommApp {
 
             bool uart_init_success = true;
             bool uart_routine_success = true;
-            if (board_status == BoardStatus_t::GIMBAL_BOARD) {
+            if (board_status == modules::debug::BoardConfig::GIMBAL) {
                 uart_init_success =
                     uart_isr.register_init([&](MW_UART::IUART& uart_instance) {
                         return simple_comm.uart_isr_init(uart_instance);

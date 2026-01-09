@@ -17,7 +17,6 @@ class MultiboardCAN2Test : public testing::Test {
     MockICAN *top_can, *bottom_can;
     MockIRTOS* rtos;
     FakeMessageCenter<mc2::RobotTopics>* message_center;
-    IDebug* debug;
     isr::can::CAN_ISR *top_can_isr, *bottom_can_isr;
     CommApp::CommApp *top_comm_app, *bottom_comm_app;
 

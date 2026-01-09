@@ -176,7 +176,8 @@ namespace mc2 {
                 std::array<bool, std::tuple_size_v<List>> arr {
                     is_unique<Is, List>()...};
 
-                return std::ranges::count(arr, true) == arr.size();
+                return std::ranges::count(arr, true) ==
+                       static_cast<int32_t>(arr.size());
             }(std::make_index_sequence<std::tuple_size_v<List>> {});
         }
 

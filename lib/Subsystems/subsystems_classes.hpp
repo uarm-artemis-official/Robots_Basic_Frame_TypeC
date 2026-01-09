@@ -26,12 +26,6 @@ namespace ammo_lid {
     };
 }  // namespace ammo_lid
 
-class Debug : public IDebug {
-   public:
-    BoardStatus_t get_board_status(void) override;
-    void set_led_state(Board_LED_t led, Board_LED_State_t state) override;
-};
-
 class EventCenter : public IEventCenter {
    private:
     MW_RTOS::EventGroupHandle events_group;

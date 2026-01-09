@@ -17,12 +17,13 @@
 #include "uarm_math.hpp"
 
 IMUApp::IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-               IEventCenter& event_center_ref, IImu& imu_ref, IDebug& debug_ref)
+               IEventCenter& event_center_ref, IImu& imu_ref,
+               modules::debug::Debug _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
       event_center(event_center_ref),
       imu(imu_ref),
-      debug(debug_ref) {}
+      debug(_debug) {}
 
 void IMUApp::init() {
     memset(&imu_app_state, 0, sizeof(IMU_t));
@@ -114,7 +115,6 @@ int32_t IMUApp::imu_temp_pid_control() {
         imu_heating_control.pid.pid.i_out = 0;
         imu_heating_control.pid.prescalar_count = 0;
         imu_heating_control.pid.cumsum_dt = 0;
-        debug.set_led_state(RED, ON);
         set_imu_temp_status(ABNORMAL);
 
         if (imu_app_state.temp > IMUApp::TARGET_IMU_TEMP) {
@@ -130,10 +130,8 @@ int32_t IMUApp::imu_temp_pid_control() {
         imu.set_heat_pwm(imu_heating_control.pid.pid.total_out);
 
         if (temp_diff_magnitude <= IMUApp::NORMAL_TEMP_THRESHOLD) {
-            debug.set_led_state(RED, OFF);
             set_imu_temp_status(NORMAL);
         } else {
-            debug.set_led_state(RED, ON);
             set_imu_temp_status(ABNORMAL);
         }
     }

@@ -25,12 +25,13 @@ template class ChassisApp<SwerveDrive>;
 template <class DriveTrain>
 ChassisApp<DriveTrain>::ChassisApp(MW_RTOS::IRTOS& _rtos,
                                    DriveTrain& drive_train_ref,
-                                   mc2::RobotMC& mc_ref, IDebug& debug_ref)
+                                   mc2::RobotMC& mc_ref,
+                                   modules::debug::Debug _debug)
     : RTOSApp<ChassisApp<DriveTrain>, ChassisApp<DriveTrain>::loop_period_ms>(
           _rtos),
       drive_train(drive_train_ref),
       mc(mc_ref),
-      debug(debug_ref) {
+      debug(_debug) {
     static_assert(
         std::is_same<DriveTrain, OmniDrive>::value ||
             std::is_same<DriveTrain, SwerveDrive>::value,
@@ -40,7 +41,6 @@ ChassisApp<DriveTrain>::ChassisApp(MW_RTOS::IRTOS& _rtos,
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::init() {
     drive_train.init();
-    debug.set_led_state(RED, ON);
 
     pid2_init(chassis.spin_pid, robot_config::chassis_params::KP_CHASSIS_SPIN,
               robot_config::chassis_params::KI_CHASSIS_SPIN,

@@ -253,8 +253,8 @@ void RCApp::detect_rc_loss() {
 void RCApp::send_gimbal_command(float yaw, float pitch, BoardMode_t board_mode,
                                 BoardActMode_t act_mode) {
     mc2::GimbalCommand gimbal_command;
-    gimbal_command.yaw = yaw;
-    gimbal_command.pitch = pitch;
+    gimbal_command.delta_yaw = yaw;
+    gimbal_command.delta_pitch = pitch;
     gimbal_command.command_bits =
         ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
         (static_cast<uint8_t>(act_mode) & 0x7);
@@ -315,7 +315,7 @@ void RCApp::pub_command_messages() {
             pc_shoot_mode = SHOOT_CEASE;
         }
 
-        float v_perp = 0, v_parallel = 0, wz = 0;
+        float v_perp = 0, v_parallel = 0;
 
         if (rc.pc.keyboard.W.status == EKeyStatus::PRESSED)
             v_parallel += robot_config::chassis_params::MAX_TRANSLATION;

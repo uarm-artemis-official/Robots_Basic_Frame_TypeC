@@ -209,12 +209,24 @@ struct Shoot {
     float antijam_direction;
 
     uint32_t loader_delay_counter;
+
+    int32_t loader_output;
+    int32_t left_flywheel_output;
+    int32_t right_flywheel_output;
 };
 
-struct LoaderControl {
-    Motor_CAN_ID_t stdid;
+struct LoaderSpeedControl {
     PID2_t speed_pid;
-    Motor_Feedback_t feedback;
+};
+
+struct LoaderPositionControl {
+    bool
+        is_processing_command;  /// prevent setting new target while processing old command.
+    int32_t prev_encoder_position;
+    float current_relative_position;
+    int32_t at_target_counter;
+    PID2_t position_pid;
+    PID2_t speed_pid;
 };
 
 struct FlyWheelControl {

@@ -88,7 +88,6 @@
 #include "dma.h"
 #include "gpio.h"
 #include "i2c.h"
-#include "message_center.hpp"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -99,8 +98,10 @@
 #include "apps_classes.hpp"
 #include "apps_types.hpp"
 #include "can_isr.hpp"
+#include "debug.hpp"
 #include "dji_typec_middleware.cpp"
 #include "dwt.h"
+#include "message_center.hpp"
 #include "middleware_classes.hpp"
 #include "robot_config.hpp"
 #include "stdio.h"
@@ -147,14 +148,16 @@
 static MW_RTOS::RTOS rtos;
 static MW_TIM::PWM pwm;
 static MW_UART::UART uart;
+static MW_GPIO::GPIO gpio;
 
 static MW_CAN::CAN can;
 static mc2::RobotMC mc(rtos);
 static EventCenter event_center;
-static Debug debug;
+static modules::debug::Debug debug(gpio, uart);
 static Motors motors;
 static RefereeUI ref_ui(uart);
-static Motors no_init_motors;
+static Motors
+    no_init_motors;  // TODO: Refactor? -> remove or split responsibilities into another module?
 static Imu imu(1000 / IMUApp::loop_period_ms, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
 static ammo_lid::AmmoLid ammo_lid_(pwm);
@@ -211,7 +214,7 @@ static TimerApp timer_app(rtos, motors, mc, debug, can_isr);
 static PCUARTApp pc_uart_app(rtos, mc, no_init_motors, pc_comm, uart_isr);
 static IMUApp imu_app(rtos, mc, event_center, imu, debug);
 static RefereeApp referee_app(rtos, mc, event_center, debug, ref_ui, uart_isr);
-static GimbalApp gimbal_app(rtos, mc, event_center, debug, no_init_motors);
+static GimbalApp gimbal_app(rtos, mc, event_center, no_init_motors, debug);
 static ShootApp shoot_app(
     rtos, mc, ammo_lid_, no_init_motors,
     robot_config::shoot_params::LOADER_ACTIVE_RPM,
@@ -219,7 +222,7 @@ static ShootApp shoot_app(
     robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
 
 void init_robot_apps() {
-    BoardStatus_t board_status = debug.get_board_status();
+    modules::debug::BoardConfig board_status = debug.get_board_config();
 
     osThreadDef(
         TimerTask, [](const void* arg) { timer_app.run(arg); }, osPriorityHigh,
@@ -231,7 +234,7 @@ void init_robot_apps() {
         256);
     osThreadCreate(osThread(CommTask), NULL);
 
-    if (board_status == CHASSIS_BOARD) {
+    if (board_status == modules::debug::BoardConfig::CHASSIS) {
         osThreadDef(
             ChassisTask, [](const void* arg) { chassis_app.run(arg); },
             osPriorityHigh, 0, 256);
@@ -247,7 +250,7 @@ void init_robot_apps() {
             osPriorityHigh, 0, 384);
         osThreadCreate(osThread(RefTask), NULL);
 
-    } else if (board_status == GIMBAL_BOARD) {
+    } else if (board_status == modules::debug::BoardConfig::GIMBAL) {
         osThreadDef(
             GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
             osPriorityRealtime, 0, 512);

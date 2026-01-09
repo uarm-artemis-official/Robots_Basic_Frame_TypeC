@@ -19,16 +19,15 @@
 #include "uarm_math.hpp"
 
 GimbalApp::GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                     IEventCenter& event_center_ref, IDebug& debug_ref,
-                     IMotors& motors_ref)
+                     IEventCenter& event_center_ref, IMotors& motors_ref,
+                     modules::debug::Debug _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
       event_center(event_center_ref),
-      debug(debug_ref),
-      motors(motors_ref) {}
+      motors(motors_ref),
+      debug(_debug) {}
 
 void GimbalApp::init() {
-    debug.set_led_state(BLUE, ON);
     /* init gimbal task */
     set_initial_state();
 
@@ -403,8 +402,8 @@ void GimbalApp::process_commands() {
     mc2::GimbalCommand gimbal_command;
     auto message_ts = mc.get_message(gimbal_command);
     if (message_ts.has_value()) {
-        command_deltas[0] = gimbal_command.yaw;
-        command_deltas[1] = gimbal_command.pitch;
+        command_deltas[0] = gimbal_command.delta_yaw;
+        command_deltas[1] = gimbal_command.delta_pitch;
 
         if (fabs(command_deltas[0]) < 0.001)
             command_deltas[0] = 0;

@@ -47,12 +47,6 @@ class IEventCenter {
                             uint32_t timeout) = 0;
 };
 
-class IDebug {
-   public:
-    virtual BoardStatus_t get_board_status(void) = 0;
-    virtual void set_led_state(Board_LED_t led, Board_LED_State_t state) = 0;
-};
-
 class IAmmoLid {
    public:
     virtual void init() = 0;

@@ -67,28 +67,30 @@ namespace mc2 {
         static constexpr MessageNode destination = MessageNode::Gimbal;
 
         // yaw and pitch fields are in radians and requested changes in yaw/pitch (deltas).
-        float yaw;
-        float pitch;
+        float delta_yaw;
+        float delta_pitch;
         uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
 
         static bool serialize(const GimbalCommand& msg,
                               std::span<std::byte, serialized_size> dst) {
-            ASSERT(-2 * PI < msg.yaw && msg.yaw < 2 * PI,
-                   "Outgoing yaw out of acceptable range (-2PI, 2PI).");
-            ASSERT(-2 * PI < msg.pitch && msg.pitch < 2 * PI,
-                   "Outgoing pitch out of acceptable range (-2PI, 2PI).");
+            ASSERT(-2 * PI < msg.delta_yaw && msg.delta_yaw < 2 * PI,
+                   "Outgoing delta_yaw out of acceptable range (-2PI, 2PI).");
+            ASSERT(-2 * PI < msg.delta_pitch && msg.delta_pitch < 2 * PI,
+                   "Outgoing delta_pitch out of acceptable range (-2PI, 2PI).");
             ASSERT((msg.command_bits & 0xffff0000) == 0,
                    "Outgoing command_bits must not have 8 MSB set.");
-            int16_t encoded_yaw = value_limit(msg.yaw, -PI * 2, PI * 2) * 5000;
-            int16_t encoded_pitch =
-                value_limit(msg.pitch, -PI * 2, PI * 2) * 5000;
+            int16_t encoded_delta_yaw =
+                value_limit(msg.delta_yaw, -PI * 2, PI * 2) * 5000;
+            int16_t encoded_delta_pitch =
+                value_limit(msg.delta_pitch, -PI * 2, PI * 2) * 5000;
             uint16_t encoded_command_bits = msg.command_bits & 0xffff;
-            dst[0] = std::byte {static_cast<uint8_t>(encoded_yaw & 0xFF)};
-            dst[1] =
-                std::byte {static_cast<uint8_t>((encoded_yaw >> 8) & 0xFF)};
-            dst[2] = std::byte {static_cast<uint8_t>(encoded_pitch & 0xFF)};
-            dst[3] =
-                std::byte {static_cast<uint8_t>((encoded_pitch >> 8) & 0xFF)};
+            dst[0] = std::byte {static_cast<uint8_t>(encoded_delta_yaw & 0xFF)};
+            dst[1] = std::byte {
+                static_cast<uint8_t>((encoded_delta_yaw >> 8) & 0xFF)};
+            dst[2] =
+                std::byte {static_cast<uint8_t>(encoded_delta_pitch & 0xFF)};
+            dst[3] = std::byte {
+                static_cast<uint8_t>((encoded_delta_pitch >> 8) & 0xFF)};
             dst[4] =
                 std::byte {static_cast<uint8_t>(encoded_command_bits & 0xFF)};
             dst[5] = std::byte {
@@ -99,26 +101,26 @@ namespace mc2 {
         static bool deserialize(
             GimbalCommand& msg,
             std::span<const std::byte, serialized_size> src) {
-            int16_t encoded_yaw;
-            int16_t encoded_pitch;
+            int16_t encoded_delta_yaw;
+            int16_t encoded_delta_pitch;
             uint16_t encoded_command_bits;
 
-            encoded_yaw = static_cast<int16_t>(
+            encoded_delta_yaw = static_cast<int16_t>(
                 static_cast<uint16_t>(std::to_integer<uint8_t>(src[0])) |
                 (static_cast<uint16_t>(std::to_integer<uint8_t>(src[1])) << 8));
-            encoded_pitch = static_cast<int16_t>(
+            encoded_delta_pitch = static_cast<int16_t>(
                 static_cast<uint16_t>(std::to_integer<uint8_t>(src[2])) |
                 (static_cast<uint16_t>(std::to_integer<uint8_t>(src[3])) << 8));
             encoded_command_bits = static_cast<uint16_t>(
                 static_cast<uint16_t>(std::to_integer<uint8_t>(src[4])) |
                 (static_cast<uint16_t>(std::to_integer<uint8_t>(src[5])) << 8));
-            msg.yaw = static_cast<float>(encoded_yaw) / 5000;
-            msg.pitch = static_cast<float>(encoded_pitch) / 5000;
+            msg.delta_yaw = static_cast<float>(encoded_delta_yaw) / 5000;
+            msg.delta_pitch = static_cast<float>(encoded_delta_pitch) / 5000;
             msg.command_bits = static_cast<uint32_t>(encoded_command_bits);
-            ASSERT(-2 * PI < msg.yaw && msg.yaw < 2 * PI,
-                   "Incoming yaw out of acceptable range (-2PI, 2PI).");
-            ASSERT(-2 * PI < msg.pitch && msg.pitch < 2 * PI,
-                   "Incoming pitch out of acceptable range (-2PI, 2PI).");
+            ASSERT(-2 * PI < msg.delta_yaw && msg.delta_yaw < 2 * PI,
+                   "Incoming delta_yaw out of acceptable range (-2PI, 2PI).");
+            ASSERT(-2 * PI < msg.delta_pitch && msg.delta_pitch < 2 * PI,
+                   "Incoming delta_pitch out of acceptable range (-2PI, 2PI).");
             ASSERT((msg.command_bits & 0xffff0000) == 0,
                    "Incoming command_bits must not have 8 MSB set.");
             return true;
@@ -212,6 +214,16 @@ namespace mc2 {
             ASSERT(false, "");
             return false;
         }
+    };
+
+    struct ChassisMovement {
+        static constexpr size_t queue_size = 1;
+        static constexpr size_t serialized_size = 6;
+        static constexpr MessageNode destination = MessageNode::Gimbal;
+
+        float vx;
+        float vy;
+        float wz;
     };
 
     struct MotorSet {

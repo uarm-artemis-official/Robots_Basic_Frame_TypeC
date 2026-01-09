@@ -140,7 +140,6 @@ else()
         GENERIC_APPS
         ISRS::UART_ISR
         ISRS::CAN_ISR
-        SUBSYSTEMS::DEBUG
         SUBSYSTEMS::RC_COMM
         SUBSYSTEMS::AMMO_LID
         SUBSYSTEMS::PC_COMM

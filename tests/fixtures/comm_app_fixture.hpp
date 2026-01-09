@@ -11,7 +11,6 @@ class CommAppFixture : public ::testing::Test {
    protected:
     MW_RTOS::IRTOS* rtos;
     mc2::RobotMC* mc;
-    IDebug* debug;
     comm::CANComm<>* can_comm;
     comm::can2_tp::v1::CAN2TP<>* can2tp;
     MW_CAN::ICAN* can;

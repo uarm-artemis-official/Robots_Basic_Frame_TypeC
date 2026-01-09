@@ -142,6 +142,26 @@ float realign(float theta, float pos) {
 }
 
 /**
+ * @brief Calculates the relative difference between two values within a modular range.
+ * 
+ * This function returns the smallest signed difference from value `a` to value `b`.
+ * e.g. 
+ * for a = 10, b = 350, mod = 360, the result is -20. (i.e. b is 20 units to the left of a)
+ * for a = 350, b = 10, mod = 360, the result is 20.  (i.e. b is 20 units to the right of a)
+ * The result is constrained within the range (-mod/2, mod/2].
+ * 
+ * @param a Reference value.
+ * @param b Target value.
+ * @param mod The modulus defining the range [0, mod).
+ * @retval The smallest signed difference from a to b within the modular range.
+ */
+int32_t relative_difference(int32_t a, int32_t b, int32_t mod) {
+    int32_t ccw_diff = (b - a + mod) % mod;
+    int32_t cw_diff = (a - b + mod) % mod;
+    return (ccw_diff <= cw_diff) ? ccw_diff : -cw_diff;
+}
+
+/**
  * @brief Calculates the relative angle of angle2 to angle1
  * @param angle1 Reference angle (in degrees).
  * @param angle2 Relative angle (in degrees).
@@ -165,6 +185,16 @@ float relative_angle(float angle1, float angle2) {
  */
 float relative_angle_rad(float angle1, float angle2) {
     return fmodf(angle2 - angle1 + 2 * PI, 2 * PI);
+}
+
+/**
+ * @brief Converts revolutions per minute (RPM) to radians per second (rad/s).
+ * 
+ * @param rpm Speed in revolutions per minute.
+ * @retval Speed in radians per second.
+ */
+float rpm_to_radps(float rpm) {
+    return (rpm * 2.0f * PI) / 60.0f;
 }
 
 /******************************************************************************

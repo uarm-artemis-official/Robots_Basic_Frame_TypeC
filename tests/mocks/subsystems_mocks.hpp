@@ -43,13 +43,6 @@ class MockEventCenter : public IEventCenter {
                 (override));
 };
 
-class MockDebug : public IDebug {
-   public:
-    MOCK_METHOD(BoardStatus_t, get_board_status, (), (override));
-    MOCK_METHOD(void, set_led_state, (Board_LED_t led, Board_LED_State_t state),
-                (override));
-};
-
 class MockAmmoLid : public IAmmoLid {
    public:
     MOCK_METHOD(void, init, (), (override));
@@ -81,11 +74,11 @@ class MockRCComm : public IRCComm {
     MOCK_METHOD(void, pc_init, (PC & pc), (override));
     MOCK_METHOD(void, controller_init, (Controller & controller), (override));
     MOCK_METHOD(void, parse_switches,
-                (Buffer & buffer, ESwitchState & s1, ESwitchState & s2),
+                (Buffer & buffer, ESwitchState& s1, ESwitchState& s2),
                 (override));
-    MOCK_METHOD(void, parse_controller, (Buffer & buffer, Controller & controller),
-                (override));
-    MOCK_METHOD(void, parse_pc, (Buffer & buffer, PC & pc), (override));
+    MOCK_METHOD(void, parse_controller,
+                (Buffer & buffer, Controller& controller), (override));
+    MOCK_METHOD(void, parse_pc, (Buffer & buffer, PC& pc), (override));
     MOCK_METHOD(void, key_scan,
                 (KeyObject & key, uint16_t key_buffer,
                  EKeyBitIndex key_bit_index),
@@ -95,14 +88,14 @@ class MockRCComm : public IRCComm {
 class MockPCComm : public IPCComm {
    public:
     MOCK_METHOD(uint8_t, uc_check_pack_integrity,
-                (uint8_t * pack_bytes, uint8_t pack_size), (override));
-    MOCK_METHOD(void, send_bytes, (uint8_t * bytes, uint32_t size), (override));
+                (uint8_t* pack_bytes, uint8_t pack_size), (override));
+    MOCK_METHOD(void, send_bytes, (uint8_t* bytes, uint32_t size), (override));
     MOCK_METHOD(uint8_t, get_data_size, (uint8_t header_id), (override));
-    MOCK_METHOD(void, start_receive, (uint8_t * pack_buffer), (override));
-    MOCK_METHOD(void, restart_receive, (uint8_t * pack_buffer), (override));
+    MOCK_METHOD(void, start_receive, (uint8_t* pack_buffer), (override));
+    MOCK_METHOD(void, restart_receive, (uint8_t* pack_buffer), (override));
     MOCK_METHOD(UC_Checksum_t, calc_checksum,
                 (void* buffer_ptr, size_t buffer_size), (override));
-    MOCK_METHOD(uint8_t, is_valid_header, (uint8_t * input_buffer), (override));
+    MOCK_METHOD(uint8_t, is_valid_header, (uint8_t* input_buffer), (override));
 };
 
 #endif
