@@ -175,26 +175,16 @@ static SwerveDrive swerve_drive(mc, no_init_motors, swerve_chassis_width,
                                 swerve_dt);
 static ChassisApp<SwerveDrive> chassis_app(rtos, swerve_drive, mc, debug);
 #else
-
-#ifdef OMNI_CHASSIS
 static constexpr float omni_chassis_width = 0.40f;
 static OmniDrive omni_drive(mc, no_init_motors, omni_chassis_width,
                             omni_chassis_width, 80,
                             ChassisApp<OmniDrive>::get_loop_period());
-#else
-static constexpr float mecanum_chassis_width = 0.41f;
-static constexpr float mecanum_chassis_length = 0.35f;
-static OmniDrive omni_drive(mc, no_init_motors, mecanum_chassis_width,
-                            mecanum_chassis_length, 50,
-                            ChassisApp<OmniDrive>::get_loop_period());
-#endif
 
 static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, debug);
 #endif
 
 static RCApp rc_app(rtos, mc, rc_comm, uart_isr);
 
-// TODO: Add loopback mode for auto-aim jig.
 #ifdef AUTO_AIM_RIG
 static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
 #else
