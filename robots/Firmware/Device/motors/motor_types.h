@@ -27,7 +27,7 @@ typedef enum {
     // Multiple Loop Speed Control, -2048 ~ 2048
     LK_CMD_SL_ANGLE_WITH_SPEED1 = 0xA5,
     LK_CMD_SL_ANGLE_WITH_SPEED = 0xA6,
-    LK_CMD_INCREMENTAL_ANGLE = 0xA7
+    LK_CMD_INCREMENTAL_ANGLE = 0xA7,
 } LK_Motor_Command_t;
 
 typedef enum {

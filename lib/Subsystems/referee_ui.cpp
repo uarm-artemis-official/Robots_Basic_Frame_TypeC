@@ -138,8 +138,9 @@ void RefereeUI::send_ui_data(uint16_t cmd_id, uint16_t len,
 
     // HAL_UART_Transmit_DMA(&huart1, ref_tx_frame, frame_length);
     if (frame_length > 0 && ref_tx_frame != NULL) {
-        uart.send_data(MW_UART::Peripheral::UART1, ref_tx_frame, frame_length,
-                       HAL_MAX_DELAY);
+        // TODO: Fix? UART Transmit hard-fault
+        // uart.send_data(MW_UART::Peripheral::UART1, ref_tx_frame, frame_length,
+        //                HAL_MAX_DELAY);
     }
 }
 

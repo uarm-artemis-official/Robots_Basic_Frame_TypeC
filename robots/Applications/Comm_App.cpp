@@ -332,7 +332,7 @@ namespace CommApp {
                             case mc2::MessageNode::Chassis:
                                 [[fallthrough]];
                             case mc2::MessageNode::Gimbal: {
-                                send_message_via_can(msg);
+                                // send_message_via_can(msg);
                                 break;
                             }
                             case mc2::MessageNode::MiniPC: {

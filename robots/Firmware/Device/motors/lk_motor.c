@@ -145,3 +145,77 @@ void lk_motor_send_single_loop(uint32_t id, uint8_t spin_direction,
     HAL_CAN_AddTxMessage(&hcan2, &tx_header, tx_data,
                          (uint32_t*) CAN_TX_MAILBOX0);
 }
+
+void lk_motor_send_multi_torque_current(int16_t q1, int16_t q2, int16_t q3,
+                                        int16_t q4) {
+    CAN_TxHeaderTypeDef tx_header;
+    uint8_t tx_data[8];
+
+    tx_header.StdId = LK_MOTOR_RX_STDID;
+    tx_header.ExtId = 0x00;
+    tx_header.IDE = CAN_ID_STD;
+    tx_header.RTR = CAN_RTR_DATA;
+    tx_header.DLC = 8;
+
+    tx_data[0] = *(uint8_t *)(&q1);
+    tx_data[1] = *((uint8_t *)(&q1) + 1);
+    tx_data[2] = *(uint8_t *)(&q2);
+    tx_data[3] = *((uint8_t *)(&q2) + 1);
+    tx_data[4] = *(uint8_t *)(&q3);
+    tx_data[5] = *((uint8_t *)(&q3) + 1);
+    tx_data[6] = *(uint8_t *)(&q4);
+    tx_data[7] = *((uint8_t *)(&q4) + 1);
+
+    HAL_CAN_AddTxMessage(&hcan2, &tx_header, tx_data,
+                         (uint32_t*) CAN_TX_MAILBOX0);
+
+}
+
+void lk_motor_send_single_torque(uint8_t id, int16_t torque_current) {
+    CAN_TxHeaderTypeDef tx_header;
+    uint8_t tx_data[8];
+
+    tx_header.StdId = LK_MOTOR_TX_STDID + id;
+    tx_header.ExtId = 0x00;
+    tx_header.IDE = CAN_ID_STD;
+    tx_header.RTR = CAN_RTR_DATA;
+    tx_header.DLC = 8;
+
+    tx_data[0] = 0xA1;
+    tx_data[1] = 0;
+    tx_data[2] = 0;
+    tx_data[3] = 0;
+    tx_data[4] = *(uint8_t *)(&torque_current);
+    tx_data[5] = *((uint8_t *)(&torque_current) + 1);
+    tx_data[6] = 0;
+    tx_data[7] = 0;
+
+    HAL_CAN_AddTxMessage(&hcan2, &tx_header, tx_data,
+                         (uint32_t*) CAN_TX_MAILBOX0);
+
+}
+
+void lk_motor_send_speed(uint8_t id, int32_t speed) {
+    CAN_TxHeaderTypeDef tx_header;
+    uint8_t tx_data[8];
+
+    tx_header.StdId = LK_MOTOR_TX_STDID + id;
+    tx_header.ExtId = 0x00;
+    tx_header.IDE = CAN_ID_STD;
+    tx_header.RTR = CAN_RTR_DATA;
+    tx_header.DLC = 8;
+
+    tx_data[0] = 0xA2;
+    tx_data[1] = 0;
+    tx_data[2] = 0;
+    tx_data[3] = 0;
+    tx_data[4] = *(uint8_t *)(&speed);
+    tx_data[5] = *((uint8_t *)(&speed) + 1);
+    tx_data[6] = *((uint8_t *)(&speed) + 2);
+    tx_data[7] = *((uint8_t *)(&speed) + 3);
+
+    HAL_CAN_AddTxMessage(&hcan2, &tx_header, tx_data,
+                         (uint32_t*) CAN_TX_MAILBOX0);
+
+
+}

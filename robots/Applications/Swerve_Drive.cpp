@@ -170,13 +170,21 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     }
 }
 
+static float steer_angle = 0.f;
+static uint8_t counter = 0;
+
 void SwerveDrive::send_motor_messages() {
+    if (counter == 10) {
+        counter = 0;
+        steer_angle += 10;
+    }
+    counter++;
+
     static_assert(NUM_STEER_MOTORS + NUM_DRIVE_MOTORS <= MAX_MOTOR_COUNT);
     mc2::MotorSet motor_set {};
     for (size_t i = 0; i < NUM_STEER_MOTORS; i++) {
         motor_set.motor_can_volts[i] = SwerveDrive::pack_lk_motor_message(
-            steer_ccw.at(i), steer_max_speed.at(i),
-            steer_output_angle.at(i) * 100);
+            steer_ccw.at(i), steer_max_speed.at(i), steer_angle * 100);
         motor_set.can_ids[i] =
             static_cast<Motor_CAN_ID_t>(steer_motors.at(i).stdid);
     }

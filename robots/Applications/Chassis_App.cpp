@@ -81,7 +81,6 @@ void ChassisApp<DriveTrain>::loop() {
     process_commands();
 
     calc_movement_vectors();
-
     drive_train.drive(chassis.vx, chassis.vy, chassis.wz);
 }
 

@@ -64,7 +64,7 @@ void Motors::get_raw_feedback(uint32_t stdid, uint8_t data[8], void* feedback) {
         } else if (data[0] == LK_CMD_SL_ANGLE_WITH_SPEED) {
             lk_motor_get_raw_feedback(data, feedback);
         } else {
-            ASSERT(false, "Trying to parse unsupported feedback.");
+            // ASSERT(false, "Trying to parse unsupported feedback.");
         }
     } else {
         ASSERT(false,
@@ -125,20 +125,23 @@ void Motors::send_motor_voltage() {
                              motors[1].tx_data, motors[2].tx_data,
                              motors[3].tx_data, 0);
 
-            // TODO: Add encoding + decoding library for swerve in lib.
-            uint8_t spin_direction =
-                (motors[4 + counter].tx_data & 0x40000000) >> 30;
-            uint16_t max_speed =
-                (motors[4 + counter].tx_data & 0x3fff0000) >> 16;
-            uint32_t new_angle = (motors[4 + counter].tx_data & 0xffff) * 10;
-            if (new_angle == 0) {
-                new_angle = 1;
-            }
+            // // TODO: Add encoding + decoding library for swerve in lib.
+            // uint8_t spin_direction =
+            //     (motors[4 + counter].tx_data & 0x40000000) >> 30;
+            // uint16_t max_speed =
+            //     (motors[4 + counter].tx_data & 0x3fff0000) >> 16;
+            // uint32_t new_angle = (motors[4 + counter].tx_data & 0xffff) * 10;
+            // if (new_angle == 0) {
+            //     new_angle = 1;
+            // }
 
-            lk_motor_send_single_loop(0x141 + counter, spin_direction,
-                                      max_speed, new_angle);
+            // lk_motor_send_single_loop(0x141 + counter, spin_direction,
+            //                           max_speed, new_angle);
 
-            counter = (counter + 1) % 4;
+            // counter = (counter + 1) % 4;
+            // lk_motor_send_multi_torque_current(500, 500, 500, 500);
+            // lk_motor_send_single_torque(1, 100);
+            lk_motor_send_speed(1, 5000);
             break;
         }
         case SWERVE_ZERO:
