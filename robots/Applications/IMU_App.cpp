@@ -17,8 +17,8 @@
 #include "uarm_math.hpp"
 
 IMUApp::IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-               IEventCenter& event_center_ref, IImu& imu_ref,
-               modules::debug::Debug _debug)
+                             IEventCenter& event_center_ref, IImu& imu_ref,
+                             modules::debug::Debug& _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
       event_center(event_center_ref),

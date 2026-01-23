@@ -66,11 +66,11 @@ namespace CommApp {
         // }
 
         // Future CommApp v2 implementation.
-        CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                         modules::debug::Debug _debug,
-                         comm::CANComm<>& can_comm_ref,
-                         comm::UARTComm<>& uart_comm_ref,
-                         isr::uart::UART_ISR& uart_isr_ref)
+                CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                                                 modules::debug::Debug& _debug,
+                                                 comm::CANComm<>& can_comm_ref,
+                                                 comm::UARTComm<>& uart_comm_ref,
+                                                 isr::uart::UART_ISR& uart_isr_ref)
             : RTOSApp(_rtos),
               mc(mc2_ref),
               debug(_debug),
@@ -234,7 +234,7 @@ namespace CommApp {
             isr::uart::UART_ISR& _uart_isr,
             simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>& _simple_comm,
             MW_CAN::ICAN& _can, MW_UART::IUART& _uart, mc2::RobotMC& mc2_ref,
-            modules::debug::Debug _debug)
+            modules::debug::Debug& _debug)
             : RTOSApp(_rtos),
               can_isr(_can_isr),
               uart_isr(_uart_isr),

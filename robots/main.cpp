@@ -343,6 +343,9 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
 
     ASSERT(uart_isr.init(), "UART ISR init failed.");
     ASSERT(can_isr.init(), "CAN ISR init failed.");
+    ASSERT(mc.init(), "MC init failed.");
+    ASSERT(debug.init(), "Debug init failed.");
+    event_center.init();
 
     return HAL_OK;
 }
@@ -353,9 +356,6 @@ void main_cpp(void);
 }
 
 void main_cpp(void) {
-    mc.init();
-    event_center.init();
-
     // TODO: Remove
     HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
                       GPIO_PIN_RESET);  // turn off the green led

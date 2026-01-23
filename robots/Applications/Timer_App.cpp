@@ -26,8 +26,8 @@
 */
 
 TimerApp::TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
-                   mc2::RobotMC& mc2_ref, modules::debug::Debug _debug,
-                   isr::can::CAN_ISR& _can_isr)
+                                     mc2::RobotMC& mc2_ref, modules::debug::Debug& _debug,
+                                     isr::can::CAN_ISR& _can_isr)
     : RTOSApp(_rtos),
       system_motors(system_motors_ref),
       mc(mc2_ref),

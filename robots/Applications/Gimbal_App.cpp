@@ -7,8 +7,10 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#include <string.h>
 #include <algorithm>
+#include <cstddef>
+#include <cstring>
+#include <span>
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
@@ -20,7 +22,7 @@
 
 GimbalApp::GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
                      IEventCenter& event_center_ref, IMotors& motors_ref,
-                     modules::debug::Debug _debug)
+                     modules::debug::Debug& _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
       event_center(event_center_ref),
@@ -29,6 +31,11 @@ GimbalApp::GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
 
 void GimbalApp::init() {
     /* init gimbal task */
+    auto reserve_response = debug.reserve_debug_uart();
+    if (reserve_response.has_value()) {
+        debug_uart_access_token = reserve_response.value();
+    }
+
     set_initial_state();
 
     set_board_mode(PATROL_MODE);
@@ -142,6 +149,11 @@ void GimbalApp::calibrate() {
 }
 
 void GimbalApp::loop() {
+    std::byte debug_msg[] = {std::byte {0x1}, std::byte {0x2}, std::byte {0x3}};
+    debug.send_debug_message(
+        debug_uart_access_token,
+        std::span<const std::byte>(debug_msg, sizeof(debug_msg)), 1);
+
     get_motor_feedback();
 
     if (is_imu_calibrated()) {

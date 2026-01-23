@@ -18,7 +18,7 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
    private:
     ChassisDrive<DriveTrain>& drive_train;
     mc2::RobotMC& mc;
-    modules::debug::Debug debug;
+    modules::debug::Debug& debug;
 
     Chassis_t chassis;
 
@@ -28,7 +28,7 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
     static constexpr float GYRO_SPEED = PI;
 
     explicit ChassisApp(MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
-                        mc2::RobotMC& mc_ref, modules::debug::Debug _debug);
+                        mc2::RobotMC& mc_ref, modules::debug::Debug& _debug);
     void init();
     void set_initial_state();
 
@@ -130,6 +130,8 @@ class GimbalApp
                              apps_defines::gimbal_task_loop_period_ms> {
    private:
     Gimbal_t gimbal;
+    modules::debug::UARTAccessToken
+        debug_uart_access_token;  // Token to indicate ownership of debug UART
     Gimbal_Imu_Calibration_t imu_calibration;
     Gimbal_Motor_Control_t motor_controls[GIMBAL_MOTOR_COUNT];
     int16_t gimbal_channels[2];
@@ -138,7 +140,7 @@ class GimbalApp
     mc2::RobotMC& mc;
     IEventCenter& event_center;
     IMotors& motors;
-    modules::debug::Debug debug;
+    modules::debug::Debug& debug;
 
    public:
     // Software limits on pitch targets to prevent pitch from hitting mechanical hard stops.
@@ -151,7 +153,7 @@ class GimbalApp
 
     explicit GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
                        IEventCenter& event_center, IMotors& motors_ref,
-                       modules::debug::Debug _debug);
+                       modules::debug::Debug& _debug);
     void init();
     void set_initial_state();
     bool calibrate_start_precondition();
@@ -237,7 +239,7 @@ class IMUApp
     mc2::RobotMC& mc;
     IEventCenter& event_center;
     IImu& imu;
-    modules::debug::Debug debug;
+    modules::debug::Debug& debug;
 
     IMU_t imu_app_state;
     IMU_Heat_t imu_heating_control;
@@ -251,7 +253,7 @@ class IMUApp
 
     explicit IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
                     IEventCenter& event_center_ref, IImu& imu_ref,
-                    modules::debug::Debug _debug);
+                    modules::debug::Debug& _debug);
     void init();
     void calibrate();
     bool exit_calibrate_cond();
@@ -267,7 +269,7 @@ class RefereeApp
    private:
     mc2::RobotMC& mc;
     IEventCenter& event_center;
-    modules::debug::Debug debug;
+    modules::debug::Debug& debug;
     IRefUI& ref_ui;  // Referee UI interface
     isr::uart::UART_ISR& uart_isr;
 
@@ -279,7 +281,7 @@ class RefereeApp
 
    public:
     explicit RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                        IEventCenter& evt_center, modules::debug::Debug _debug,
+                        IEventCenter& evt_center, modules::debug::Debug& _debug,
                         IRefUI& ref_ui, isr::uart::UART_ISR& _uart_isr);
     void init();
     void loop();
@@ -342,7 +344,7 @@ class TimerApp
    private:
     IMotors& system_motors;
     mc2::RobotMC& mc;
-    modules::debug::Debug debug;
+    modules::debug::Debug& debug;
     isr::can::CAN_ISR& can_isr;
 
     const std::array<Motor_CAN_ID_t, 4> swerve_ids = {
@@ -355,7 +357,7 @@ class TimerApp
 
    public:
     explicit TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
-                      mc2::RobotMC& mc2_ref, modules::debug::Debug _debug,
+                      mc2::RobotMC& mc2_ref, modules::debug::Debug& _debug,
                       isr::can::CAN_ISR& can_isr);
     void init();
     void loop();
@@ -397,7 +399,7 @@ namespace CommApp {
             : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
            private:
             mc2::RobotMC& mc;
-            modules::debug::Debug debug;
+            modules::debug::Debug& debug;
             MW_CAN::ICAN& can;
             isr::can::CAN_ISR& can_isr;
 
@@ -406,7 +408,7 @@ namespace CommApp {
 
            public:
             explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                             modules::debug::Debug _debug, MW_CAN::ICAN& can,
+                             modules::debug::Debug& _debug, MW_CAN::ICAN& can,
                              Config config, isr::can::CAN_ISR& can_isr);
             void init();
             void loop();
@@ -424,7 +426,7 @@ namespace CommApp {
             : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
            private:
             mc2::RobotMC& mc;
-            modules::debug::Debug debug;
+            modules::debug::Debug& debug;
             comm::CANComm<> can_comm;
             comm::UARTComm<> uart_comm;
             isr::uart::UART_ISR& uart_isr;
@@ -443,7 +445,7 @@ namespace CommApp {
 
            public:
             explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                             modules::debug::Debug _debug,
+                             modules::debug::Debug& _debug,
                              comm::CANComm<>& can_comm_ref,
                              comm::UARTComm<>& uart_comm_ref,
                              isr::uart::UART_ISR& uart_isr_ref);
@@ -468,7 +470,7 @@ namespace CommApp {
             mc2::RobotMC& mc;
             MW_CAN::ICAN& can;
             MW_UART::IUART& uart;
-            modules::debug::Debug debug;
+            modules::debug::Debug& debug;
             mc2::MessageNode current_node;
             std::array<std::byte, 32> deserialize_message_buffer;
 
@@ -490,7 +492,7 @@ namespace CommApp {
                 simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>&
                     _simple_comm,
                 MW_CAN::ICAN& _can, MW_UART::IUART& _uart,
-                mc2::RobotMC& mc2_ref, modules::debug::Debug _debug);
+                mc2::RobotMC& mc2_ref, modules::debug::Debug& _debug);
 
             bool init();
             void loop();
