@@ -66,11 +66,11 @@ namespace CommApp {
         // }
 
         // Future CommApp v2 implementation.
-                CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                                                 modules::debug::Debug& _debug,
-                                                 comm::CANComm<>& can_comm_ref,
-                                                 comm::UARTComm<>& uart_comm_ref,
-                                                 isr::uart::UART_ISR& uart_isr_ref)
+        CommApp::CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                         modules::debug::Debug& _debug,
+                         comm::CANComm<>& can_comm_ref,
+                         comm::UARTComm<>& uart_comm_ref,
+                         isr::uart::UART_ISR& uart_isr_ref)
             : RTOSApp(_rtos),
               mc(mc2_ref),
               debug(_debug),
@@ -337,7 +337,7 @@ namespace CommApp {
                             }
                             case mc2::MessageNode::MiniPC: {
                                 if (current_node == mc2::MessageNode::Chassis) {
-                                    send_message_via_uart(msg);
+                                    send_message_via_can(msg);
                                 } else if (current_node ==
                                            mc2::MessageNode::Gimbal) {
                                     send_message_via_uart(msg);

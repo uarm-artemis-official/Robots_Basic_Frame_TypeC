@@ -16,6 +16,8 @@
 #include "../uarm_lib.hpp"
 #include "middleware_interfaces.hpp"
 
+// TODO: Add markers for more explicit declaration of topic types -> add better checking too.
+// TODO: Add functionality for topics to be both local and interboard topics.
 namespace mc2 {
     inline namespace v2 {
         // Below are templates for defining message topics. Topics are generally
