@@ -9,6 +9,7 @@
 #include "debug.hpp"
 #include "message_center.hpp"
 #include "simple_comm.hpp"
+#include "simple_comm_utils.hpp"
 #include "subsystems_interfaces.hpp"
 #include "topics.hpp"
 
@@ -394,70 +395,7 @@ class PCUARTApp
 };
 
 namespace CommApp {
-    inline namespace v1 {
-        class CommApp
-            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
-           private:
-            mc2::RobotMC& mc;
-            modules::debug::Debug& debug;
-            MW_CAN::ICAN& can;
-            isr::can::CAN_ISR& can_isr;
-
-            BoardStatus_t board_status;
-            Config config;
-
-           public:
-            explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                             modules::debug::Debug& _debug, MW_CAN::ICAN& can,
-                             Config config, isr::can::CAN_ISR& can_isr);
-            void init();
-            void loop();
-            bool transmit_interboard_message(const uint32_t message_id,
-                                             const uint8_t message_data[8]);
-            bool can_isr_init(MW_CAN::ICAN& can);
-            void can_isr_on_message_pending(MW_CAN::BUS bus,
-                                            isr::can::CANFrame frame);
-        };
-    }  // namespace v1
-
-    namespace v2 {
-        // Future CommApp v2 implementation.
-        class CommApp
-            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
-           private:
-            mc2::RobotMC& mc;
-            modules::debug::Debug& debug;
-            comm::CANComm<> can_comm;
-            comm::UARTComm<> uart_comm;
-            isr::uart::UART_ISR& uart_isr;
-            std::array<std::byte, 256> message_temp_buffer;
-            std::array<std::byte, 256> to_publish_buffer;
-            std::array<std::byte, 256> to_publish_serialized_buffer;
-            std::array<mc2::IndexableDeserializer,
-                       mc2::registry_size_v<mc2::RobotMC::Topics>>
-                deserialize_directory;
-
-            std::array<mc2::IndexableSerializer,
-                       mc2::registry_size_v<mc2::RobotMC::Topics>>
-                byte_serializers;
-            mc2::InterboardTopicIDs<mc2::RobotMC::Topics> interboard_topic_ids;
-            modules::debug::BoardConfig board_status;
-
-           public:
-            explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                             modules::debug::Debug& _debug,
-                             comm::CANComm<>& can_comm_ref,
-                             comm::UARTComm<>& uart_comm_ref,
-                             isr::uart::UART_ISR& uart_isr_ref);
-            void init();
-            void loop();
-            void queue_interboard_messages();
-            void publish_new_mesage_from_buffer(
-                const comm::protocol::TopicMessageMeta& meta);
-        };
-    }  // namespace v2
-
-    namespace v3 {
+    inline namespace v3 {
         constexpr size_t MAX_SIMPLE_COMM_FX_FIFO_SIZE = 10;
         constexpr size_t INTERNAL_FIFO_SIZE = MAX_SIMPLE_COMM_FX_FIFO_SIZE * 2;
         constexpr size_t TO_PUBLISH_BUFFER_SIZE = 128;
@@ -473,6 +411,10 @@ namespace CommApp {
             modules::debug::Debug& debug;
             mc2::MessageNode current_node;
             std::array<std::byte, 32> deserialize_message_buffer;
+            std::array<simple_comm::utils::IndexableDeserializer, 256>
+                deserializers;
+            std::array<simple_comm::utils::IndexableSerializer, 256>
+                serializers;
 
             static_assert(TO_PUBLISH_BUFFER_SIZE >
                               simple_comm::UART_MAX_MESSAGE_SIZE,
