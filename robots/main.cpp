@@ -104,6 +104,7 @@
 #include "message_center.hpp"
 #include "middleware_classes.hpp"
 #include "robot_config.hpp"
+#include "simple_comm_utils.hpp"
 #include "stdio.h"
 #include "stm32f407xx.h"
 #include "subsystems_classes.hpp"
@@ -436,4 +437,18 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
     }
 
     uart_isr.run_isr_routines(isr::uart::ECallbacks::ON_ERROR, peripheral);
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
+    MW_UART::Peripheral peripheral;
+    if (huart == &huart1) {
+        peripheral = MW_UART::Peripheral::UART1;
+    } else if (huart == &huart3) {
+        peripheral = MW_UART::Peripheral::UART3;
+    } else {
+        ASSERT(false, "Transmit complete on unknown huart.");
+    }
+
+    uart_isr.run_isr_routines(isr::uart::ECallbacks::TRANSMIT_COMPLETE,
+                              peripheral);
 }

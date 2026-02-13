@@ -5,12 +5,9 @@
 #include "../Middleware/middleware_interfaces.hpp"
 #include "isr_interfaces.hpp"
 
-
-#define DBUS_BUFFER_LEN 18
-
 namespace isr {
     namespace uart {
-        enum class ECallbacks { RECEIVE_COMPLETE, ON_ERROR };
+        enum class ECallbacks { RECEIVE_COMPLETE, ON_ERROR, TRANSMIT_COMPLETE };
 
         using TISRState = MW_UART::Peripheral;
         using TInitFunc = std::function<bool(MW_UART::IUART&)>;
@@ -28,7 +25,8 @@ namespace isr {
 
             [[nodiscard]] bool init() override;
             [[nodiscard]] bool on_register_init(size_t init_func_idx) override;
-            [[nodiscard]] bool on_register_routine(size_t routine_func_idx) override;
+            [[nodiscard]] bool on_register_routine(
+                size_t routine_func_idx) override;
             void run_isr_routines(ECallbacks callback_running,
                                   TISRState callback_state) override;
         };
