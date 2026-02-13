@@ -43,6 +43,13 @@ target_link_libraries(SIMPLE_COMM
         MW::MIDDLEWARE)
 add_library(MODULES::SIMPLE_COMM ALIAS SIMPLE_COMM)
 
+add_library(SIMPLE_COMM_UTILS INTERFACE)
+target_include_directories(SIMPLE_COMM_UTILS INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(SIMPLE_COMM_UTILS 
+    INTERFACE 
+        LIB::UARM_LIB)
+add_library(MODULES::SIMPLE_COMM_UTILS ALIAS SIMPLE_COMM_UTILS)
+
 add_library(DEBUG INTERFACE)
 target_include_directories(DEBUG INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(DEBUG 

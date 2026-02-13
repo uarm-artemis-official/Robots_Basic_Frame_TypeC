@@ -6,14 +6,11 @@ target_link_libraries(MULTIBOARD_COMM_TEST
         MULTIBOARD_FIXTURE)
 gtest_add_tests(TARGET MULTIBOARD_COMM_TEST)
 
-add_executable(SIMPLE_COMM_CODEC_REGRESSION simple_comm_codec_regression.cpp)
-target_link_libraries(SIMPLE_COMM_CODEC_REGRESSION
+add_executable(SIMPLE_COMM_UTILS_REGRESSION simple_comm_utils_regression.cpp)
+target_link_libraries(SIMPLE_COMM_UTILS_REGRESSION
     PRIVATE
         GTest::gtest_main
-        TEST_TARGET)
+        TEST_TARGET
+        MODULES::SIMPLE_COMM_UTILS)
 
-target_link_libraries(SIMPLE_COMM_CODEC_REGRESSION
-    PRIVATE
-        MODULES::SIMPLE_COMM_CODEC)
-
-gtest_add_tests(TARGET SIMPLE_COMM_CODEC_REGRESSION)
+gtest_add_tests(TARGET SIMPLE_COMM_UTILS_REGRESSION)

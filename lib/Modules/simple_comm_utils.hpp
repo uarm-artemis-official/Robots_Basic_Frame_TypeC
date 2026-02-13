@@ -8,7 +8,6 @@
 #include <functional>
 #include <span>
 #include <tuple>
-#include "message_center.hpp"
 
 namespace simple_comm {
     // Single data message constants and types.

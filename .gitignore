@@ -8,5 +8,6 @@ compile_commands.json
 build.ninja
 out
 .vscode/settings.json
+.vscode/settings copy.json
 .venv
 venv
