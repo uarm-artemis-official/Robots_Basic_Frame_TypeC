@@ -1,12 +1,13 @@
 #include "gtest/gtest.h"
 #include "message_center.hpp"
+#include "simple_comm_utils.hpp"
 #include "topics.hpp"
 
 namespace {
 
     TEST(MessageCenterHelpersBasic, GenerateInterboardTopicIds) {
         auto interboard_topic_ids =
-            mc2::generate_interboard_topic_ids<mc2::RobotTopics>();
+            simple_comm::generate_interboard_message_ids<mc2::RobotTopics>();
         std::array<uint8_t, 4> expected_ids = {
             mc2::get_topic_id_from_index(3),  // GimbalCommand
             mc2::get_topic_id_from_index(4),  // ShootCommand

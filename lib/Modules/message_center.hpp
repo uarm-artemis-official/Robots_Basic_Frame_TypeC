@@ -253,130 +253,11 @@ namespace mc2 {
             }(std::make_index_sequence<registry_size> {});
         }
 
-        template <typename Registry, size_t index>
-        consteval auto generate_byte_deserializers_impl() {
-            using T = std::tuple_element_t<index, Registry>;
-            return [&](std::span<std::byte> dst,
-                       std::span<const std::byte> src) {
-                if constexpr (InterboardMessageTopic<T>) {
-                    T msg;
-                    bool success =
-                        T::deserialize(msg, src.first<T::serialized_size>());
-                    if (success) {
-                        std::memcpy(dst.data(), &msg, sizeof(T));
-                    }
-                    return success;
-                } else {
-                    return false;
-                }
-            };
-        }
-
         using IndexableDeserializer = std::function<bool(
             std::span<std::byte>, std::span<const std::byte>)>;
 
-        template <typename Registry>
-        constexpr auto generate_byte_deserializers() {
-            constexpr size_t registry_size = std::tuple_size_v<Registry>;
-            return [&]<size_t... Is>(std::index_sequence<Is...>) {
-                return std::array<IndexableDeserializer, registry_size> {
-                    generate_byte_deserializers_impl<Registry, Is>()...};
-            }(std::make_index_sequence<registry_size> {});
-        }
-
-        template <typename Registry, size_t index>
-        consteval auto generate_byte_serializers_impl() {
-            using T = std::tuple_element_t<index, Registry>;
-            return
-                [&](std::span<std::byte> dst, std::span<const std::byte> src) {
-                    if constexpr (InterboardMessageTopic<T>) {
-                        T msg;
-
-                        if (src.size() < sizeof(T) ||
-                            dst.size() < T::serialized_size) {
-                            return false;
-                        }
-
-                        std::memcpy(&msg, src.data(), sizeof(T));
-
-                        bool success =
-                            T::serialize(msg, dst.first<T::serialized_size>());
-                        return success;
-                    } else {
-                        return false;
-                    }
-                };
-        }
-
         using IndexableSerializer = std::function<bool(
             std::span<std::byte>, std::span<const std::byte>)>;
-
-        template <typename Registry>
-        constexpr auto generate_byte_serializers() {
-            constexpr size_t registry_size = std::tuple_size_v<Registry>;
-            return [&]<size_t... Is>(std::index_sequence<Is...>) {
-                return std::array<IndexableSerializer, registry_size> {
-                    generate_byte_serializers_impl<Registry, Is>()...};
-            }(std::make_index_sequence<registry_size> {});
-        }
-
-        /**
-         * @brief Generate an array of IDs for InterboardMessageTopic types in a TopicRegistry.
-         * 
-         * The IDs are calculated as 100 + the index of the type in the TopicRegistry.
-         * Only types satisfying the InterboardMessageTopic concept are included.
-         * 
-         * @tparam TopicRegistry A tuple of types following the MessageTopic concept.
-         * @return std::array<uint8_t, N> Array of IDs for InterboardMessageTopic types in increasing order.
-         */
-        template <typename TopicRegistry>
-        consteval auto generate_interboard_topic_ids() {
-            constexpr size_t registry_size = std::tuple_size_v<TopicRegistry>;
-
-            // 1. Collect indices of InterboardMessageTopic types at compile-time.
-            //    This is the core fix to avoid the runtime loop issue.
-            constexpr auto collect_interboard_indices =
-                []<size_t... Is>(std::index_sequence<Is...>) {
-                    constexpr size_t MaxInterboardTopics = sizeof...(Is);
-                    std::array<size_t, MaxInterboardTopics> indices = {};
-                    size_t count = 0;
-
-                    (
-                        [&] {
-                            using TopicType =
-                                std::tuple_element_t<Is, TopicRegistry>;
-                            if constexpr (InterboardMessageTopic<TopicType>) {
-                                indices[count++] = Is;
-                            }
-                        }(),
-                        ...);
-
-                    // Use std::span (or a custom struct) to return only the used part
-                    // Since this is C++20, let's use a std::array and rely on its size.
-                    // We return an array that potentially contains garbage data past 'count',
-                    // but 'count' determines the final size.
-                    return std::make_pair(indices, count);
-                }(std::make_index_sequence<registry_size> {});
-
-            // The number of interboard topics is now a true compile-time constant
-            constexpr size_t interboard_count =
-                collect_interboard_indices.second;
-
-            // 2. Map the collected indices to the final IDs (index + offset).
-            //    This uses the true compile-time constant 'interboard_count' for the array size.
-            std::array<uint8_t, interboard_count> ids = {};
-            for (size_t i = 0; i < interboard_count; ++i) {
-                // The index stored in the first part of the pair is the original topic index
-                size_t topic_index = collect_interboard_indices.first[i];
-                ids[i] = get_topic_id_from_index(topic_index);
-            }
-
-            return ids;
-        }
-
-        template <typename TopicRegistry>
-        using InterboardTopicIDs =
-            decltype(generate_interboard_topic_ids<TopicRegistry>());
 
         template <typename TopicRegistry>
         consteval auto generate_topic_sizes() {
@@ -406,22 +287,11 @@ namespace mc2 {
             std::array<TopicHandle, std::tuple_size_v<TopicRegistry>>
                 topic_handles;
             MW_RTOS::IRTOS& rtos;
-            std::array<mc2::IndexableDeserializer,
-                       mc2::registry_size_v<TopicRegistry>>
-                byte_deserializers;
-            std::array<mc2::IndexableSerializer,
-                       mc2::registry_size_v<TopicRegistry>>
-                byte_serializers;
 
            public:
             using Topics = TopicRegistry;
 
-            MC2(MW_RTOS::IRTOS& _rtos) : rtos(_rtos) {
-                byte_deserializers =
-                    mc2::generate_byte_deserializers<TopicRegistry>();
-                byte_serializers =
-                    mc2::generate_byte_serializers<TopicRegistry>();
-            }
+            MC2(MW_RTOS::IRTOS& _rtos) : rtos(_rtos) {}
 
             /**
              * @brief Initialize message center internals for tracking activity for topics in TopicRegistry.
@@ -668,57 +538,6 @@ namespace mc2 {
                 } else {
                     return {};
                 }
-            }
-
-            /**
-             * @brief Serialize a message by topic ID.
-             * 
-             * Primarily used by CommApp for interboard message handling. This
-             * method allows the serialization of messages based on their topic ID,
-             * so runtime serialization is possible without having to know the type.
-             * 
-             * @param topic_id The ID of the topic to serialize.
-             * @param dst Span to store the serialized message.
-             * @param src Span containing the message to serialize.
-             * @return true if serialization was successful, false otherwise.
-             */
-            [[nodiscard]] bool serialize_by_topic_id(
-                uint8_t topic_id, std::span<std::byte> dst,
-                std::span<const std::byte> src) {
-                size_t index = get_index_from_topic_id(topic_id);
-
-                if (index >= registry_size_v<TopicRegistry>) {
-                    return false;
-                }
-
-                return byte_serializers[index](dst, src);
-            }
-
-            /**
-             * @brief Deserialize a message by topic ID.
-             * 
-             * Primarily used by CommApp for interboard message handling. This
-             * method allows the deserialization of messages based on their topic ID,
-             * so runtime deserialization is possible without having to know the type.
-             * 
-             * @note This method yields a byte message, so further manipulation of
-             * the message may require knowledge of the topic type.
-             * 
-             * @param topic_id The ID of the topic to deserialize.
-             * @param dst Span to store the deserialized message.
-             * @param src Span containing the serialized message data.
-             * @return true if deserialization was successful, false otherwise.
-             */
-            [[nodiscard]] bool deserialize_by_topic_id(
-                uint8_t topic_id, std::span<std::byte> dst,
-                std::span<const std::byte> src) {
-                size_t index = get_index_from_topic_id(topic_id);
-
-                if (index >= registry_size_v<TopicRegistry>) {
-                    return false;
-                }
-
-                return byte_deserializers[index](dst, src);
             }
 
             /**
