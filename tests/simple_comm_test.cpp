@@ -66,13 +66,14 @@ namespace {
     }
 
     TEST_F(SimpleCommTest, CanIsrMessagePending) {
-        MW_CAN::CANFrame f = build_can_frame(0x4, 0x3, 0x42, {0x10, 0x20, 0x30});
+        MW_CAN::CANFrame f =
+            build_can_frame(0x4, 0x3, 0x42, {0x10, 0x20, 0x30});
         comm.can_isr_message_pending(MW_CAN::BUS::CAN_2B, f);
         SimpleMessage m;
         EXPECT_TRUE(comm.get_rx_message(m));
         EXPECT_EQ(m.destination, 0x4);
         EXPECT_EQ(m.source, 0x3);
-        EXPECT_EQ(m.topic_id, 0x42);
+        EXPECT_EQ(m.id, 0x42);
         EXPECT_EQ(m.payload_size, 3);
         EXPECT_EQ(static_cast<uint8_t>(m.payload[0]), 0x10);
     }
@@ -88,15 +89,19 @@ namespace {
         ASSERT_TRUE(comm.uart_isr_init(fake));
 
         // Simulate ISR triggers after each receive completion
-        comm.uart_isr_receive_complete(fake, MW_UART::Peripheral::UART1);  // tribit -> request header
-        comm.uart_isr_receive_complete(fake, MW_UART::Peripheral::UART1);  // header -> request payload+trailer
-        comm.uart_isr_receive_complete(fake, MW_UART::Peripheral::UART1);  // payload+trailer -> process
+        comm.uart_isr_receive_complete(
+            fake, MW_UART::Peripheral::UART1);  // tribit -> request header
+        comm.uart_isr_receive_complete(
+            fake,
+            MW_UART::Peripheral::UART1);  // header -> request payload+trailer
+        comm.uart_isr_receive_complete(
+            fake, MW_UART::Peripheral::UART1);  // payload+trailer -> process
 
         SimpleMessage m;
         ASSERT_TRUE(comm.get_rx_message(m));
         EXPECT_EQ(m.destination, 0x4);
         EXPECT_EQ(m.source, 0x3);
-        EXPECT_EQ(m.topic_id, 0x42);
+        EXPECT_EQ(m.id, 0x42);
         EXPECT_EQ(m.payload_size, 3);
         EXPECT_EQ(static_cast<uint8_t>(m.payload[0]), 0x10);
         EXPECT_EQ(static_cast<uint8_t>(m.payload[1]), 0x20);

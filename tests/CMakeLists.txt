@@ -92,6 +92,13 @@ target_link_libraries(SIMPLE_COMM_TEST
         TEST_TARGET
         MODULES::SIMPLE_COMM)
 
+add_executable(SIMPLE_COMM_CODEC_TEST simple_comm_codec_test.cpp)
+target_link_libraries(SIMPLE_COMM_CODEC_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        MODULES::SIMPLE_COMM_CODEC)
+
 add_executable(MESSAGE_CENTER_HELPERS_TEST message_center_helpers_test.cpp)
 target_link_libraries(MESSAGE_CENTER_HELPERS_TEST
     PRIVATE
@@ -112,3 +119,4 @@ gtest_discover_tests(COMMUNICATION_TEST)
 gtest_discover_tests(FIFO_TEST)
 gtest_discover_tests(CAN2TP_TEST)
 gtest_discover_tests(UC_UART_TEST)
+gtest_discover_tests(SIMPLE_COMM_CODEC_TEST)
