@@ -69,10 +69,10 @@ namespace simple_comm {
             using T = std::tuple_element_t<index, Registry>;
             return [&](std::span<std::byte> dst,
                        std::span<const std::byte> src) {
-                if constexpr (mc2::InterboardMessageTopic<T>) {
+                if constexpr (CommandMessage<T>) {
                     T msg;
                     bool success =
-                        T::deserialize(msg, src.first<T::serialized_size>());
+                        T::deserialize_payload(src.first<T::SERIALIZED_SIZE>(), msg);
                     if (success) {
                         std::memcpy(dst.data(), &msg, sizeof(T));
                     }
@@ -97,18 +97,18 @@ namespace simple_comm {
             using T = std::tuple_element_t<index, Registry>;
             return
                 [&](std::span<std::byte> dst, std::span<const std::byte> src) {
-                    if constexpr (mc2::InterboardMessageTopic<T>) {
+                    if constexpr (CommandMessage<T>) {
                         T msg;
 
                         if (src.size() < sizeof(T) ||
-                            dst.size() < T::serialized_size) {
+                            dst.size() < T::SERIALIZED_SIZE) {
                             return false;
                         }
 
                         std::memcpy(&msg, src.data(), sizeof(T));
 
                         bool success =
-                            T::serialize(msg, dst.first<T::serialized_size>());
+                            T::serialize_payload(msg, dst.first<T::SERIALIZED_SIZE>());
                         return success;
                     } else {
                         return false;
@@ -140,11 +140,11 @@ namespace simple_comm {
                     [&] {
                         using TopicType =
                             std::tuple_element_t<Is, TopicRegistry>;
-                        if constexpr (mc2::InterboardMessageTopic<TopicType>) {
+                        if constexpr (CommandMessage<TopicType>) {
                             indices[count++] = Is;
-                            static_assert(TopicType::serialized_size <=
+                            static_assert(TopicType::SERIALIZED_SIZE <=
                                               simple_comm::MAX_PAYLOAD_SIZE,
-                                          "Interboard topic serialized_size "
+                                          "Command message SERIALIZED_SIZE "
                                           "exceeds simple_comm payload limit");
                         }
                     }(),

@@ -25,40 +25,13 @@ namespace mc2 {
         // for an example implementation.
 
         // Regular topics (i.e. Message Topics) are used for internal
-        // communication within a single microcontroller. While Interboard
-        // Message Topics are used for communication between microcontrollers
-        // over CAN2. These templates are based on the concepts for MessageTopic
-        // and InterboardMessageTopic defined later in this file. If there are
-        // any discrepancies between the concepts and the actual templates, please
-        // refer to the concepts and update the templates accordingly.
+        // communication within a single microcontroller.
 
         /* Message Topic struct template.
         struct _ {
             static constexpr size_t queue_size = _;
 
             // Message fields...
-        }
-        */
-
-        /* Interboard Message Topic struct template.
-        struct _ {
-            static constexpr MessageNode destination = MessageNode::_;
-            static constexpr size_t serialized_size = _;
-            static constexpr size_t queue_size = _;
-
-            // Message fields...
-
-            static void serialize(const _& msg,
-                                std::span<uint8_t, serialized_size> dst) {
-                (void) msg;
-                (void) dst;
-            }
-
-            static void deserialize(_& msg,
-                                    std::span<const uint8_t, serialized_size> src) {
-                (void) msg;
-                (void) src;
-            }
         }
         */
 
@@ -71,11 +44,6 @@ namespace mc2 {
             uint8_t topic_id;
             size_t queue_size;
             size_t item_size;
-
-            // Only for InterboardMessageTopics.
-            // Fields are zero for regular MessageTopics.
-            uint8_t destination;
-            size_t serialized_size;
         };
 
         struct TopicHandle {
@@ -91,22 +59,7 @@ namespace mc2 {
             T::queue_size <= MAX_TOPIC_QUEUE_SIZE;
         };
 
-        template <typename T>
-        concept InterboardMessageTopic =
-            requires(T & msg, std::span<std::byte, T::serialized_size> dst,
-                     std::span<const std::byte, T::serialized_size> src) {
-            requires MessageTopic<T>;
-            requires
-                std::same_as<decltype(T::destination), const mc2::MessageNode>;
-            requires std::same_as<decltype(T::serialized_size), const size_t>;
-            requires std::invocable<decltype(T::serialize), const T&,
-                                    std::span<std::byte, T::serialized_size>>;
-            {T::serialize(msg, dst)}->std::same_as<bool>;
-            requires
-                std::invocable<decltype(T::deserialize), T&,
-                               std::span<const std::byte, T::serialized_size>>;
-            {T::deserialize(msg, src)}->std::same_as<bool>;
-        };
+
 
         template <MessageTopic... Topics>
         using create_topic_registry_t = std::tuple<Topics...>;
@@ -221,14 +174,7 @@ namespace mc2 {
             topic.meta.item_size = sizeof(Topic);
             topic.meta.topic_id = get_comm_id<Topic, TopicRegistry>();
 
-            if constexpr (InterboardMessageTopic<Topic>) {
-                topic.meta.destination =
-                    static_cast<uint8_t>(Topic::destination);
-                topic.meta.serialized_size = Topic::serialized_size;
-            } else {
-                topic.meta.destination = 0;
-                topic.meta.serialized_size = 0;
-            }
+
 
             return topic;
         }

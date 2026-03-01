@@ -75,6 +75,8 @@ namespace gimbal_params {
 }  // namespace gimbal_params
 
 namespace shoot_params {
+    constexpr bool ENABLE_LOADER_POSITION_CONTROL = false;
+    
     // Shoot targets.
     constexpr float LOADER_ACTIVE_RPM = 75;
     constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
