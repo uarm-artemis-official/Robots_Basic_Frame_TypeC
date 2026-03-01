@@ -2,9 +2,10 @@
     "configurations": [
         {
             "name": "STM32",
-            "configurationProvider": "ms-vscode.cmake-tools",
-            "intelliSenseMode": "${default}",
-            "compileCommands": "${workspaceFolder}/build/Omni/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/build/Omni/compile_commands.json",
+            "intelliSenseMode": "linux-gcc-x64",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17"
         }
     ],
     "version": 4
