@@ -91,6 +91,17 @@ namespace shoot_params {
     constexpr float MAX_OUT_LOADER_SPEED = 5000;
     static_assert(MAX_OUT_LOADER_SPEED >= MIN_OUT_LOADER_SPEED);
 
+    // Loader PID.
+    constexpr float KP_LOADER_POSITION = 0;
+    constexpr float KI_LOADER_POSITION = 0;
+    constexpr float KD_LOADER_POSITION = 0;
+    constexpr float BETA_LOADER_POSITION = 1;
+    constexpr float YETA_LOADER_POSITION = 0;
+    constexpr float MIN_OUT_LOADER_POSITION = -10000;
+    constexpr float MAX_OUT_LOADER_POSITION = 10000;
+    static_assert(MAX_OUT_LOADER_POSITION >= MIN_OUT_LOADER_POSITION);
+
+
     // Flywheel PID.
     constexpr float KP_FLYWHEEL_SPEED = 27;
     constexpr float KI_FLYWHEEL_SPEED = 5;
