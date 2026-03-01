@@ -89,6 +89,6 @@ target_link_libraries(COMMUNICATION
         ISRS::UART_ISR
         ISRS::CAN_ISR
         MODULES::UC_UART
-        MODULES::CAN2_TP
+
         ALGORITHMS::FIFO)
 add_library(SUBSYSTEMS::COMMUNICATION ALIAS COMMUNICATION)

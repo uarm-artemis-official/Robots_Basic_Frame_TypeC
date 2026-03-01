@@ -11,8 +11,7 @@ class CommAppFixture : public ::testing::Test {
    protected:
     MW_RTOS::IRTOS* rtos;
     mc2::RobotMC* mc;
-    comm::CANComm<>* can_comm;
-    comm::can2_tp::v1::CAN2TP<>* can2tp;
+    // comm::CANComm<>* can_comm;  // Removed - CANComm depends on can2_tp
     MW_CAN::ICAN* can;
     isr::can::CAN_ISR* can_isr;
     comm::UARTComm<>* uart_comm;

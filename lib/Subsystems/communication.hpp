@@ -5,7 +5,6 @@
 #include "../ISRs/can_isr.hpp"
 #include "../ISRs/uart_isr.hpp"
 #include "../Middleware/middleware_interfaces.hpp"
-#include "../Modules/can2_tp.hpp"
 #include "../Modules/uc_uart.hpp"
 #include "Modules/comm_protocol_interface.hpp"
 
@@ -285,140 +284,9 @@ namespace comm {
         }
     };
 
-    template <size_t MAX_SINGLE_MESSAGE_SIZE = 256>
-    class CANComm {
-        static_assert(MAX_SINGLE_MESSAGE_SIZE > 0,
-                      "MAX_SINGLE_MESSAGE_SIZE must be greater than 0");
+    // CANComm class has been removed as it depended on can2_tp which has been deprecated.
+    // TODO: Implement a new CAN communication class if needed.
 
-       private:
-        can2_tp::v1::CAN2TP<MAX_SINGLE_MESSAGE_SIZE>& can2tp_ref;
-        isr::can::CAN_ISR& can_isr_ref;
-        MW_CAN::ICAN& can_ref;
-        MessageFIFO<protocol::TopicMessageMeta, MAX_SINGLE_MESSAGE_SIZE * 4>
-            receive_fifo, send_fifo;
-
-        // TODO: Refactor CAN ISR handling to Comm App.
-       public:
-        explicit CANComm(
-            can2_tp::v1::CAN2TP<MAX_SINGLE_MESSAGE_SIZE>& _can2tp_ref,
-            isr::can::CAN_ISR& _can_isr_ref, MW_CAN::ICAN& _can_ref)
-            : can2tp_ref(_can2tp_ref),
-              can_isr_ref(_can_isr_ref),
-              can_ref(_can_ref) {};
-
-        bool init() {
-            bool register_init_success =
-                can_isr_ref.register_init([this](MW_CAN::ICAN& can_instance) {
-                    return this->can_isr_init(can_instance);
-                });
-            bool register_rountine_success = can_isr_ref.register_routine(
-                isr::can::ECallbacks::MESSAGE_PENDING,
-                [this](MW_CAN::BUS bus, isr::can::CANFrame frame) {
-                    this->can_isr_message_pending(bus, frame);
-                });
-            return register_init_success && register_rountine_success;
-        }
-
-        bool can_isr_init(MW_CAN::ICAN&) { return true; }
-
-        void can_isr_message_pending(MW_CAN::BUS bus,
-                                     isr::can::CANFrame frame) {
-            if (bus == MW_CAN::BUS::CAN_2B) {
-                protocol::FrameType frame_type =
-                    can2_tp::v1::get_frame_type(frame.stdid);
-
-                can2_tp::v1::CAN2BFrame can2b_frame {
-                    frame.stdid, frame.extid, {}, frame.payload_length};
-                std::memcpy(can2b_frame.payload, frame.payload,
-                            frame.payload_length);
-
-                switch (frame_type) {
-                    case protocol::FrameType::SingleFrame: {
-                        uint8_t new_frame_buffer[8];
-                        bool is_new_frame = can2tp_ref.process_single_frame(
-                            can2b_frame, new_frame_buffer);
-                        if (is_new_frame) {
-                            (void) receive_fifo.push(
-                                new_frame_buffer, can2b_frame.length,
-                                can2tp_ref.parse_meta_from_headers(
-                                    can2b_frame.stdid, can2b_frame.extid));
-                        }
-                        break;
-                    }
-                    case protocol::FrameType::FirstFrame:
-                        [[fallthrough]];
-                    case protocol::FrameType::ConsecutiveFrame: {
-                        (void) can2tp_ref.process_segment_frame(can2b_frame);
-                        uint8_t
-                            reassembled_message_buffer[MAX_SINGLE_MESSAGE_SIZE];
-                        protocol::TopicMessageMeta message_meta;
-                        bool has_new_message =
-                            can2tp_ref.get_reassembled_message(
-                                reassembled_message_buffer, message_meta);
-                        if (has_new_message) {
-                            (void) receive_fifo.push(
-                                reassembled_message_buffer,
-                                message_meta.payload_length, message_meta);
-                        }
-                        break;
-                    }
-                    default:
-                        // TODO: Implement control flow frame response.
-                        (void) 0;
-                }
-            }
-        }
-
-        void queue_send_message(const uint8_t* payload,
-                                protocol::TopicMessageMeta meta) {
-            send_fifo.push(payload, meta.payload_length, meta);
-        }
-
-        void queue_send_message(std::span<const std::byte> payload,
-                                protocol::TopicMessageMeta meta) {
-            send_fifo.push(payload, meta);
-        }
-
-        void send_next_frame() {
-            can2_tp::CAN2BFrame next_frame;
-            bool has_next_frame = false;
-            if (can2tp_ref.is_sending_message()) {
-                has_next_frame = can2tp_ref.get_next_send_fragment(next_frame);
-            } else {
-                uint8_t next_payload[MAX_SINGLE_MESSAGE_SIZE];
-                protocol::TopicMessageMeta next_meta;
-                if (send_fifo.pop(next_payload, next_meta)) {
-                    if (next_meta.payload_length <
-                        can2_tp::MIN_SEGMENT_MESSAGE_LENGTH) {
-                        has_next_frame = can2tp_ref.get_single_frame(
-                            next_payload, next_meta.payload_length,
-                            next_meta.destination, next_frame);
-                    } else {
-                        can2tp_ref.set_send_message(
-                            next_payload, next_meta.payload_length,
-                            next_meta.message_id, next_meta.destination);
-                        has_next_frame =
-                            can2tp_ref.get_next_send_fragment(next_frame);
-                    }
-                }
-            }
-
-            if (has_next_frame) {
-                can_ref.send_data(MW_CAN::BUS::CAN_2B, next_frame.stdid,
-                                  next_frame.extid, next_frame.payload,
-                                  next_frame.length);
-            }
-        }
-
-        bool get_message(uint8_t* payload, protocol::TopicMessageMeta& meta) {
-            return receive_fifo.pop(payload, meta);
-        }
-
-        bool get_message(std::span<std::byte> payload,
-                         protocol::TopicMessageMeta& meta) {
-            return receive_fifo.pop(payload, meta);
-        }
-    };
 }  // namespace comm
 
 #endif
