@@ -90,6 +90,7 @@ target_link_libraries(SIMPLE_COMM_CODEC_TEST
     PRIVATE
         GTest::gtest_main
         TEST_TARGET
+        MW::MIDDLEWARE
         MODULES::SIMPLE_COMM_UTILS)
 
 add_executable(MESSAGE_CENTER_HELPERS_TEST message_center_helpers_test.cpp)

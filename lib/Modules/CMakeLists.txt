@@ -27,21 +27,23 @@ target_include_directories(UC_UART INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(UC_UART INTERFACE LIB::UARM_LIB)
 add_library(MODULES::UC_UART ALIAS UC_UART)
 
-add_library(SIMPLE_COMM INTERFACE)
-target_include_directories(SIMPLE_COMM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(SIMPLE_COMM 
-    INTERFACE 
-        ALGORITHMS::FIFO
-        LIB::UARM_LIB
-        MW::MIDDLEWARE)
-add_library(MODULES::SIMPLE_COMM ALIAS SIMPLE_COMM)
-
 add_library(SIMPLE_COMM_UTILS INTERFACE)
 target_include_directories(SIMPLE_COMM_UTILS INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(SIMPLE_COMM_UTILS 
     INTERFACE 
         LIB::UARM_LIB)
 add_library(MODULES::SIMPLE_COMM_UTILS ALIAS SIMPLE_COMM_UTILS)
+
+
+add_library(SIMPLE_COMM INTERFACE)
+target_include_directories(SIMPLE_COMM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(SIMPLE_COMM 
+    INTERFACE 
+        MODULES::SIMPLE_COMM_UTILS
+        ALGORITHMS::FIFO
+        LIB::UARM_LIB
+        MW::MIDDLEWARE)
+add_library(MODULES::SIMPLE_COMM ALIAS SIMPLE_COMM)
 
 add_library(DEBUG INTERFACE)
 target_include_directories(DEBUG INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

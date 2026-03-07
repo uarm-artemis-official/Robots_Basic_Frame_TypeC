@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "../lib/Middleware/middleware_types.hpp"
-#include "simple_comm.hpp"
+#include "middleware_types.hpp"
+#include "simple_comm_utils.hpp"
 
 using namespace simple_comm::v1;
 

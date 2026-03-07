@@ -383,7 +383,7 @@ TEST_F(ExtendedMessageCenterTest, SerializeByTopicIDHappyPath) {
 
     uint8_t topic_id = static_cast<uint8_t>(
         mc2::get_comm_id<InterTopicA, ExtendedTopicRegistry>());
-    auto serializers = simple_comm::generate_message_serializers<ExtendedTopicRegistry>();
+    auto serializers = simple_comm::utils::generate_message_serializers<ExtendedTopicRegistry>();
     bool s_ok = serializers[mc2::get_index_from_topic_id(topic_id)](
         std::span(serialized_by_method), std::span(src_bytes));
     ASSERT_TRUE(s_ok);
@@ -412,7 +412,7 @@ TEST_F(ExtendedMessageCenterTest, DeserializeByTopicIDHappyPath) {
 
     uint8_t topic_id = static_cast<uint8_t>(
         mc2::get_comm_id<InterTopicB, ExtendedTopicRegistry>());
-    auto deserializers = simple_comm::generate_message_deserializers<ExtendedTopicRegistry>();
+    auto deserializers = simple_comm::utils::generate_message_deserializers<ExtendedTopicRegistry>();
     bool d_ok = deserializers[mc2::get_index_from_topic_id(topic_id)](
         std::span(deserialized_by_method), std::span(src_bytes));
     ASSERT_TRUE(d_ok);
@@ -442,12 +442,12 @@ TEST_F(ExtendedMessageCenterTest, SerializeDeserializeByTopicIDHappyPath) {
 
     uint8_t topic_id = static_cast<uint8_t>(
         mc2::get_comm_id<InterTopicA, ExtendedTopicRegistry>());
-    auto serializers2 = simple_comm::generate_message_serializers<ExtendedTopicRegistry>();
+    auto serializers2 = simple_comm::utils::generate_message_serializers<ExtendedTopicRegistry>();
     bool s_ok = serializers2[mc2::get_index_from_topic_id(topic_id)](
         std::span(serialized), std::span(src_bytes));
     ASSERT_TRUE(s_ok);
 
-    auto deserializers2 = simple_comm::generate_message_deserializers<ExtendedTopicRegistry>();
+    auto deserializers2 = simple_comm::utils::generate_message_deserializers<ExtendedTopicRegistry>();
     bool d_ok = deserializers2[mc2::get_index_from_topic_id(topic_id)](
         std::span(deserialized), std::span(serialized));
     ASSERT_TRUE(d_ok);
@@ -470,12 +470,12 @@ TEST_F(ExtendedMessageCenterTest, Serialize_Fail_NonInterboardTopic) {
 
     uint8_t topic_id = static_cast<uint8_t>(
         mc2::get_comm_id<ExtraNormalTopic, ExtendedTopicRegistry>());
-    auto serializers3 = simple_comm::generate_message_serializers<ExtendedTopicRegistry>();
+    auto serializers3 = simple_comm::utils::generate_message_serializers<ExtendedTopicRegistry>();
     bool s_ok = serializers3[mc2::get_index_from_topic_id(topic_id)](
         std::span(dst), std::span(src_bytes));
     ASSERT_FALSE(s_ok);
 
-    auto deserializers3 = simple_comm::generate_message_deserializers<ExtendedTopicRegistry>();
+    auto deserializers3 = simple_comm::utils::generate_message_deserializers<ExtendedTopicRegistry>();
     bool d_ok = deserializers3[mc2::get_index_from_topic_id(topic_id)](
         std::span(dst), std::span(src_bytes));
     ASSERT_FALSE(d_ok);

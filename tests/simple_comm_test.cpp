@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "../lib/Middleware/middleware_interfaces.hpp"
-#include "../lib/Modules/simple_comm.hpp"
+#include "middleware_interfaces.hpp"
+#include "simple_comm.hpp"
 #include "fakes/fake_uart.hpp"
 
 using namespace simple_comm::v1;
