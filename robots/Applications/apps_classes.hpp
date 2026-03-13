@@ -4,14 +4,14 @@
 #include <array>
 #include "apps_interfaces.hpp"
 #include "apps_types.hpp"
-#include "can_isr.hpp"
 #include "communication.hpp"
 #include "debug.hpp"
 #include "message_center.hpp"
 #include "simple_comm.hpp"
-#include "simple_comm_utils.hpp"
 #include "subsystems_interfaces.hpp"
 #include "topics.hpp"
+#include "can_isr.hpp"
+#include "uart_isr.hpp"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
@@ -395,54 +395,64 @@ class PCUARTApp
 };
 
 namespace CommApp {
-    inline namespace v3 {
-        constexpr size_t MAX_SIMPLE_COMM_FX_FIFO_SIZE = 10;
-        constexpr size_t INTERNAL_FIFO_SIZE = MAX_SIMPLE_COMM_FX_FIFO_SIZE * 2;
-        constexpr size_t TO_PUBLISH_BUFFER_SIZE = 128;
-        class CommApp
-            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
+    // inline namespace v3 {
+    //     constexpr size_t MAX_SIMPLE_COMM_FX_FIFO_SIZE = 10;
+    //     constexpr size_t INTERNAL_FIFO_SIZE = MAX_SIMPLE_COMM_FX_FIFO_SIZE * 2;
+    //     constexpr size_t TO_PUBLISH_BUFFER_SIZE = 128;
+    //     class CommApp
+    //         : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
+    //        private:
+    //         isr::can::CAN_ISR& can_isr;
+    //         isr::uart::UART_ISR& uart_isr;
+    //         simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>& simple_comm;
+    //         mc2::RobotMC& mc;
+    //         MW_CAN::ICAN& can;
+    //         MW_UART::IUART& uart;
+    //         modules::debug::Debug& debug;
+    //         mc2::MessageNode current_node;
+    //         std::array<std::byte, 32> deserialize_message_buffer;
+    //         std::array<simple_comm::utils::IndexableDeserializer, 256>
+    //             deserializers;
+    //         std::array<simple_comm::utils::IndexableSerializer, 256>
+    //             serializers;
+
+    //         static_assert(TO_PUBLISH_BUFFER_SIZE >
+    //                           simple_comm::UART_MAX_MESSAGE_SIZE,
+    //                       "TO_PUBLISH_BUFFER_SIZE must be larger than "
+    //                       "UART_MAX_MESSAGE_SIZE.");
+    //         std::array<std::byte, TO_PUBLISH_BUFFER_SIZE> to_publish_buffer;
+    //         std::array<std::byte, simple_comm::UART_MAX_MESSAGE_SIZE>
+    //             uart_out_buffer;
+    //         dsa::StrictRingBuffer<simple_comm::SimpleMessage,
+    //                               INTERNAL_FIFO_SIZE>
+    //             messages_to_process_buffer;
+
+    //        public:
+    //         explicit CommApp(
+    //             MW_RTOS::IRTOS& _rtos, isr::can::CAN_ISR& _can_isr,
+    //             isr::uart::UART_ISR& _uart_isr,
+    //             simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>&
+    //                 _simple_comm,
+    //             MW_CAN::ICAN& _can, MW_UART::IUART& _uart,
+    //             mc2::RobotMC& mc2_ref, modules::debug::Debug& _debug);
+
+    //         bool init();
+    //         void loop();
+    //         bool send_message_via_can(const simple_comm::SimpleMessage& msg);
+    //         bool send_message_via_uart(const simple_comm::SimpleMessage& msg);
+    //         void enqueue_interboard_messages();
+    //     };
+    // }  // namespace v3
+    inline namespace v4 {
+        class CommApp : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
            private:
-            isr::can::CAN_ISR& can_isr;
-            isr::uart::UART_ISR& uart_isr;
-            simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>& simple_comm;
-            mc2::RobotMC& mc;
-            MW_CAN::ICAN& can;
-            MW_UART::IUART& uart;
-            modules::debug::Debug& debug;
-            mc2::MessageNode current_node;
-            std::array<std::byte, 32> deserialize_message_buffer;
-            std::array<simple_comm::utils::IndexableDeserializer, 256>
-                deserializers;
-            std::array<simple_comm::utils::IndexableSerializer, 256>
-                serializers;
-
-            static_assert(TO_PUBLISH_BUFFER_SIZE >
-                              simple_comm::UART_MAX_MESSAGE_SIZE,
-                          "TO_PUBLISH_BUFFER_SIZE must be larger than "
-                          "UART_MAX_MESSAGE_SIZE.");
-            std::array<std::byte, TO_PUBLISH_BUFFER_SIZE> to_publish_buffer;
-            std::array<std::byte, simple_comm::UART_MAX_MESSAGE_SIZE>
-                uart_out_buffer;
-            dsa::StrictRingBuffer<simple_comm::SimpleMessage,
-                                  INTERNAL_FIFO_SIZE>
-                messages_to_process_buffer;
-
            public:
-            explicit CommApp(
-                MW_RTOS::IRTOS& _rtos, isr::can::CAN_ISR& _can_isr,
-                isr::uart::UART_ISR& _uart_isr,
-                simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>&
-                    _simple_comm,
-                MW_CAN::ICAN& _can, MW_UART::IUART& _uart,
-                mc2::RobotMC& mc2_ref, modules::debug::Debug& _debug);
+            explicit CommApp();
 
             bool init();
             void loop();
-            bool send_message_via_can(const simple_comm::SimpleMessage& msg);
-            bool send_message_via_uart(const simple_comm::SimpleMessage& msg);
-            void enqueue_interboard_messages();
         };
-    }  // namespace v3
+    }
 }  // namespace CommApp
 
 #endif

@@ -6,21 +6,24 @@
 #include <cstring>
 #include <span>
 #include "message_center.hpp"
+#include "simple_comm.hpp"
 #include "subsystems_types.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
 namespace mc2 {
     struct ShootCommand {
-        static constexpr size_t queue_size = 1;
-        static constexpr size_t serialized_size = 6;
-        static constexpr MessageNode destination = MessageNode::Gimbal;
+        static constexpr size_t QUEUE_SIZE = 1;
+        static constexpr size_t SERIALIZED_SIZE = 6;
+        static constexpr simple_comm::MessageType MESSAGE_TYPE =
+            simple_comm::MessageType::COMMAND;
 
         uint32_t command_bits;
         uint32_t extra_bits;
 
-        static bool serialize(const ShootCommand& msg,
-                              std::span<std::byte, serialized_size> dst) {
+        static bool serialize_payload(
+            const ShootCommand& msg,
+            std::span<std::byte, SERIALIZED_SIZE> dst) {
             ASSERT((msg.extra_bits & 0xffff0000) == 0,
                    "Incoming extra_bits must not have 16 MSB set.");
             uint32_t encoded_command_bits = msg.command_bits;
@@ -41,9 +44,9 @@ namespace mc2 {
             return true;
         }
 
-        static bool deserialize(
-            ShootCommand& msg,
-            std::span<const std::byte, serialized_size> src) {
+        static bool deserialize_payload(
+            std::span<const std::byte, SERIALIZED_SIZE> src,
+            ShootCommand& msg) {
             uint32_t encoded_command_bits;
             uint16_t encoded_extra_bits;
             encoded_command_bits =
@@ -62,17 +65,19 @@ namespace mc2 {
     };
 
     struct GimbalCommand {
-        static constexpr size_t queue_size = 1;
-        static constexpr size_t serialized_size = 6;
-        static constexpr MessageNode destination = MessageNode::Gimbal;
+        static constexpr size_t QUEUE_SIZE = 1;
+        static constexpr size_t SERIALIZED_SIZE = 6;
+        static constexpr simple_comm::MessageType MESSAGE_TYPE =
+            simple_comm::MessageType::COMMAND;
 
         // yaw and pitch fields are in radians and requested changes in yaw/pitch (deltas).
         float delta_yaw;
         float delta_pitch;
         uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
 
-        static bool serialize(const GimbalCommand& msg,
-                              std::span<std::byte, serialized_size> dst) {
+        static bool serialize_payload(
+            const GimbalCommand& msg,
+            std::span<std::byte, SERIALIZED_SIZE> dst) {
             ASSERT(-2 * PI < msg.delta_yaw && msg.delta_yaw < 2 * PI,
                    "Outgoing delta_yaw out of acceptable range (-2PI, 2PI).");
             ASSERT(-2 * PI < msg.delta_pitch && msg.delta_pitch < 2 * PI,
@@ -98,9 +103,9 @@ namespace mc2 {
             return true;
         }
 
-        static bool deserialize(
-            GimbalCommand& msg,
-            std::span<const std::byte, serialized_size> src) {
+        static bool deserialize_payload(
+            std::span<const std::byte, SERIALIZED_SIZE> src,
+            GimbalCommand& msg) {
             int16_t encoded_delta_yaw;
             int16_t encoded_delta_pitch;
             uint16_t encoded_command_bits;
@@ -128,9 +133,10 @@ namespace mc2 {
     };
 
     struct GimbalRelativeAngles {
-        static constexpr size_t queue_size = 1;
-        static constexpr size_t serialized_size = 4;
-        static constexpr MessageNode destination = MessageNode::Chassis;
+        static constexpr size_t QUEUE_SIZE = 1;
+        static constexpr size_t SERIALIZED_SIZE = 4;
+        static constexpr simple_comm::MessageType MESSAGE_TYPE =
+            simple_comm::MessageType::DATA;
 
         // yaw and pitch are relative to chassis front and in radians.
 
@@ -139,8 +145,9 @@ namespace mc2 {
         float yaw;
         float pitch;
 
-        static bool serialize(const GimbalRelativeAngles& msg,
-                              std::span<std::byte, serialized_size> dst) {
+        static bool serialize_payload(
+            const GimbalRelativeAngles& msg,
+            std::span<std::byte, SERIALIZED_SIZE> dst) {
             constexpr float TOLERANCE = 0.0001f;
             constexpr float endpoint_magnitude = PI + TOLERANCE;
             ASSERT(
@@ -160,9 +167,9 @@ namespace mc2 {
             return true;
         }
 
-        static bool deserialize(
-            GimbalRelativeAngles& msg,
-            std::span<const std::byte, serialized_size> src) {
+        static bool deserialize_payload(
+            std::span<const std::byte, SERIALIZED_SIZE> src,
+            GimbalRelativeAngles& msg) {
             int16_t encoded_yaw;
             int16_t encoded_pitch;
             encoded_yaw = static_cast<int16_t>(
@@ -189,9 +196,10 @@ namespace mc2 {
     };
 
     struct RefereeInfo {
-        static constexpr size_t queue_size = 1;
-        static constexpr size_t serialized_size = 8;
-        static constexpr MessageNode destination = MessageNode::Gimbal;
+        static constexpr size_t QUEUE_SIZE = 1;
+        static constexpr size_t SERIALIZED_SIZE = 8;
+        static constexpr simple_comm::MessageType MESSAGE_TYPE =
+            simple_comm::MessageType::DATA;
 
         uint8_t robot_id;
         uint8_t robot_level;
@@ -199,16 +207,18 @@ namespace mc2 {
         uint16_t shoot_barrel_heat_limit;
         uint16_t chassis_power_limit;
 
-        static bool serialize(const RefereeInfo& msg,
-                              std::span<std::byte, serialized_size> dst) {
+        static bool serialize_payload(
+            const RefereeInfo& msg,
+            std::span<std::byte, SERIALIZED_SIZE> dst) {
             (void) msg;
             (void) dst;
             ASSERT(false, "");
             return false;
         }
 
-        static bool deserialize(
-            RefereeInfo& msg, std::span<const std::byte, serialized_size> src) {
+        static bool deserialize_payload(
+            std::span<const std::byte, SERIALIZED_SIZE> src,
+            RefereeInfo& msg) {
             (void) msg;
             (void) src;
             ASSERT(false, "");
@@ -217,8 +227,8 @@ namespace mc2 {
     };
 
     struct ChassisMovement {
-        static constexpr size_t queue_size = 1;
-        static constexpr size_t serialized_size = 6;
+        static constexpr size_t QUEUE_SIZE = 1;
+        static constexpr size_t SERIALIZED_SIZE = 6;
         static constexpr MessageNode destination = MessageNode::Gimbal;
 
         float vx;
@@ -227,21 +237,21 @@ namespace mc2 {
     };
 
     struct MotorSet {
-        static constexpr size_t queue_size = 5;
+        static constexpr size_t QUEUE_SIZE = 5;
 
         int32_t motor_can_volts[8];
         Motor_CAN_ID_t can_ids[8];
     };
 
     struct MotorRead {
-        static constexpr size_t queue_size = 1;
+        static constexpr size_t QUEUE_SIZE = 1;
 
         uint8_t feedback[8][8];
         Motor_CAN_ID_t can_ids[8];
     };
 
     struct ChassisCommand {
-        static constexpr size_t queue_size = 1;
+        static constexpr size_t QUEUE_SIZE = 1;
 
         float v_perp;
         float v_parallel;
@@ -250,34 +260,34 @@ namespace mc2 {
     };
 
     struct CommOut {
-        static constexpr size_t queue_size = 5;
+        static constexpr size_t QUEUE_SIZE = 5;
 
         uint32_t topic_name;
         std::array<uint8_t, 8> bytes;
     };
 
     struct CommIn {
-        static constexpr size_t queue_size = 5;
+        static constexpr size_t QUEUE_SIZE = 5;
 
         uint32_t topic_name;
         std::array<uint8_t, 8> bytes;
     };
 
     struct ImuReadings {
-        static constexpr size_t queue_size = 1;
+        static constexpr size_t QUEUE_SIZE = 1;
 
         float yaw;
         float pitch;
     };
 
     struct RefereeIn {
-        static constexpr size_t queue_size = 1;
+        static constexpr size_t QUEUE_SIZE = 1;
 
         std::array<uint8_t, 41> ref_bytes;
     };
 
     struct RefereeOut {
-        static constexpr size_t queue_size = 1;
+        static constexpr size_t QUEUE_SIZE = 1;
 
         uint8_t robot_id;
         uint8_t robot_level;
@@ -287,13 +297,13 @@ namespace mc2 {
     };
 
     struct RCRaw {
-        static constexpr size_t queue_size = 1;
+        static constexpr size_t QUEUE_SIZE = 1;
 
         std::array<uint8_t, 18> rc_bytes;
     };
 
     struct AutoAim {
-        static constexpr size_t queue_size = 1;
+        static constexpr size_t QUEUE_SIZE = 1;
 
         uint8_t target_num;
         bool should_shoot;
@@ -302,20 +312,20 @@ namespace mc2 {
     };
 
     struct UCPackIn {
-        static constexpr size_t queue_size = 1;
+        static constexpr size_t QUEUE_SIZE = 1;
 
         std::array<uint8_t, 64> bytes;
     };
 
     struct UCPackOut {
-        static constexpr size_t queue_size = 10;
+        static constexpr size_t QUEUE_SIZE = 10;
 
         std::array<uint8_t, 192> bytes;
     };
 
     // TODO: Add create registry template function to impose restrictions on valid types
     // for use as topics. Check that all types eventually derive from Topic<> and that
-    // topics that derive from InterboardMessage<> implement serialize() and deserialize()
+    // topics that derive from InterboardMessage<> implement serialize_payload() and deserialize_payload()
     // static methods.
     using RobotTopics = create_topic_registry_t<
         MotorSet, MotorRead, ChassisCommand, GimbalCommand, ShootCommand,

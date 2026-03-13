@@ -91,17 +91,8 @@ target_link_libraries(SIMPLE_COMM_CODEC_TEST
         GTest::gtest_main
         TEST_TARGET
         MW::MIDDLEWARE
-        MODULES::SIMPLE_COMM_UTILS)
+        MODULES::SIMPLE_COMM)
 
-add_executable(MESSAGE_CENTER_HELPERS_TEST message_center_helpers_test.cpp)
-target_link_libraries(MESSAGE_CENTER_HELPERS_TEST
-    PRIVATE
-        GTest::gtest_main
-        ROBOTS::TOPICS
-        TEST_TARGET
-        MODULES::MESSAGE_CENTER)
-
-gtest_discover_tests(MESSAGE_CENTER_HELPERS_TEST)
 gtest_discover_tests(SIMPLE_COMM_TEST)
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)

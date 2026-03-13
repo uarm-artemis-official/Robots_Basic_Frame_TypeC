@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "middleware_types.hpp"
-#include "simple_comm_utils.hpp"
+#include "simple_comm.hpp"
 
-using namespace simple_comm::v1;
+using namespace simple_comm;
 
 namespace {
     TEST(SimpleCommCodecTest, CanRoundtrip) {
@@ -21,11 +21,11 @@ namespace {
         in.payload[2] = std::byte {0x30};
 
         MW_CAN::CANFrame frame {};
-        SimpleCommCodec<MW_CAN::CANFrame>::to_can_message(in, frame);
+        SimpleCommCodec::to_can_message<MW_CAN::CANFrame>(in, frame);
 
         SimpleMessage out {};
-        bool ok =
-            SimpleCommCodec<MW_CAN::CANFrame>::from_can_message(frame, out);
+        bool ok = SimpleCommCodec::from_can_message<MW_CAN::CANFrame>(
+            frame, out);
         EXPECT_TRUE(ok);
         EXPECT_EQ(out.source, in.source);
         EXPECT_EQ(out.destination, in.destination);
@@ -49,12 +49,13 @@ namespace {
 
         std::array<std::byte, UART_MAX_MESSAGE_SIZE> buf {};
         size_t out_len = 0;
-        SimpleCommCodec<MW_CAN::CANFrame>::to_uart_bytes(
-            in, std::span(buf.data(), buf.size()), out_len);
+        SimpleCommCodec::to_uart_bytes(in, std::span(buf.data(), buf.size()),
+                                       out_len);
 
         SimpleMessage out {};
-        bool ok = SimpleCommCodec<MW_CAN::CANFrame>::from_uart_bytes(
-            std::span(buf.data(), out_len), out);
+        bool ok =
+            SimpleCommCodec::from_uart_bytes(std::span(buf.data(), out_len),
+                                             out);
         EXPECT_TRUE(ok);
         EXPECT_EQ(out.payload_size, in.payload_size);
         for (size_t i = 0; i < out.payload_size; ++i)
@@ -63,8 +64,9 @@ namespace {
         // Corrupt a byte in the payload and ensure checksum fails
         buf[UART_HEADER_SIZE + 1] = std::byte {static_cast<uint8_t>(
             static_cast<uint8_t>(buf[UART_HEADER_SIZE + 1]) ^ 0xFF)};
-        bool ok2 = SimpleCommCodec<MW_CAN::CANFrame>::from_uart_bytes(
-            std::span(buf.data(), out_len), out);
+        bool ok2 =
+            SimpleCommCodec::from_uart_bytes(std::span(buf.data(), out_len),
+                                             out);
         EXPECT_FALSE(ok2);
     }
 
@@ -78,13 +80,13 @@ namespace {
         in.payload[1] = std::byte {0xBB};
 
         MW_CAN::CANFrame frame {};
-        SimpleCommCodec<MW_CAN::CANFrame>::to_can_message(in, frame);
+        SimpleCommCodec::to_can_message<MW_CAN::CANFrame>(in, frame);
 
         // flip the magic bits so it's no longer a simple-comm frame
         frame.eid ^= (1u << 26);
         SimpleMessage out {};
-        bool ok =
-            SimpleCommCodec<MW_CAN::CANFrame>::from_can_message(frame, out);
+        bool ok = SimpleCommCodec::from_can_message<MW_CAN::CANFrame>(
+            frame, out);
         EXPECT_FALSE(ok);
     }
 }  // namespace

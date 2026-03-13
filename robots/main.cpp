@@ -197,8 +197,9 @@ static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
 #else
 static simple_comm::SimpleComm<CommApp::v3::MAX_SIMPLE_COMM_FX_FIFO_SIZE>
     _simple_comm;
-static CommApp::v3::CommApp comm_app(rtos, can_isr, uart_isr, _simple_comm, can,
-                                     uart, mc, debug);
+// static CommApp::v3::CommApp comm_app(rtos, can_isr, uart_isr, _simple_comm, can,
+//                                      uart, mc, debug);
+static CommApp::v4::CommApp();
 #endif
 
 static TimerApp timer_app(rtos, motors, mc, debug, can_isr);

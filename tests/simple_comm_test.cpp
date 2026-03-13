@@ -8,7 +8,7 @@
 #include "simple_comm.hpp"
 #include "fakes/fake_uart.hpp"
 
-using namespace simple_comm::v1;
+using namespace simple_comm;
 
 namespace {
     static uint16_t compute_checksum(const std::vector<uint8_t>& bytes) {
@@ -22,7 +22,7 @@ namespace {
         uint8_t dest, uint8_t src, uint8_t topic,
         const std::vector<uint8_t>& payload) {
         std::vector<uint8_t> v;
-        v.push_back(static_cast<uint8_t>(MAGIC_TRIBIT));
+        v.push_back(static_cast<uint8_t>(DATA_MAGIC_TRIBIT));
         v.push_back(static_cast<uint8_t>((dest << 4) | (src & 0x0F)));
         v.push_back(topic);
         v.push_back(static_cast<uint8_t>(payload.size()));
@@ -37,7 +37,7 @@ namespace {
         uint8_t dest, uint8_t src, uint8_t topic,
         const std::vector<uint8_t>& payload) {
         MW_CAN::CANFrame f;
-        f.sid = (static_cast<uint32_t>(MAGIC_TRIBIT) << 8) |
+        f.sid = (static_cast<uint32_t>(DATA_MAGIC_TRIBIT) << 8) |
                 ((static_cast<uint32_t>(dest) & 0x0F) << 4) |
                 (static_cast<uint32_t>(src) & 0x0F);
         f.eid = (static_cast<uint32_t>(topic) << 11);

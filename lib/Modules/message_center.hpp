@@ -29,7 +29,7 @@ namespace mc2 {
 
         /* Message Topic struct template.
         struct _ {
-            static constexpr size_t queue_size = _;
+            static constexpr size_t QUEUE_SIZE = _;
 
             // Message fields...
         }
@@ -55,8 +55,8 @@ namespace mc2 {
 
         template <typename T>
         concept MessageTopic = requires {
-            requires std::same_as<decltype(T::queue_size), const size_t>;
-            T::queue_size <= MAX_TOPIC_QUEUE_SIZE;
+            requires std::same_as<decltype(T::QUEUE_SIZE), const size_t>;
+            T::QUEUE_SIZE <= MAX_TOPIC_QUEUE_SIZE;
         };
 
 
@@ -157,7 +157,7 @@ namespace mc2 {
 
         template <int index, typename List>
         constexpr size_t get_topic_queue_size() {
-            return std::tuple_element_t<index, List>::queue_size;
+            return std::tuple_element_t<index, List>::QUEUE_SIZE;
         }
 
         template <int index, typename TopicRegistry>
@@ -169,7 +169,7 @@ namespace mc2 {
             rtos.queue_create(topic.queue, queue_length, item_size);
             topic.timestamps = std::array<uint32_t, MAX_TOPIC_QUEUE_SIZE> {};
             topic.recent_timestamp_index = 0;
-            topic.meta.queue_size = Topic::queue_size;
+            topic.meta.queue_size = Topic::QUEUE_SIZE;
             topic.meta.item_size = sizeof(Topic);
             topic.meta.topic_id = get_comm_id<Topic, TopicRegistry>();
 

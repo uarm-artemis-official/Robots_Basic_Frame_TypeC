@@ -20,6 +20,8 @@ target_link_libraries(CHASSIS_DRIVES
         SUBSYSTEMS::SUBSYSTEMS_INCLUDE
         ROBOTS::TOPICS
         SUBSYSTEMS::COMMUNICATION
+        ISRS::CAN_ISR
+        ISRS::UART_ISR
         LIB::UARM_LIB
         LIB::UARM_MATH)
 
@@ -31,6 +33,8 @@ target_link_libraries(BASIC_APPS
         LIB::UARM_MATH
         CHASSIS_DRIVES
         ROBOTS::TOPICS
+        ISRS::CAN_ISR
+        ISRS::UART_ISR
         MODULES::MESSAGE_CENTER
         ALGORITHMS::ATTITUDE_LIB
         SUBSYSTEMS::SUBSYSTEMS_INCLUDE
@@ -51,6 +55,8 @@ target_link_libraries(GENERIC_APPS
         APPS_INCLUDE
         LIB::UARM_LIB
         LIB::UARM_MATH
+        ISRS::CAN_ISR
+        ISRS::UART_ISR
         MODULES::MESSAGE_CENTER
         ROBOTS::TOPICS
         SUBSYSTEMS::SUBSYSTEMS_INCLUDE

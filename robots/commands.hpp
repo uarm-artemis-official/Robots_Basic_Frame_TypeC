@@ -6,7 +6,11 @@ namespace simple_comm {
 
         enum class ACKStatus : uint8_t { OK = 0, ERROR = 1, INVALID = 2 };
 
-        struct CommandACK : MessageMeta<COMMAND_MAGIC_TRIBIT, 2, 0xF1> {
+        struct CommandACK {
+            static const simple_comm::MessageType MESSAGE_TYPE =
+                MessageType::COMMAND;
+            static const size_t SERIALIZED_SIZE = 2;
+
             uint8_t command_id;
             ACKStatus status;
 
@@ -27,7 +31,11 @@ namespace simple_comm {
             }
         };
 
-        struct PingPongCommand : MessageMeta<COMMAND_MAGIC_TRIBIT, 0, 0x01> {
+        struct PingPongCommand {
+            static const simple_comm::MessageType MESSAGE_TYPE =
+                MessageType::COMMAND;
+            static const size_t SERIALIZED_SIZE = 0;
+
             static bool serialize_payload(
                 const PingPongCommand&, std::span<std::byte, SERIALIZED_SIZE>) {
                 return true;  // no payload to serialize
