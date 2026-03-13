@@ -60,7 +60,6 @@ namespace mc2 {
         };
 
 
-
         template <MessageTopic... Topics>
         using create_topic_registry_t = std::tuple<Topics...>;
 

@@ -28,7 +28,18 @@ namespace simple_comm {
         fields:
         EID[28..26] : MAGIC_TRIBIT (3 bits)
         EID[25..22] : message destination (4 bits)
+         - Each node in the communication network is assigned a unique 4-bit ID 
+           which is used in the DEST field to specify the intended recipient of 
+           a message.
+         - If a message needs to be sent to multiple recipients, the message can 
+           be sent multiple times with the same payload and source but different 
+           DEST values. There is no broadcast/multicast mechanism at the protocol 
+           level, but it can be implemented at a higher level if needed (e.g. by 
+           reserving a special DEST value to indicate broadcast and having all 
+           nodes process messages with that DEST).
         EID[21..18] : message source (4 bits)
+         - See notes on DEST field. Source field is used to identify the sender 
+           of a message.
         EID[17..10] : id (8 bits)
         EID[9..0]   : currently unused (10 bits)
 
