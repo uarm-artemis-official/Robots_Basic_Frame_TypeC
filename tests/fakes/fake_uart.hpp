@@ -4,7 +4,7 @@
 
 #include <cstdint>
 #include <vector>
-#include "../../lib/Middleware/middleware_interfaces.hpp"
+#include "middleware_interfaces.hpp"
 
 // Minimal FakeUART for tests. receive_data always returns true.
 class FakeUART : public MW_UART::IUART {
@@ -21,8 +21,20 @@ class FakeUART : public MW_UART::IUART {
         rx_queue.insert(rx_queue.end(), b.begin(), b.end());
     }
 
-    void send_data(MW_UART::Peripheral, const uint8_t*, uint32_t,
-                   uint32_t) override {}
+    void send_data(MW_UART::Peripheral uart, const uint8_t* data,
+                   uint32_t length, uint32_t timeout) override {
+        (void) timeout;
+        (void) uart;
+        (void) data;
+        (void) length;
+    }
+
+    void send_data(MW_UART::Peripheral uart, std::span<const std::byte> data,
+                   uint32_t timeout) override {
+        (void) uart;
+        (void) timeout;
+        (void) data;
+    };
 
     bool receive_data(MW_UART::Peripheral p, uint8_t* data,
                       uint32_t length) override {
@@ -35,7 +47,10 @@ class FakeUART : public MW_UART::IUART {
             data[i] = rx_queue[i];
         }
         // remove consumed bytes
-        rx_queue.erase(rx_queue.begin(), rx_queue.begin() + static_cast<std::vector<uint8_t>::difference_type>(length));
+        rx_queue.erase(
+            rx_queue.begin(),
+            rx_queue.begin() +
+                static_cast<std::vector<uint8_t>::difference_type>(length));
         return true;
     }
 

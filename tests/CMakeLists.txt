@@ -83,6 +83,7 @@ target_link_libraries(SIMPLE_COMM_TEST
     PRIVATE
         GTest::gtest_main
         TEST_TARGET
+        LIB::FAKE_UART
         MODULES::SIMPLE_COMM)
 
 add_executable(SIMPLE_COMM_CODEC_TEST simple_comm_codec_test.cpp)

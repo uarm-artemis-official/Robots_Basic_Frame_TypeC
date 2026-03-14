@@ -7,3 +7,12 @@ target_link_libraries(FAKE_MESSAGE_CENTER
         MODULES::MESSAGE_CENTER
         MW::MIDDLEWARE)
 add_library(LIB::FAKE_MESSAGE_CENTER ALIAS FAKE_MESSAGE_CENTER)
+
+add_library(FAKE_UART INTERFACE)
+target_include_directories(FAKE_UART 
+    INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(FAKE_UART 
+    INTERFACE
+        MW::MIDDLEWARE)
+add_library(LIB::FAKE_UART ALIAS FAKE_UART)
