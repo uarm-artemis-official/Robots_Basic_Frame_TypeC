@@ -21,7 +21,7 @@
 namespace mc2 {
     inline namespace v2 {
         // Below are templates for defining message topics. Topics are generally
-        // defined in a topics.hpp file specific to system. See robots/topics.hpp
+        // defined in a messages.hpp file specific to system. See robots/messages.hpp
         // for an example implementation.
 
         // Regular topics (i.e. Message Topics) are used for internal
@@ -56,9 +56,9 @@ namespace mc2 {
         template <typename T>
         concept MessageTopic = requires {
             requires std::same_as<decltype(T::QUEUE_SIZE), const size_t>;
+            requires std::same_as<decltype(T::TOPIC_ID), const uint8_t>;
             T::QUEUE_SIZE <= MAX_TOPIC_QUEUE_SIZE;
         };
-
 
         template <MessageTopic... Topics>
         using create_topic_registry_t = std::tuple<Topics...>;
@@ -172,8 +172,6 @@ namespace mc2 {
             topic.meta.queue_size = Topic::QUEUE_SIZE;
             topic.meta.item_size = sizeof(Topic);
             topic.meta.topic_id = get_comm_id<Topic, TopicRegistry>();
-
-
 
             return topic;
         }

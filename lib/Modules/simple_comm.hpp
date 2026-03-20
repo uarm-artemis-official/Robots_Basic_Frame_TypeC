@@ -25,8 +25,10 @@ namespace simple_comm {
     constexpr size_t MAX_RETRIES = 3;
 
     enum class MessageType : std::underlying_type_t<std::byte> {
-        DATA = static_cast<std::underlying_type_t<std::byte>>(DATA_MAGIC_TRIBIT),
-        COMMAND = static_cast<std::underlying_type_t<std::byte>>(COMMAND_MAGIC_TRIBIT),
+        DATA =
+            static_cast<std::underlying_type_t<std::byte>>(DATA_MAGIC_TRIBIT),
+        COMMAND = static_cast<std::underlying_type_t<std::byte>>(
+            COMMAND_MAGIC_TRIBIT),
     };
 
     template <typename T>
@@ -70,7 +72,7 @@ namespace simple_comm {
     // members: uint32_t eid; uint16_t sid; bool is_extended_id; uint8_t dlc; std::array<std::byte,8> payload;
     class SimpleCommCodec {
        public:
-        static bool is_recognized_magic(uint8_t magic) {
+        bool is_recognized_magic(uint8_t magic) const {
             return magic == static_cast<uint8_t>(DATA_MAGIC_TRIBIT) ||
                    magic == static_cast<uint8_t>(COMMAND_MAGIC_TRIBIT);
         }
@@ -89,8 +91,7 @@ namespace simple_comm {
              * @param out_frame Output CAN POD to populate.
              */
         template <typename CANPod>
-        static void to_can_message(const SimpleMessage& msg,
-                                   CANPod& out_frame) {
+        void to_can_message(const SimpleMessage& msg, CANPod& out_frame) const {
             ASSERT(msg.payload_size <= MAX_PAYLOAD_SIZE,
                    "Payload size exceeds maximum allowed.");
             ASSERT(msg.destination <= 0x0F,
@@ -124,8 +125,8 @@ namespace simple_comm {
              * @return true if deserialization succeeded and the frame is a SimpleComm message.
              */
         template <typename CANPod>
-        static bool from_can_message(const CANPod& frame,
-                                     SimpleMessage& out_msg) {
+        [[nodiscard]] bool from_can_message(const CANPod& frame,
+                                            SimpleMessage& out_msg) const {
             uint8_t magic = static_cast<uint8_t>((frame.eid >> 26) & 0x07);
             if (!is_recognized_magic(magic)) {
                 return false;
@@ -155,7 +156,7 @@ namespace simple_comm {
              * @param len Number of bytes to include in the sum.
              * @return 16-bit checksum value.
              */
-        static uint16_t calc_uart_checksum(const std::byte* buf, size_t len) {
+        uint16_t calc_uart_checksum(const std::byte* buf, size_t len) const {
             uint16_t checksum = 0;
             for (size_t i = 0; i < len; ++i) {
                 checksum += static_cast<uint8_t>(buf[i]);
@@ -178,9 +179,9 @@ namespace simple_comm {
              * @param out_buffer Output buffer to write full UART message into.
              * @param out_length Set to the number of bytes written on success.
              */
-        static void to_uart_bytes(const SimpleMessage& msg,
-                                  std::span<std::byte> out_buffer,
-                                  size_t& out_length) {
+        void to_uart_bytes(const SimpleMessage& msg,
+                   std::span<std::byte> out_buffer,
+                   size_t& out_length) const {
             ASSERT(msg.payload_size <= MAX_PAYLOAD_SIZE,
                    "Payload size exceeds maximum allowed.");
             ASSERT(msg.destination <= 0x0F,
@@ -219,8 +220,8 @@ namespace simple_comm {
              * @param out_msg Destination SimpleMessage to populate.
              * @return true if deserialization succeeded and checksum/magic matched.
              */
-        static bool from_uart_bytes(std::span<const std::byte> in_buffer,
-                                    SimpleMessage& out_msg) {
+        bool from_uart_bytes(std::span<const std::byte> in_buffer,
+                             SimpleMessage& out_msg) const {
             if (in_buffer.size() < UART_HEADER_SIZE + UART_TRAILER_SIZE) {
                 return false;
             }
@@ -347,12 +348,14 @@ namespace simple_comm {
             dsa::RingBuffer<SimpleMessage, RxFIFOSize> message_rx_buffer;
             std::array<uint8_t, UART_MAX_MESSAGE_SIZE> uart_temp_rx_buffer;
             UARTFSMState uart_rx_fsm_state;
+            SimpleCommCodec codec;
 
            public:
             explicit SimpleComm()
                 : message_rx_buffer(),
                   uart_temp_rx_buffer {},
-                  uart_rx_fsm_state(UARTFSMState::WAIT_FOR_TRIBIT) {};
+                                    uart_rx_fsm_state(UARTFSMState::WAIT_FOR_TRIBIT),
+                                    codec() {};
 
             /**
              * @brief CAN message pending interrupt service routine.
@@ -371,7 +374,7 @@ namespace simple_comm {
                     // Layout (EID[28:0]): [MAGIC(3)][DEST(4)][SRC(4)][TOPIC(8)][UNUSED(10)]
                     uint8_t magic =
                         static_cast<uint8_t>((frame.eid >> 26) & 0x07);
-                    if (!SimpleCommCodec::is_recognized_magic(magic)) {
+                    if (!codec.is_recognized_magic(magic)) {
                         // Not a Simple Comm frame
                         return;
                     }
@@ -450,8 +453,7 @@ namespace simple_comm {
 
                 switch (uart_rx_fsm_state) {
                     case UARTFSMState::WAIT_FOR_TRIBIT: {
-                        if (SimpleCommCodec::is_recognized_magic(
-                                uart_temp_rx_buffer[0])) {
+                        if (codec.is_recognized_magic(uart_temp_rx_buffer[0])) {
                             // Move to receive header state
                             uart.receive_data(MW_UART::Peripheral::UART1,
                                               uart_temp_rx_buffer.data() + 1,

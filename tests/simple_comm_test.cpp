@@ -4,9 +4,9 @@
 #include <cstdint>
 #include <vector>
 
+#include "fakes/fake_uart.hpp"
 #include "middleware_interfaces.hpp"
 #include "simple_comm.hpp"
-#include "fakes/fake_uart.hpp"
 
 using namespace simple_comm;
 
@@ -37,6 +37,7 @@ namespace {
         uint8_t dest, uint8_t src, uint8_t topic,
         const std::vector<uint8_t>& payload) {
         MW_CAN::CANFrame f;
+
         f.sid = (static_cast<uint32_t>(DATA_MAGIC_TRIBIT) << 8) |
                 ((static_cast<uint32_t>(dest) & 0x0F) << 4) |
                 (static_cast<uint32_t>(src) & 0x0F);

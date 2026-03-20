@@ -11,6 +11,7 @@ TEST(SimpleCommCodecRegression, RoundtripManyRandom) {
     std::mt19937 rng(12345);
     std::uniform_int_distribution<int> size_d(1, 8);
     std::uniform_int_distribution<int> byte_d(0, 255);
+    SimpleCommCodec codec;
 
     for (int iter = 0; iter < 200; ++iter) {
         SimpleMessage in {};
@@ -23,10 +24,9 @@ TEST(SimpleCommCodecRegression, RoundtripManyRandom) {
 
         // CAN roundtrip
         MW_CAN::CANFrame frame {};
-        SimpleCommCodec::to_can_message<MW_CAN::CANFrame>(in, frame);
+        codec.to_can_message<MW_CAN::CANFrame>(in, frame);
         SimpleMessage out {};
-        EXPECT_TRUE(SimpleCommCodec::from_can_message<MW_CAN::CANFrame>(
-            frame, out));
+        EXPECT_TRUE(codec.from_can_message<MW_CAN::CANFrame>(frame, out));
         EXPECT_EQ(out.payload_size, in.payload_size);
 
         // Corrupt a random byte in frame payload and ensure detection if it affects magic/dlc
@@ -37,23 +37,20 @@ TEST(SimpleCommCodecRegression, RoundtripManyRandom) {
                 static_cast<uint8_t>(corrupted.payload[idx]) ^ 0xFF);
             // payload corruption doesn't change header magic so decoding still succeeds
             SimpleMessage out2 {};
-            EXPECT_TRUE(SimpleCommCodec::from_can_message<MW_CAN::CANFrame>(
-                corrupted, out2));
+            EXPECT_TRUE(
+                codec.from_can_message<MW_CAN::CANFrame>(corrupted, out2));
         }
 
         // UART roundtrip
         std::array<std::byte, UART_MAX_MESSAGE_SIZE> buf {};
         size_t out_len = 0;
-        SimpleCommCodec::to_uart_bytes(in, std::span(buf.data(), buf.size()),
-                                       out_len);
+        codec.to_uart_bytes(in, std::span(buf.data(), buf.size()), out_len);
         SimpleMessage outu {};
-        EXPECT_TRUE(SimpleCommCodec::from_uart_bytes(
-            std::span(buf.data(), out_len), outu));
+        EXPECT_TRUE(codec.from_uart_bytes(std::span(buf.data(), out_len), outu));
 
         // Corrupt checksum byte and expect failure
         buf[out_len - 1] = std::byte {static_cast<uint8_t>(
             static_cast<uint8_t>(buf[out_len - 1]) ^ 0xAB)};
-        EXPECT_FALSE(SimpleCommCodec::from_uart_bytes(
-            std::span(buf.data(), out_len), outu));
+        EXPECT_FALSE(codec.from_uart_bytes(std::span(buf.data(), out_len), outu));
     }
 }
