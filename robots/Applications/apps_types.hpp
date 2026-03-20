@@ -7,8 +7,8 @@
 #include "apps_interfaces.hpp"
 #include "attitude_types.h"
 #include "control_types.hpp"
+#include "messages.hpp"
 #include "subsystems_types.hpp"
-#include "topics.hpp"
 #include "uarm_types.hpp"
 
 /* =========================================================================

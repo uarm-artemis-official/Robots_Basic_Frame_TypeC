@@ -8,9 +8,9 @@
 #include "fake_message_center.hpp"
 #include "middleware_interfaces.hpp"
 #include "middleware_mocks.hpp"
+#include "messages.hpp"
 #include "subsystems_interfaces.hpp"
 #include "subsystems_mocks.hpp"
-#include "topics.hpp"
 
 class MultiboardCAN2Test : public testing::Test {
    protected:

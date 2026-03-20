@@ -7,9 +7,9 @@
 #include "communication.hpp"
 #include "debug.hpp"
 #include "message_center.hpp"
+#include "messages.hpp"
 #include "simple_comm.hpp"
 #include "subsystems_interfaces.hpp"
-#include "topics.hpp"
 #include "can_isr.hpp"
 #include "uart_isr.hpp"
 

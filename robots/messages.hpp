@@ -1,16 +1,73 @@
-#ifndef __TOPICS__HPP
-#define __TOPICS__HPP
+#ifndef __MESSAGES__HPP
+#define __MESSAGES__HPP
 
-#include "messages.hpp"
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <span>
+#include "message_center.hpp"
+#include "simple_comm.hpp"
+#include "subsystems_types.hpp"
+#include "uarm_lib.hpp"
+#include "uarm_math.hpp"
 
-#if 0
+namespace simple_comm {
+    inline namespace v1 {
+
+        enum class ACKStatus : uint8_t { OK = 0, ERROR = 1, INVALID = 2 };
+
+        struct CommandACK {
+            static const simple_comm::MessageType MESSAGE_TYPE =
+                MessageType::COMMAND;
+            static const size_t SERIALIZED_SIZE = 2;
+
+            uint8_t command_id;
+            ACKStatus status;
+
+            static bool serialize_payload(
+                const CommandACK& msg,
+                std::span<std::byte, SERIALIZED_SIZE> dst) {
+                dst[0] = std::byte {msg.command_id};
+                dst[1] = std::byte {static_cast<uint8_t>(msg.status)};
+                return true;
+            }
+
+            static bool deserialize_payload(
+                std::span<const std::byte, SERIALIZED_SIZE> src,
+                CommandACK& msg) {
+                msg.command_id = std::to_integer<uint8_t>(src[0]);
+                msg.status =
+                    static_cast<ACKStatus>(std::to_integer<uint8_t>(src[1]));
+                return true;
+            }
+        };
+
+        struct PingPongCommand {
+            static const simple_comm::MessageType MESSAGE_TYPE =
+                MessageType::COMMAND;
+            static const size_t SERIALIZED_SIZE = 0;
+
+            static bool serialize_payload(
+                const PingPongCommand&, std::span<std::byte, SERIALIZED_SIZE>) {
+                return true;  // no payload to serialize
+            }
+
+            static bool deserialize_payload(
+                std::span<const std::byte, SERIALIZED_SIZE>, PingPongCommand&) {
+                return true;  // no payload to deserialize
+            }
+        };
+    }  // namespace v1
+}  // namespace simple_comm
 
 namespace mc2 {
     struct ShootCommand {
+        static constexpr uint8_t TOPIC_ID = 54;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 6;
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
-            simple_comm::MessageType::COMMAND;
+            simple_comm::MessageType::DATA;
 
         uint32_t command_bits;
         uint32_t extra_bits;
@@ -59,10 +116,11 @@ namespace mc2 {
     };
 
     struct GimbalCommand {
+        static constexpr uint8_t TOPIC_ID = 53;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 6;
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
-            simple_comm::MessageType::COMMAND;
+            simple_comm::MessageType::DATA;
 
         // yaw and pitch fields are in radians and requested changes in yaw/pitch (deltas).
         float delta_yaw;
@@ -127,6 +185,7 @@ namespace mc2 {
     };
 
     struct GimbalRelativeAngles {
+        static constexpr uint8_t TOPIC_ID = 59;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 4;
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
@@ -190,6 +249,7 @@ namespace mc2 {
     };
 
     struct RefereeInfo {
+        static constexpr uint8_t TOPIC_ID = 55;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 8;
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
@@ -202,8 +262,7 @@ namespace mc2 {
         uint16_t chassis_power_limit;
 
         static bool serialize_payload(
-            const RefereeInfo& msg,
-            std::span<std::byte, SERIALIZED_SIZE> dst) {
+            const RefereeInfo& msg, std::span<std::byte, SERIALIZED_SIZE> dst) {
             (void) msg;
             (void) dst;
             ASSERT(false, "");
@@ -211,8 +270,7 @@ namespace mc2 {
         }
 
         static bool deserialize_payload(
-            std::span<const std::byte, SERIALIZED_SIZE> src,
-            RefereeInfo& msg) {
+            std::span<const std::byte, SERIALIZED_SIZE> src, RefereeInfo& msg) {
             (void) msg;
             (void) src;
             ASSERT(false, "");
@@ -221,6 +279,7 @@ namespace mc2 {
     };
 
     struct ChassisMovement {
+        static constexpr uint8_t TOPIC_ID = 68;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 6;
         static constexpr MessageNode destination = MessageNode::Gimbal;
@@ -231,6 +290,7 @@ namespace mc2 {
     };
 
     struct MotorSet {
+        static constexpr uint8_t TOPIC_ID = 50;
         static constexpr size_t QUEUE_SIZE = 5;
 
         int32_t motor_can_volts[8];
@@ -238,6 +298,7 @@ namespace mc2 {
     };
 
     struct MotorRead {
+        static constexpr uint8_t TOPIC_ID = 51;
         static constexpr size_t QUEUE_SIZE = 1;
 
         uint8_t feedback[8][8];
@@ -245,6 +306,7 @@ namespace mc2 {
     };
 
     struct ChassisCommand {
+        static constexpr uint8_t TOPIC_ID = 52;
         static constexpr size_t QUEUE_SIZE = 1;
 
         float v_perp;
@@ -254,6 +316,7 @@ namespace mc2 {
     };
 
     struct CommOut {
+        static constexpr uint8_t TOPIC_ID = 56;
         static constexpr size_t QUEUE_SIZE = 5;
 
         uint32_t topic_name;
@@ -261,6 +324,7 @@ namespace mc2 {
     };
 
     struct CommIn {
+        static constexpr uint8_t TOPIC_ID = 57;
         static constexpr size_t QUEUE_SIZE = 5;
 
         uint32_t topic_name;
@@ -268,6 +332,7 @@ namespace mc2 {
     };
 
     struct ImuReadings {
+        static constexpr uint8_t TOPIC_ID = 58;
         static constexpr size_t QUEUE_SIZE = 1;
 
         float yaw;
@@ -275,12 +340,14 @@ namespace mc2 {
     };
 
     struct RefereeIn {
+        static constexpr uint8_t TOPIC_ID = 60;
         static constexpr size_t QUEUE_SIZE = 1;
 
         std::array<uint8_t, 41> ref_bytes;
     };
 
     struct RefereeOut {
+        static constexpr uint8_t TOPIC_ID = 61;
         static constexpr size_t QUEUE_SIZE = 1;
 
         uint8_t robot_id;
@@ -291,12 +358,14 @@ namespace mc2 {
     };
 
     struct RCRaw {
+        static constexpr uint8_t TOPIC_ID = 62;
         static constexpr size_t QUEUE_SIZE = 1;
 
         std::array<uint8_t, 18> rc_bytes;
     };
 
     struct AutoAim {
+        static constexpr uint8_t TOPIC_ID = 63;
         static constexpr size_t QUEUE_SIZE = 1;
 
         uint8_t target_num;
@@ -306,12 +375,14 @@ namespace mc2 {
     };
 
     struct UCPackIn {
+        static constexpr uint8_t TOPIC_ID = 64;
         static constexpr size_t QUEUE_SIZE = 1;
 
         std::array<uint8_t, 64> bytes;
     };
 
     struct UCPackOut {
+        static constexpr uint8_t TOPIC_ID = 65;
         static constexpr size_t QUEUE_SIZE = 10;
 
         std::array<uint8_t, 192> bytes;
@@ -328,7 +399,5 @@ namespace mc2 {
 
     using RobotMC = MC2<RobotTopics>;
 }  // namespace mc2
-
-#endif
 
 #endif
