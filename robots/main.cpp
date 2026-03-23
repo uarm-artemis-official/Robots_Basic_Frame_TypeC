@@ -104,7 +104,6 @@
 #include "message_center.hpp"
 #include "middleware_classes.hpp"
 #include "robot_config.hpp"
-#include "simple_comm_utils.hpp"
 #include "stdio.h"
 #include "stm32f407xx.h"
 #include "subsystems_classes.hpp"
@@ -195,11 +194,11 @@ static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 #ifdef OLD_COMM_APP
 static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
 #else
-static simple_comm::SimpleComm<CommApp::v3::MAX_SIMPLE_COMM_FX_FIFO_SIZE>
-    _simple_comm;
+// static simple_comm::SimpleComm<CommApp::v3::MAX_SIMPLE_COMM_FX_FIFO_SIZE>
+//     _simple_comm;
 // static CommApp::v3::CommApp comm_app(rtos, can_isr, uart_isr, _simple_comm, can,
 //                                      uart, mc, debug);
-static CommApp::v4::CommApp();
+// static CommApp::v4::CommApp();
 #endif
 
 static TimerApp timer_app(rtos, motors, mc, debug, can_isr);
@@ -221,10 +220,10 @@ void init_robot_apps() {
         0, 256);
     osThreadCreate(osThread(TimerTask), NULL);
 
-    osThreadDef(
-        CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
-        256);
-    osThreadCreate(osThread(CommTask), NULL);
+    // osThreadDef(
+    //     CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
+    //     256);
+    // osThreadCreate(osThread(CommTask), NULL);
 
     if (board_status == modules::debug::BoardConfig::CHASSIS) {
         osThreadDef(
@@ -291,10 +290,10 @@ void init_auto_aim_apps() {
         384);
     osThreadCreate(osThread(RCTask), NULL);
 
-    osThreadDef(
-        CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
-        256);
-    osThreadCreate(osThread(CommTask), NULL);
+    // osThreadDef(
+    //     CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
+    //     256);
+    // osThreadCreate(osThread(CommTask), NULL);
 }
 
 void can_filter_enable(CAN_HandleTypeDef* hcan) {

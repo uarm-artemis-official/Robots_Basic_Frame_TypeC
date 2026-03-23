@@ -439,6 +439,47 @@ namespace mc2 {
                 }
             }
 
+            std::optional<MW_RTOS::TickType> pub_byte_message_from_isr(
+                std::span<const std::byte> src, uint8_t topic_id) {
+                size_t index = topic_id - 50;
+                ASSERT(topic_id - 50 >= 0 &&
+                           index < registry_size_v<TopicRegistry>,
+                       "Invalid topic ID for message_center byte message "
+                       "publication.");
+                TopicHandle& topic_handle = topic_handles[index];
+                ASSERT(topic_handle.queue != nullptr,
+                       "Cannot publish byte message to message_center for NULL "
+                       "pointer.");
+                ASSERT(src.size() == topic_handle.meta.item_size,
+                       "Source span size does not match topic item size.");
+
+                bool result;
+                if (topic_handle.meta.queue_size == 1) {
+                    result = rtos.queue_overwrite(
+                        topic_handle.queue,
+                        const_cast<void*>(
+                            static_cast<const void*>(src.data())));
+                } else {
+                    result = rtos.queue_pushback(
+                        topic_handle.queue,
+                        const_cast<void*>(static_cast<const void*>(src.data())),
+                        1);
+                }
+
+                if (result) {
+                    MW_RTOS::TickType recent_tick = rtos.get_current_tick();
+                    topic_handle.recent_timestamp_index =
+                        (topic_handle.recent_timestamp_index + 1) %
+                        topic_handle.timestamps.size();
+                    topic_handle
+                        .timestamps[topic_handle.recent_timestamp_index] =
+                        recent_tick;
+                    return std::make_optional(recent_tick);
+                } else {
+                    return {};
+                }
+            }
+
             /**
              * @brief Publish a message of type T to its corresponding topic queue from an ISR context.
              * 

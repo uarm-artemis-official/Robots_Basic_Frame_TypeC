@@ -38,6 +38,7 @@ namespace simple_comm {
                  std::span<const std::byte, T::SERIALIZED_SIZE> src) {
         requires std::same_as<decltype(T::SERIALIZED_SIZE), const size_t>;
         requires std::same_as<decltype(T::MESSAGE_TYPE), const MessageType>;
+        requires std::same_as<decltype(T::MESSAGE_ID), const uint8_t>;
         {T::serialize_payload(msg, dst)}->std::same_as<bool>;
         {T::deserialize_payload(src, msg)}->std::same_as<bool>;
     };
@@ -180,8 +181,8 @@ namespace simple_comm {
              * @param out_length Set to the number of bytes written on success.
              */
         void to_uart_bytes(const SimpleMessage& msg,
-                   std::span<std::byte> out_buffer,
-                   size_t& out_length) const {
+                           std::span<std::byte> out_buffer,
+                           size_t& out_length) const {
             ASSERT(msg.payload_size <= MAX_PAYLOAD_SIZE,
                    "Payload size exceeds maximum allowed.");
             ASSERT(msg.destination <= 0x0F,
@@ -354,8 +355,8 @@ namespace simple_comm {
             explicit SimpleComm()
                 : message_rx_buffer(),
                   uart_temp_rx_buffer {},
-                                    uart_rx_fsm_state(UARTFSMState::WAIT_FOR_TRIBIT),
-                                    codec() {};
+                  uart_rx_fsm_state(UARTFSMState::WAIT_FOR_TRIBIT),
+                  codec() {};
 
             /**
              * @brief CAN message pending interrupt service routine.

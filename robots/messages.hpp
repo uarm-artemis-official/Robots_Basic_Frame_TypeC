@@ -20,6 +20,7 @@ namespace simple_comm {
         struct CommandACK {
             static const simple_comm::MessageType MESSAGE_TYPE =
                 MessageType::COMMAND;
+            static constexpr uint8_t MESSAGE_ID = 1;
             static const size_t SERIALIZED_SIZE = 2;
 
             uint8_t command_id;
@@ -46,6 +47,7 @@ namespace simple_comm {
         struct PingPongCommand {
             static const simple_comm::MessageType MESSAGE_TYPE =
                 MessageType::COMMAND;
+            static constexpr uint8_t MESSAGE_ID = 2;
             static const size_t SERIALIZED_SIZE = 0;
 
             static bool serialize_payload(
@@ -64,6 +66,7 @@ namespace simple_comm {
 namespace mc2 {
     struct ShootCommand {
         static constexpr uint8_t TOPIC_ID = 54;
+        static constexpr uint8_t MESSAGE_ID = TOPIC_ID;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 6;
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
@@ -117,6 +120,7 @@ namespace mc2 {
 
     struct GimbalCommand {
         static constexpr uint8_t TOPIC_ID = 53;
+        static constexpr uint8_t MESSAGE_ID = TOPIC_ID;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 6;
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
@@ -186,6 +190,7 @@ namespace mc2 {
 
     struct GimbalRelativeAngles {
         static constexpr uint8_t TOPIC_ID = 59;
+        static constexpr uint8_t MESSAGE_ID = TOPIC_ID;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 4;
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
@@ -250,6 +255,7 @@ namespace mc2 {
 
     struct RefereeInfo {
         static constexpr uint8_t TOPIC_ID = 55;
+        static constexpr uint8_t MESSAGE_ID = TOPIC_ID;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 8;
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
