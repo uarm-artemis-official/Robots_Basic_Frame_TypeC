@@ -60,9 +60,7 @@ add_executable(COMMUNICATION_TEST communication_test.cpp)
 target_link_libraries(COMMUNICATION_TEST
     PRIVATE
         GTest::gtest_main
-        MIDDLEWARE_MOCKS
-        SUBSYSTEMS::COMMUNICATION
-        MODULES::MESSAGE_CENTER)
+        COMMUNICATION_SUBMODULE_FIXTURE)
 
 add_executable(FIFO_TEST fifo_test.cpp)
 target_link_libraries(FIFO_TEST

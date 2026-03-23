@@ -57,11 +57,18 @@ class MockIUART : public MW_UART::IUART {
                 (MW_UART::Peripheral uart, const uint8_t* data, uint32_t length,
                  uint32_t timeout),
                 (override));
+   MOCK_METHOD(void, send_data,
+            (MW_UART::Peripheral uart, std::span<const std::byte> data,
+             uint32_t timeout),
+            (override));
     MOCK_METHOD(bool, receive_data,
                 (MW_UART::Peripheral uart, uint8_t* data, uint32_t length),
                 (override));
     MOCK_METHOD(void, abort_receive, (MW_UART::Peripheral uart), (override));
     MOCK_METHOD(void, abort_transmit, (MW_UART::Peripheral uart), (override));
+   MOCK_METHOD(void, clear_flags,
+            (MW_UART::Peripheral uart, uint32_t flags_to_clear),
+            (override));
 };
 
 class MockII2C : public MW_I2C::II2C {
