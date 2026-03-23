@@ -32,23 +32,24 @@
 
 namespace uarm_lib {
     namespace typelist {
-        template <template <typename> typename Checker, typename... Ts>
+        template <template <typename> typename Checker, typename TL>
         auto concept_filter() {
             // We use a fold expression (...) over the comma operator
             // to build one giant tuple from many small ones.
-            return std::tuple_cat([]() {
-                if constexpr (Checker<Ts>::value) {
-                    return std::tuple<Ts> {};
-                } else {
-                    return std::tuple<> {};
-                }
-            }()...);
+            return []<size_t... indices>(std::index_sequence<indices...>) {
+                return std::tuple_cat([]() {
+                    if constexpr (Checker<std::tuple_element_t<indices,
+                                                               TL>>::value) {
+                        return std::tuple<std::tuple_element_t<indices, TL>> {};
+                    } else {
+                        return std::tuple<> {};
+                    }
+                }()...);
+            }(std::make_index_sequence<std::tuple_size_v<TL>> {});
         }
 
-        template <template <typename> typename ConceptChecker, typename T,
-                  typename... Rest>
-        using concept_filter_t =
-            decltype(concept_filter<ConceptChecker, T, Rest...>());
+        template <template <typename> typename Checker, typename TL>
+        using concept_filter_t = decltype(concept_filter<Checker, TL>());
 
         template <typename TL, typename F>
         constexpr auto functor_map(F&& f) {
