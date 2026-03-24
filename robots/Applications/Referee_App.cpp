@@ -54,10 +54,15 @@
 //  * @retval    None
 //  */
 RefereeApp::RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                                             IEventCenter& evt_center, modules::debug::Debug& _debug,
-                                             IRefUI& ref_ui, isr::uart::UART_ISR& _uart_isr)
+                                             comm::Communication<mc2::RobotMC,
+                                                                                     mc2::RobotMC::Topics>&
+                                                     communication_ref,
+                                             IEventCenter& evt_center,
+                                             modules::debug::Debug& _debug, IRefUI& ref_ui,
+                                             isr::uart::UART_ISR& _uart_isr)
     : RTOSApp(_rtos),
       mc(mc_ref),
+            communication(communication_ref),
       event_center(evt_center),
       debug(_debug),
       ref_ui(ref_ui),

@@ -17,10 +17,13 @@
 #include "uarm_math.hpp"
 
 IMUApp::IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                             comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
+                                     communication_ref,
                              IEventCenter& event_center_ref, IImu& imu_ref,
                              modules::debug::Debug& _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
+            communication(communication_ref),
       event_center(event_center_ref),
       imu(imu_ref),
       debug(_debug) {}

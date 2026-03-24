@@ -27,6 +27,7 @@
             "executable": "${command:cmake.launchTargetPath}",
             "request": "launch",
             "servertype": "openocd",
+            "serverpath": "${config:OpenOCD.server_path}",
             "configFiles": [
                 "dap.cfg"
             ],

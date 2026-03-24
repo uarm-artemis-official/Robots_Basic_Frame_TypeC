@@ -52,8 +52,9 @@ class CommunicationSubmoduleFixture : public testing::Test {
 
     CommunicationSubmoduleFixture()
         : message_center(rtos),
-          communication(message_center, simple_comm_codec, can, uart,
-                        simple_comm::NodeID::Gimbal) {}
+                    communication(message_center, simple_comm_codec, can, uart) {
+                communication.set_node_id(simple_comm::NodeID::Gimbal);
+        }
 
     void SetUp() override { EXPECT_TRUE(communication.init()); }
 };

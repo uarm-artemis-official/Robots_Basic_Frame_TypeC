@@ -36,7 +36,7 @@ namespace mc2 {
         */
 
         constexpr size_t MAX_TOPIC_QUEUE_SIZE = 20;
-        constexpr size_t TOPIC_ID_OFFSET = 100;
+        constexpr size_t TOPIC_ID_OFFSET = 50;
 
         enum class MessageNode { Telemetry = 1, Chassis, Gimbal, MiniPC, All };
 
@@ -455,15 +455,16 @@ namespace mc2 {
 
                 bool result;
                 if (topic_handle.meta.queue_size == 1) {
-                    result = rtos.queue_overwrite(
+                    result = rtos.queue_overwrite_from_isr(
                         topic_handle.queue,
                         const_cast<void*>(
                             static_cast<const void*>(src.data())));
                 } else {
-                    result = rtos.queue_pushback(
+                    bool will_switch;
+                    result = rtos.queue_pushback_from_isr(
                         topic_handle.queue,
                         const_cast<void*>(static_cast<const void*>(src.data())),
-                        1);
+                        &will_switch);
                 }
 
                 if (result) {

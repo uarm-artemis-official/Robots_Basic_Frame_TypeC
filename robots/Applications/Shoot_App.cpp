@@ -24,11 +24,15 @@ namespace {
 }  // namespace
 
 ShootApp::ShootApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                                     comm::Communication<mc2::RobotMC,
+                                                                             mc2::RobotMC::Topics>&
+                                             communication_ref,
                    IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
                    float loader_active_rpm_, float flywheel_target_rpm_,
                    float max_flywheel_accel)
     : RTOSApp(_rtos),
       mc(mc_ref),
+            communication(communication_ref),
       ammo_lid(ammo_lid_ref),
       motors(motors_ref),
       LOADER_ACTIVE_RPM(loader_active_rpm_),
@@ -79,7 +83,7 @@ void ShootApp::init() {
               robot_config::shoot_params::MAX_OUT_FLYWHEEL_SPEED);
     ramp_init(flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp,
               MAX_FLYWHEEL_ACCEL);
-    std::memset(&(flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback), 0,
+    std::memset(&left_flywheel_feedback, 0,
                 sizeof(Motor_Feedback_t));
 
     flywheel_controls[RIGHT_FLYWHEEL_INDEX].stdid = SHOOT_RIGHT_FRIC;
@@ -93,7 +97,7 @@ void ShootApp::init() {
               robot_config::shoot_params::MAX_OUT_FLYWHEEL_SPEED);
     ramp_init(flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp,
               MAX_FLYWHEEL_ACCEL);
-    std::memset(&(flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback), 0,
+    std::memset(&right_flywheel_feedback, 0,
                 sizeof(Motor_Feedback_t));
 
     std::memset(&(shoot), 0, sizeof(Shoot));
@@ -210,8 +214,8 @@ void ShootApp::calc_targets() {
             if (shoot.shoot_state == ShootState::NORMAL) {
                 set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
                 float average_flywheel_rpm =
-                    (fabs(flywheel_controls[0].feedback.rx_rpm) +
-                     fabs(flywheel_controls[1].feedback.rx_rpm)) /
+                    (fabs(left_flywheel_feedback.rx_rpm) +
+                     fabs(right_flywheel_feedback.rx_rpm)) /
                     2;
                 if (average_flywheel_rpm >= FLYWHEEL_ACTIVE_TARGET_RPM * 0.8) {
                     set_loader_target(LOADER_ACTIVE_RPM);
@@ -242,13 +246,13 @@ void ShootApp::calc_motor_outputs() {
     shoot.left_flywheel_output = pid2_single_loop_control(
         flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid,
         flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp.output,
-        flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback.rx_rpm,
+        left_flywheel_feedback.rx_rpm,
         ShootApp::get_loop_period());
 
     shoot.right_flywheel_output = pid2_single_loop_control(
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid,
         flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp.output,
-        flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
+        right_flywheel_feedback.rx_rpm,
         ShootApp::get_loop_period());
 
     if constexpr (robot_config::shoot_params::ENABLE_LOADER_POSITION_CONTROL) {
@@ -313,9 +317,9 @@ void ShootApp::set_loader_target(float new_target) {
 void ShootApp::set_flywheel_target(float new_target) {
     shoot.flywheel_target_rpm = new_target;
     ramp_set_target(flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp,
-                    flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback.rx_rpm,
+                    left_flywheel_feedback.rx_rpm,
                     -new_target);
     ramp_set_target(flywheel_controls[RIGHT_FLYWHEEL_INDEX].sp_ramp,
-                    flywheel_controls[RIGHT_FLYWHEEL_INDEX].feedback.rx_rpm,
+                    right_flywheel_feedback.rx_rpm,
                     new_target);
 }

@@ -52,6 +52,7 @@ namespace simple_comm {
         UART_HEADER_SIZE + MAX_PAYLOAD_SIZE + UART_TRAILER_SIZE;
 
     enum class NodeID : uint8_t {
+        UnknownNode = 0,
         Telemetry = 1,
         Chassis = 2,
         Gimbal = 3,

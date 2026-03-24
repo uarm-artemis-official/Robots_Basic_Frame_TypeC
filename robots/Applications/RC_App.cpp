@@ -102,9 +102,15 @@
  *    Note: Shift need to be combined with any of WASD keys.
  *
  *********************************************************************************/
-RCApp::RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref, IRCComm& rc_comm_ref,
-             isr::uart::UART_ISR& _uart_isr)
-    : RTOSApp(_rtos), mc(mc_ref), rc_comm(rc_comm_ref), uart_isr(_uart_isr) {}
+RCApp::RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                         comm::Communication<mc2::RobotMC,
+                                                                 mc2::RobotMC::Topics>& communication_ref,
+                         IRCComm& rc_comm_ref, isr::uart::UART_ISR& _uart_isr)
+        : RTOSApp(_rtos),
+            mc(mc_ref),
+            communication(communication_ref),
+            rc_comm(rc_comm_ref),
+            uart_isr(_uart_isr) {}
 
 void RCApp::init() {
     memset(rc_raw.rc_bytes.data(), 0, sizeof(rc_raw.rc_bytes));
@@ -258,7 +264,7 @@ void RCApp::send_gimbal_command(float yaw, float pitch, BoardMode_t board_mode,
     gimbal_command.command_bits =
         ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
         (static_cast<uint8_t>(act_mode) & 0x7);
-    mc.pub_message(gimbal_command);
+    communication.transmit_external_message(gimbal_command, simple_comm::NodeID::Chassis, simple_comm::NodeID::Gimbal);
 }
 
 void RCApp::send_chassis_command(float v_parallel, float v_perp, float wz,
@@ -286,7 +292,7 @@ void RCApp::send_shoot_command(ShootActMode_t shoot_mode,
         shoot_command.extra_bits = 0;
     }
 
-    mc.pub_message(shoot_command);
+    communication.transmit_external_message(shoot_command, simple_comm::NodeID::Chassis, simple_comm::NodeID::Gimbal);
 }
 
 void RCApp::pub_command_messages() {

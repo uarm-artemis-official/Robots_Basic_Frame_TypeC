@@ -98,6 +98,7 @@
 #include "apps_classes.hpp"
 #include "apps_types.hpp"
 #include "can_isr.hpp"
+#include "communication.hpp"
 #include "debug.hpp"
 #include "dji_typec_middleware.cpp"
 #include "dwt.h"
@@ -167,23 +168,29 @@ static PCComm pc_comm;
 static isr::can::CAN_ISR can_isr(can);
 static isr::uart::UART_ISR uart_isr(uart);
 
+static simple_comm::SimpleCommCodec simple_comm_codec;
+static comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics> communication(
+    mc, simple_comm_codec, can, uart);
+
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
 static constexpr float swerve_dt = ChassisApp<SwerveDrive>::get_loop_period();
 static SwerveDrive swerve_drive(mc, no_init_motors, swerve_chassis_width,
                                 swerve_dt);
-static ChassisApp<SwerveDrive> chassis_app(rtos, swerve_drive, mc, debug);
+static ChassisApp<SwerveDrive> chassis_app(rtos, swerve_drive, mc,
+                                           communication, debug);
 #else
 static constexpr float omni_chassis_width = 0.40f;
 static OmniDrive omni_drive(mc, no_init_motors, omni_chassis_width,
                             omni_chassis_width, 80,
                             ChassisApp<OmniDrive>::get_loop_period());
 
-static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, debug);
+static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, communication,
+                                         debug);
 #endif
 
-static RCApp rc_app(rtos, mc, rc_comm, uart_isr);
+static RCApp rc_app(rtos, mc, communication, rc_comm, uart_isr);
 
 #ifdef AUTO_AIM_RIG
 static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
@@ -201,13 +208,16 @@ static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
 // static CommApp::v4::CommApp();
 #endif
 
-static TimerApp timer_app(rtos, motors, mc, debug, can_isr);
-static PCUARTApp pc_uart_app(rtos, mc, no_init_motors, pc_comm, uart_isr);
-static IMUApp imu_app(rtos, mc, event_center, imu, debug);
-static RefereeApp referee_app(rtos, mc, event_center, debug, ref_ui, uart_isr);
-static GimbalApp gimbal_app(rtos, mc, event_center, no_init_motors, debug);
+static TimerApp timer_app(rtos, motors, mc, communication, debug, can_isr);
+static PCUARTApp pc_uart_app(rtos, mc, communication, no_init_motors, pc_comm,
+                             uart_isr);
+static IMUApp imu_app(rtos, mc, communication, event_center, imu, debug);
+static RefereeApp referee_app(rtos, mc, communication, event_center, debug,
+                              ref_ui, uart_isr);
+static GimbalApp gimbal_app(rtos, mc, communication, event_center,
+                            no_init_motors, debug);
 static ShootApp shoot_app(
-    rtos, mc, ammo_lid_, no_init_motors,
+    rtos, mc, communication, ammo_lid_, no_init_motors,
     robot_config::shoot_params::LOADER_ACTIVE_RPM,
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
     robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
@@ -265,6 +275,9 @@ void init_robot_apps() {
 }
 
 void init_auto_aim_apps() {
+    // Set communication node ID for auto aim rig (gimbal board)
+    communication.set_node_id(simple_comm::NodeID::Gimbal);
+
     osThreadDef(
         GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
         osPriorityRealtime, 0, 512);
@@ -347,6 +360,37 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
     ASSERT(mc.init(), "MC init failed.");
     ASSERT(debug.init(), "Debug init failed.");
     event_center.init();
+
+    // Set communication node ID based on board configuration
+    modules::debug::BoardConfig board_status = debug.get_board_config();
+    if (board_status == modules::debug::BoardConfig::CHASSIS) {
+        communication.set_node_id(simple_comm::NodeID::Chassis);
+    } else if (board_status == modules::debug::BoardConfig::GIMBAL) {
+        communication.set_node_id(simple_comm::NodeID::Gimbal);
+    } else {
+        communication.set_node_id(simple_comm::NodeID::UnknownNode);
+    }
+
+    // Initialize communication submodule
+    ASSERT(communication.init(), "Communication init failed.");
+    can_isr.register_routine(
+        isr::can::ECallbacks::MESSAGE_PENDING,
+        [](MW_CAN::BUS bus, isr::can::CANFrame frame) {
+            MW_CAN::CANFrame mw_frame;
+            mw_frame.sid = frame.stdid;
+            mw_frame.eid = frame.extid;
+            mw_frame.is_extended_id =
+                (bus == MW_CAN::BUS::CAN_1B || bus == MW_CAN::BUS::CAN_2B);
+
+            ASSERT(frame.payload_length <= mw_frame.payload.size(),
+                   "Invalid CAN ISR frame length.");
+            mw_frame.dlc = static_cast<uint8_t>(frame.payload_length);
+            for (size_t i = 0; i < frame.payload_length; ++i) {
+                mw_frame.payload[i] = std::byte {frame.payload[i]};
+            }
+
+            communication.can_isr_message_pending(bus, mw_frame);
+        });
 
     return HAL_OK;
 }

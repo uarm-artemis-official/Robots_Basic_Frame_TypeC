@@ -19,6 +19,7 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
    private:
     ChassisDrive<DriveTrain>& drive_train;
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     modules::debug::Debug& debug;
 
     Chassis_t chassis;
@@ -29,7 +30,11 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
     static constexpr float GYRO_SPEED = PI;
 
     explicit ChassisApp(MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
-                        mc2::RobotMC& mc_ref, modules::debug::Debug& _debug);
+                        mc2::RobotMC& mc_ref,
+                        comm::Communication<mc2::RobotMC,
+                                            mc2::RobotMC::Topics>&
+                            communication_ref,
+                        modules::debug::Debug& _debug);
     void init();
     void set_initial_state();
 
@@ -139,6 +144,7 @@ class GimbalApp
     float command_deltas[2];
 
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IEventCenter& event_center;
     IMotors& motors;
     modules::debug::Debug& debug;
@@ -153,6 +159,9 @@ class GimbalApp
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
     explicit GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                       comm::Communication<mc2::RobotMC,
+                                           mc2::RobotMC::Topics>&
+                           communication_ref,
                        IEventCenter& event_center, IMotors& motors_ref,
                        modules::debug::Debug& _debug);
     void init();
@@ -198,6 +207,7 @@ class ShootApp
     : public RTOSApp<ShootApp, apps_defines::shoot_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IAmmoLid& ammo_lid;
     IMotors& motors;
 
@@ -213,6 +223,9 @@ class ShootApp
 
    public:
     explicit ShootApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                      comm::Communication<mc2::RobotMC,
+                                          mc2::RobotMC::Topics>&
+                          communication_ref,
                       IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
                       float loader_active_rpm_, float flywheel_target_rpm_,
                       float max_flywheel_accel);
@@ -238,6 +251,7 @@ class IMUApp
     : public ExtendedRTOSApp<IMUApp, apps_defines::imu_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IEventCenter& event_center;
     IImu& imu;
     modules::debug::Debug& debug;
@@ -253,6 +267,9 @@ class IMUApp
     static constexpr float IMU_RESET_THRESHOLD = 7.0f;
 
     explicit IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                    comm::Communication<mc2::RobotMC,
+                                        mc2::RobotMC::Topics>&
+                        communication_ref,
                     IEventCenter& event_center_ref, IImu& imu_ref,
                     modules::debug::Debug& _debug);
     void init();
@@ -269,6 +286,7 @@ class RefereeApp
     : public RTOSApp<RefereeApp, apps_defines::referee_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IEventCenter& event_center;
     modules::debug::Debug& debug;
     IRefUI& ref_ui;  // Referee UI interface
@@ -282,6 +300,9 @@ class RefereeApp
 
    public:
     explicit RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                        comm::Communication<mc2::RobotMC,
+                                            mc2::RobotMC::Topics>&
+                            communication_ref,
                         IEventCenter& evt_center, modules::debug::Debug& _debug,
                         IRefUI& ref_ui, isr::uart::UART_ISR& _uart_isr);
     void init();
@@ -300,6 +321,7 @@ class RefereeApp
 class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IRCComm& rc_comm;
     isr::uart::UART_ISR& uart_isr;
 
@@ -317,6 +339,9 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
 
    public:
     explicit RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                   comm::Communication<mc2::RobotMC,
+                                       mc2::RobotMC::Topics>&
+                       communication_ref,
                    IRCComm& rc_comm_ref, isr::uart::UART_ISR& uart_isr);
 
     void init();
@@ -345,6 +370,7 @@ class TimerApp
    private:
     IMotors& system_motors;
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     modules::debug::Debug& debug;
     isr::can::CAN_ISR& can_isr;
 
@@ -358,7 +384,11 @@ class TimerApp
 
    public:
     explicit TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
-                      mc2::RobotMC& mc2_ref, modules::debug::Debug& _debug,
+                      mc2::RobotMC& mc2_ref,
+                      comm::Communication<mc2::RobotMC,
+                                          mc2::RobotMC::Topics>&
+                          communication_ref,
+                      modules::debug::Debug& _debug,
                       isr::can::CAN_ISR& can_isr);
     void init();
     void loop();
@@ -371,6 +401,7 @@ class PCUARTApp
     : public RTOSApp<PCUARTApp, apps_defines::pc_uart_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IMotors& motors;
     IPCComm& pc_comm;
     isr::uart::UART_ISR& uart_isr;
@@ -383,6 +414,9 @@ class PCUARTApp
 
    public:
     explicit PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                       comm::Communication<mc2::RobotMC,
+                                           mc2::RobotMC::Topics>&
+                           communication_ref,
                        IMotors& motors_, IPCComm& pc_comm_,
                        isr::uart::UART_ISR& _uart_isr);
     void init();

@@ -26,11 +26,15 @@ template <class DriveTrain>
 ChassisApp<DriveTrain>::ChassisApp(MW_RTOS::IRTOS& _rtos,
                                    DriveTrain& drive_train_ref,
                                    mc2::RobotMC& mc_ref,
+                                   comm::Communication<
+                                       mc2::RobotMC,
+                                       mc2::RobotMC::Topics>& communication_ref,
                                    modules::debug::Debug& _debug)
     : RTOSApp<ChassisApp<DriveTrain>, ChassisApp<DriveTrain>::loop_period_ms>(
           _rtos),
       drive_train(drive_train_ref),
       mc(mc_ref),
+      communication(communication_ref),
       debug(_debug) {
     static_assert(
         std::is_same<DriveTrain, OmniDrive>::value ||

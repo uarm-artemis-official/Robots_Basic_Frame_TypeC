@@ -50,13 +50,16 @@ namespace comm {
        public:
         Communication(MessageCenter& msg_center,
                       simple_comm::SimpleCommCodec& simple_comm_codec_ref,
-                      MW_CAN::ICAN& can_ref, MW_UART::IUART& uart_ref,
-                      simple_comm::NodeID node_id)
+                      MW_CAN::ICAN& can_ref, MW_UART::IUART& uart_ref)
             : message_center(msg_center),
               simple_comm_codec(simple_comm_codec_ref),
               can(can_ref),
               uart(uart_ref),
-              current_node_id(node_id) {}
+              current_node_id(simple_comm::NodeID::UnknownNode) {}
+
+        void set_node_id(simple_comm::NodeID node_id) {
+            current_node_id = node_id;
+        }
 
         bool init() {
             deserializer_map = uarm_lib::typelist::functor_map<DataCommandList>(
@@ -131,6 +134,7 @@ namespace comm {
         void can_isr_message_pending(MW_CAN::BUS bus, MW_CAN::CANFrame frame) {
             if (bus == MW_CAN::BUS::CAN_2B) {
                 simple_comm::SimpleMessage in_msg;
+                
                 bool d_ok = simple_comm_codec.from_can_message(frame, in_msg);
                 if (d_ok) {
                     if (in_msg.destination !=
@@ -144,25 +148,25 @@ namespace comm {
                             }
                             case simple_comm::MessageType::DATA: {
                                 // TODO: Deserialize payload.
+                                std::array<std::byte, 20> byte_out_buffer;
+
                                 for (size_t i = 0; i < deserializer_map.size();
                                      ++i) {
                                     if (deserializer_map[i].first ==
                                         in_msg.id) {
+                                        const mc2::TopicMeta& topic_meta = message_center.get_topic_meta(in_msg.id);
+
                                         bool success =
                                             deserializer_map[i].second(
-                                                std::span(in_msg.payload)
-                                                    .first(in_msg.payload_size),
-                                                std::span(in_msg.payload)
-                                                    .first(
-                                                        in_msg.payload_size));
+                                                std::span(byte_out_buffer).first(topic_meta.item_size),
+                                                std::span(in_msg.payload).first(in_msg.payload_size));
                                         ASSERT(success,
                                                "Deserialization failed for "
                                                "message with ID %d");
 
                                         message_center
                                             .template pub_byte_message_from_isr(
-                                                std::span(in_msg.payload)
-                                                    .first(in_msg.payload_size),
+                                                std::span(byte_out_buffer).first(topic_meta.item_size),
                                                 in_msg.id);
                                         break;
                                     }
@@ -209,10 +213,10 @@ namespace comm {
         bool transmit_external_message(T& message, simple_comm::NodeID source,
                                        simple_comm::NodeID destination) {
             simple_comm::SimpleMessage out_msg;
-            out_msg.message_type = simple_comm::MessageType::COMMAND;
+            out_msg.message_type = T::MESSAGE_TYPE;
             out_msg.source = static_cast<uint8_t>(source);
             out_msg.destination = static_cast<uint8_t>(destination);
-            out_msg.id = T::ID;
+            out_msg.id = T::MESSAGE_ID;
             out_msg.payload_size = T::SERIALIZED_SIZE;
             bool s_ok = T::serialize_payload(
                 message, std::span(out_msg.payload)

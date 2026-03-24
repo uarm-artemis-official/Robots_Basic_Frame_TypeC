@@ -21,10 +21,14 @@
 #include "uarm_math.hpp"
 
 GimbalApp::GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                                         comm::Communication<mc2::RobotMC,
+                                                                                 mc2::RobotMC::Topics>&
+                                                 communication_ref,
                      IEventCenter& event_center_ref, IMotors& motors_ref,
                      modules::debug::Debug& _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
+            communication(communication_ref),
       event_center(event_center_ref),
       motors(motors_ref),
       debug(_debug) {}
@@ -448,7 +452,7 @@ void GimbalApp::send_rel_angles() {
     mc2::GimbalRelativeAngles relative_angles;
     relative_angles.yaw = gimbal.yaw_ecd_angle;
     relative_angles.pitch = gimbal.pitch_ecd_angle;
-    mc.pub_message(relative_angles);
+    communication.transmit_external_message(relative_angles, simple_comm::NodeID::Gimbal, simple_comm::NodeID::Chassis);
 }
 
 void GimbalApp::update_headings() {

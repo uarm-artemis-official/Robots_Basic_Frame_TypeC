@@ -26,11 +26,15 @@
 */
 
 TimerApp::TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
-                                     mc2::RobotMC& mc2_ref, modules::debug::Debug& _debug,
+                                     mc2::RobotMC& mc2_ref,
+                                     comm::Communication<mc2::RobotMC,
+                                                                             mc2::RobotMC::Topics>& communication_ref,
+                                     modules::debug::Debug& _debug,
                                      isr::can::CAN_ISR& _can_isr)
     : RTOSApp(_rtos),
       system_motors(system_motors_ref),
       mc(mc2_ref),
+            communication(communication_ref),
       debug(_debug),
       can_isr(_can_isr) {}
 
@@ -101,7 +105,7 @@ void TimerApp::parse_motor_feedback(isr::can::CANFrame frame) {
 
     if (free_index != 0xff && free_index < MAX_MOTOR_COUNT) {
         std::memcpy(motor_read.feedback[free_index], frame.payload,
-                    sizeof(frame.payload_length));
+                    sizeof(frame.payload[0]) * frame.payload_length);
         motor_read.can_ids[free_index] =
             static_cast<Motor_CAN_ID_t>(frame.stdid);
         mc.pub_message_from_isr(motor_read);
