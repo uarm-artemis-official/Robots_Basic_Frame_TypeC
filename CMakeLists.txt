@@ -10,11 +10,11 @@ cmake_minimum_required(VERSION 3.22)
 # Setup compiler settings
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Define the build type
 if (NOT CMAKE_BUILD_TYPE)
@@ -27,8 +27,6 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     include("base/cmake/mingw64-gcc.cmake") # toolchain file
     set(CMAKE_C_FLAGS_GTEST "-O0 -g3 -fprofile-arcs -ftest-coverage -DGTEST")
     set(CMAKE_CXX_FLAGS_GTEST "-O0 -g3 -fprofile-arcs -ftest-coverage  -DGTEST")
-    # set(CMAKE_C_LINKER_FLAGS_GTEST "--coverage")
-    # set(CMAKE_CXX_LINKER_FLAGS_GTEST "--coverage")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Swerve")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Swerve)
     include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
@@ -39,11 +37,6 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Omni")
     include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS -DOMNI_GIMBAL -DOMNI_INFANTRY -DINFANTRY")
     set(CMAKE_CXX_FLAGS_OMNI "-O0 -g3 -DOMNI_CHASSIS -DOMNI_GIMBAL -DOMNI_INFANTRY -DINFANTRY")
-elseif (${CMAKE_BUILD_TYPE} STREQUAL "Mecanum")
-    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Mecanum)
-    include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
-    set(CMAKE_C_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS -DMECANUM_GIMBAL -DMECANUM_INFANTRY -DINFANTRY")
-    set(CMAKE_CXX_FLAGS_MECANUM "-O0 -g3 -DMECANUM_CHASSIS -DMECANUM_GIMBAL -DMECANUM_INFANTRY -DINFANTRY")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Hero")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Hero)
     include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
@@ -54,6 +47,11 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Auto_Aim_Rig")
     include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_AUTO_AIM_RIG "-O0 -g3 -DAUTO_AIM_RIG")
     set(CMAKE_CXX_FLAGS_AUTO_AIM_RIG "-O0 -g3 -DAUTO_AIM_RIG")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Kiddie_Mode")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Kiddie_Mode)
+    include("base/cmake/gcc-arm-none-eabi.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_KIDDIE_MODE "-O0 -g3 -DKIDDIE_MODE -DINFANTRY")
+    set(CMAKE_CXX_FLAGS_KIDDIE_MODE "-O0 -g3 -DKIDDIE_MODE -DINFANTRY")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Doxygen)
 else()
@@ -142,7 +140,6 @@ else()
         GENERIC_APPS
         ISRS::UART_ISR
         ISRS::CAN_ISR
-        SUBSYSTEMS::DEBUG
         SUBSYSTEMS::RC_COMM
         SUBSYSTEMS::AMMO_LID
         SUBSYSTEMS::PC_COMM

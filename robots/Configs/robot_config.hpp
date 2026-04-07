@@ -34,12 +34,6 @@ namespace robot_config {
     constexpr GimbalType gimbal_type = GimbalType::DJI;
 #endif
 
-#ifdef MECANUM_INFANTRY
-#include "mecanum_infantry_config.hpp"
-    constexpr ChassisType chassis_type = ChassisType::Mecanum;
-    constexpr GimbalType gimbal_type = GimbalType::DJI;
-#endif
-
 #ifdef HERO
 #include "hero_config.hpp"
     constexpr ChassisType chassis_type = ChassisType::Mecanum;
@@ -54,6 +48,12 @@ namespace robot_config {
 
 #ifdef AUTO_AIM_RIG
 #include "auto_aim_rig_config.hpp"
+#endif
+
+#ifdef KIDDIE_MODE
+#include "kiddie_mode_config.hpp"
+    constexpr ChassisType chassis_type = ChassisType::Omni;
+    constexpr GimbalType gimbal_type = GimbalType::DJI;
 #endif
 
 #ifdef GTEST

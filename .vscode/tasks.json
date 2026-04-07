@@ -128,12 +128,6 @@
         },
         // Tasks are only intended for use in build all presets.
         {
-            "label": "Build Mecanum",
-            "type": "shell",
-            "hide": true,
-            "command": "cmake --build --preset=Mecanum"
-        },
-        {
             "label": "Build Omni",
             "type": "shell",
             "hide": true,

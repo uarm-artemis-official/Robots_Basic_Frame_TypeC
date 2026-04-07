@@ -1,4 +1,4 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+	// For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
 {
 	"name": "Existing Dockerfile",
@@ -13,10 +13,18 @@
 			"extensions": [
 				"ms-vscode.cpptools",
 				"ms-vscode.cmake-tools",
-				"ms-vscode.cpptools-extension-pack"
-			]
+				"marus25.cortex-debug"
+			],
+			"settings": {}
 		}
-	}
+	},
+	// Current problem with USB: for some reason the STLinkV2 device is not being forwarded to the container.
+	// Next steps: look into cgroups (for getting device to pass through) and udev rules (for automatic mouting/unmounting).
+	"runArgs": [
+		"--privileged",
+		"-v",
+		"/dev/bus/usb:/dev/bus/usb"
+	]
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

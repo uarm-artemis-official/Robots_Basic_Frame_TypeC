@@ -84,6 +84,8 @@ namespace MW_UART {
        public:
         void send_data(Peripheral uart, const uint8_t* data, uint32_t length,
                        uint32_t timeout) override;
+        void send_data(Peripheral uart, std::span<const std::byte> data,
+                       uint32_t timeout) override;
         bool receive_data(Peripheral uart, uint8_t* data,
                           uint32_t length) override;
         void abort_receive(Peripheral uart) override;
@@ -99,6 +101,8 @@ namespace MW_UART {
     class UART : public IUART {
        public:
         void send_data(Peripheral uart, const uint8_t* data, uint32_t length,
+                       uint32_t timeout) override;
+        void send_data(Peripheral uart, std::span<const std::byte> data,
                        uint32_t timeout) override;
         bool receive_data(Peripheral uart, uint8_t* data,
                           uint32_t length) override;

@@ -5,6 +5,8 @@
 
 // Define simple test message types
 struct TestMessage1 {
+    static constexpr size_t QUEUE_SIZE = 5;
+
     int32_t value;
     float temperature;
 
@@ -14,6 +16,8 @@ struct TestMessage1 {
 };
 
 struct TestMessage2 {
+    static constexpr size_t QUEUE_SIZE = 5;
+
     uint16_t id;
     uint8_t status;
 

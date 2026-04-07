@@ -2,6 +2,8 @@
 #define __MIDDLEWARE_INTERFACES_HPP
 
 #include <array>
+#include <cstddef>
+#include <span>
 #include "middleware_defines.hpp"
 #include "middleware_types.hpp"
 
@@ -181,6 +183,8 @@ namespace MW_UART {
          */
         virtual void send_data(Peripheral uart, const uint8_t* data,
                                uint32_t length, uint32_t timeout) = 0;
+        virtual void send_data(Peripheral uart, std::span<const std::byte> data,
+                               uint32_t timeout) = 0;
 
         /**
          * @brief Start reception of data from UART.

@@ -1,7 +1,7 @@
-add_library(TOPICS INTERFACE)
-target_include_directories(TOPICS INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(TOPICS INTERFACE LIB::UARM_LIB)
-add_library(ROBOTS::TOPICS ALIAS TOPICS)
+add_library(MESSAGES INTERFACE)
+target_include_directories(MESSAGES INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(MESSAGES INTERFACE LIB::UARM_LIB)
+add_library(ROBOTS::MESSAGES ALIAS MESSAGES)
 
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")

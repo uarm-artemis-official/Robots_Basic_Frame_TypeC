@@ -15,17 +15,6 @@ target_link_libraries(SUBSYSTEMS_INCLUDE
 add_library(SUBSYSTEMS::SUBSYSTEMS_INCLUDE ALIAS SUBSYSTEMS_INCLUDE)
 
 if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest")
-add_library(DEBUG STATIC debug.cpp)
-target_include_directories(DEBUG 
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(DEBUG
-    PUBLIC
-        SUBSYSTEMS_INCLUDE
-        LIB::UARM_LIB)
-add_library(SUBSYSTEMS::DEBUG ALIAS DEBUG)
-
-
 add_library(IMU STATIC imu.cpp)
 target_link_libraries(IMU
     PUBLIC
@@ -97,9 +86,8 @@ add_library(COMMUNICATION INTERFACE)
 target_include_directories(COMMUNICATION INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(COMMUNICATION 
     INTERFACE 
-        ISRS::UART_ISR
-        ISRS::CAN_ISR
-        MODULES::UC_UART
-        MODULES::CAN2_TP
-        ALGORITHMS::FIFO)
+        MW::MIDDLEWARE
+        LIB::UARM_LIB
+        MODULES::MESSAGE_CENTER
+        MODULES::SIMPLE_COMM)
 add_library(SUBSYSTEMS::COMMUNICATION ALIAS COMMUNICATION)

@@ -12,25 +12,21 @@ namespace isr {
         void UART_ISR::run_isr_routines(ECallbacks callback_running,
                                         TISRState callback_state) {
             switch (callback_running) {
-                case ECallbacks::RECEIVE_COMPLETE: {
-                    for (size_t i = 0; i < routines_size; i++) {
-                        if (routines[i].second == callback_running) {
-                            routines[i].first(uart, callback_state);
-                        }
-                    }
+                case ECallbacks::RECEIVE_COMPLETE:
+                    [[fallthrough]];
+                case ECallbacks::ON_ERROR:
+                    [[fallthrough]];
+                case ECallbacks::TRANSMIT_COMPLETE:
                     break;
-                }
-                case ECallbacks::ON_ERROR: {
-                    for (size_t i = 0; i < routines_size; i++) {
-                        if (routines[i].second == callback_running) {
-                            routines[i].first(uart, callback_state);
-                        }
-                    }
-                    break;
-                }
                 default:
-                    ASSERT(false, "Unhandled CAN ISR callback.");
+                    ASSERT(false, "Unhandled UART ISR callback.");
                     break;
+            }
+
+            for (size_t i = 0; i < routines_size; i++) {
+                if (routines[i].second == callback_running) {
+                    routines[i].first(uart, callback_state);
+                }
             }
         }
 

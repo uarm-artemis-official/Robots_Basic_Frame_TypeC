@@ -290,12 +290,13 @@ namespace MW_CAN {
             case BUS::CAN_2:
                 tx_header.IDE = CAN_ID_STD;
                 tx_header.StdId = id;
+                tx_header.ExtId = 0;
                 break;
             case BUS::CAN_1B:
                 [[fallthrough]];
             case BUS::CAN_2B:
                 tx_header.IDE = CAN_ID_EXT;
-                tx_header.StdId = id;
+                tx_header.StdId = 0;
                 tx_header.ExtId = ext_id;
                 break;
         }
@@ -321,11 +322,14 @@ namespace MW_CAN {
                                  &rx_header, dst) != HAL_OK) {
             return false;  // Error in receiving message
         } else {
-            id = rx_header.StdId;
             length = rx_header.DLC;
 
             if (rx_header.IDE == CAN_ID_EXT) {
+                id = 0;
                 ext_id = rx_header.ExtId;
+            } else {
+                id = rx_header.StdId;
+                ext_id = 0;
             }
 
             return true;
@@ -425,6 +429,21 @@ namespace MW_UART {
     }
 
     /**
+     * @brief Send data over UART.
+     * @pre 0 < length <= MAX_UART_BUFFER_SIZE.
+     * @param[in] uart The UART peripheral to send data on.
+     * @param[in] data The data to send.
+     * @param[in] length The length of the data.
+     * @param[in] timeout The timeout for the transmission.
+     */
+    void UART::send_data(Peripheral uart, std::span<const std::byte> data,
+                         uint32_t timeout) {
+        HAL_UART_Transmit(get_hal_uart_handle(uart),
+                          reinterpret_cast<const uint8_t*>(data.data()),
+                          data.size(), timeout);
+    }
+
+    /**
      * @brief Start reception of data from UART via DMA.
      * @pre 0 < length <= MAX_UART_BUFFER_SIZE
      * @param[in] uart The UART peripheral to receive data from.
@@ -434,7 +453,8 @@ namespace MW_UART {
      */
     bool UART::receive_data(Peripheral uart, uint8_t* data, uint32_t length) {
         ASSERT(data != nullptr, "Cannot receive data to nullptr.");
-        HAL_StatusTypeDef res = HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
+        HAL_StatusTypeDef res =
+            HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
         return res == HAL_OK;  // Placeholder for actual implementation
     }
 

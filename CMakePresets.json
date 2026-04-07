@@ -10,14 +10,6 @@
             "cacheVariables": {}
         },
         {
-            "name": "Mecanum",
-            "inherits": "default",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Mecanum",
-                "CMAKE_VERBOSE_MAKEFILE": "ON"
-            }
-        },
-        {
             "name": "Omni",
             "inherits": "default",
             "cacheVariables": {
@@ -42,6 +34,14 @@
             }
         },
         {
+            "name": "Kiddie_Mode",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Kiddie_Mode",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
             "name": "Auto_Aim_Rig",
             "inherits": "default",
             "cacheVariables": {
@@ -56,8 +56,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "GTest",
                 "CMAKE_VERBOSE_MAKEFILE": "ON",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/base/cmake/mingw64-gcc.cmake",
-                "CMAKE_MAKE_PROGRAM": "/usr/lib/ninja-build/bin/ninja"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/base/cmake/mingw64-gcc.cmake"
             }
         },
         {
@@ -73,10 +72,6 @@
         {
             "name": "Omni",
             "configurePreset": "Omni"
-        },
-        {
-            "name": "Mecanum",
-            "configurePreset": "Mecanum"
         },
         {
             "name": "Swerve",

@@ -16,9 +16,8 @@ namespace dsa {
      * This is primarily used in VarFifo for storing indices of occupied slots.
      * However, it can be used in other scenarios where a FIFO buffer is needed.
      * 
-     * Template Parameters:
-     * - T: Type of elements stored in the buffer.
-     * - N: Maximum number of elements the buffer can hold.
+     * @tparam T Type of elements stored in the buffer.
+     * @tparam N Maximum number of elements the buffer can hold.
      */
     template <typename T, size_t N>
     class RingBuffer {
@@ -29,7 +28,9 @@ namespace dsa {
         size_t count;
 
        public:
-        RingBuffer() : head(0), tail(0), count(0) { buffer.fill(T {}); }
+        explicit RingBuffer() : head(0), tail(0), count(0) {
+            buffer.fill(T {});
+        }
 
         bool is_empty() const { return count == 0; }
 
@@ -62,6 +63,37 @@ namespace dsa {
             tail = 0;
             count = 0;
             std::memset(buffer.data(), 0, sizeof(T) * N);
+        }
+    };
+
+    /**
+     * @brief A strict ring buffer that does not allow overflow.
+     * 
+     * If an attempt is made to push an item when the buffer is full,
+     * the operation will fail and, depending on ErrorOnOverflow, may trigger 
+     * an assertion error.
+     * 
+     * @tparam T Type of elements stored in the buffer.
+     * @tparam N Maximum number of elements the buffer can hold.
+     * @tparam ErrorOnOverflow If true, an assertion error is triggered on overflow.
+     */
+    template <typename T, size_t N, bool ErrorOnOverflow = false>
+    class StrictRingBuffer : RingBuffer<T, N> {
+       public:
+        explicit StrictRingBuffer() : RingBuffer<T, N>() {}
+
+        [[nodiscard]] bool push(const T& value) {
+            if (this->is_full()) {
+                if constexpr (ErrorOnOverflow) {
+                    ASSERT(false, "StrictRingBuffer overflow on push.");
+                }
+                return false;
+            }
+            return RingBuffer<T, N>::push(value);
+        }
+
+        [[nodiscard]] bool pop(T& value) {
+            return RingBuffer<T, N>::pop(value);
         }
     };
 

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <optional>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 struct Counters {
@@ -21,6 +22,21 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
     MW_RTOS::IRTOS& rtos_ref;
     static constexpr size_t NUM_TOPICS = std::tuple_size_v<TopicRegistry>;
     std::array<Counters, NUM_TOPICS> counters_;
+
+    static constexpr size_t get_index_from_topic_id(uint8_t topic_id) {
+        constexpr auto topic_ids =
+            []<size_t... Is>(std::index_sequence<Is...>) {
+                return std::array<uint8_t, NUM_TOPICS> {
+                    std::tuple_element_t<Is, TopicRegistry>::TOPIC_ID...};
+            }(std::make_index_sequence<NUM_TOPICS> {});
+
+        for (size_t i = 0; i < topic_ids.size(); ++i) {
+            if (topic_ids[i] == topic_id) {
+                return i;
+            }
+        }
+        return NUM_TOPICS;
+    }
 
    public:
     FakeMessageCenter(MW_RTOS::IRTOS& _rtos)
@@ -47,9 +63,6 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
         }
         return &counters_[idx];
     }
-
-    // Fake init: do nothing, return true
-    bool init() { return true; }
 
     // get_message: if a return_value exists for T, copy it into message and
     // increment get_count and return current tick. Otherwise return nullopt.
@@ -108,5 +121,20 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
         if (will_context_switch)
             *will_context_switch = false;
         return pub_message(message, 0);
+    }
+
+    std::optional<MW_RTOS::TickType> pub_byte_message_from_isr(
+        std::span<const std::byte> src, uint8_t topic_id) {
+        size_t idx = get_index_from_topic_id(topic_id);
+        if (!(idx < NUM_TOPICS)) {
+            return std::nullopt;
+        }
+
+        auto& c = counters_.at(idx);
+        ++c.pub_count;
+        c.last_pub_bytes.resize(src.size());
+        std::memcpy(c.last_pub_bytes.data(), src.data(), src.size());
+
+        return std::make_optional(rtos_ref.get_current_tick());
     }
 };

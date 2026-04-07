@@ -7,28 +7,39 @@
 * Copyright (c) 2023 UARM Artemis.
 * All rights reserved.
 *******************************************************************************/
-#include <string.h>
 #include <algorithm>
+#include <cstddef>
+#include <cstring>
+#include <span>
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
 #include "pid.h"
 #include "robot_config.hpp"
+#include "messages.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
 GimbalApp::GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                     IEventCenter& event_center_ref, IDebug& debug_ref,
-                     IMotors& motors_ref)
+                                         comm::Communication<mc2::RobotMC,
+                                                                                 mc2::RobotMC::Topics>&
+                                                 communication_ref,
+                     IEventCenter& event_center_ref, IMotors& motors_ref,
+                     modules::debug::Debug& _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
+            communication(communication_ref),
       event_center(event_center_ref),
-      debug(debug_ref),
-      motors(motors_ref) {}
+      motors(motors_ref),
+      debug(_debug) {}
 
 void GimbalApp::init() {
-    debug.set_led_state(BLUE, ON);
     /* init gimbal task */
+    auto reserve_response = debug.reserve_debug_uart();
+    if (reserve_response.has_value()) {
+        debug_uart_access_token = reserve_response.value();
+    }
+
     set_initial_state();
 
     set_board_mode(PATROL_MODE);
@@ -142,6 +153,11 @@ void GimbalApp::calibrate() {
 }
 
 void GimbalApp::loop() {
+    std::byte debug_msg[] = {std::byte {0x1}, std::byte {0x2}, std::byte {0x3}};
+    debug.send_debug_message(
+        debug_uart_access_token,
+        std::span<const std::byte>(debug_msg, sizeof(debug_msg)), 1);
+
     get_motor_feedback();
 
     if (is_imu_calibrated()) {
@@ -402,8 +418,8 @@ void GimbalApp::process_commands() {
     mc2::GimbalCommand gimbal_command;
     auto message_ts = mc.get_message(gimbal_command);
     if (message_ts.has_value()) {
-        command_deltas[0] = gimbal_command.yaw;
-        command_deltas[1] = gimbal_command.pitch;
+        command_deltas[0] = gimbal_command.delta_yaw;
+        command_deltas[1] = gimbal_command.delta_pitch;
 
         if (fabs(command_deltas[0]) < 0.001)
             command_deltas[0] = 0;
@@ -433,15 +449,10 @@ void GimbalApp::process_commands() {
 }
 
 void GimbalApp::send_rel_angles() {
-    mc2::CommOut comm_out;
-    comm_out.topic_name =
-        mc2::get_comm_id<mc2::GimbalRelativeAngles, mc2::RobotMC::Topics>();
-
-    memcpy(comm_out.bytes.data(), &gimbal.yaw_ecd_angle, sizeof(float));
-    memcpy(&(comm_out.bytes.data()[4]), &(gimbal.pitch_rel_angle),
-           sizeof(float));
-
-    mc.pub_message(comm_out);
+    mc2::GimbalRelativeAngles relative_angles;
+    relative_angles.yaw = gimbal.yaw_ecd_angle;
+    relative_angles.pitch = gimbal.pitch_ecd_angle;
+    communication.transmit_external_message(relative_angles, simple_comm::NodeID::Gimbal, simple_comm::NodeID::Chassis);
 }
 
 void GimbalApp::update_headings() {

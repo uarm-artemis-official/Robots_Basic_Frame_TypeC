@@ -88,7 +88,6 @@
 #include "dma.h"
 #include "gpio.h"
 #include "i2c.h"
-#include "message_center.hpp"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -99,8 +98,11 @@
 #include "apps_classes.hpp"
 #include "apps_types.hpp"
 #include "can_isr.hpp"
+#include "communication.hpp"
+#include "debug.hpp"
 #include "dji_typec_middleware.cpp"
 #include "dwt.h"
+#include "message_center.hpp"
 #include "middleware_classes.hpp"
 #include "robot_config.hpp"
 #include "stdio.h"
@@ -147,14 +149,16 @@
 static MW_RTOS::RTOS rtos;
 static MW_TIM::PWM pwm;
 static MW_UART::UART uart;
+static MW_GPIO::GPIO gpio;
 
 static MW_CAN::CAN can;
 static mc2::RobotMC mc(rtos);
 static EventCenter event_center;
-static Debug debug;
+static modules::debug::Debug debug(gpio, uart);
 static Motors motors;
 static RefereeUI ref_ui(uart);
-static Motors no_init_motors;
+static Motors
+    no_init_motors;  // TODO: Refactor? -> remove or split responsibilities into another module?
 static Imu imu(1000 / IMUApp::loop_period_ms, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
 static ammo_lid::AmmoLid ammo_lid_(pwm);
@@ -164,32 +168,29 @@ static PCComm pc_comm;
 static isr::can::CAN_ISR can_isr(can);
 static isr::uart::UART_ISR uart_isr(uart);
 
+static simple_comm::SimpleCommCodec simple_comm_codec;
+static comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics> communication(
+    mc, simple_comm_codec, can, uart);
+
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
 static constexpr float swerve_chassis_width = 0.352728f;
 static constexpr float swerve_dt = ChassisApp<SwerveDrive>::get_loop_period();
 static SwerveDrive swerve_drive(mc, no_init_motors, swerve_chassis_width,
                                 swerve_dt);
-static ChassisApp<SwerveDrive> chassis_app(rtos, swerve_drive, mc, debug);
+static ChassisApp<SwerveDrive> chassis_app(rtos, swerve_drive, mc,
+                                           communication, debug);
 #else
-
-#ifdef OMNI_CHASSIS
 static constexpr float omni_chassis_width = 0.40f;
 static OmniDrive omni_drive(mc, no_init_motors, omni_chassis_width,
                             omni_chassis_width, 80,
                             ChassisApp<OmniDrive>::get_loop_period());
-#else
-static constexpr float mecanum_chassis_width = 0.41f;
-static constexpr float mecanum_chassis_length = 0.35f;
-static OmniDrive omni_drive(mc, no_init_motors, mecanum_chassis_width,
-                            mecanum_chassis_length, 50,
-                            ChassisApp<OmniDrive>::get_loop_period());
+
+static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, communication,
+                                         debug);
 #endif
 
-static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, debug);
-#endif
-
-static RCApp rc_app(rtos, mc, rc_comm, uart_isr);
+static RCApp rc_app(rtos, mc, communication, rc_comm, uart_isr);
 
 #ifdef AUTO_AIM_RIG
 static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
@@ -200,46 +201,41 @@ static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
 #ifdef OLD_COMM_APP
 static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
 #else
-
-static constexpr size_t MAX_MESSAGE_SIZE = 256;
-
-// TODO: Move source address setting to runtime instead of constructor.
-static comm::can2_tp::v1::CAN2TP<MAX_MESSAGE_SIZE> _can2tp(
-    static_cast<uint8_t>(mc2::MessageNode::Gimbal));
-static comm::CANComm<MAX_MESSAGE_SIZE> can_comm(_can2tp, can_isr, can);
-
-static uc_uart::UC_UART<MAX_MESSAGE_SIZE> _uc_uart(
-    static_cast<uint8_t>(mc2::MessageNode::Gimbal));
-static comm::UARTComm<MAX_MESSAGE_SIZE> uart_comm(_uc_uart, uart);
-static CommApp::v2::CommApp comm_app(rtos, mc, debug, can_comm, uart_comm,
-                                     uart_isr);
+// static simple_comm::SimpleComm<CommApp::v3::MAX_SIMPLE_COMM_FX_FIFO_SIZE>
+//     _simple_comm;
+// static CommApp::v3::CommApp comm_app(rtos, can_isr, uart_isr, _simple_comm, can,
+//                                      uart, mc, debug);
+// static CommApp::v4::CommApp();
 #endif
 
-static TimerApp timer_app(rtos, motors, mc, debug, can_isr);
-static PCUARTApp pc_uart_app(rtos, mc, no_init_motors, pc_comm, uart_isr);
-static IMUApp imu_app(rtos, mc, event_center, imu, debug);
-static RefereeApp referee_app(rtos, mc, event_center, debug, ref_ui, uart_isr);
-static GimbalApp gimbal_app(rtos, mc, event_center, debug, no_init_motors);
+static TimerApp timer_app(rtos, motors, mc, communication, debug, can_isr);
+static PCUARTApp pc_uart_app(rtos, mc, communication, no_init_motors, pc_comm,
+                             uart_isr);
+static IMUApp imu_app(rtos, mc, communication, event_center, imu, debug);
+static RefereeApp referee_app(rtos, mc, communication, event_center, debug,
+                              ref_ui, uart_isr);
+static GimbalApp gimbal_app(rtos, mc, communication, event_center,
+                            no_init_motors, debug);
 static ShootApp shoot_app(
-    rtos, mc, ammo_lid_, no_init_motors,
+    rtos, mc, communication, ammo_lid_, no_init_motors,
     robot_config::shoot_params::LOADER_ACTIVE_RPM,
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
     robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
 
 void init_robot_apps() {
-    BoardStatus_t board_status = debug.get_board_status();
+    modules::debug::BoardConfig board_status = debug.get_board_config();
 
     osThreadDef(
         TimerTask, [](const void* arg) { timer_app.run(arg); }, osPriorityHigh,
         0, 256);
     osThreadCreate(osThread(TimerTask), NULL);
 
-    osThreadDef(
-        CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
-        256);
-    osThreadCreate(osThread(CommTask), NULL);
+    // osThreadDef(
+    //     CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
+    //     256);
+    // osThreadCreate(osThread(CommTask), NULL);
 
-    if (board_status == CHASSIS_BOARD) {
+    if (board_status == modules::debug::BoardConfig::CHASSIS) {
         osThreadDef(
             ChassisTask, [](const void* arg) { chassis_app.run(arg); },
             osPriorityHigh, 0, 256);
@@ -255,7 +251,7 @@ void init_robot_apps() {
             osPriorityHigh, 0, 384);
         osThreadCreate(osThread(RefTask), NULL);
 
-    } else if (board_status == GIMBAL_BOARD) {
+    } else if (board_status == modules::debug::BoardConfig::GIMBAL) {
         osThreadDef(
             GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
             osPriorityRealtime, 0, 512);
@@ -279,6 +275,9 @@ void init_robot_apps() {
 }
 
 void init_auto_aim_apps() {
+    // Set communication node ID for auto aim rig (gimbal board)
+    communication.set_node_id(simple_comm::NodeID::Gimbal);
+
     osThreadDef(
         GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
         osPriorityRealtime, 0, 512);
@@ -304,10 +303,10 @@ void init_auto_aim_apps() {
         384);
     osThreadCreate(osThread(RCTask), NULL);
 
-    osThreadDef(
-        CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
-        256);
-    osThreadCreate(osThread(CommTask), NULL);
+    // osThreadDef(
+    //     CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
+    //     256);
+    // osThreadCreate(osThread(CommTask), NULL);
 }
 
 void can_filter_enable(CAN_HandleTypeDef* hcan) {
@@ -358,6 +357,40 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
 
     ASSERT(uart_isr.init(), "UART ISR init failed.");
     ASSERT(can_isr.init(), "CAN ISR init failed.");
+    ASSERT(mc.init(), "MC init failed.");
+    ASSERT(debug.init(), "Debug init failed.");
+    event_center.init();
+
+    // Set communication node ID based on board configuration
+    modules::debug::BoardConfig board_status = debug.get_board_config();
+    if (board_status == modules::debug::BoardConfig::CHASSIS) {
+        communication.set_node_id(simple_comm::NodeID::Chassis);
+    } else if (board_status == modules::debug::BoardConfig::GIMBAL) {
+        communication.set_node_id(simple_comm::NodeID::Gimbal);
+    } else {
+        communication.set_node_id(simple_comm::NodeID::UnknownNode);
+    }
+
+    // Initialize communication submodule
+    ASSERT(communication.init(), "Communication init failed.");
+    can_isr.register_routine(
+        isr::can::ECallbacks::MESSAGE_PENDING,
+        [](MW_CAN::BUS bus, isr::can::CANFrame frame) {
+            MW_CAN::CANFrame mw_frame;
+            mw_frame.sid = frame.stdid;
+            mw_frame.eid = frame.extid;
+            mw_frame.is_extended_id =
+                (bus == MW_CAN::BUS::CAN_1B || bus == MW_CAN::BUS::CAN_2B);
+
+            ASSERT(frame.payload_length <= mw_frame.payload.size(),
+                   "Invalid CAN ISR frame length.");
+            mw_frame.dlc = static_cast<uint8_t>(frame.payload_length);
+            for (size_t i = 0; i < frame.payload_length; ++i) {
+                mw_frame.payload[i] = std::byte {frame.payload[i]};
+            }
+
+            communication.can_isr_message_pending(bus, mw_frame);
+        });
 
     return HAL_OK;
 }
@@ -368,9 +401,6 @@ void main_cpp(void);
 }
 
 void main_cpp(void) {
-    mc.init();
-    event_center.init();
-
     // TODO: Remove
     HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
                       GPIO_PIN_RESET);  // turn off the green led
@@ -451,4 +481,18 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
     }
 
     uart_isr.run_isr_routines(isr::uart::ECallbacks::ON_ERROR, peripheral);
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
+    MW_UART::Peripheral peripheral;
+    if (huart == &huart1) {
+        peripheral = MW_UART::Peripheral::UART1;
+    } else if (huart == &huart3) {
+        peripheral = MW_UART::Peripheral::UART3;
+    } else {
+        ASSERT(false, "Transmit complete on unknown huart.");
+    }
+
+    uart_isr.run_isr_routines(isr::uart::ECallbacks::TRANSMIT_COMPLETE,
+                              peripheral);
 }

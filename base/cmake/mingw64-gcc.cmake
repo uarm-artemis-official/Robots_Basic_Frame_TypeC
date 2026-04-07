@@ -4,10 +4,10 @@ set(CMAKE_SYSTEM_PROCESSOR          x86_64)
 set(CMAKE_C_COMPILER_ID GNU)
 set(CMAKE_CXX_COMPILER_ID GNU)
 
-set(CMAKE_C_COMPILER                gcc)
+set(CMAKE_C_COMPILER                gcc-13)
 set(CMAKE_ASM_COMPILER              ${CMAKE_C_COMPILER})
-set(CMAKE_CXX_COMPILER              g++)
-set(CMAKE_LINKER                    g++)
+set(CMAKE_CXX_COMPILER              g++-13)
+set(CMAKE_LINKER                    g++-13)
 set(CMAKE_OBJCOPY                   objcopy)
 set(CMAKE_SIZE                      size)
 

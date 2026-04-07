@@ -22,14 +22,24 @@ target_link_libraries(MESSAGE_CENTER
         MW::MIDDLEWARE)
 add_library(MODULES::MESSAGE_CENTER ALIAS MESSAGE_CENTER)
 
-add_library(CAN2_TP INTERFACE)
-target_include_directories(CAN2_TP INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(CAN2_TP 
-    INTERFACE 
-        LIB::UARM_LIB)
-add_library(MODULES::CAN2_TP ALIAS CAN2_TP)
-
 add_library(UC_UART INTERFACE)
 target_include_directories(UC_UART INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(UC_UART INTERFACE LIB::UARM_LIB)
 add_library(MODULES::UC_UART ALIAS UC_UART)
+
+add_library(SIMPLE_COMM INTERFACE)
+target_include_directories(SIMPLE_COMM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(SIMPLE_COMM 
+    INTERFACE 
+        ALGORITHMS::FIFO
+        LIB::UARM_LIB
+        MW::MIDDLEWARE)
+add_library(MODULES::SIMPLE_COMM ALIAS SIMPLE_COMM)
+
+add_library(DEBUG INTERFACE)
+target_include_directories(DEBUG INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(DEBUG 
+    INTERFACE 
+        LIB::UARM_LIB
+        MW::MIDDLEWARE)
+add_library(MODULES::DEBUG ALIAS DEBUG)

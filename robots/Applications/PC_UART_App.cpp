@@ -16,10 +16,14 @@
 #include "uarm_math.hpp"
 
 PCUARTApp::PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+                                         comm::Communication<mc2::RobotMC,
+                                                                                 mc2::RobotMC::Topics>&
+                                                 communication_ref,
                      IMotors& motors_, IPCComm& pc_comm_,
                      isr::uart::UART_ISR& _uart_isr)
     : RTOSApp(_rtos),
       mc(mc_ref),
+            communication(communication_ref),
       motors(motors_),
       pc_comm(pc_comm_),
       uart_isr(_uart_isr) {

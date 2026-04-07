@@ -4,11 +4,14 @@
 #include <array>
 #include "apps_interfaces.hpp"
 #include "apps_types.hpp"
-#include "can_isr.hpp"
 #include "communication.hpp"
+#include "debug.hpp"
 #include "message_center.hpp"
+#include "messages.hpp"
+#include "simple_comm.hpp"
 #include "subsystems_interfaces.hpp"
-#include "topics.hpp"
+#include "can_isr.hpp"
+#include "uart_isr.hpp"
 
 template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
@@ -16,7 +19,8 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
    private:
     ChassisDrive<DriveTrain>& drive_train;
     mc2::RobotMC& mc;
-    IDebug& debug;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
+    modules::debug::Debug& debug;
 
     Chassis_t chassis;
 
@@ -26,7 +30,11 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
     static constexpr float GYRO_SPEED = PI;
 
     explicit ChassisApp(MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
-                        mc2::RobotMC& mc_ref, IDebug& debug_ref);
+                        mc2::RobotMC& mc_ref,
+                        comm::Communication<mc2::RobotMC,
+                                            mc2::RobotMC::Topics>&
+                            communication_ref,
+                        modules::debug::Debug& _debug);
     void init();
     void set_initial_state();
 
@@ -128,15 +136,18 @@ class GimbalApp
                              apps_defines::gimbal_task_loop_period_ms> {
    private:
     Gimbal_t gimbal;
+    modules::debug::UARTAccessToken
+        debug_uart_access_token;  // Token to indicate ownership of debug UART
     Gimbal_Imu_Calibration_t imu_calibration;
     Gimbal_Motor_Control_t motor_controls[GIMBAL_MOTOR_COUNT];
     int16_t gimbal_channels[2];
     float command_deltas[2];
 
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IEventCenter& event_center;
-    IDebug& debug;
     IMotors& motors;
+    modules::debug::Debug& debug;
 
    public:
     // Software limits on pitch targets to prevent pitch from hitting mechanical hard stops.
@@ -148,8 +159,11 @@ class GimbalApp
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
     explicit GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                       IEventCenter& event_center, IDebug& debug_ref,
-                       IMotors& motors_ref);
+                       comm::Communication<mc2::RobotMC,
+                                           mc2::RobotMC::Topics>&
+                           communication_ref,
+                       IEventCenter& event_center, IMotors& motors_ref,
+                       modules::debug::Debug& _debug);
     void init();
     void set_initial_state();
     bool calibrate_start_precondition();
@@ -193,18 +207,25 @@ class ShootApp
     : public RTOSApp<ShootApp, apps_defines::shoot_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IAmmoLid& ammo_lid;
     IMotors& motors;
 
     Shoot shoot;
-    LoaderControl loader_control;
+    LoaderSpeedControl speed_loader_control;
+    LoaderPositionControl position_loader_control;
+    Motor_Feedback_t loader_feedback;
     FlyWheelControl flywheel_controls[2];
+    Motor_Feedback_t left_flywheel_feedback, right_flywheel_feedback;
     const float LOADER_ACTIVE_RPM;
     const float FLYWHEEL_ACTIVE_TARGET_RPM;
     const float MAX_FLYWHEEL_ACCEL;
 
    public:
     explicit ShootApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                      comm::Communication<mc2::RobotMC,
+                                          mc2::RobotMC::Topics>&
+                          communication_ref,
                       IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
                       float loader_active_rpm_, float flywheel_target_rpm_,
                       float max_flywheel_accel);
@@ -230,9 +251,10 @@ class IMUApp
     : public ExtendedRTOSApp<IMUApp, apps_defines::imu_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IEventCenter& event_center;
     IImu& imu;
-    IDebug& debug;
+    modules::debug::Debug& debug;
 
     IMU_t imu_app_state;
     IMU_Heat_t imu_heating_control;
@@ -245,8 +267,11 @@ class IMUApp
     static constexpr float IMU_RESET_THRESHOLD = 7.0f;
 
     explicit IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                    comm::Communication<mc2::RobotMC,
+                                        mc2::RobotMC::Topics>&
+                        communication_ref,
                     IEventCenter& event_center_ref, IImu& imu_ref,
-                    IDebug& debug_ref);
+                    modules::debug::Debug& _debug);
     void init();
     void calibrate();
     bool exit_calibrate_cond();
@@ -261,8 +286,9 @@ class RefereeApp
     : public RTOSApp<RefereeApp, apps_defines::referee_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IEventCenter& event_center;
-    IDebug& debug;
+    modules::debug::Debug& debug;
     IRefUI& ref_ui;  // Referee UI interface
     isr::uart::UART_ISR& uart_isr;
 
@@ -274,8 +300,11 @@ class RefereeApp
 
    public:
     explicit RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                        IEventCenter& evt_center, IDebug& debug, IRefUI& ref_ui,
-                        isr::uart::UART_ISR& _uart_isr);
+                        comm::Communication<mc2::RobotMC,
+                                            mc2::RobotMC::Topics>&
+                            communication_ref,
+                        IEventCenter& evt_center, modules::debug::Debug& _debug,
+                        IRefUI& ref_ui, isr::uart::UART_ISR& _uart_isr);
     void init();
     void loop();
     bool uart_isr_init(MW_UART::IUART& uart);
@@ -292,6 +321,7 @@ class RefereeApp
 class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IRCComm& rc_comm;
     isr::uart::UART_ISR& uart_isr;
 
@@ -309,6 +339,9 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
 
    public:
     explicit RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                   comm::Communication<mc2::RobotMC,
+                                       mc2::RobotMC::Topics>&
+                       communication_ref,
                    IRCComm& rc_comm_ref, isr::uart::UART_ISR& uart_isr);
 
     void init();
@@ -322,8 +355,8 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
                                BoardActMode_t& act_mode,
                                ShootActMode_t& shoot_mode);
     void detect_rc_loss();
-    void send_gimbal_can_comm(float yaw, float pitch, BoardMode_t board_mode,
-                              BoardActMode_t act_mode);
+    void send_gimbal_command(float yaw, float pitch, BoardMode_t board_mode,
+                             BoardActMode_t act_mode);
     void send_chassis_command(float v_parallel, float v_perp, float wz,
                               BoardMode_t board_mode, BoardActMode_t act_mode);
     void send_shoot_command(ShootActMode_t shoot_mode,
@@ -337,7 +370,8 @@ class TimerApp
    private:
     IMotors& system_motors;
     mc2::RobotMC& mc;
-    IDebug& debug;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
+    modules::debug::Debug& debug;
     isr::can::CAN_ISR& can_isr;
 
     const std::array<Motor_CAN_ID_t, 4> swerve_ids = {
@@ -350,7 +384,11 @@ class TimerApp
 
    public:
     explicit TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
-                      mc2::RobotMC& mc2_ref, IDebug& debug_ref,
+                      mc2::RobotMC& mc2_ref,
+                      comm::Communication<mc2::RobotMC,
+                                          mc2::RobotMC::Topics>&
+                          communication_ref,
+                      modules::debug::Debug& _debug,
                       isr::can::CAN_ISR& can_isr);
     void init();
     void loop();
@@ -363,6 +401,7 @@ class PCUARTApp
     : public RTOSApp<PCUARTApp, apps_defines::pc_uart_task_loop_period_ms> {
    private:
     mc2::RobotMC& mc;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IMotors& motors;
     IPCComm& pc_comm;
     isr::uart::UART_ISR& uart_isr;
@@ -375,6 +414,9 @@ class PCUARTApp
 
    public:
     explicit PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                       comm::Communication<mc2::RobotMC,
+                                           mc2::RobotMC::Topics>&
+                           communication_ref,
                        IMotors& motors_, IPCComm& pc_comm_,
                        isr::uart::UART_ISR& _uart_isr);
     void init();
@@ -387,67 +429,64 @@ class PCUARTApp
 };
 
 namespace CommApp {
-    inline namespace v1 {
-        class CommApp
-            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
+    // inline namespace v3 {
+    //     constexpr size_t MAX_SIMPLE_COMM_FX_FIFO_SIZE = 10;
+    //     constexpr size_t INTERNAL_FIFO_SIZE = MAX_SIMPLE_COMM_FX_FIFO_SIZE * 2;
+    //     constexpr size_t TO_PUBLISH_BUFFER_SIZE = 128;
+    //     class CommApp
+    //         : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
+    //        private:
+    //         isr::can::CAN_ISR& can_isr;
+    //         isr::uart::UART_ISR& uart_isr;
+    //         simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>& simple_comm;
+    //         mc2::RobotMC& mc;
+    //         MW_CAN::ICAN& can;
+    //         MW_UART::IUART& uart;
+    //         modules::debug::Debug& debug;
+    //         mc2::MessageNode current_node;
+    //         std::array<std::byte, 32> deserialize_message_buffer;
+    //         std::array<simple_comm::utils::IndexableDeserializer, 256>
+    //             deserializers;
+    //         std::array<simple_comm::utils::IndexableSerializer, 256>
+    //             serializers;
+
+    //         static_assert(TO_PUBLISH_BUFFER_SIZE >
+    //                           simple_comm::UART_MAX_MESSAGE_SIZE,
+    //                       "TO_PUBLISH_BUFFER_SIZE must be larger than "
+    //                       "UART_MAX_MESSAGE_SIZE.");
+    //         std::array<std::byte, TO_PUBLISH_BUFFER_SIZE> to_publish_buffer;
+    //         std::array<std::byte, simple_comm::UART_MAX_MESSAGE_SIZE>
+    //             uart_out_buffer;
+    //         dsa::StrictRingBuffer<simple_comm::SimpleMessage,
+    //                               INTERNAL_FIFO_SIZE>
+    //             messages_to_process_buffer;
+
+    //        public:
+    //         explicit CommApp(
+    //             MW_RTOS::IRTOS& _rtos, isr::can::CAN_ISR& _can_isr,
+    //             isr::uart::UART_ISR& _uart_isr,
+    //             simple_comm::SimpleComm<MAX_SIMPLE_COMM_FX_FIFO_SIZE>&
+    //                 _simple_comm,
+    //             MW_CAN::ICAN& _can, MW_UART::IUART& _uart,
+    //             mc2::RobotMC& mc2_ref, modules::debug::Debug& _debug);
+
+    //         bool init();
+    //         void loop();
+    //         bool send_message_via_can(const simple_comm::SimpleMessage& msg);
+    //         bool send_message_via_uart(const simple_comm::SimpleMessage& msg);
+    //         void enqueue_interboard_messages();
+    //     };
+    // }  // namespace v3
+    inline namespace v4 {
+        class CommApp : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
            private:
-            mc2::RobotMC& mc;
-            IDebug& debug;
-            MW_CAN::ICAN& can;
-            isr::can::CAN_ISR& can_isr;
-
-            BoardStatus_t board_status;
-            Config config;
-
            public:
-            explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                             IDebug& debug, MW_CAN::ICAN& can, Config config,
-                             isr::can::CAN_ISR& can_isr);
-            void init();
+            explicit CommApp();
+
+            bool init();
             void loop();
-            bool transmit_interboard_message(const uint32_t message_id,
-                                             const uint8_t message_data[8]);
-            bool can_isr_init(MW_CAN::ICAN& can);
-            void can_isr_on_message_pending(MW_CAN::BUS bus,
-                                            isr::can::CANFrame frame);
         };
-    }  // namespace v1
-
-    namespace v2 {
-        // Future CommApp v2 implementation.
-        class CommApp
-            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
-           private:
-            mc2::RobotMC& mc;
-            IDebug& debug;
-            comm::CANComm<> can_comm;
-            comm::UARTComm<> uart_comm;
-            isr::uart::UART_ISR& uart_isr;
-            std::array<std::byte, 256> message_temp_buffer;
-            std::array<std::byte, 256> to_publish_buffer;
-            std::array<std::byte, 256> to_publish_serialized_buffer;
-            std::array<mc2::IndexableDeserializer,
-                       mc2::registry_size_v<mc2::RobotMC::Topics>>
-                deserialize_directory;
-
-            std::array<mc2::IndexableSerializer,
-                       mc2::registry_size_v<mc2::RobotMC::Topics>>
-                byte_serializers;
-            mc2::InterboardTopicIDs<mc2::RobotMC::Topics> interboard_topic_ids;
-            BoardStatus_t board_status;
-
-           public:
-            explicit CommApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                             IDebug& debug_ref, comm::CANComm<>& can_comm_ref,
-                             comm::UARTComm<>& uart_comm_ref,
-                             isr::uart::UART_ISR& uart_isr_ref);
-            void init();
-            void loop();
-            void queue_interboard_messages();
-            void publish_new_mesage_from_buffer(
-                const comm::protocol::TopicMessageMeta& meta);
-        };
-    }  // namespace v2
+    }
 }  // namespace CommApp
 
 #endif

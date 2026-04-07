@@ -1,16 +1,37 @@
 #include "message_center.hpp"
 #include <gtest/gtest.h>
-#include <tuple>
 #include "middleware_classes.hpp"
+#include <tuple>
+
+// Additional test topics
+struct ExtraNormalTopic {
+    static constexpr size_t QUEUE_SIZE = 3;
+    int32_t i;
+    float f;
+    char c;
+};
+
+struct InterTopicA {
+    static constexpr size_t QUEUE_SIZE = 2;
+
+    uint8_t a;
+    uint16_t b;
+};
+
+struct InterTopicB {
+    static constexpr size_t QUEUE_SIZE = 1;
+
+    uint64_t v;
+};
 
 struct FloatTopic {
-    static constexpr size_t queue_size = 2;
+    static constexpr size_t QUEUE_SIZE = 2;
 
     float field;
 };
 
 struct StructTopic {
-    static constexpr size_t queue_size = 5;
+    static constexpr size_t QUEUE_SIZE = 5;
 
     uint8_t byte;
     float f;
@@ -19,15 +40,17 @@ struct StructTopic {
 };
 
 struct MailboxTopic {
-    static constexpr size_t queue_size = 1;
+    static constexpr size_t QUEUE_SIZE = 1;
     uint8_t field;
 };
 
-using TopicRegistry = std::tuple<FloatTopic, StructTopic, MailboxTopic>;
+using TopicRegistry =
+    std::tuple<FloatTopic, StructTopic, MailboxTopic, ExtraNormalTopic,
+               InterTopicA, InterTopicB>;
 
 class MessageCenterTest : public ::testing::Test {
    protected:
-    MW_RTOS::TestRTOS* rtos;
+    MW_RTOS::IRTOS* rtos;
     mc2::MC2<TopicRegistry>* mc2;
     MW_RTOS::TickType start_ts = 5;
 
@@ -36,6 +59,11 @@ class MessageCenterTest : public ::testing::Test {
         mc2 = new mc2::MC2<TopicRegistry>(*rtos);
         mc2->init();
         rtos->delay(start_ts);
+    }
+
+    void TearDown() override {
+        delete mc2;
+        delete rtos;
     }
 };
 

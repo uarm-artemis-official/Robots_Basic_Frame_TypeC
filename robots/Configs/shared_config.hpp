@@ -22,6 +22,7 @@ namespace shoot_params {
     static_assert(JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD >= 0);
     static_assert(JAM_NO_STALL_DURATION_THRESHOLD >= 0);
 
+    constexpr bool ENABLE_LOADER_POSITION_CONTROL = false;
 }  // namespace shoot_params
 
 namespace chassis_params {

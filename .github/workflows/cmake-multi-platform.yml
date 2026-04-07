@@ -15,41 +15,38 @@ jobs:
       matrix:
         include:
           - build_type: GTest
-            os: windows-latest
-            c_compiler: gcc
-            cpp_compiler: g++
-            toolchain_install: |
-              choco install ninja mingw -y
-              echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin" >> $env:GITHUB_PATH
-
-          - build_type: Mecanum
-            os: ubuntu-latest
-            c_compiler: arm-none-eabi-gcc
-            cpp_compiler: arm-none-eabi-g++
+            os: ubuntu-24.04
+            c_compiler: gcc-13
+            cpp_compiler: g++-13
             toolchain_install: |
               sudo apt-get update -qq
-              sudo apt-get install -y gcc-arm-none-eabi ninja-build
+              sudo apt-get install -y gcc-13 g++-13 ninja-build
+
           - build_type: Omni
-            os: ubuntu-latest
+            os: ubuntu-24.04
             c_compiler: arm-none-eabi-gcc
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
               sudo apt-get update -qq
               sudo apt-get install -y gcc-arm-none-eabi ninja-build
           - build_type: Swerve
-            os: ubuntu-latest
+            os: ubuntu-24.04
             c_compiler: arm-none-eabi-gcc
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
               sudo apt-get update -qq
               sudo apt-get install -y gcc-arm-none-eabi ninja-build
           - build_type: Hero
-            os: ubuntu-latest
+            os: ubuntu-24.04
             c_compiler: arm-none-eabi-gcc
             cpp_compiler: arm-none-eabi-g++
             toolchain_install: |
               sudo apt-get update -qq
               sudo apt-get install -y gcc-arm-none-eabi ninja-build
+
+    env:
+      CC: ${{ matrix.c_compiler }}
+      CXX: ${{ matrix.cpp_compiler }}
 
     steps:
     - uses: actions/checkout@v4
@@ -61,8 +58,8 @@ jobs:
     - name: Verify Compilers
       shell: bash
       run: |
-        ${{ matrix.c_compiler }} --version
-        ${{ matrix.cpp_compiler }} --version
+        $CC --version
+        $CXX --version
 
     - name: Set reusable strings
       id: strings

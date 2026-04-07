@@ -3,6 +3,7 @@
 #include "uarm_lib.hpp"
 #include "uarm_os.hpp"
 
+// TODO: Change to bool return type and check if groups initialized.
 void EventCenter::init() {
     events_group = xEventGroupCreate();
 
