@@ -24,11 +24,11 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
     std::array<Counters, NUM_TOPICS> counters_;
 
     static constexpr size_t get_index_from_topic_id(uint8_t topic_id) {
-        constexpr auto topic_ids = []<size_t... Is>(
-                                       std::index_sequence<Is...>) {
-            return std::array<uint8_t, NUM_TOPICS> {
-                std::tuple_element_t<Is, TopicRegistry>::TOPIC_ID...};
-        }(std::make_index_sequence<NUM_TOPICS> {});
+        constexpr auto topic_ids =
+            []<size_t... Is>(std::index_sequence<Is...>) {
+                return std::array<uint8_t, NUM_TOPICS> {
+                    std::tuple_element_t<Is, TopicRegistry>::TOPIC_ID...};
+            }(std::make_index_sequence<NUM_TOPICS> {});
 
         for (size_t i = 0; i < topic_ids.size(); ++i) {
             if (topic_ids[i] == topic_id) {
@@ -63,9 +63,6 @@ class FakeMessageCenter : public mc2::MC2<TopicRegistry> {
         }
         return &counters_[idx];
     }
-
-    // Fake init: do nothing, return true
-    bool init() { return true; }
 
     // get_message: if a return_value exists for T, copy it into message and
     // increment get_count and return current tick. Otherwise return nullopt.

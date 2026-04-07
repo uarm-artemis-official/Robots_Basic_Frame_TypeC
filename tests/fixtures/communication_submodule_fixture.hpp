@@ -8,7 +8,7 @@
 
 namespace communication_fixture {
     struct TestDataMessage {
-        static constexpr uint8_t TOPIC_ID = 100;
+        static constexpr uint8_t TOPIC_ID = 50;
         static constexpr uint8_t MESSAGE_ID = TOPIC_ID;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 2;
@@ -52,11 +52,14 @@ class CommunicationSubmoduleFixture : public testing::Test {
 
     CommunicationSubmoduleFixture()
         : message_center(rtos),
-                    communication(message_center, simple_comm_codec, can, uart) {
-                communication.set_node_id(simple_comm::NodeID::Gimbal);
-        }
+          communication(message_center, simple_comm_codec, can, uart) {
+        communication.set_node_id(simple_comm::NodeID::Gimbal);
+    }
 
-    void SetUp() override { EXPECT_TRUE(communication.init()); }
+    void SetUp() override {
+        EXPECT_TRUE(communication.init());
+        EXPECT_TRUE(message_center.init());
+    }
 };
 
 #endif
