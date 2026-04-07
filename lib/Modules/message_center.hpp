@@ -16,8 +16,11 @@
 #include "../uarm_lib.hpp"
 #include "middleware_interfaces.hpp"
 
-// TODO: Add markers for more explicit declaration of topic types -> add better checking too.
-// TODO: Add functionality for topics to be both local and interboard topics.
+// TODO: Need better way ID system.
+// There should be checks for Topics within the registry to see if they are following the ID system rules.
+//  - IDs must be unique.
+//  - IDs must be within a certain range (e.g. 50-255).
+//  - IDs must be continuous (i.e. no gaps) to allow for efficient indexing.
 namespace mc2 {
     inline namespace v2 {
         // Below are templates for defining message topics. Topics are generally
