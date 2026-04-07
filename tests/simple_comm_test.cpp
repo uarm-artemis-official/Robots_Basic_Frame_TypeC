@@ -38,10 +38,21 @@ namespace {
         const std::vector<uint8_t>& payload) {
         MW_CAN::CANFrame f;
 
-        f.sid = (static_cast<uint32_t>(DATA_MAGIC_TRIBIT) << 8) |
-                ((static_cast<uint32_t>(dest) & 0x0F) << 4) |
-                (static_cast<uint32_t>(src) & 0x0F);
-        f.eid = (static_cast<uint32_t>(topic) << 11);
+        // Build EID according to protocol:
+        // EID[28..26] = MAGIC_TRIBIT (3 bits)
+        // EID[25..22] = DEST (4 bits)
+        // EID[21..18] = SRC (4 bits)
+        // EID[17..10] = id (8 bits)
+        // EID[9..0]   = unused
+        uint32_t eid = 0;
+        eid |= (static_cast<uint32_t>(DATA_MAGIC_TRIBIT) << 26);
+        eid |= ((static_cast<uint32_t>(dest) & 0x0F) << 22);
+        eid |= ((static_cast<uint32_t>(src) & 0x0F) << 18);
+        eid |= (static_cast<uint32_t>(topic) << 10);
+
+        f.eid = eid;
+        f.sid = 0;
+        f.is_extended_id = true;
         f.dlc = static_cast<uint8_t>(payload.size());
         for (size_t i = 0; i < payload.size() && i < 8; ++i) {
             f.payload[i] = std::byte {payload[i]};
@@ -77,6 +88,8 @@ namespace {
         EXPECT_EQ(m.id, 0x42);
         EXPECT_EQ(m.payload_size, 3);
         EXPECT_EQ(static_cast<uint8_t>(m.payload[0]), 0x10);
+        EXPECT_EQ(static_cast<uint8_t>(m.payload[1]), 0x20);
+        EXPECT_EQ(static_cast<uint8_t>(m.payload[2]), 0x30);
     }
 
     TEST_F(SimpleCommTest, UartFullMessagePush) {

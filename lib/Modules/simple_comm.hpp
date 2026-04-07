@@ -371,28 +371,13 @@ namespace simple_comm {
             void can_isr_message_pending(MW_CAN::BUS bus,
                                          MW_CAN::CANFrame frame) {
                 if (bus == MW_CAN::BUS::CAN_2B) {
-                    // All Simple Comm metadata is stored in the 29-bit EID.
-                    // Layout (EID[28:0]): [MAGIC(3)][DEST(4)][SRC(4)][TOPIC(8)][UNUSED(10)]
-                    uint8_t magic =
-                        static_cast<uint8_t>((frame.eid >> 26) & 0x07);
-                    if (!codec.is_recognized_magic(magic)) {
-                        // Not a Simple Comm frame
-                        return;
-                    }
-
                     SimpleMessage new_msg;
-                    new_msg.destination =
-                        static_cast<uint8_t>((frame.eid >> 22) & 0x0F);
-                    new_msg.source =
-                        static_cast<uint8_t>((frame.eid >> 18) & 0x0F);
-                    new_msg.id = static_cast<uint8_t>((frame.eid >> 10) & 0xFF);
-                    new_msg.payload_size = frame.dlc;
-                    std::copy(frame.payload.begin(),
-                              frame.payload.begin() + frame.dlc,
-                              new_msg.payload.begin());
-
-                    // TODO: (Possible) Add error handling for RX buffer overflow (e.g. return a status, set a flag, etc.)
-                    (void) message_rx_buffer.push(new_msg);
+                    bool success = codec.from_can_message<MW_CAN::CANFrame>(
+                        frame, new_msg);
+                    if (success) {
+                        // TODO: (Possible) Add error handling for RX buffer overflow (e.g. return a status, set a flag, etc.)
+                        (void) message_rx_buffer.push(new_msg);
+                    }
                 }
             }
 
