@@ -1,4 +1,5 @@
 #include "can.h"
+#include "i2c.h"
 #include "middleware_classes.hpp"
 #include "stm32f4xx_hal.h"
 #include "tim.h"
@@ -478,6 +479,71 @@ namespace MW_UART {
         __HAL_UART_CLEAR_FLAG(get_hal_uart_handle(uart), flags_to_clear);
     }
 }  // namespace MW_UART
+
+namespace MW_I2C {
+    I2C_HandleTypeDef* get_hal_i2c_handle(Periperhal i2c) {
+        switch (i2c) {
+            case Periperhal::I2C_2:
+                return &hi2c2;
+            case Periperhal::I2C_3:
+                return &hi2c3;
+            default:
+                ASSERT(false, "Unsupported I2C peripheral");
+        }
+    }
+
+    void I2C::master_transmit(Periperhal i2c, uint8_t device_address,
+                              const uint8_t* data, size_t size,
+                              uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot transmit I2C data from nullptr.");
+        HAL_I2C_Master_Transmit(
+            get_hal_i2c_handle(i2c), static_cast<uint16_t>(device_address << 1),
+            const_cast<uint8_t*>(data), static_cast<uint16_t>(size), timeout);
+    }
+
+    void I2C::master_receive(Periperhal i2c, uint8_t device_address,
+                             uint8_t* data, size_t size, uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot receive I2C data to nullptr.");
+        HAL_I2C_Master_Receive(get_hal_i2c_handle(i2c),
+                               static_cast<uint16_t>(device_address << 1), data,
+                               static_cast<uint16_t>(size), timeout);
+    }
+
+    void I2C::slave_transmit(Periperhal i2c, const uint8_t* data, size_t size,
+                             uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot transmit I2C data from nullptr.");
+        HAL_I2C_Slave_Transmit(get_hal_i2c_handle(i2c),
+                               const_cast<uint8_t*>(data),
+                               static_cast<uint16_t>(size), timeout);
+    }
+
+    void I2C::slave_receive(Periperhal i2c, uint8_t* data, size_t size,
+                            uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot receive I2C data to nullptr.");
+        HAL_I2C_Slave_Receive(get_hal_i2c_handle(i2c), data,
+                              static_cast<uint16_t>(size), timeout);
+    }
+
+    void I2C::mem_write(Periperhal i2c, uint8_t device_address,
+                        uint16_t memory_address, uint16_t memory_address_size,
+                        const uint8_t* data, size_t size, uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot transmit I2C data from nullptr.");
+        HAL_I2C_Mem_Write(
+            get_hal_i2c_handle(i2c), static_cast<uint16_t>(device_address << 1),
+            memory_address, memory_address_size, const_cast<uint8_t*>(data),
+            static_cast<uint16_t>(size), timeout);
+    }
+
+    void I2C::mem_read(Periperhal i2c, uint8_t device_address,
+                       uint16_t memory_address, uint16_t memory_address_size,
+                       uint8_t* data, size_t size, uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot receive I2C data to nullptr.");
+        HAL_I2C_Mem_Read(get_hal_i2c_handle(i2c),
+                         static_cast<uint16_t>(device_address << 1),
+                         memory_address, memory_address_size, data,
+                         static_cast<uint16_t>(size), timeout);
+    }
+}  // namespace MW_I2C
 
 namespace MW_RTOS {
     /**

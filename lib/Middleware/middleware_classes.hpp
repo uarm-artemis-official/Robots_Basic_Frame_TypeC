@@ -125,6 +125,34 @@ namespace MW_I2C {
                             uint32_t timeout) override;
         void slave_receive(Periperhal i2c, uint8_t* data, size_t size,
                            uint32_t timeout) override;
+        void mem_write(Periperhal i2c, uint8_t device_address,
+                       uint16_t memory_address, uint16_t memory_address_size,
+                       const uint8_t* data, size_t size,
+                       uint32_t timeout) override;
+        void mem_read(Periperhal i2c, uint8_t device_address,
+                      uint16_t memory_address, uint16_t memory_address_size,
+                      uint8_t* data, size_t size, uint32_t timeout) override;
+    };
+
+    class I2C : public II2C {
+       public:
+        void master_transmit(Periperhal i2c, uint8_t device_address,
+                             const uint8_t* data, size_t size,
+                             uint32_t timeout) override;
+        void master_receive(Periperhal i2c, uint8_t device_address,
+                            uint8_t* data, size_t size,
+                            uint32_t timeout) override;
+        void slave_transmit(Periperhal i2c, const uint8_t* data, size_t size,
+                            uint32_t timeout) override;
+        void slave_receive(Periperhal i2c, uint8_t* data, size_t size,
+                           uint32_t timeout) override;
+        void mem_write(Periperhal i2c, uint8_t device_address,
+                       uint16_t memory_address, uint16_t memory_address_size,
+                       const uint8_t* data, size_t size,
+                       uint32_t timeout) override;
+        void mem_read(Periperhal i2c, uint8_t device_address,
+                      uint16_t memory_address, uint16_t memory_address_size,
+                      uint8_t* data, size_t size, uint32_t timeout) override;
     };
 }  // namespace MW_I2C
 

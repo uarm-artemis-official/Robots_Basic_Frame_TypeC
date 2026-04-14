@@ -179,6 +179,34 @@ namespace MW_I2C {
         (void) timeout;
         // TODO: Implement I2C slave receive logic
     }
+
+    void TestI2C::mem_write(Periperhal i2c, uint8_t device_address,
+                            uint16_t memory_address,
+                            uint16_t memory_address_size, const uint8_t* data,
+                            size_t size, uint32_t timeout) {
+        (void) i2c;
+        (void) device_address;
+        (void) memory_address;
+        (void) memory_address_size;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        // TODO: Implement I2C memory write logic
+    }
+
+    void TestI2C::mem_read(Periperhal i2c, uint8_t device_address,
+                           uint16_t memory_address,
+                           uint16_t memory_address_size, uint8_t* data,
+                           size_t size, uint32_t timeout) {
+        (void) i2c;
+        (void) device_address;
+        (void) memory_address;
+        (void) memory_address_size;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        // TODO: Implement I2C memory read logic
+    }
 }  // namespace MW_I2C
 
 namespace MW_RTOS {

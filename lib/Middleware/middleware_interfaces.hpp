@@ -270,6 +270,37 @@ namespace MW_I2C {
          */
         virtual void slave_receive(Periperhal i2c, uint8_t* data, size_t size,
                                    uint32_t timeout) = 0;
+
+        /**
+         * @brief Write data to a specific memory address on an I2C slave.
+         * @param[in] i2c The I2C peripheral to use.
+         * @param[in] device_address The address of the slave device.
+         * @param[in] memory_address The memory/register address on the device.
+         * @param[in] memory_address_size Memory address size in bytes (1 or 2).
+         * @param[in] data Pointer to the data buffer to send.
+         * @param[in] size Number of bytes to send.
+         * @param[in] timeout Timeout for the transmission.
+         */
+        virtual void mem_write(Periperhal i2c, uint8_t device_address,
+                               uint16_t memory_address,
+                               uint16_t memory_address_size,
+                               const uint8_t* data, size_t size,
+                               uint32_t timeout) = 0;
+
+        /**
+         * @brief Read data from a specific memory address on an I2C slave.
+         * @param[in] i2c The I2C peripheral to use.
+         * @param[in] device_address The address of the slave device.
+         * @param[in] memory_address The memory/register address on the device.
+         * @param[in] memory_address_size Memory address size in bytes (1 or 2).
+         * @param[out] data Pointer to the buffer to store received data.
+         * @param[in] size Number of bytes to receive.
+         * @param[in] timeout Timeout for the reception.
+         */
+        virtual void mem_read(Periperhal i2c, uint8_t device_address,
+                              uint16_t memory_address,
+                              uint16_t memory_address_size, uint8_t* data,
+                              size_t size, uint32_t timeout) = 0;
     };
 }  // namespace MW_I2C
 
