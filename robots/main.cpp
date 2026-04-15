@@ -83,14 +83,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "can.h"
-#include "cmsis_os.h"
-#include "dma.h"
-#include "gpio.h"
-#include "i2c.h"
-#include "spi.h"
-#include "tim.h"
-#include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -112,39 +104,12 @@
 #include "uart_isr.hpp"
 
 // TODO: Remove
-#define Servo_Motor_Pin_Pin GPIO_PIN_6
-#define Servo_Motor_Pin_GPIO_Port GPIOI
-#define Board_Status_Pin GPIO_PIN_1
-#define Board_Status_GPIO_Port GPIOF
-#define RSTN_IST8310_Pin GPIO_PIN_6
-#define RSTN_IST8310_GPIO_Port GPIOG
-#define IMU_Heat_Pin_Pin GPIO_PIN_6
-#define IMU_Heat_Pin_GPIO_Port GPIOF
 #define LED_Red_Pin GPIO_PIN_12
 #define LED_Red_GPIO_Port GPIOH
-#define DRDY_IST8310_Pin GPIO_PIN_3
-#define DRDY_IST8310_GPIO_Port GPIOG
 #define LED_Green_Pin GPIO_PIN_11
 #define LED_Green_GPIO_Port GPIOH
 #define LED_Blue_Pin GPIO_PIN_10
 #define LED_Blue_GPIO_Port GPIOH
-#define Buzzer_Pin_Pin GPIO_PIN_14
-#define Buzzer_Pin_GPIO_Port GPIOD
-#define CS1_ACCEL_Pin GPIO_PIN_4
-#define CS1_ACCEL_GPIO_Port GPIOA
-#define INT1_ACCEL_Pin GPIO_PIN_4
-#define INT1_ACCEL_GPIO_Port GPIOC
-#define INT1_ACCEL_EXTI_IRQn EXTI4_IRQn
-#define SOFTWARE_EXTI_Pin GPIO_PIN_0
-#define SOFTWARE_EXTI_GPIO_Port GPIOG
-#define SOFTWARE_EXTI_EXTI_IRQn EXTI0_IRQn
-#define INT1_GYRO_Pin GPIO_PIN_5
-#define INT1_GYRO_GPIO_Port GPIOC
-#define INT1_GYRO_EXTI_IRQn EXTI9_5_IRQn
-#define CS1_GYRO_Pin GPIO_PIN_0
-#define CS1_GYRO_GPIO_Port GPIOB
-#define HIGH_VOLT_Pin GPIO_PIN_15
-#define HIGH_VOLT_GPIO_Port GPIOB
 
 static MW_RTOS::RTOS rtos;
 static MW_TIM::PWM pwm;
@@ -300,27 +265,32 @@ void init_auto_aim_apps() {
     // osThreadCreate(osThread(CommTask), NULL);
 }
 
-void can_filter_enable(CAN_HandleTypeDef* hcan) {
-    CAN_FilterTypeDef CAN_FilterConfigStructure;
+void can_filter_enable(MW_CAN::BUS bus) {
+    MW_CAN::Filter filter = {
+        .id_high = 0x0000,
+        .id_low = 0x0000,
+        .mask_id_high = 0x0000,
+        .mask_id_low = 0x0000,
+        .fifo_assignment = MW_CAN::FIFO::FIFO_0,
+        .mode = MW_CAN::FilterMode::IDMask,
+        .is_activated = true,
+        .filter_bank = 0,
+        .slave_start_filter_bank = 14,
+    };
 
-    CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
-    CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_16BIT;
-    CAN_FilterConfigStructure.FilterActivation = ENABLE;
-    if (hcan == &hcan1) {
-        CAN_FilterConfigStructure.FilterBank = 0;
-    } else if (hcan == &hcan2) {
-        CAN_FilterConfigStructure.SlaveStartFilterBank = 14;
-        CAN_FilterConfigStructure.FilterBank = 14;
+    if (bus == MW_CAN::BUS::CAN_1 || bus == MW_CAN::BUS::CAN_1B) {
+        filter.filter_bank = 0;
+    } else if (bus == MW_CAN::BUS::CAN_2 || bus == MW_CAN::BUS::CAN_2B) {
+        filter.filter_bank = 14;
+    } else {
+        ASSERT(false, "Trying to configure unknown CAN bus.");
+        return;
     }
 
-    HAL_CAN_ConfigFilter(hcan, &CAN_FilterConfigStructure);
-    // activate the canx msg callback interrupt
-    HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
+    ASSERT(can.configure_filter(bus, filter), "CAN filter config failed.");
+    ASSERT(can.activate_notification(bus,
+                                     MW_CAN::Notification::RX_FIFO0_MSG_PENDING),
+           "CAN notification activation failed.");
 }
 
 HAL_StatusTypeDef firmware_and_system_init(void) {
@@ -332,8 +302,8 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
         return HAL_ERROR;
     }
     /* CAN1 & CAN2 filter Init */
-    can_filter_enable(&hcan1);
-    can_filter_enable(&hcan2);
+    can_filter_enable(MW_CAN::BUS::CAN_1);
+    can_filter_enable(MW_CAN::BUS::CAN_2);
 
     /* Timer 13 IT Init */
     if (HAL_TIM_Base_Start_IT(&htim13) != HAL_OK) {
@@ -414,76 +384,4 @@ void main_cpp(void) {
         default:
             ASSERT(false, "Unrecognized config_type.");
     }
-}
-
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM5 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
-    if (htim->Instance == TIM5) {
-        HAL_IncTick();
-    }
-}
-
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-    MW_CAN::BUS bus;
-
-    // TODO: Refactor in cause of using FIFO1 in the future.
-    uint32_t frame_ide =
-        CAN_RI0R_IDE & hcan->Instance->sFIFOMailBox[CAN_RX_FIFO0].RIR;
-    bool is_extended_id = frame_ide == CAN_ID_EXT;
-    if (hcan == &hcan1) {
-        bus = is_extended_id ? MW_CAN::BUS::CAN_1B : MW_CAN::BUS::CAN_1;
-    } else if (hcan == &hcan2) {
-        bus = is_extended_id ? MW_CAN::BUS::CAN_2B : MW_CAN::BUS::CAN_2;
-    } else {
-        ASSERT(false, "Received message on unknown hcan.");
-    }
-    can_isr.run_isr_routines(isr::can::ECallbacks::MESSAGE_PENDING, bus);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
-    MW_UART::Peripheral peripheral;
-    if (huart == &huart1) {
-        peripheral = MW_UART::Peripheral::UART1;
-    } else if (huart == &huart3) {
-        peripheral = MW_UART::Peripheral::UART3;
-    } else {
-        ASSERT(false, "Receive complete on unknown huart.");
-    }
-
-    uart_isr.run_isr_routines(isr::uart::ECallbacks::RECEIVE_COMPLETE,
-                              peripheral);
-}
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
-    MW_UART::Peripheral peripheral;
-    if (huart == &huart1) {
-        peripheral = MW_UART::Peripheral::UART1;
-    } else if (huart == &huart3) {
-        peripheral = MW_UART::Peripheral::UART3;
-    } else {
-        ASSERT(false, "Receive complete on unknown huart.");
-    }
-
-    uart_isr.run_isr_routines(isr::uart::ECallbacks::ON_ERROR, peripheral);
-}
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
-    MW_UART::Peripheral peripheral;
-    if (huart == &huart1) {
-        peripheral = MW_UART::Peripheral::UART1;
-    } else if (huart == &huart3) {
-        peripheral = MW_UART::Peripheral::UART3;
-    } else {
-        ASSERT(false, "Transmit complete on unknown huart.");
-    }
-
-    uart_isr.run_isr_routines(isr::uart::ECallbacks::TRANSMIT_COMPLETE,
-                              peripheral);
 }

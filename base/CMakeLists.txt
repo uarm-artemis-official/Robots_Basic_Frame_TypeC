@@ -1,3 +1,5 @@
+# This file is not overwritten by CubeMX.
+
 cmake_minimum_required(VERSION 3.22)
 # Enable CMake support for ASM and C languages
 enable_language(C ASM)
@@ -89,6 +91,7 @@ set(MX_LINK_LIBS
     FreeRTOS
 	
 )
+
 # Interface library for includes and symbols
 add_library(stm32cubemx INTERFACE)
 target_include_directories(stm32cubemx INTERFACE ${MX_Include_Dirs})
