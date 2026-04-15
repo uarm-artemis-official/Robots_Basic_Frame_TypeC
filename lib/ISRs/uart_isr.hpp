@@ -2,8 +2,9 @@
 #define __UART_ISR_HPP
 
 #include <functional>
-#include "../Middleware/middleware_interfaces.hpp"
 #include "isr_interfaces.hpp"
+#include "middleware_interfaces.hpp"
+#include "uarm_lib.hpp"
 
 namespace isr {
     namespace uart {
@@ -21,15 +22,46 @@ namespace isr {
             MW_UART::IUART& uart;
 
            public:
-            UART_ISR(MW_UART::IUART& uart);
+            explicit UART_ISR(MW_UART::IUART& uart_ref) : uart(uart_ref) {}
 
-            [[nodiscard]] bool init() override;
-            [[nodiscard]] bool on_register_init(size_t init_func_idx) override;
+            [[nodiscard]] bool init() override {
+                initialized = true;
+                return true;
+            }
+
+            [[nodiscard]] bool on_register_init(size_t init_func_idx) override {
+                return init_funcs[init_func_idx](uart);
+            }
+
             [[nodiscard]] bool on_register_routine(
-                size_t routine_func_idx) override;
+                size_t routine_func_idx) override {
+                (void) routine_func_idx;
+                return true;
+            }
+
             void run_isr_routines(ECallbacks callback_running,
-                                  TISRState callback_state) override;
+                                  TISRState callback_state) override {
+                switch (callback_running) {
+                    case ECallbacks::RECEIVE_COMPLETE:
+                        [[fallthrough]];
+                    case ECallbacks::ON_ERROR:
+                        [[fallthrough]];
+                    case ECallbacks::TRANSMIT_COMPLETE:
+                        break;
+                    default:
+                        ASSERT(false, "Unhandled UART ISR callback.");
+                        break;
+                }
+
+                for (size_t i = 0; i < routines_size; i++) {
+                    if (routines[i].second == callback_running) {
+                        routines[i].first(uart, callback_state);
+                    }
+                }
+            }
         };
+
+        bool install_isr(UART_ISR& uart_isr_ref);
     }  // namespace uart
 }  // namespace isr
 

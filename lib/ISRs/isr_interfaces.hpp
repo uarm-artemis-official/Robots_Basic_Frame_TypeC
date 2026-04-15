@@ -28,9 +28,10 @@ namespace isr {
        protected:
         std::array<std::pair<TISRRoutine, ECallbacks>, MAX_REGISTERED_ROUTINES>
             routines;
-        size_t routines_size;
+        size_t routines_size = 0;
         std::array<TInitFunc, MAX_REGISTERED_ROUTINES> init_funcs;
-        size_t init_funcs_size;
+        size_t init_funcs_size = 0;
+        bool initialized = false;
 
        public:
         template <typename TFunctor>
@@ -67,10 +68,13 @@ namespace isr {
 
         // Event handlers for successful registration of routines and init functions.
         [[nodiscard]] virtual bool on_register_init(size_t init_func_idx) = 0;
-        [[nodiscard]] virtual bool on_register_routine(size_t routine_func_idx) = 0;
+        [[nodiscard]] virtual bool on_register_routine(
+            size_t routine_func_idx) = 0;
 
         virtual void run_isr_routines(ECallbacks callback_running,
                                       TISRState callback_state) = 0;
+
+        [[nodiscard]] bool is_initialized() const { return initialized; }
     };
 }  // namespace isr
 
