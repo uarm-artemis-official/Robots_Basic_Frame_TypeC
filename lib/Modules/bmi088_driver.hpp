@@ -84,7 +84,7 @@ namespace bmi088_driver {
         // Legacy C driver waits 150 us between operations; RTOS interface is ms.
         static constexpr uint32_t SENSOR_WAIT_MS = 1;
         static constexpr uint32_t SENSOR_RESET_WAIT_MS = 80;
-        static constexpr uint32_t SPI_TIMEOUT_MS = 1000;
+        static constexpr uint32_t SPI_TIMEOUT_MS = 1;
 
         MW_SPI::ISPI& spi;
         MW_RTOS::IRTOS& rtos;
@@ -300,6 +300,11 @@ namespace bmi088_driver {
             get_acceleration(data.acceleration);
             get_gyro(data.gyro);
             data.temperature = get_temperature();
+        }
+
+        void set_heat_pwm_duty_cycle(uint16_t duty_cycle) {
+            pwm.set_compare(MW_TIM::Timer::TIM_10, MW_TIM::Channel::CHANNEL_1,
+                            duty_cycle);
         }
     };
 }  // namespace bmi088_driver

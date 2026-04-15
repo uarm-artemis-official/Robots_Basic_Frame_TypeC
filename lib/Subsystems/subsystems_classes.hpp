@@ -1,6 +1,8 @@
 #ifndef __SUBSYSTEMS_CLASSES_HPP
 #define __SUBSYSTEMS_CLASSES_HPP
 
+#include "bmi088_driver.hpp"
+#include "ist8310_driver.hpp"
 #include "madgewick.hpp"
 #include "middleware_interfaces.hpp"
 #include "subsystems_interfaces.hpp"
@@ -43,6 +45,8 @@ class EventCenter : public IEventCenter {
 
 class Imu : public IImu {
    private:
+    bmi088_driver::BMI088& bmi088;
+    ist8310_driver::IST8310& ist8310;
     Madgewick_Filter madgewick;
     float temperature;
     float gyro[3], accel[3], mag[3];
@@ -60,7 +64,8 @@ class Imu : public IImu {
     const float orientation[3][3];
 
    public:
-    Imu(uint32_t sampling_rate_, float beta_, const float orientation_[3][3]);
+    Imu(bmi088_driver::BMI088& bmi088_, ist8310_driver::IST8310& ist8310_,
+        uint32_t sampling_rate_, float beta_, const float orientation_[3][3]);
     void init() override;
     float get_temp() override;
     void get_attitude(Attitude_t& attitude) override;

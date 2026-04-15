@@ -150,20 +150,23 @@ static MW_RTOS::RTOS rtos;
 static MW_TIM::PWM pwm;
 static MW_UART::UART uart;
 static MW_GPIO::GPIO gpio;
+static MW_SPI::SPI spi;
+static MW_I2C::I2C i2c;
 
 static MW_CAN::CAN can;
 static mc2::RobotMC mc(rtos);
 static EventCenter event_center;
 static modules::debug::Debug debug(gpio, uart);
+static bmi088_driver::BMI088 bmi088(spi, rtos, gpio, pwm);
+static ist8310_driver::IST8310 ist8310(i2c, rtos, gpio);
 static Motors motors;
 static RefereeUI ref_ui(uart);
 static Motors
     no_init_motors;  // TODO: Refactor? -> remove or split responsibilities into another module?
-static Imu imu(1000 / IMUApp::loop_period_ms, 0.4,
+static Imu imu(bmi088, ist8310, 1000 / IMUApp::loop_period_ms, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
 static ammo_lid::AmmoLid ammo_lid_(pwm);
 static RCComm rc_comm;
-static PCComm pc_comm;
 
 static isr::can::CAN_ISR can_isr(can);
 static isr::uart::UART_ISR uart_isr(uart);
@@ -209,8 +212,6 @@ static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
 #endif
 
 static TimerApp timer_app(rtos, motors, mc, communication, debug, can_isr);
-static PCUARTApp pc_uart_app(rtos, mc, communication, no_init_motors, pc_comm,
-                             uart_isr);
 static IMUApp imu_app(rtos, mc, communication, event_center, imu, debug);
 static RefereeApp referee_app(rtos, mc, communication, event_center, debug,
                               ref_ui, uart_isr);
@@ -266,11 +267,6 @@ void init_robot_apps() {
             IMUTask, [](const void* arg) { imu_app.run(arg); },
             osPriorityRealtime, 0, 256);
         osThreadCreate(osThread(IMUTask), NULL);
-
-        osThreadDef(
-            PCUARTTask, [](const void* arg) { pc_uart_app.run(arg); },
-            osPriorityHigh, 0, 256);
-        osThreadCreate(osThread(PCUARTTask), NULL);
     }
 }
 
@@ -287,11 +283,6 @@ void init_auto_aim_apps() {
         IMUTask, [](const void* arg) { imu_app.run(arg); }, osPriorityRealtime,
         0, 256);
     osThreadCreate(osThread(IMUTask), NULL);
-
-    osThreadDef(
-        PCUARTTask, [](const void* arg) { pc_uart_app.run(arg); },
-        osPriorityHigh, 0, 256);
-    osThreadCreate(osThread(PCUARTTask), NULL);
 
     osThreadDef(
         TimerTask, [](const void* arg) { timer_app.run(arg); }, osPriorityHigh,

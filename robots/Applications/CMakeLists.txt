@@ -46,7 +46,6 @@ add_library(GENERIC_APPS
         Comm_App.cpp
         RC_App.cpp
         IMU_App.cpp
-        PC_UART_App.cpp
         Referee_App.cpp
         Timer_App.cpp)
 target_include_directories(GENERIC_APPS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

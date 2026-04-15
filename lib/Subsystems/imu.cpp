@@ -1,24 +1,32 @@
-#include "bmi088_driver.h"
-#include "ist8310driver.h"
+#include "bmi088_driver.hpp"
+#include "ist8310_driver.hpp"
 #include "subsystems_classes.hpp"
 #include "subsystems_defines.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_os.hpp"
 
-Imu::Imu(uint32_t sampling_rate_, float beta_, const float orientation_[3][3])
-    : madgewick(sampling_rate_, beta_),
+Imu::Imu(bmi088_driver::BMI088& bmi088_, ist8310_driver::IST8310& ist8310_,
+         uint32_t sampling_rate_, float beta_, const float orientation_[3][3])
+    : bmi088(bmi088_),
+      ist8310(ist8310_),
+      madgewick(sampling_rate_, beta_),
+      temperature(0.0f),
+      gyro {0.0f, 0.0f, 0.0f},
+      accel {0.0f, 0.0f, 0.0f},
+      mag {0.0f, 0.0f, 0.0f},
       orientation {
           {orientation_[0][0], orientation_[0][1], orientation_[0][2]},
           {orientation_[1][0], orientation_[1][1], orientation_[1][2]},
           {orientation_[2][0], orientation_[2][1], orientation_[2][2]}} {}
 
 void Imu::init() {
-    BMI088_init();
-    ist8310_init();
+    bmi088.init();
+    ist8310.init();
 }
 
 float Imu::get_temp() {
-    BMI088_Read(gyro, accel, &temperature);
+    bmi088_driver::BMI088Data data;
+    temperature = bmi088.get_temperature();
     return temperature;
 }
 
@@ -48,14 +56,31 @@ void Imu::get_sensor_data(AhrsSensor_t& sensor) {
 
 void Imu::gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) {
     taskENTER_CRITICAL();
-    bmi088_real_data_t bmi088_raw_data;
-    BMI088_Read(bmi088_raw_data.gyro, bmi088_raw_data.accel, &temperature);
+    bmi088_driver::BMI088Data bmi088_raw_data;
+    bmi088.get_all_data(bmi088_raw_data);
 
-    adjust_data(accel, bmi088_raw_data.accel, accel_bias, accel_scale);
-    adjust_data(gyro, bmi088_raw_data.gyro, gyro_bias, gyro_scale);
+    float accel_data[3] = {bmi088_raw_data.acceleration.x,
+                           bmi088_raw_data.acceleration.y,
+                           bmi088_raw_data.acceleration.z};
+    float gyro_data[3] = {bmi088_raw_data.gyro.x, bmi088_raw_data.gyro.y,
+                          bmi088_raw_data.gyro.z};
+    temperature = bmi088_raw_data.temperature;
+
+    adjust_data(accel, accel_data, accel_bias, accel_scale);
+    adjust_data(gyro, gyro_data, gyro_bias, gyro_scale);
 
     if (read_mag) {
-        ist8310_read_mag(mag);
+        ist8310_driver::MagnetometerData mag_data;
+        const bool is_mag_data_valid = ist8310.read_magnetometer_data(mag_data);
+        if (is_mag_data_valid) {
+            mag[0] = mag_data.x;
+            mag[1] = mag_data.y;
+            mag[2] = mag_data.z;
+        } else {
+            mag[0] = 0.0f;
+            mag[1] = 0.0f;
+            mag[2] = 0.0f;
+        }
     } else {
         mag[0] = 0.0f;
         mag[1] = 0.0f;
@@ -90,5 +115,5 @@ void Imu::adjust_data(float output[3], float data[3], const float bias[3],
 void Imu::set_heat_pwm(uint16_t pwm) {
     ASSERT(pwm <= 4000,
            "Duty cycle cannot be set greater than timer 10's counter.");
-    BMI088_Set_PWM_Duty_Cycle(pwm);
+    bmi088.set_heat_pwm_duty_cycle(pwm);
 }

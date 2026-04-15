@@ -44,7 +44,7 @@ namespace ist8310_driver {
                 MW_GPIO::IGPIO& gpio_)
             : i2c(i2c_), rtos(rtos_), gpio(gpio_) {}
 
-        void init(MW_I2C::II2C& i2c, MW_RTOS::IRTOS& rtos) {
+            void init() {
             gpio.write_pin(RSTN_PORT, RSTN_PIN, MW_GPIO::State::LOW);
             rtos.delay(RESET_DELAY_MS);
             gpio.write_pin(RSTN_PORT, RSTN_PIN, MW_GPIO::State::HIGH);

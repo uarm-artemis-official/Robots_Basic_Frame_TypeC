@@ -2,10 +2,9 @@ add_library(SUBSYSTEMS_INCLUDE INTERFACE)
 target_include_directories(SUBSYSTEMS_INCLUDE 
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${MODULES_PATH}
         ${MIDDLEWARE_PATH}
         ${FIRMWARE_PATH}/Device/motors
-        ${FIRMWARE_PATH}/Device/bmi088
-        ${FIRMWARE_PATH}/Device/ist8310
         ${FIRMWARE_PATH}
         ${ALGORITHMS_PATH}/attitude)
 target_link_libraries(SUBSYSTEMS_INCLUDE
@@ -21,8 +20,8 @@ target_link_libraries(IMU
         SUBSYSTEMS_INCLUDE
         LIB::UARM_LIB
         LIB::UARM_OS
-        FW::DEVICE::BMI088_DRIVER
-        FW::DEVICE::IST8310_DRIVER
+        MODULES::BMI088_DRIVER
+        MODULES::IST8310_DRIVER
         ALGORITHMS::ATTITUDE_LIB)
 add_library(SUBSYSTEMS::IMU ALIAS IMU)
 
@@ -45,16 +44,6 @@ target_link_libraries(MOTORS
         LIB::UARM_INCLUDE
         ISRS::CAN_ISR)
 add_library(SUBSYSTEMS::MOTORS ALIAS MOTORS)
-
-
-add_library(PC_COMM STATIC pc_comm.cpp)
-target_link_libraries(PC_COMM
-    PUBLIC
-        SUBSYSTEMS_INCLUDE
-        LIB::UARM_LIB
-        LIB::UARM_INCLUDE
-        FW::PACK_HANDLER)
-add_library(SUBSYSTEMS::PC_COMM ALIAS PC_COMM)
 
 add_library(REF_UI STATIC referee_ui.cpp)
 target_link_libraries(REF_UI
