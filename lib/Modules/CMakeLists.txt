@@ -32,11 +32,6 @@ target_link_libraries(MESSAGE_CENTER
         MW::MIDDLEWARE)
 add_library(MODULES::MESSAGE_CENTER ALIAS MESSAGE_CENTER)
 
-add_library(UC_UART INTERFACE)
-target_include_directories(UC_UART INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(UC_UART INTERFACE LIB::UARM_LIB)
-add_library(MODULES::UC_UART ALIAS UC_UART)
-
 add_library(SIMPLE_COMM INTERFACE)
 target_include_directories(SIMPLE_COMM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(SIMPLE_COMM 
