@@ -56,12 +56,6 @@
  *           @@@@@@@@@@@@@@@@@@ @@@@@@       @@@@@^@@@@^      =@@@@@@@@@@@@     =@@^    =@@@@^
  *          @@@@@@@@@@@@@@@@@@@ @@@@@       @@@@@^@@@@^      =@@@@@@@@@@@     =@@^    =@@@@^
  *
- *
- *
- *	@time 		Nov, 2023
- *	@version 	v1.0(Alpha test)
- *
- *
  * @attention
  * Code Frame Copyright (c) 2023 STMicroelectronics.
  * All rights reserved.
@@ -69,16 +63,6 @@
  * This software is licensed under terms that can be found in the LICENSE file
  * in the root directory of this software component.
  * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- * @attention
- * if you regenerate the code using cubemx, make sure:
- * 	1. set #define INCLUDE_vTaskDelayUntil 1 in the FreeRTOSConfig.h
- * 	2. delete the generated SPI NSS GPIO part in spi.c
- * 	3. delete the generated MX_IWDG_Init().(if you want to deactivate IWDG, just
- * 	   go to main.h and comment #define USE_IWDG 1)
- *
- * 	ENJOY!
- *
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -99,14 +83,6 @@
 #include "subsystems_classes.hpp"
 #include "subsystems_modules.hpp"
 #include "uart_isr.hpp"
-
-// TODO: Remove
-#define LED_Red_Pin GPIO_PIN_12
-#define LED_Red_GPIO_Port GPIOH
-#define LED_Green_Pin GPIO_PIN_11
-#define LED_Green_GPIO_Port GPIOH
-#define LED_Blue_Pin GPIO_PIN_10
-#define LED_Blue_GPIO_Port GPIOH
 
 static MW_RTOS::RTOS rtos;
 static MW_TIM::TIM tim;

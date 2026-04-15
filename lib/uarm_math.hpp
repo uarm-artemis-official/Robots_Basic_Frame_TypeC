@@ -18,7 +18,6 @@
 #include "fake_arm_math.h"
 #else
 #include "arm_math.h"
-#include "stm32f407xx.h"
 #endif
 
 // #include <cmath>
