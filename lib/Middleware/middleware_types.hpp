@@ -62,6 +62,11 @@ namespace MW_TIM {
         CHANNEL_3,
         CHANNEL_4,
     };
+
+    enum class BaseStartMode {
+        Normal,
+        Interrupt,
+    };
 }  // namespace MW_TIM
 
 namespace MW_CAN {

@@ -44,6 +44,17 @@ namespace MW_GPIO {
 }  // namespace MW_GPIO
 
 namespace MW_TIM {
+    class ITIM {
+       public:
+        /**
+         * @brief Start a timer base in normal or interrupt mode.
+         * @param[in] timer Timer to start.
+         * @param[in] mode Base start mode.
+         * @return true if start is successful, false otherwise.
+         */
+        virtual bool base_start(Timer timer, BaseStartMode mode) = 0;
+    };
+
     /**
      * @brief Interface describing PWM functionality required from middleware.
      * This interface requires methods to start, stop, and configure PWM signals.
@@ -59,8 +70,9 @@ namespace MW_TIM {
          * @brief Start PWM generation for a specific timer and channel.
          * @param[in] timer Timer to start.
          * @param[in] channel Channel of timer to start.
+         * @return true if start is successful, false otherwise.
         */
-        virtual void start(Timer timer, Channel channel) = 0;
+        virtual bool start(Timer timer, Channel channel) = 0;
 
         /**
          * @brief Stop PWM generation for a specific timer and channel.

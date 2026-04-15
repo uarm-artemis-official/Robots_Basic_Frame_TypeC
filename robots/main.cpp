@@ -112,6 +112,7 @@
 #define LED_Blue_GPIO_Port GPIOH
 
 static MW_RTOS::RTOS rtos;
+static MW_TIM::TIM tim;
 static MW_TIM::PWM pwm;
 static MW_UART::UART uart;
 static MW_GPIO::GPIO gpio;
@@ -288,36 +289,32 @@ void can_filter_enable(MW_CAN::BUS bus) {
     }
 
     ASSERT(can.configure_filter(bus, filter), "CAN filter config failed.");
-    ASSERT(can.activate_notification(bus,
-                                     MW_CAN::Notification::RX_FIFO0_MSG_PENDING),
+    ASSERT(can.activate_notification(
+               bus, MW_CAN::Notification::RX_FIFO0_MSG_PENDING),
            "CAN notification activation failed.");
 }
 
-HAL_StatusTypeDef firmware_and_system_init(void) {
+bool firmware_and_system_init(void) {
     /* CAN1 & CAN2 Init */
-    if (HAL_CAN_Start(&hcan1) != HAL_OK) {
-        return HAL_ERROR;
-    }
-    if (HAL_CAN_Start(&hcan2) != HAL_OK) {
-        return HAL_ERROR;
-    }
+    ASSERT(can.start(MW_CAN::BUS::CAN_1), "Failed to start CAN bus 1.");
+    ASSERT(can.start(MW_CAN::BUS::CAN_2), "Failed to start CAN bus 2.");
     /* CAN1 & CAN2 filter Init */
     can_filter_enable(MW_CAN::BUS::CAN_1);
     can_filter_enable(MW_CAN::BUS::CAN_2);
 
-    /* Timer 13 IT Init */
-    if (HAL_TIM_Base_Start_IT(&htim13) != HAL_OK) {
-        return HAL_ERROR;
-    }
-    /* Heat PWM signal Init */
-    if (HAL_TIM_PWM_Start(&htim10, TIM_CHANNEL_1) != HAL_OK) {
-        return HAL_ERROR;
-    }
+    ASSERT(tim.base_start(MW_TIM::Timer::TIM_13,
+                          MW_TIM::BaseStartMode::Interrupt),
+           "Failed to start timer base interrupt on TIM13.");
+
+    ASSERT(pwm.start(MW_TIM::Timer::TIM_10, MW_TIM::Channel::CHANNEL_1),
+           "Failed to start PWM on TIM10 channel 1.");
     // referee_init(&referee);
     dwt_init();
 
     ASSERT(uart_isr.init(), "UART ISR init failed.");
+    ASSERT(isr::uart::install_isr(uart_isr), "UART ISR installation failed.");
     ASSERT(can_isr.init(), "CAN ISR init failed.");
+    ASSERT(isr::can::install_isr(can_isr), "CAN ISR installation failed.");
     ASSERT(mc.init(), "MC init failed.");
     ASSERT(debug.init(), "Debug init failed.");
     event_center.init();
@@ -353,7 +350,7 @@ HAL_StatusTypeDef firmware_and_system_init(void) {
             communication.can_isr_message_pending(bus, mw_frame);
         });
 
-    return HAL_OK;
+    return true;
 }
 
 // Function signature so main.c can find main_cpp().
@@ -365,7 +362,7 @@ void main_cpp(void) {
     // TODO: Remove
     HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
                       GPIO_PIN_RESET);  // turn off the green led
-    if (firmware_and_system_init() != HAL_OK) {
+    if (!firmware_and_system_init()) {
         Error_Handler();
     } else {
         HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,

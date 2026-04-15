@@ -24,9 +24,19 @@ namespace MW_GPIO {
 }  // namespace MW_GPIO
 
 namespace MW_TIM {
+    class TestTIM : public ITIM {
+       public:
+        bool base_start(Timer timer, BaseStartMode mode) override;
+    };
+
+    class TIM : public ITIM {
+       public:
+        bool base_start(Timer timer, BaseStartMode mode) override;
+    };
+
     class TestPWM : public IPWM {
        public:
-        void start(Timer timer, Channel channel) override;
+        bool start(Timer timer, Channel channel) override;
         void stop(Timer timer, Channel channel) override;
         void set_compare(Timer timer, Channel channel,
                          uint32_t compare) override;
@@ -39,7 +49,7 @@ namespace MW_TIM {
      */
     class PWM : public IPWM {
        public:
-        void start(Timer timer, Channel channel) override;
+        bool start(Timer timer, Channel channel) override;
         void stop(Timer timer, Channel channel) override;
         void set_compare(Timer timer, Channel channel,
                          uint32_t compare) override;

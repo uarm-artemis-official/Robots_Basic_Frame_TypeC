@@ -27,10 +27,18 @@ namespace MW_GPIO {
 }  // namespace MW_GPIO
 
 namespace MW_TIM {
-    void TestPWM::start(Timer timer, Channel channel) {
+    bool TestTIM::base_start(Timer timer, BaseStartMode mode) {
+        (void) timer;
+        (void) mode;
+        // TODO: Implement timer base start logic
+        return true;
+    }
+
+    bool TestPWM::start(Timer timer, Channel channel) {
         (void) timer;
         (void) channel;
         // TODO: Implement PWM start logic
+        return true;
     }
     void TestPWM::stop(Timer timer, Channel channel) {
         (void) timer;
