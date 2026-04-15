@@ -7,7 +7,6 @@
 #include "attitude_types.h"
 #include "middleware_interfaces.hpp"
 #include "middleware_types.hpp"
-#include "motor_types.h"
 #include "subsystems_defines.hpp"
 #include "uarm_types.hpp"
 
@@ -69,6 +68,20 @@ typedef struct {
     int32_t tx_data;
     Motor_Brand_t brand;
 } Generic_Motor_t;
+
+typedef struct {
+    int16_t rx_angle;
+    int16_t rx_rpm;
+    int16_t rx_current;
+    int16_t rx_temp;
+} Motor_Feedback_t;
+
+typedef struct {
+    int8_t temperature;
+    int16_t torque_current;
+    int16_t speed;
+    uint16_t ecd_position;
+} LK_Motor_Torque_Feedback_t;
 
 typedef struct {
     Generic_Motor_t motors[MAX_MOTOR_COUNT];

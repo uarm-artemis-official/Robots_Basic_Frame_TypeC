@@ -79,13 +79,14 @@ class Imu : public IImu {
 class Motors : public IMotors {
    private:
     uint32_t counter = 0;
+    MW_CAN::ICAN& can;
 
    public:
     int32_t prev_swerve_data[4];
     Generic_Motor_t motors[MAX_MOTOR_COUNT];
     Motor_Config_t config;
 
-    Motors();
+    explicit Motors(MW_CAN::ICAN& can_ref);
     void init(Motor_Config_t config) override;
     bool is_valid_output(size_t motor_index, int32_t new_output) override;
     void set_motor_voltage(uint32_t can_id, int32_t output) override;

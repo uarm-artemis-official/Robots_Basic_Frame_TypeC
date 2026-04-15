@@ -1,10 +1,39 @@
-#include "dji_motor.h"
-#include "lk_motor.h"
+#include <cstring>
+#include "dji_motor_driver.hpp"
+#include "lk_motor_driver.hpp"
+#include "middleware_classes.hpp"
 #include "subsystems_classes.hpp"
 #include "subsystems_defines.hpp"
 #include "uarm_lib.hpp"
 
-Motors::Motors() {
+namespace {
+    // TODO: Remove
+    constexpr MW_CAN::BUS k_motor_bus = MW_CAN::BUS::CAN_2;
+
+    bool send_motor_frame(MW_CAN::ICAN& can, const MW_CAN::CANFrame& frame) {
+        uint8_t payload[8] = {0};
+        for (size_t i = 0; i < frame.dlc; ++i) {
+            payload[i] = std::to_integer<uint8_t>(frame.payload[i]);
+        }
+
+        return can.send_data(k_motor_bus, frame.sid, frame.eid, payload,
+                             frame.dlc);
+    }
+
+    MW_CAN::CANFrame build_can_frame(uint32_t stdid, const uint8_t data[8]) {
+        MW_CAN::CANFrame frame;
+        frame.sid = stdid;
+        frame.eid = 0;
+        frame.is_extended_id = false;
+        frame.dlc = 8;
+        for (size_t i = 0; i < frame.dlc; ++i) {
+            frame.payload[i] = std::byte {data[i]};
+        }
+        return frame;
+    }
+}  // namespace
+
+Motors::Motors(MW_CAN::ICAN& can_ref) : can(can_ref) {
     memset(this->motors, 0, sizeof(Generic_Motor_t) * MAX_MOTOR_COUNT);
     this->config = MOTORS_NONE;
 }
@@ -52,17 +81,41 @@ void Motors::init(Motor_Config_t config) {
 }
 
 void Motors::get_raw_feedback(uint32_t stdid, uint8_t data[8], void* feedback) {
+    MW_CAN::CANFrame frame = build_can_frame(stdid, data);
+
     // TODO: Make better limits.
     if (0x200 < stdid && stdid < 0x212) {
-        dji_motor_get_raw_feedback(data,
-                                   static_cast<Motor_Feedback_t*>(feedback));
+        dji_motor::MotorFeedback parsed_feedback;
+        ASSERT(dji_motor::parse_feedback_message(parsed_feedback, frame),
+               "Failed to parse DJI motor feedback message.");
+
+        Motor_Feedback_t* raw_feedback =
+            static_cast<Motor_Feedback_t*>(feedback);
+        raw_feedback->rx_angle = parsed_feedback.encoder_angle;
+        raw_feedback->rx_rpm = parsed_feedback.rpm;
+        raw_feedback->rx_current = parsed_feedback.current;
+        raw_feedback->rx_temp = parsed_feedback.temperature;
     } else if (0x140 < stdid && stdid < 0x173) {
-        if (data[0] == LK_MOTOR_READ_ENCODER_FB) {
+        if (data[0] ==
+            static_cast<uint8_t>(lk_motor::MotorCommand::READ_ENCODER_FB)) {
             LK_Motor_Torque_Feedback_t* lk_feedback =
                 static_cast<LK_Motor_Torque_Feedback_t*>(feedback);
-            lk_motor_get_raw_feedback(data, &(lk_feedback->ecd_position));
-        } else if (data[0] == LK_CMD_SL_ANGLE_WITH_SPEED) {
-            lk_motor_get_raw_feedback(data, feedback);
+            ASSERT(lk_motor::parse_encoder_feedback(lk_feedback->ecd_position,
+                                                    frame),
+                   "Failed to parse LK encoder feedback message.");
+        } else if (data[0] ==
+                   static_cast<uint8_t>(
+                       lk_motor::MotorCommand::SL_ANGLE_WITH_SPEED)) {
+            lk_motor::TorqueFeedback parsed_feedback;
+            ASSERT(lk_motor::parse_torque_feedback(parsed_feedback, frame),
+                   "Failed to parse LK torque feedback message.");
+
+            LK_Motor_Torque_Feedback_t* lk_feedback =
+                static_cast<LK_Motor_Torque_Feedback_t*>(feedback);
+            lk_feedback->temperature = parsed_feedback.temperature;
+            lk_feedback->torque_current = parsed_feedback.torque_current;
+            lk_feedback->speed = parsed_feedback.speed;
+            lk_feedback->ecd_position = parsed_feedback.ecd_position;
         } else {
             ASSERT(false, "Trying to parse unsupported feedback.");
         }
@@ -106,24 +159,33 @@ bool Motors::is_valid_output(size_t motor_index, int32_t new_output) {
 }
 
 void Motors::send_motor_voltage() {
+    MW_CAN::CANFrame message;
+
     switch (this->config) {
         case DJI_GIMBAL:
-            dji_motor_send_voltage((int32_t) GM6020, this->motors[2].tx_data,
-                                   this->motors[3].tx_data,
-                                   this->motors[4].tx_data, 0);
-            dji_motor_send_voltage((int32_t) M3508, this->motors[0].tx_data,
-                                   this->motors[1].tx_data, 0, 0);
+            dji_motor::format_voltage_message(
+                dji_motor::MotorType::GM6020, this->motors[2].tx_data,
+                this->motors[3].tx_data, this->motors[4].tx_data, 0, message);
+            (void) send_motor_frame(can, message);
+
+            dji_motor::format_voltage_message(
+                dji_motor::MotorType::GM3510, this->motors[0].tx_data,
+                this->motors[1].tx_data, 0, 0, message);
+            (void) send_motor_frame(can, message);
             break;
         case DJI_CHASSIS:
-            dji_motor_send_voltage((int32_t) M3508, this->motors[0].tx_data,
-                                   this->motors[1].tx_data,
-                                   this->motors[2].tx_data,
-                                   this->motors[3].tx_data);
+            dji_motor::format_voltage_message(
+                dji_motor::MotorType::GM3510, this->motors[0].tx_data,
+                this->motors[1].tx_data, this->motors[2].tx_data,
+                this->motors[3].tx_data, message);
+            (void) send_motor_frame(can, message);
             break;
         case SWERVE: {
-            __dji_motor_send((int32_t) M3508, motors[0].tx_data,
-                             motors[1].tx_data, motors[2].tx_data,
-                             motors[3].tx_data, 0);
+            dji_motor::format_voltage_message(
+                dji_motor::MotorType::GM3510, motors[0].tx_data,
+                motors[1].tx_data, motors[2].tx_data, motors[3].tx_data,
+                message);
+            (void) send_motor_frame(can, message);
 
             // TODO: Add encoding + decoding library for swerve in lib.
             uint8_t spin_direction =
@@ -135,8 +197,9 @@ void Motors::send_motor_voltage() {
                 new_angle = 1;
             }
 
-            lk_motor_send_single_loop(0x141 + counter, spin_direction,
-                                      max_speed, new_angle);
+            lk_motor::format_single_loop_message(
+                0x141 + counter, spin_direction, max_speed, new_angle, message);
+            (void) send_motor_frame(can, message);
 
             counter = (counter + 1) % 4;
             break;
@@ -149,11 +212,16 @@ void Motors::send_motor_voltage() {
 }
 
 void Motors::request_feedback(Motor_CAN_ID_t can_id) {
+    MW_CAN::CANFrame message;
+
     switch (config) {
         case SWERVE_ZERO:
         case SWERVE:
-            if (Motors::get_motor_brand(can_id) == LK)
-                lk_motor_send(can_id, LK_MOTOR_READ_SL_FB, 0);
+            if (Motors::get_motor_brand(can_id) == LK) {
+                lk_motor::format_control_message(
+                    can_id, lk_motor::MotorCommand::READ_SL_FB, 0, message);
+                (void) send_motor_frame(can, message);
+            }
             break;
         default:
             return;

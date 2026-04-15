@@ -4,7 +4,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     target_link_libraries(ISR_INTERFACES INTERFACE LIB::UARM_LIB)
     add_library(ISRS::ISR_INTERFACES ALIAS ISR_INTERFACES)
 else()
-    add_library(ISR_INTERFACES dji_install_isrs.cpp)
+    add_library(ISR_INTERFACES STATIC dji_install_isrs.cpp)
     target_include_directories(ISR_INTERFACES PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(ISR_INTERFACES 
         PUBLIC 

@@ -39,9 +39,10 @@ add_library(MOTORS STATIC motors.cpp)
 target_link_libraries(MOTORS
     PUBLIC 
         SUBSYSTEMS_INCLUDE
-        FW::DEVICE::MOTOR_LIB
         LIB::UARM_LIB
         LIB::UARM_INCLUDE
+    MODULES::DJI_MOTOR
+    MODULES::LK_MOTOR
         ISRS::CAN_ISR)
 add_library(SUBSYSTEMS::MOTORS ALIAS MOTORS)
 

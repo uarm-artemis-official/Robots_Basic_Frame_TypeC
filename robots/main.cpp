@@ -93,12 +93,9 @@
 #include "communication.hpp"
 #include "debug.hpp"
 #include "dji_typec_middleware.cpp"
-#include "dwt.h"
 #include "message_center.hpp"
 #include "middleware_classes.hpp"
 #include "robot_config.hpp"
-#include "stdio.h"
-#include "stm32f407xx.h"
 #include "subsystems_classes.hpp"
 #include "subsystems_modules.hpp"
 #include "uart_isr.hpp"
@@ -125,10 +122,10 @@ static EventCenter event_center;
 static modules::debug::Debug debug(gpio, uart);
 static bmi088_driver::BMI088 bmi088(spi, rtos, gpio, pwm);
 static ist8310_driver::IST8310 ist8310(i2c, rtos, gpio);
-static Motors motors;
+static Motors motors(can);
 static RefereeUI ref_ui(uart);
-static Motors
-    no_init_motors;  // TODO: Refactor? -> remove or split responsibilities into another module?
+static Motors no_init_motors(
+    can);  // TODO: Refactor? -> remove or split responsibilities into another module?
 static Imu imu(bmi088, ist8310, 1000 / IMUApp::loop_period_ms, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
 static ammo_lid::AmmoLid ammo_lid_(pwm);
@@ -160,22 +157,6 @@ static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, communication,
 #endif
 
 static RCApp rc_app(rtos, mc, communication, rc_comm, uart_isr);
-
-#ifdef AUTO_AIM_RIG
-static CommApp::Config comm_config = {CommApp::OperationMode::Loopback};
-#else
-static CommApp::Config comm_config = {CommApp::OperationMode::Normal};
-#endif
-
-#ifdef OLD_COMM_APP
-static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
-#else
-// static simple_comm::SimpleComm<CommApp::v3::MAX_SIMPLE_COMM_FX_FIFO_SIZE>
-//     _simple_comm;
-// static CommApp::v3::CommApp comm_app(rtos, can_isr, uart_isr, _simple_comm, can,
-//                                      uart, mc, debug);
-// static CommApp::v4::CommApp();
-#endif
 
 static TimerApp timer_app(rtos, motors, mc, communication, debug, can_isr);
 static IMUApp imu_app(rtos, mc, communication, event_center, imu, debug);
@@ -259,11 +240,6 @@ void init_auto_aim_apps() {
         RCTask, [](const void* arg) { rc_app.run(arg); }, osPriorityHigh, 0,
         384);
     osThreadCreate(osThread(RCTask), NULL);
-
-    // osThreadDef(
-    //     CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
-    //     256);
-    // osThreadCreate(osThread(CommTask), NULL);
 }
 
 void can_filter_enable(MW_CAN::BUS bus) {
@@ -302,14 +278,13 @@ bool firmware_and_system_init(void) {
     can_filter_enable(MW_CAN::BUS::CAN_1);
     can_filter_enable(MW_CAN::BUS::CAN_2);
 
-    ASSERT(tim.base_start(MW_TIM::Timer::TIM_13,
-                          MW_TIM::BaseStartMode::Interrupt),
-           "Failed to start timer base interrupt on TIM13.");
+    ASSERT(
+        tim.base_start(MW_TIM::Timer::TIM_13, MW_TIM::BaseStartMode::Interrupt),
+        "Failed to start timer base interrupt on TIM13.");
 
     ASSERT(pwm.start(MW_TIM::Timer::TIM_10, MW_TIM::Channel::CHANNEL_1),
            "Failed to start PWM on TIM10 channel 1.");
     // referee_init(&referee);
-    dwt_init();
 
     ASSERT(uart_isr.init(), "UART ISR init failed.");
     ASSERT(isr::uart::install_isr(uart_isr), "UART ISR installation failed.");
@@ -359,15 +334,8 @@ void main_cpp(void);
 }
 
 void main_cpp(void) {
-    // TODO: Remove
-    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
-                      GPIO_PIN_RESET);  // turn off the green led
-    if (!firmware_and_system_init()) {
-        Error_Handler();
-    } else {
-        HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin,
-                          GPIO_PIN_SET);  // turn on the green led
-    }
+    ASSERT(firmware_and_system_init(),
+           "Firmware and system initialization failed.");
 
     switch (robot_config::config_type) {
         case robot_config::ConfigType::Infantry:

@@ -33,7 +33,6 @@ else()
     add_library(LIB::UARM_OS ALIAS UARM_OS)
 
     target_link_libraries(UARM_INCLUDE INTERFACE COMMON_INCLUDES)
-    target_link_libraries(UARM_LIB INTERFACE FW::ERROR_HANDLER)
 endif()
 
 add_subdirectory(Middleware)

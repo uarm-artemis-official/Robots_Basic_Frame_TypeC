@@ -48,3 +48,19 @@ target_link_libraries(DEBUG
         LIB::UARM_LIB
         MW::MIDDLEWARE)
 add_library(MODULES::DEBUG ALIAS DEBUG)
+
+add_library(DJI_MOTOR INTERFACE)
+target_include_directories(DJI_MOTOR INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(DJI_MOTOR
+    INTERFACE
+        LIB::UARM_LIB
+        MW::MIDDLEWARE)
+add_library(MODULES::DJI_MOTOR ALIAS DJI_MOTOR)
+
+add_library(LK_MOTOR INTERFACE)
+target_include_directories(LK_MOTOR INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(LK_MOTOR
+    INTERFACE
+        LIB::UARM_LIB
+        MW::MIDDLEWARE)
+add_library(MODULES::LK_MOTOR ALIAS LK_MOTOR)

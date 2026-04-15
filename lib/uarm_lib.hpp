@@ -8,6 +8,7 @@
 
 // TODO: Make type safe memcpy/memset?
 #ifdef GTEST
+
 #include <cassert>
 #include <cstdlib>
 
@@ -16,18 +17,26 @@
     assert(0 && (msg))
 #define MALLOC(size) malloc(size)
 #define FREE(ptr) free(ptr)
+
 #else
-#include "FreeRTOS.h"
-#include "error_handler.h"
+
+#include "stm32f407xx.h"
+
+__attribute__((noreturn)) __attribute__((weak)) void on_error(const char* msg) {
+    (void) msg;
+    __disable_irq();
+    while (true) {}
+}
 
 #define ASSERT(cond, msg)        \
     if (!(cond)) {               \
-        error_handler((msg));    \
+        on_error(msg);           \
         __builtin_unreachable(); \
     }
 
 #define MALLOC(size) pvPortMalloc(size)
 #define FREE(ptr) vPortFree(ptr)
+
 #endif
 
 namespace uarm_lib {
