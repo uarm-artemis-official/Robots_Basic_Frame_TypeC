@@ -156,6 +156,28 @@ namespace MW_I2C {
     };
 }  // namespace MW_I2C
 
+namespace MW_SPI {
+    class TestSPI : public ISPI {
+       public:
+        bool transmit(Peripheral spi, const uint8_t* data, size_t size,
+                      uint32_t timeout) override;
+        bool receive(Peripheral spi, uint8_t* data, size_t size,
+                     uint32_t timeout) override;
+        bool transmit_receive(Peripheral spi, const uint8_t* tx, uint8_t* rx,
+                              size_t size, uint32_t timeout) override;
+    };
+
+    class SPI : public ISPI {
+       public:
+        bool transmit(Peripheral spi, const uint8_t* data, size_t size,
+                      uint32_t timeout) override;
+        bool receive(Peripheral spi, uint8_t* data, size_t size,
+                     uint32_t timeout) override;
+        bool transmit_receive(Peripheral spi, const uint8_t* tx, uint8_t* rx,
+                              size_t size, uint32_t timeout) override;
+    };
+}  // namespace MW_SPI
+
 namespace MW_RTOS {
     class TestRTOS : public IRTOS {
        private:

@@ -209,6 +209,39 @@ namespace MW_I2C {
     }
 }  // namespace MW_I2C
 
+namespace MW_SPI {
+    bool TestSPI::transmit(Peripheral spi, const uint8_t* data, size_t size,
+                           uint32_t timeout) {
+        (void) spi;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        // TODO: Implement SPI transmit logic
+        return false;
+    }
+
+    bool TestSPI::receive(Peripheral spi, uint8_t* data, size_t size,
+                          uint32_t timeout) {
+        (void) spi;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        // TODO: Implement SPI receive logic
+        return false;
+    }
+
+    bool TestSPI::transmit_receive(Peripheral spi, const uint8_t* tx,
+                                   uint8_t* rx, size_t size, uint32_t timeout) {
+        (void) spi;
+        (void) tx;
+        (void) rx;
+        (void) size;
+        (void) timeout;
+        // TODO: Implement SPI transmit/receive logic
+        return false;
+    }
+}  // namespace MW_SPI
+
 namespace MW_RTOS {
     void TestRTOS::delay_until(uint32_t* previous_wake, uint32_t ms) {
         current_tick_ms = *previous_wake + ms;

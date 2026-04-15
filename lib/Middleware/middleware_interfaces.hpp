@@ -304,6 +304,50 @@ namespace MW_I2C {
     };
 }  // namespace MW_I2C
 
+namespace MW_SPI {
+    /**
+     * @brief Interface describing SPI functionality required from middleware.
+     * Supports blocking transmit, receive, and full-duplex transfer.
+     */
+    class ISPI {
+       public:
+        /**
+         * @brief Transmit data over SPI.
+         * @param[in] spi The SPI peripheral to use.
+         * @param[in] data Buffer containing bytes to transmit.
+         * @param[in] size Number of bytes to transmit.
+         * @param[in] timeout Timeout in milliseconds.
+         * @return true if transfer completed successfully, false otherwise.
+         */
+        virtual bool transmit(Peripheral spi, const uint8_t* data, size_t size,
+                              uint32_t timeout) = 0;
+
+        /**
+         * @brief Receive data over SPI.
+         * @param[in] spi The SPI peripheral to use.
+         * @param[out] data Buffer for received bytes.
+         * @param[in] size Number of bytes to receive.
+         * @param[in] timeout Timeout in milliseconds.
+         * @return true if transfer completed successfully, false otherwise.
+         */
+        virtual bool receive(Peripheral spi, uint8_t* data, size_t size,
+                             uint32_t timeout) = 0;
+
+        /**
+         * @brief Perform full-duplex SPI transfer.
+         * @param[in] spi The SPI peripheral to use.
+         * @param[in] tx Source buffer for transmitted bytes.
+         * @param[out] rx Destination buffer for received bytes.
+         * @param[in] size Number of bytes to transfer.
+         * @param[in] timeout Timeout in milliseconds.
+         * @return true if transfer completed successfully, false otherwise.
+         */
+        virtual bool transmit_receive(Peripheral spi, const uint8_t* tx,
+                                      uint8_t* rx, size_t size,
+                                      uint32_t timeout) = 0;
+    };
+}  // namespace MW_SPI
+
 namespace MW_RTOS {
     class IRTOS {
        public:

@@ -1,6 +1,7 @@
 #include "can.h"
 #include "i2c.h"
 #include "middleware_classes.hpp"
+#include "spi.h"
 #include "stm32f4xx_hal.h"
 #include "tim.h"
 #include "uarm_lib.hpp"
@@ -544,6 +545,40 @@ namespace MW_I2C {
                          static_cast<uint16_t>(size), timeout);
     }
 }  // namespace MW_I2C
+
+namespace MW_SPI {
+    SPI_HandleTypeDef* get_hal_spi_handle(Peripheral spi) {
+        switch (spi) {
+            case Peripheral::SPI_1:
+                return &hspi1;
+            default:
+                ASSERT(false, "Unsupported SPI peripheral");
+        }
+    }
+
+    bool SPI::transmit(Peripheral spi, const uint8_t* data, size_t size,
+                       uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot transmit SPI data from nullptr.");
+        return HAL_SPI_Transmit(get_hal_spi_handle(spi), data,
+                                static_cast<uint16_t>(size), timeout) == HAL_OK;
+    }
+
+    bool SPI::receive(Peripheral spi, uint8_t* data, size_t size,
+                      uint32_t timeout) {
+        ASSERT(data != nullptr, "Cannot receive SPI data to nullptr.");
+        return HAL_SPI_Receive(get_hal_spi_handle(spi), data,
+                               static_cast<uint16_t>(size), timeout) == HAL_OK;
+    }
+
+    bool SPI::transmit_receive(Peripheral spi, const uint8_t* tx, uint8_t* rx,
+                               size_t size, uint32_t timeout) {
+        ASSERT(tx != nullptr, "Cannot transmit SPI data from nullptr.");
+        ASSERT(rx != nullptr, "Cannot receive SPI data to nullptr.");
+        return HAL_SPI_TransmitReceive(get_hal_spi_handle(spi), tx, rx,
+                                       static_cast<uint16_t>(size),
+                                       timeout) == HAL_OK;
+    }
+}  // namespace MW_SPI
 
 namespace MW_RTOS {
     /**

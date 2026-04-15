@@ -136,6 +136,12 @@ namespace MW_I2C {
     enum class Periperhal { I2C_2, I2C_3 };
 }
 
+namespace MW_SPI {
+    enum class Peripheral {
+        SPI_1,
+    };
+}
+
 namespace MW_RTOS {
 #if defined(GTEST)
     using TickType = uint32_t;
