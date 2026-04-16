@@ -363,6 +363,11 @@ namespace MW_SPI {
 namespace MW_RTOS {
     class IRTOS {
        public:
+        // Task creation.
+        virtual bool task_create(TaskHandle& task, const char* task_name,
+                                 TaskRoutine task_routine, void* task_arg,
+                                 size_t stack_depth, TaskPriority priority) = 0;
+
         // Task delays and task ticks.
         virtual void delay_until(uint32_t* previous_wake, uint32_t ms) = 0;
         virtual void delay(uint32_t ms) = 0;

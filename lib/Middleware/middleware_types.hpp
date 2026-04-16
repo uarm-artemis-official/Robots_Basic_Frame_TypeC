@@ -150,6 +150,17 @@ namespace MW_SPI {
 namespace MW_RTOS {
 #if defined(GTEST)
     using TickType = uint32_t;
+    using TaskRoutine = void (*)(void*);
+    using TaskPriority = uint32_t;
+
+    struct MockRTOSTask {
+        const char* name;
+        TaskRoutine routine;
+        void* argument;
+        size_t stack_depth;
+        TaskPriority priority;
+    };
+    using TaskHandle = MockRTOSTask*;
 
     /**
      * @brief Mock RTOS queue for testing message passing in a non-RTOS setting.
@@ -180,6 +191,9 @@ namespace MW_RTOS {
     using TickType = TickType_t;
     using QueueHandle = QueueHandle_t;
     using EventGroupHandle = EventGroupHandle_t;
+    using TaskRoutine = TaskFunction_t;
+    using TaskPriority = UBaseType_t;
+    using TaskHandle = TaskHandle_t;
 #endif
 }  // namespace MW_RTOS
 

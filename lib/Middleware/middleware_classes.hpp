@@ -194,6 +194,10 @@ namespace MW_RTOS {
         TickType current_tick_ms = 0;
 
        public:
+        bool task_create(TaskHandle& task, const char* task_name,
+                         TaskRoutine task_routine, void* task_arg,
+                         size_t stack_depth, TaskPriority priority) override;
+
         void delay_until(uint32_t* previous_wake, uint32_t ms) override;
         void delay(uint32_t ms) override;
         TickType get_current_tick() override;
@@ -218,6 +222,10 @@ namespace MW_RTOS {
 
     class RTOS : public IRTOS {
        public:
+        bool task_create(TaskHandle& task, const char* task_name,
+                         TaskRoutine task_routine, void* task_arg,
+                         size_t stack_depth, TaskPriority priority) override;
+
         void delay_until(uint32_t* previous_wake, uint32_t ms) override;
         void delay(uint32_t ms) override;
         TickType get_current_tick() override;

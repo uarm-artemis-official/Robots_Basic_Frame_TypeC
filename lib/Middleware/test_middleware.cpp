@@ -251,6 +251,25 @@ namespace MW_SPI {
 }  // namespace MW_SPI
 
 namespace MW_RTOS {
+    bool TestRTOS::task_create(TaskHandle& task, const char* task_name,
+                               TaskRoutine task_routine, void* task_arg,
+                               size_t stack_depth, TaskPriority priority) {
+        ASSERT(task_name != nullptr, "Task name cannot be nullptr.");
+        ASSERT(task_routine != nullptr, "Task routine cannot be nullptr.");
+
+        task = static_cast<TaskHandle>(malloc(sizeof(MockRTOSTask)));
+        if (task == nullptr) {
+            return false;
+        }
+
+        task->name = task_name;
+        task->routine = task_routine;
+        task->argument = task_arg;
+        task->stack_depth = stack_depth;
+        task->priority = priority;
+        return true;
+    }
+
     void TestRTOS::delay_until(uint32_t* previous_wake, uint32_t ms) {
         current_tick_ms = *previous_wake + ms;
         *previous_wake += current_tick_ms;

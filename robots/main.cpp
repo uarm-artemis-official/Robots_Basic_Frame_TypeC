@@ -64,19 +64,11 @@
  * in the root directory of this software component.
  * If no LICENSE file comes with this software, it is provided AS-IS.
  * */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
-#include "main.h"
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-#include "FreeRTOS.h"
 #include "apps_classes.hpp"
 #include "apps_types.hpp"
 #include "can_isr.hpp"
 #include "communication.hpp"
 #include "debug.hpp"
-#include "dji_typec_middleware.cpp"
 #include "message_center.hpp"
 #include "middleware_classes.hpp"
 #include "robot_config.hpp"
@@ -146,13 +138,23 @@ static ShootApp shoot_app(
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
     robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
 
+static MW_RTOS::TaskHandle timer_task_handle = nullptr;
+static MW_RTOS::TaskHandle chassis_task_handle = nullptr;
+static MW_RTOS::TaskHandle rc_task_handle = nullptr;
+static MW_RTOS::TaskHandle ref_task_handle = nullptr;
+static MW_RTOS::TaskHandle gimbal_task_handle = nullptr;
+static MW_RTOS::TaskHandle shoot_task_handle = nullptr;
+static MW_RTOS::TaskHandle imu_task_handle = nullptr;
+
 void init_robot_apps() {
     modules::debug::BoardConfig board_status = debug.get_board_config();
 
-    osThreadDef(
-        TimerTask, [](const void* arg) { timer_app.run(arg); }, osPriorityHigh,
-        0, 256);
-    osThreadCreate(osThread(TimerTask), NULL);
+    ASSERT(
+        rtos.task_create(
+            timer_task_handle, const_cast<char*>("TimerTask"),
+            [](void* arg) { timer_app.run(static_cast<const void*>(arg)); },
+            nullptr, 256, static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+        "Failed to create TimerTask.");
 
     // osThreadDef(
     //     CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
@@ -160,36 +162,56 @@ void init_robot_apps() {
     // osThreadCreate(osThread(CommTask), NULL);
 
     if (board_status == modules::debug::BoardConfig::CHASSIS) {
-        osThreadDef(
-            ChassisTask, [](const void* arg) { chassis_app.run(arg); },
-            osPriorityHigh, 0, 256);
-        osThreadCreate(osThread(ChassisTask), NULL);
+        ASSERT(rtos.task_create(
+                   chassis_task_handle, const_cast<char*>("ChassisTask"),
+                   [](void* arg) {
+                       chassis_app.run(static_cast<const void*>(arg));
+                   },
+                   nullptr, 256,
+                   static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+               "Failed to create ChassisTask.");
 
-        osThreadDef(
-            RCTask, [](const void* arg) { rc_app.run(arg); }, osPriorityHigh, 0,
-            384);
-        osThreadCreate(osThread(RCTask), NULL);
+        ASSERT(rtos.task_create(
+                   rc_task_handle, const_cast<char*>("RCTask"),
+                   [](void* arg) { rc_app.run(static_cast<const void*>(arg)); },
+                   nullptr, 384,
+                   static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+               "Failed to create RCTask.");
 
-        osThreadDef(
-            RefTask, [](const void* arg) { referee_app.run(arg); },
-            osPriorityHigh, 0, 384);
-        osThreadCreate(osThread(RefTask), NULL);
+        ASSERT(rtos.task_create(
+                   ref_task_handle, const_cast<char*>("RefTask"),
+                   [](void* arg) {
+                       referee_app.run(static_cast<const void*>(arg));
+                   },
+                   nullptr, 384,
+                   static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+               "Failed to create RefTask.");
 
     } else if (board_status == modules::debug::BoardConfig::GIMBAL) {
-        osThreadDef(
-            GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
-            osPriorityRealtime, 0, 512);
-        osThreadCreate(osThread(GimbalTask), NULL);
+        ASSERT(rtos.task_create(
+                   gimbal_task_handle, const_cast<char*>("GimbalTask"),
+                   [](void* arg) {
+                       gimbal_app.run(static_cast<const void*>(arg));
+                   },
+                   nullptr, 512,
+                   static_cast<MW_RTOS::TaskPriority>(osPriorityRealtime)),
+               "Failed to create GimbalTask.");
 
-        osThreadDef(
-            ShootTask, [](const void* arg) { shoot_app.run(arg); },
-            osPriorityHigh, 0, 256);
-        osThreadCreate(osThread(ShootTask), NULL);
+        ASSERT(
+            rtos.task_create(
+                shoot_task_handle, const_cast<char*>("ShootTask"),
+                [](void* arg) { shoot_app.run(static_cast<const void*>(arg)); },
+                nullptr, 256,
+                static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+            "Failed to create ShootTask.");
 
-        osThreadDef(
-            IMUTask, [](const void* arg) { imu_app.run(arg); },
-            osPriorityRealtime, 0, 256);
-        osThreadCreate(osThread(IMUTask), NULL);
+        ASSERT(
+            rtos.task_create(
+                imu_task_handle, const_cast<char*>("IMUTask"),
+                [](void* arg) { imu_app.run(static_cast<const void*>(arg)); },
+                nullptr, 256,
+                static_cast<MW_RTOS::TaskPriority>(osPriorityRealtime)),
+            "Failed to create IMUTask.");
     }
 }
 
@@ -197,25 +219,33 @@ void init_auto_aim_apps() {
     // Set communication node ID for auto aim rig (gimbal board)
     communication.set_node_id(simple_comm::NodeID::Gimbal);
 
-    osThreadDef(
-        GimbalTask, [](const void* arg) { gimbal_app.run(arg); },
-        osPriorityRealtime, 0, 512);
-    osThreadCreate(osThread(GimbalTask), NULL);
+    ASSERT(rtos.task_create(
+               gimbal_task_handle, const_cast<char*>("GimbalTask"),
+               [](void* arg) { gimbal_app.run(static_cast<const void*>(arg)); },
+               nullptr, 512,
+               static_cast<MW_RTOS::TaskPriority>(osPriorityRealtime)),
+           "Failed to create GimbalTask.");
 
-    osThreadDef(
-        IMUTask, [](const void* arg) { imu_app.run(arg); }, osPriorityRealtime,
-        0, 256);
-    osThreadCreate(osThread(IMUTask), NULL);
+    ASSERT(rtos.task_create(
+               imu_task_handle, const_cast<char*>("IMUTask"),
+               [](void* arg) { imu_app.run(static_cast<const void*>(arg)); },
+               nullptr, 256,
+               static_cast<MW_RTOS::TaskPriority>(osPriorityRealtime)),
+           "Failed to create IMUTask.");
 
-    osThreadDef(
-        TimerTask, [](const void* arg) { timer_app.run(arg); }, osPriorityHigh,
-        0, 256);
-    osThreadCreate(osThread(TimerTask), NULL);
+    ASSERT(
+        rtos.task_create(
+            timer_task_handle, const_cast<char*>("TimerTask"),
+            [](void* arg) { timer_app.run(static_cast<const void*>(arg)); },
+            nullptr, 256, static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+        "Failed to create TimerTask.");
 
-    osThreadDef(
-        RCTask, [](const void* arg) { rc_app.run(arg); }, osPriorityHigh, 0,
-        384);
-    osThreadCreate(osThread(RCTask), NULL);
+    ASSERT(
+        rtos.task_create(
+            rc_task_handle, const_cast<char*>("RCTask"),
+            [](void* arg) { rc_app.run(static_cast<const void*>(arg)); },
+            nullptr, 384, static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+        "Failed to create RCTask.");
 }
 
 void can_filter_enable(MW_CAN::BUS bus) {

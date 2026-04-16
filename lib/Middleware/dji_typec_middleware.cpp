@@ -596,6 +596,17 @@ namespace MW_SPI {
 }  // namespace MW_SPI
 
 namespace MW_RTOS {
+    bool RTOS::task_create(TaskHandle& task, const char* task_name,
+                           TaskRoutine task_routine, void* task_arg,
+                           size_t stack_depth, TaskPriority priority) {
+        ASSERT(task_name != nullptr, "Task name cannot be nullptr.");
+        ASSERT(task_routine != nullptr, "Task routine cannot be nullptr.");
+
+        return xTaskCreate(task_routine, task_name,
+                           static_cast<configSTACK_DEPTH_TYPE>(stack_depth),
+                           task_arg, priority, &task) == pdPASS;
+    }
+
     /**
      * @brief Delay until a certain tick count.
      * @param[in,out] previous_wake Pointer to the previous wake tick.
