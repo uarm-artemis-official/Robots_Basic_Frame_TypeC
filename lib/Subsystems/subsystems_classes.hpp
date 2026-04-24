@@ -30,10 +30,12 @@ namespace ammo_lid {
 
 class EventCenter : public IEventCenter {
    private:
+    MW_RTOS::IRTOS& rtos;
     MW_RTOS::EventGroupHandle events_group;
     Sync_group_t sync_groups[NUM_SYNC_GROUPS];
 
    public:
+    explicit EventCenter(MW_RTOS::IRTOS& rtos_);
     void init() override;
     UARM_Events_t wait_events(UARM_Events_t wait_events,
                               uint32_t timeout) override;

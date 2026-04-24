@@ -214,6 +214,20 @@ namespace MW_RTOS {
                          size_t stack_depth, TaskPriority priority) override;
         void critical_section_enter() override;
         void critical_section_exit() override;
+        bool event_group_create(EventGroupHandle& event_group) override;
+        EventBits event_group_set_bits(EventGroupHandle event_group,
+                                                                             EventBits bits_to_set) override;
+        EventBits event_group_clear_bits(EventGroupHandle event_group,
+                                                                                 EventBits bits_to_clear) override;
+        EventBits event_group_wait_bits(EventGroupHandle event_group,
+                                                                                EventBits bits_to_wait_for,
+                        bool clear_on_exit,
+                        bool wait_for_all_bits,
+                        uint32_t ticks_to_wait) override;
+        EventBits event_group_sync(EventGroupHandle event_group,
+                                                                     EventBits bits_to_set,
+                                                                     EventBits bits_to_wait_for,
+                       uint32_t ticks_to_wait) override;
 
         void delay_until_ms(uint32_t* previous_wake, uint32_t ms) override;
         void delay_ms(uint32_t ms) override;
@@ -247,6 +261,20 @@ namespace MW_RTOS {
                          size_t stack_depth, TaskPriority priority) override;
         void critical_section_enter() override;
         void critical_section_exit() override;
+        bool event_group_create(EventGroupHandle& event_group) override;
+        EventBits event_group_set_bits(EventGroupHandle event_group,
+                                                                             EventBits bits_to_set) override;
+        EventBits event_group_clear_bits(EventGroupHandle event_group,
+                                                                                 EventBits bits_to_clear) override;
+        EventBits event_group_wait_bits(EventGroupHandle event_group,
+                                                                                EventBits bits_to_wait_for,
+                        bool clear_on_exit,
+                        bool wait_for_all_bits,
+                        uint32_t ticks_to_wait) override;
+        EventBits event_group_sync(EventGroupHandle event_group,
+                                                                     EventBits bits_to_set,
+                                                                     EventBits bits_to_wait_for,
+                       uint32_t ticks_to_wait) override;
 
         void delay_until_ms(uint32_t* previous_wake, uint32_t ms) override;
         void delay_ms(uint32_t ms) override;

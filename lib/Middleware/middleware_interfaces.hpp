@@ -388,6 +388,21 @@ namespace MW_RTOS {
         virtual void critical_section_enter() = 0;
         virtual void critical_section_exit() = 0;
 
+        // Event groups.
+        virtual bool event_group_create(EventGroupHandle& event_group) = 0;
+        virtual EventBits event_group_set_bits(EventGroupHandle event_group,
+                                                                                             EventBits bits_to_set) = 0;
+        virtual EventBits event_group_clear_bits(EventGroupHandle event_group,
+                                                                                                 EventBits bits_to_clear) = 0;
+        virtual EventBits event_group_wait_bits(
+                        EventGroupHandle event_group, EventBits bits_to_wait_for,
+            bool clear_on_exit, bool wait_for_all_bits,
+            uint32_t ticks_to_wait) = 0;
+        virtual EventBits event_group_sync(EventGroupHandle event_group,
+                                                                                     EventBits bits_to_set,
+                                                                                     EventBits bits_to_wait_for,
+                                           uint32_t ticks_to_wait) = 0;
+
         // Task delays and task ticks.
         virtual void delay_until_ms(uint32_t* previous_wake, uint32_t ms) = 0;
         virtual void delay_ms(uint32_t ms) = 0;

@@ -30,7 +30,7 @@ add_library(EVENT_CENTER STATIC event_center.cpp)
 target_link_libraries(EVENT_CENTER 
     PUBLIC 
         SUBSYSTEMS_INCLUDE
-        LIB::UARM_OS
+    MW::MIDDLEWARE
         LIB::UARM_LIB)
 add_library(SUBSYSTEMS::EVENT_CENTER ALIAS EVENT_CENTER)
 

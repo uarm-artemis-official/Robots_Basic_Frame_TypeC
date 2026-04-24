@@ -150,6 +150,7 @@ namespace MW_SPI {
 namespace MW_RTOS {
 #if defined(GTEST)
     using TickType = uint32_t;
+    using EventBits = uint32_t;
     using TaskRoutine = void (*)(void*);
     using TaskPriority = uint32_t;
 
@@ -184,11 +185,13 @@ namespace MW_RTOS {
     };
     using QueueHandle = MockRTOSQueue*;
 
-    // TODO: Design and implement mock event group.
-    struct MockRTOSEventGroup {};
+    struct MockRTOSEventGroup {
+        EventBits bits;
+    };
     using EventGroupHandle = MockRTOSEventGroup*;
 #else
     using TickType = TickType_t;
+    using EventBits = uint32_t;
     using QueueHandle = QueueHandle_t;
     using EventGroupHandle = EventGroupHandle_t;
     using TaskRoutine = TaskFunction_t;

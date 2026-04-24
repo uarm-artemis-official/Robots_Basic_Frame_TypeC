@@ -86,7 +86,7 @@ static MW_I2C::I2C i2c;
 
 static MW_CAN::CAN can;
 static mc2::RobotMC mc(rtos);
-static EventCenter event_center;
+static EventCenter event_center(rtos);
 static modules::debug::Debug debug(gpio, uart);
 static bmi088_driver::BMI088 bmi088(spi, rtos, gpio, pwm);
 static ist8310_driver::IST8310 ist8310(i2c, rtos, gpio);

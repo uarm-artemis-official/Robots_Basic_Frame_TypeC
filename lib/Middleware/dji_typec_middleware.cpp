@@ -651,6 +651,45 @@ namespace MW_RTOS {
         taskEXIT_CRITICAL();
     }
 
+    bool RTOS::event_group_create(EventGroupHandle& event_group) {
+        event_group = xEventGroupCreate();
+        return event_group != nullptr;
+    }
+
+    EventBits RTOS::event_group_set_bits(EventGroupHandle event_group,
+                                                                                 EventBits bits_to_set) {
+        return static_cast<EventBits>(
+            xEventGroupSetBits(event_group, static_cast<EventBits_t>(bits_to_set)));
+    }
+
+    EventBits RTOS::event_group_clear_bits(EventGroupHandle event_group,
+                                                                                     EventBits bits_to_clear) {
+        return static_cast<EventBits>(xEventGroupClearBits(
+            event_group, static_cast<EventBits_t>(bits_to_clear)));
+    }
+
+    EventBits RTOS::event_group_wait_bits(EventGroupHandle event_group,
+                                                                                    EventBits bits_to_wait_for,
+                                          bool clear_on_exit,
+                                          bool wait_for_all_bits,
+                                          uint32_t ticks_to_wait) {
+        return static_cast<EventBits>(xEventGroupWaitBits(
+            event_group, static_cast<EventBits_t>(bits_to_wait_for),
+            clear_on_exit ? pdTRUE : pdFALSE,
+            wait_for_all_bits ? pdTRUE : pdFALSE,
+            static_cast<TickType_t>(ticks_to_wait)));
+    }
+
+    EventBits RTOS::event_group_sync(EventGroupHandle event_group,
+                                     EventBits bits_to_set,
+                                     EventBits bits_to_wait_for,
+                                     uint32_t ticks_to_wait) {
+        return static_cast<EventBits>(xEventGroupSync(
+            event_group, static_cast<EventBits_t>(bits_to_set),
+            static_cast<EventBits_t>(bits_to_wait_for),
+            static_cast<TickType_t>(ticks_to_wait)));
+    }
+
     /**
      * @brief Delay until a certain tick count.
      * @param[in,out] previous_wake Pointer to the previous wake tick.

@@ -310,6 +310,70 @@ namespace MW_RTOS {
         // No-op in test middleware.
     }
 
+    bool TestRTOS::event_group_create(EventGroupHandle& event_group) {
+        event_group = static_cast<EventGroupHandle>(
+            malloc(sizeof(MockRTOSEventGroup)));
+        if (event_group == nullptr) {
+            return false;
+        }
+        event_group->bits = 0;
+        return true;
+    }
+
+    EventBits TestRTOS::event_group_set_bits(EventGroupHandle event_group,
+                                             EventBits bits_to_set) {
+        if (event_group == nullptr) {
+            return 0;
+        }
+        event_group->bits |= bits_to_set;
+        return event_group->bits;
+    }
+
+    EventBits TestRTOS::event_group_clear_bits(EventGroupHandle event_group,
+                                               EventBits bits_to_clear) {
+        if (event_group == nullptr) {
+            return 0;
+        }
+        event_group->bits &= ~bits_to_clear;
+        return event_group->bits;
+    }
+
+    EventBits TestRTOS::event_group_wait_bits(EventGroupHandle event_group,
+                                              EventBits bits_to_wait_for,
+                                              bool clear_on_exit,
+                                              bool wait_for_all_bits,
+                                              uint32_t ticks_to_wait) {
+        (void) ticks_to_wait;
+        if (event_group == nullptr) {
+            return 0;
+        }
+
+        const EventBits current = event_group->bits;
+        const bool condition_met =
+            wait_for_all_bits ? ((current & bits_to_wait_for) == bits_to_wait_for)
+                              : ((current & bits_to_wait_for) != 0);
+
+        if (condition_met && clear_on_exit) {
+            event_group->bits &= ~bits_to_wait_for;
+        }
+
+        return current;
+    }
+
+    EventBits TestRTOS::event_group_sync(EventGroupHandle event_group,
+                                         EventBits bits_to_set,
+                                         EventBits bits_to_wait_for,
+                                         uint32_t ticks_to_wait) {
+        (void) bits_to_wait_for;
+        (void) ticks_to_wait;
+        if (event_group == nullptr) {
+            return 0;
+        }
+
+        event_group->bits |= bits_to_set;
+        return event_group->bits;
+    }
+
     void TestRTOS::delay_until_ms(uint32_t* previous_wake, uint32_t ms) {
         current_tick_ms = *previous_wake + ms;
         *previous_wake += current_tick_ms;
