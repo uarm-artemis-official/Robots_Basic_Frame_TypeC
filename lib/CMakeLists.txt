@@ -16,8 +16,6 @@ target_link_libraries(UARM_MATH
         UARM_LIB)
 add_library(LIB::UARM_MATH ALIAS UARM_MATH)
 
-add_library(UARM_OS STATIC uarm_os.cpp)
-
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     target_link_libraries(UARM_OS 
         PUBLIC 
@@ -26,12 +24,6 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
 
     target_compile_definitions(UARM_INCLUDE INTERFACE GTEST)
 else()
-    target_link_libraries(UARM_OS 
-        PUBLIC 
-            UARM_INCLUDE
-            FreeRTOS)
-    add_library(LIB::UARM_OS ALIAS UARM_OS)
-
     target_link_libraries(UARM_INCLUDE INTERFACE COMMON_INCLUDES)
 endif()
 
