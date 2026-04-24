@@ -6,13 +6,14 @@
             "hidden": true,
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
-            "toolchainFile": "${sourceDir}/base/cmake/gcc-arm-none-eabi.cmake",
+            "toolchainFile": "${sourceDir}/bases/robots3v3/cmake/gcc-arm-none-eabi.cmake",
             "cacheVariables": {}
         },
         {
             "name": "Omni",
             "inherits": "default",
             "cacheVariables": {
+                "BASE_TYPE": "robots3v3",
                 "CMAKE_BUILD_TYPE": "Omni",
                 "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
@@ -21,6 +22,7 @@
             "name": "Swerve",
             "inherits": "default",
             "cacheVariables": {
+                "BASE_TYPE": "robots3v3",
                 "CMAKE_BUILD_TYPE": "Swerve",
                 "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
@@ -29,6 +31,7 @@
             "name": "Hero",
             "inherits": "default",
             "cacheVariables": {
+                "BASE_TYPE": "robots3v3",
                 "CMAKE_BUILD_TYPE": "Hero",
                 "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
@@ -37,6 +40,7 @@
             "name": "Kiddie_Mode",
             "inherits": "default",
             "cacheVariables": {
+                "BASE_TYPE": "robots3v3",
                 "CMAKE_BUILD_TYPE": "Kiddie_Mode",
                 "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
@@ -45,7 +49,17 @@
             "name": "Auto_Aim_Rig",
             "inherits": "default",
             "cacheVariables": {
+                "BASE_TYPE": "robots3v3",
                 "CMAKE_BUILD_TYPE": "Auto_Aim_Rig",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
+            "name": "Telemetry",
+            "inherits": "default",
+            "cacheVariables": {
+                "BASE_TYPE": "telemetry",
+                "CMAKE_BUILD_TYPE": "Telemetry",
                 "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
         },
@@ -56,7 +70,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "GTest",
                 "CMAKE_VERBOSE_MAKEFILE": "ON",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/base/cmake/mingw64-gcc.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/bases/robots3v3/cmake/mingw64-gcc.cmake"
             }
         },
         {
@@ -80,6 +94,10 @@
         {
             "name": "Hero",
             "configurePreset": "Hero"
+        },
+        {
+            "name": "Telemetry",
+            "configurePreset": "Telemetry"
         },
         {
             "name": "GTest",

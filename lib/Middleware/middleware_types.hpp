@@ -4,8 +4,9 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include "middleware_defines.hpp"
 
-#ifndef GTEST
+#if !defined(GTEST) && defined(MW_ENABLE_RTOS)
 #include "cmsis_os.h"
 #endif
 

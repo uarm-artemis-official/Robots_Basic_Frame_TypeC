@@ -1,13 +1,29 @@
-#include "can.h"
-#include "i2c.h"
 #include "middleware_classes.hpp"
-#include "spi.h"
 #include "stm32f4xx_hal.h"
-#include "tim.h"
 #include "uarm_lib.hpp"
+
+#ifdef MW_ENABLE_CAN
+#include "can.h"
+#endif
+
+#ifdef MW_ENABLE_I2C
+#include "i2c.h"
+#endif
+
+#ifdef MW_ENABLE_SPI
+#include "spi.h"
+#endif
+
+#ifdef MW_ENABLE_TIM
+#include "tim.h"
+#endif
+
+#ifdef MW_ENABLE_UART
 #include "usart.h"
+#endif
 
 namespace MW_GPIO {
+#ifdef MW_ENABLE_GPIO
     // Mapping functions between enum classes and HAL types.
     // ============================================================
     /**
@@ -150,9 +166,36 @@ namespace MW_GPIO {
     void GPIO::toggle_pin(Port port, Pin pin) {
         HAL_GPIO_TogglePin(get_hal_port(port), get_hal_pin(pin));
     }
+#else
+    bool GPIO::init() {
+        ASSERT(false, "MW_GPIO is disabled for this base.");
+        return false;
+    }
+
+    void GPIO::write_pin(Port port, Pin pin, State state) {
+        (void) port;
+        (void) pin;
+        (void) state;
+        ASSERT(false, "MW_GPIO is disabled for this base.");
+    }
+
+    State GPIO::read_pin(Port port, Pin pin) {
+        (void) port;
+        (void) pin;
+        ASSERT(false, "MW_GPIO is disabled for this base.");
+        return State::LOW;
+    }
+
+    void GPIO::toggle_pin(Port port, Pin pin) {
+        (void) port;
+        (void) pin;
+        ASSERT(false, "MW_GPIO is disabled for this base.");
+    }
+#endif
 }  // namespace MW_GPIO
 
 namespace MW_TIM {
+#ifdef MW_ENABLE_TIM
     /**
      * @brief Get HAL Timer handle for a Timer enum.
      * @param[in] timer Timer enum to get.
@@ -261,9 +304,60 @@ namespace MW_TIM {
     void PWM::set_counter(Timer timer, uint32_t counter) {
         __HAL_TIM_SET_COUNTER(get_hal_tim_handle(timer), counter);
     }
+#else
+    bool TIM::init() {
+        ASSERT(false, "MW_TIM is disabled for this base.");
+        return false;
+    }
+
+    bool TIM::base_start(Timer timer, BaseStartMode mode) {
+        (void) timer;
+        (void) mode;
+        ASSERT(false, "MW_TIM is disabled for this base.");
+        return false;
+    }
+
+    bool PWM::start(Timer timer, Channel channel) {
+        (void) timer;
+        (void) channel;
+        ASSERT(false, "MW_TIM is disabled for this base.");
+        return false;
+    }
+
+    bool PWM::init() {
+        ASSERT(false, "MW_TIM is disabled for this base.");
+        return false;
+    }
+
+    void PWM::stop(Timer timer, Channel channel) {
+        (void) timer;
+        (void) channel;
+        ASSERT(false, "MW_TIM is disabled for this base.");
+    }
+
+    void PWM::set_compare(Timer timer, Channel channel, uint32_t compare) {
+        (void) timer;
+        (void) channel;
+        (void) compare;
+        ASSERT(false, "MW_TIM is disabled for this base.");
+    }
+
+    void PWM::set_autoreload(Timer timer, uint32_t autoreload) {
+        (void) timer;
+        (void) autoreload;
+        ASSERT(false, "MW_TIM is disabled for this base.");
+    }
+
+    void PWM::set_counter(Timer timer, uint32_t counter) {
+        (void) timer;
+        (void) counter;
+        ASSERT(false, "MW_TIM is disabled for this base.");
+    }
+#endif
 }  // namespace MW_TIM
 
 namespace MW_CAN {
+#ifdef MW_ENABLE_CAN
     /**
      * @brief Get the HAL CAN handle from the BUS enum.
      * @param bus The BUS enum value.
@@ -427,9 +521,65 @@ namespace MW_CAN {
         return HAL_CAN_ConfigFilter(get_hal_can_handle(bus), &filter_config) ==
                HAL_OK;
     }
+#else
+    bool CAN::init() {
+        ASSERT(false, "MW_CAN is disabled for this base.");
+        return false;
+    }
+
+    bool CAN::send_data(BUS bus, uint32_t id, uint32_t ext_id,
+                        const uint8_t* data, uint32_t length) {
+        (void) bus;
+        (void) id;
+        (void) ext_id;
+        (void) data;
+        (void) length;
+        ASSERT(false, "MW_CAN is disabled for this base.");
+        return false;
+    }
+
+    bool CAN::receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& ext_id,
+                           uint8_t* dst, uint32_t& length) {
+        (void) bus;
+        (void) fifo;
+        (void) id;
+        (void) ext_id;
+        (void) dst;
+        (void) length;
+        ASSERT(false, "MW_CAN is disabled for this base.");
+        return false;
+    }
+
+    bool CAN::start(BUS bus) {
+        (void) bus;
+        ASSERT(false, "MW_CAN is disabled for this base.");
+        return false;
+    }
+
+    bool CAN::stop(BUS bus) {
+        (void) bus;
+        ASSERT(false, "MW_CAN is disabled for this base.");
+        return false;
+    }
+
+    bool CAN::activate_notification(BUS bus, Notification notification) {
+        (void) bus;
+        (void) notification;
+        ASSERT(false, "MW_CAN is disabled for this base.");
+        return false;
+    }
+
+    bool CAN::configure_filter(BUS bus, Filter filter_configuration) {
+        (void) bus;
+        (void) filter_configuration;
+        ASSERT(false, "MW_CAN is disabled for this base.");
+        return false;
+    }
+#endif
 }  // namespace MW_CAN
 
 namespace MW_UART {
+#ifdef MW_ENABLE_UART
     /**
      * @brief Get the HAL UART handle from the Peripheral enum.
      * @param uart The Peripheral enum value.
@@ -515,9 +665,57 @@ namespace MW_UART {
     void UART::clear_flags(Peripheral uart, uint32_t flags_to_clear) {
         __HAL_UART_CLEAR_FLAG(get_hal_uart_handle(uart), flags_to_clear);
     }
+#else
+    bool UART::init() {
+        ASSERT(false, "MW_UART is disabled for this base.");
+        return false;
+    }
+
+    void UART::send_data(Peripheral uart, const uint8_t* data, uint32_t length,
+                         uint32_t timeout) {
+        (void) uart;
+        (void) data;
+        (void) length;
+        (void) timeout;
+        ASSERT(false, "MW_UART is disabled for this base.");
+    }
+
+    void UART::send_data(Peripheral uart, std::span<const std::byte> data,
+                         uint32_t timeout) {
+        (void) uart;
+        (void) data;
+        (void) timeout;
+        ASSERT(false, "MW_UART is disabled for this base.");
+    }
+
+    bool UART::receive_data(Peripheral uart, uint8_t* data, uint32_t length) {
+        (void) uart;
+        (void) data;
+        (void) length;
+        ASSERT(false, "MW_UART is disabled for this base.");
+        return false;
+    }
+
+    void UART::abort_receive(Peripheral uart) {
+        (void) uart;
+        ASSERT(false, "MW_UART is disabled for this base.");
+    }
+
+    void UART::abort_transmit(Peripheral uart) {
+        (void) uart;
+        ASSERT(false, "MW_UART is disabled for this base.");
+    }
+
+    void UART::clear_flags(Peripheral uart, uint32_t flags_to_clear) {
+        (void) uart;
+        (void) flags_to_clear;
+        ASSERT(false, "MW_UART is disabled for this base.");
+    }
+#endif
 }  // namespace MW_UART
 
 namespace MW_I2C {
+#ifdef MW_ENABLE_I2C
     bool I2C::init() {
         return true;
     }
@@ -584,9 +782,81 @@ namespace MW_I2C {
                          memory_address, memory_address_size, data,
                          static_cast<uint16_t>(size), timeout);
     }
+#else
+    bool I2C::init() {
+        ASSERT(false, "MW_I2C is disabled for this base.");
+        return false;
+    }
+
+    void I2C::master_transmit(Periperhal i2c, uint8_t device_address,
+                              const uint8_t* data, size_t size,
+                              uint32_t timeout) {
+        (void) i2c;
+        (void) device_address;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_I2C is disabled for this base.");
+    }
+
+    void I2C::master_receive(Periperhal i2c, uint8_t device_address,
+                             uint8_t* data, size_t size, uint32_t timeout) {
+        (void) i2c;
+        (void) device_address;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_I2C is disabled for this base.");
+    }
+
+    void I2C::slave_transmit(Periperhal i2c, const uint8_t* data, size_t size,
+                             uint32_t timeout) {
+        (void) i2c;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_I2C is disabled for this base.");
+    }
+
+    void I2C::slave_receive(Periperhal i2c, uint8_t* data, size_t size,
+                            uint32_t timeout) {
+        (void) i2c;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_I2C is disabled for this base.");
+    }
+
+    void I2C::mem_write(Periperhal i2c, uint8_t device_address,
+                        uint16_t memory_address, uint16_t memory_address_size,
+                        const uint8_t* data, size_t size, uint32_t timeout) {
+        (void) i2c;
+        (void) device_address;
+        (void) memory_address;
+        (void) memory_address_size;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_I2C is disabled for this base.");
+    }
+
+    void I2C::mem_read(Periperhal i2c, uint8_t device_address,
+                       uint16_t memory_address, uint16_t memory_address_size,
+                       uint8_t* data, size_t size, uint32_t timeout) {
+        (void) i2c;
+        (void) device_address;
+        (void) memory_address;
+        (void) memory_address_size;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_I2C is disabled for this base.");
+    }
+#endif
 }  // namespace MW_I2C
 
 namespace MW_SPI {
+#ifdef MW_ENABLE_SPI
     bool SPI::init() {
         return true;
     }
@@ -622,9 +892,47 @@ namespace MW_SPI {
                                        static_cast<uint16_t>(size),
                                        timeout) == HAL_OK;
     }
+#else
+    bool SPI::init() {
+        ASSERT(false, "MW_SPI is disabled for this base.");
+        return false;
+    }
+
+    bool SPI::transmit(Peripheral spi, const uint8_t* data, size_t size,
+                       uint32_t timeout) {
+        (void) spi;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_SPI is disabled for this base.");
+        return false;
+    }
+
+    bool SPI::receive(Peripheral spi, uint8_t* data, size_t size,
+                      uint32_t timeout) {
+        (void) spi;
+        (void) data;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_SPI is disabled for this base.");
+        return false;
+    }
+
+    bool SPI::transmit_receive(Peripheral spi, const uint8_t* tx, uint8_t* rx,
+                               size_t size, uint32_t timeout) {
+        (void) spi;
+        (void) tx;
+        (void) rx;
+        (void) size;
+        (void) timeout;
+        ASSERT(false, "MW_SPI is disabled for this base.");
+        return false;
+    }
+#endif
 }  // namespace MW_SPI
 
 namespace MW_RTOS {
+#ifdef MW_ENABLE_RTOS
     bool RTOS::init() {
         CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
         DWT->CYCCNT = 0;
@@ -657,19 +965,19 @@ namespace MW_RTOS {
     }
 
     EventBits RTOS::event_group_set_bits(EventGroupHandle event_group,
-                                                                                 EventBits bits_to_set) {
-        return static_cast<EventBits>(
-            xEventGroupSetBits(event_group, static_cast<EventBits_t>(bits_to_set)));
+                                         EventBits bits_to_set) {
+        return static_cast<EventBits>(xEventGroupSetBits(
+            event_group, static_cast<EventBits_t>(bits_to_set)));
     }
 
     EventBits RTOS::event_group_clear_bits(EventGroupHandle event_group,
-                                                                                     EventBits bits_to_clear) {
+                                           EventBits bits_to_clear) {
         return static_cast<EventBits>(xEventGroupClearBits(
             event_group, static_cast<EventBits_t>(bits_to_clear)));
     }
 
     EventBits RTOS::event_group_wait_bits(EventGroupHandle event_group,
-                                                                                    EventBits bits_to_wait_for,
+                                          EventBits bits_to_wait_for,
                                           bool clear_on_exit,
                                           bool wait_for_all_bits,
                                           uint32_t ticks_to_wait) {
@@ -684,10 +992,10 @@ namespace MW_RTOS {
                                      EventBits bits_to_set,
                                      EventBits bits_to_wait_for,
                                      uint32_t ticks_to_wait) {
-        return static_cast<EventBits>(xEventGroupSync(
-            event_group, static_cast<EventBits_t>(bits_to_set),
-            static_cast<EventBits_t>(bits_to_wait_for),
-            static_cast<TickType_t>(ticks_to_wait)));
+        return static_cast<EventBits>(
+            xEventGroupSync(event_group, static_cast<EventBits_t>(bits_to_set),
+                            static_cast<EventBits_t>(bits_to_wait_for),
+                            static_cast<TickType_t>(ticks_to_wait)));
     }
 
     /**
@@ -831,4 +1139,173 @@ namespace MW_RTOS {
                          TickType ticks_to_wait) {
         return xQueueReceive(queue, data_ptr, ticks_to_wait) == pdTRUE;
     }
+#else
+    bool RTOS::init() {
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::task_create(TaskHandle& task, const char* task_name,
+                           TaskRoutine task_routine, void* task_arg,
+                           size_t stack_depth, TaskPriority priority) {
+        (void) task;
+        (void) task_name;
+        (void) task_routine;
+        (void) task_arg;
+        (void) stack_depth;
+        (void) priority;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    void RTOS::critical_section_enter() {
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+    }
+
+    void RTOS::critical_section_exit() {
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+    }
+
+    bool RTOS::event_group_create(EventGroupHandle& event_group) {
+        (void) event_group;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    EventBits RTOS::event_group_set_bits(EventGroupHandle event_group,
+                                         EventBits bits_to_set) {
+        (void) event_group;
+        (void) bits_to_set;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return 0;
+    }
+
+    EventBits RTOS::event_group_clear_bits(EventGroupHandle event_group,
+                                           EventBits bits_to_clear) {
+        (void) event_group;
+        (void) bits_to_clear;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return 0;
+    }
+
+    EventBits RTOS::event_group_wait_bits(EventGroupHandle event_group,
+                                          EventBits bits_to_wait_for,
+                                          bool clear_on_exit,
+                                          bool wait_for_all_bits,
+                                          uint32_t ticks_to_wait) {
+        (void) event_group;
+        (void) bits_to_wait_for;
+        (void) clear_on_exit;
+        (void) wait_for_all_bits;
+        (void) ticks_to_wait;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return 0;
+    }
+
+    EventBits RTOS::event_group_sync(EventGroupHandle event_group,
+                                     EventBits bits_to_set,
+                                     EventBits bits_to_wait_for,
+                                     uint32_t ticks_to_wait) {
+        (void) event_group;
+        (void) bits_to_set;
+        (void) bits_to_wait_for;
+        (void) ticks_to_wait;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return 0;
+    }
+
+    void RTOS::delay_until_ms(uint32_t* previous_wake, uint32_t ms) {
+        (void) previous_wake;
+        (void) ms;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+    }
+
+    void RTOS::delay_ms(uint32_t ms) {
+        (void) ms;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+    }
+
+    void RTOS::delay_until_us(uint32_t* previous_wake, uint32_t us) {
+        (void) previous_wake;
+        (void) us;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+    }
+
+    void RTOS::delay_us(uint32_t us) {
+        (void) us;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+    }
+
+    TickType RTOS::get_current_tick() {
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return 0;
+    }
+
+    TickType RTOS::ms_to_ticks(uint32_t ms) {
+        (void) ms;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return 0;
+    }
+
+    bool RTOS::queue_create(QueueHandle& queue, size_t queue_length,
+                            size_t item_size) {
+        (void) queue;
+        (void) queue_length;
+        (void) item_size;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::queue_overwrite(QueueHandle queue, void* data_ptr) {
+        (void) queue;
+        (void) data_ptr;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::queue_pushback(QueueHandle queue, void* data_ptr,
+                              TickType ticks_to_wait) {
+        (void) queue;
+        (void) data_ptr;
+        (void) ticks_to_wait;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::queue_overwrite_from_isr(QueueHandle queue, void* data_ptr,
+                                        bool* awakenHigherPrio) {
+        (void) queue;
+        (void) data_ptr;
+        (void) awakenHigherPrio;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::queue_pushback_from_isr(QueueHandle queue, void* data_ptr,
+                                       bool* awakenHigherPrio) {
+        (void) queue;
+        (void) data_ptr;
+        (void) awakenHigherPrio;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::queue_peek(QueueHandle queue, void* data_ptr,
+                          TickType ticks_to_wait) {
+        (void) queue;
+        (void) data_ptr;
+        (void) ticks_to_wait;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::queue_get(QueueHandle queue, void* data_ptr,
+                         TickType ticks_to_wait) {
+        (void) queue;
+        (void) data_ptr;
+        (void) ticks_to_wait;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+#endif
 }  // namespace MW_RTOS
