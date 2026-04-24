@@ -3,12 +3,13 @@
 #include "subsystems_classes.hpp"
 #include "subsystems_defines.hpp"
 #include "uarm_lib.hpp"
-#include "uarm_os.hpp"
 
 Imu::Imu(bmi088_driver::BMI088& bmi088_, ist8310_driver::IST8310& ist8310_,
-         uint32_t sampling_rate_, float beta_, const float orientation_[3][3])
+                 MW_RTOS::IRTOS& rtos_, uint32_t sampling_rate_, float beta_,
+                 const float orientation_[3][3])
     : bmi088(bmi088_),
       ist8310(ist8310_),
+            rtos(rtos_),
       madgewick(sampling_rate_, beta_),
       temperature(0.0f),
       gyro {0.0f, 0.0f, 0.0f},
@@ -25,7 +26,6 @@ void Imu::init() {
 }
 
 float Imu::get_temp() {
-    bmi088_driver::BMI088Data data;
     temperature = bmi088.get_temperature();
     return temperature;
 }
@@ -55,7 +55,7 @@ void Imu::get_sensor_data(AhrsSensor_t& sensor) {
 }
 
 void Imu::gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) {
-    taskENTER_CRITICAL();
+    rtos.critical_section_enter();
     bmi088_driver::BMI088Data bmi088_raw_data;
     bmi088.get_all_data(bmi088_raw_data);
 
@@ -88,7 +88,7 @@ void Imu::gather_sensor_data(AhrsSensor_t& sensor, bool read_mag) {
     }
 
     get_sensor_data(sensor);
-    taskEXIT_CRITICAL();
+    rtos.critical_section_exit();
 }
 
 void Imu::adjust_data(float output[3], float data[3], const float bias[3],

@@ -6,6 +6,7 @@
 
 class MockIGPIO : public MW_GPIO::IGPIO {
    public:
+    MOCK_METHOD(bool, init, (), (override));
     MOCK_METHOD(void, write_pin,
                 (MW_GPIO::Port port, MW_GPIO::Pin pin, MW_GPIO::State state),
                 (override));
@@ -17,7 +18,8 @@ class MockIGPIO : public MW_GPIO::IGPIO {
 
 class MockIPWM : public MW_TIM::IPWM {
    public:
-    MOCK_METHOD(void, start, (MW_TIM::Timer timer, MW_TIM::Channel channel),
+    MOCK_METHOD(bool, init, (), (override));
+    MOCK_METHOD(bool, start, (MW_TIM::Timer timer, MW_TIM::Channel channel),
                 (override));
     MOCK_METHOD(void, stop, (MW_TIM::Timer timer, MW_TIM::Channel channel),
                 (override));
@@ -33,6 +35,7 @@ class MockIPWM : public MW_TIM::IPWM {
 
 class MockICAN : public MW_CAN::ICAN {
    public:
+    MOCK_METHOD(bool, init, (), (override));
     MOCK_METHOD(bool, send_data,
                 (MW_CAN::BUS bus, uint32_t id, uint32_t ext_id,
                  const uint8_t* data, uint32_t length),
@@ -53,26 +56,28 @@ class MockICAN : public MW_CAN::ICAN {
 
 class MockIUART : public MW_UART::IUART {
    public:
+    MOCK_METHOD(bool, init, (), (override));
     MOCK_METHOD(void, send_data,
                 (MW_UART::Peripheral uart, const uint8_t* data, uint32_t length,
                  uint32_t timeout),
                 (override));
-   MOCK_METHOD(void, send_data,
-            (MW_UART::Peripheral uart, std::span<const std::byte> data,
-             uint32_t timeout),
-            (override));
+    MOCK_METHOD(void, send_data,
+                (MW_UART::Peripheral uart, std::span<const std::byte> data,
+                 uint32_t timeout),
+                (override));
     MOCK_METHOD(bool, receive_data,
                 (MW_UART::Peripheral uart, uint8_t* data, uint32_t length),
                 (override));
     MOCK_METHOD(void, abort_receive, (MW_UART::Peripheral uart), (override));
     MOCK_METHOD(void, abort_transmit, (MW_UART::Peripheral uart), (override));
-   MOCK_METHOD(void, clear_flags,
-            (MW_UART::Peripheral uart, uint32_t flags_to_clear),
-            (override));
+    MOCK_METHOD(void, clear_flags,
+                (MW_UART::Peripheral uart, uint32_t flags_to_clear),
+                (override));
 };
 
 class MockII2C : public MW_I2C::II2C {
    public:
+    MOCK_METHOD(bool, init, (), (override));
     MOCK_METHOD(void, master_transmit,
                 (MW_I2C::Periperhal i2c, uint8_t device_address,
                  const uint8_t* data, size_t size, uint32_t timeout),
@@ -89,13 +94,34 @@ class MockII2C : public MW_I2C::II2C {
                 (MW_I2C::Periperhal i2c, uint8_t* data, size_t size,
                  uint32_t timeout),
                 (override));
+    MOCK_METHOD(void, mem_write,
+                (MW_I2C::Periperhal i2c, uint8_t device_address,
+                 uint16_t memory_address, uint16_t memory_address_size,
+                 const uint8_t* data, size_t size, uint32_t timeout),
+                (override));
+    MOCK_METHOD(void, mem_read,
+                (MW_I2C::Periperhal i2c, uint8_t device_address,
+                 uint16_t memory_address, uint16_t memory_address_size,
+                 uint8_t* data, size_t size, uint32_t timeout),
+                (override));
 };
 
 class MockIRTOS : public MW_RTOS::IRTOS {
    public:
-    MOCK_METHOD(void, delay_until, (uint32_t* previous_wake, uint32_t ms),
+    MOCK_METHOD(bool, init, (), (override));
+    MOCK_METHOD(bool, task_create,
+                (MW_RTOS::TaskHandle & task, const char* task_name,
+                 MW_RTOS::TaskRoutine task_routine, void* task_arg,
+                 size_t stack_depth, MW_RTOS::TaskPriority priority),
                 (override));
-    MOCK_METHOD(void, delay, (uint32_t ms), (override));
+   MOCK_METHOD(void, critical_section_enter, (), (override));
+   MOCK_METHOD(void, critical_section_exit, (), (override));
+    MOCK_METHOD(void, delay_until_ms, (uint32_t* previous_wake, uint32_t ms),
+                (override));
+    MOCK_METHOD(void, delay_ms, (uint32_t ms), (override));
+    MOCK_METHOD(void, delay_until_us, (uint32_t* previous_wake, uint32_t us),
+                (override));
+    MOCK_METHOD(void, delay_us, (uint32_t us), (override));
     MOCK_METHOD(MW_RTOS::TickType, get_current_tick, (), (override));
     MOCK_METHOD(MW_RTOS::TickType, ms_to_ticks, (uint32_t ms), (override));
     MOCK_METHOD(bool, queue_create,

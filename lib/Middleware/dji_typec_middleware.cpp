@@ -116,6 +116,10 @@ namespace MW_GPIO {
         }
     }
 
+    bool GPIO::init() {
+        return true;
+    }
+
     /**
      * @brief Write a value to a GPIO pin.
      * @param port The GPIO port.
@@ -193,6 +197,10 @@ namespace MW_TIM {
         }
     }
 
+    bool TIM::init() {
+        return true;
+    }
+
     bool TIM::base_start(Timer timer, BaseStartMode mode) {
         TIM_HandleTypeDef* htim = get_hal_tim_handle(timer);
         switch (mode) {
@@ -215,6 +223,10 @@ namespace MW_TIM {
     bool PWM::start(Timer timer, Channel channel) {
         return HAL_TIM_PWM_Start(get_hal_tim_handle(timer),
                                  get_hal_tim_channel(channel)) == HAL_OK;
+    }
+
+    bool PWM::init() {
+        return true;
     }
 
     /**
@@ -287,6 +299,11 @@ namespace MW_CAN {
                 ASSERT(false, "Unsupported CAN FIFO");
         }
     }
+
+    bool CAN::init() {
+        return true;
+    }
+
     /**
      * @brief Send data over the CAN bus.
      * @pre 0 < length <= 8.
@@ -431,6 +448,10 @@ namespace MW_UART {
         }
     }
 
+    bool UART::init() {
+        return true;
+    }
+
     /**
      * @brief Send data over UART.
      * @pre 0 < length <= MAX_UART_BUFFER_SIZE.
@@ -497,6 +518,10 @@ namespace MW_UART {
 }  // namespace MW_UART
 
 namespace MW_I2C {
+    bool I2C::init() {
+        return true;
+    }
+
     I2C_HandleTypeDef* get_hal_i2c_handle(Periperhal i2c) {
         switch (i2c) {
             case Periperhal::I2C_2:
@@ -562,6 +587,10 @@ namespace MW_I2C {
 }  // namespace MW_I2C
 
 namespace MW_SPI {
+    bool SPI::init() {
+        return true;
+    }
+
     SPI_HandleTypeDef* get_hal_spi_handle(Peripheral spi) {
         switch (spi) {
             case Peripheral::SPI_1:
@@ -596,6 +625,13 @@ namespace MW_SPI {
 }  // namespace MW_SPI
 
 namespace MW_RTOS {
+    bool RTOS::init() {
+        CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+        DWT->CYCCNT = 0;
+        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+        return true;
+    }
+
     bool RTOS::task_create(TaskHandle& task, const char* task_name,
                            TaskRoutine task_routine, void* task_arg,
                            size_t stack_depth, TaskPriority priority) {
@@ -607,12 +643,20 @@ namespace MW_RTOS {
                            task_arg, priority, &task) == pdPASS;
     }
 
+    void RTOS::critical_section_enter() {
+        taskENTER_CRITICAL();
+    }
+
+    void RTOS::critical_section_exit() {
+        taskEXIT_CRITICAL();
+    }
+
     /**
      * @brief Delay until a certain tick count.
      * @param[in,out] previous_wake Pointer to the previous wake tick.
      * @param[in] ms Milliseconds to delay.
      */
-    void RTOS::delay_until(uint32_t* previous_wake, uint32_t ms) {
+    void RTOS::delay_until_ms(uint32_t* previous_wake, uint32_t ms) {
         *previous_wake = xTaskGetTickCount();
         TickType_t delay_ticks = pdMS_TO_TICKS(ms);
         vTaskDelayUntil(previous_wake, delay_ticks);
@@ -622,9 +666,26 @@ namespace MW_RTOS {
      * @brief Delay for a certain number of milliseconds.
      * @param[in] ms Milliseconds to delay.
      */
-    void RTOS::delay(uint32_t ms) {
+    void RTOS::delay_ms(uint32_t ms) {
         TickType_t delay_ticks = pdMS_TO_TICKS(ms);
         vTaskDelay(delay_ticks);
+    }
+
+    void RTOS::delay_until_us(uint32_t* previous_wake, uint32_t us) {
+        (void) previous_wake;
+        (void) us;
+        ASSERT(false, "Microsecond delays not implemented yet.");
+        // TODO: Implement (AI - DO NOT IMPLEMENT)
+        return;
+    }
+
+    void RTOS::delay_us(uint32_t us) {
+        ASSERT(us < 10000,
+               "Delays of 10ms or more should use delay_ms or delay_until_ms.");
+        SystemCoreClockUpdate();
+        uint32_t start_tick = DWT->CYCCNT;
+        uint32_t delay_ticks = us * (SystemCoreClock / 1000000);
+        while ((DWT->CYCCNT - start_tick) < delay_ticks) {}
     }
 
     /**

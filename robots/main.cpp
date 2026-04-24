@@ -94,7 +94,7 @@ static Motors motors(can);
 static RefereeUI ref_ui(uart);
 static Motors no_init_motors(
     can);  // TODO: Refactor? -> remove or split responsibilities into another module?
-static Imu imu(bmi088, ist8310, 1000 / IMUApp::loop_period_ms, 0.4,
+static Imu imu(bmi088, ist8310, rtos, 1000 / IMUApp::loop_period_ms, 0.4,
                robot_config::gimbal_params::IMU_ORIENTATION);
 static ammo_lid::AmmoLid ammo_lid_(pwm);
 static RCComm rc_comm;

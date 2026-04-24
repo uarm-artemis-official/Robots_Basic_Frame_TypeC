@@ -18,8 +18,8 @@ add_library(IMU STATIC imu.cpp)
 target_link_libraries(IMU
     PUBLIC
         SUBSYSTEMS_INCLUDE
+        MW::MIDDLEWARE
         LIB::UARM_LIB
-        LIB::UARM_OS
         MODULES::BMI088_DRIVER
         MODULES::IST8310_DRIVER
         ALGORITHMS::ATTITUDE_LIB)

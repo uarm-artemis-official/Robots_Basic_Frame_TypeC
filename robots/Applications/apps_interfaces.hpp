@@ -34,12 +34,12 @@ class ExtendedRTOSApp {
             } else {
                 derived->calibrate();
             }
-            rtos.delay_until(&xLastWakeTime, xFrequency);
+            rtos.delay_until_ms(&xLastWakeTime, xFrequency);
         }
 
         for (;;) {
             derived->loop();
-            rtos.delay_until(&xLastWakeTime, xFrequency);
+            rtos.delay_until_ms(&xLastWakeTime, xFrequency);
         }
     }
 };

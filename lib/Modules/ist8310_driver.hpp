@@ -46,9 +46,9 @@ namespace ist8310_driver {
 
             void init() {
             gpio.write_pin(RSTN_PORT, RSTN_PIN, MW_GPIO::State::LOW);
-            rtos.delay(RESET_DELAY_MS);
+            rtos.delay_ms(RESET_DELAY_MS);
             gpio.write_pin(RSTN_PORT, RSTN_PIN, MW_GPIO::State::HIGH);
-            rtos.delay(RESET_DELAY_MS);
+            rtos.delay_ms(RESET_DELAY_MS);
 
             uint8_t who_am_i = 0;
             i2c.mem_read(I2C_BUS, DEVICE_ADDRESS, WHO_AM_I_REGISTER,
@@ -59,13 +59,13 @@ namespace ist8310_driver {
                 i2c.mem_write(I2C_BUS, DEVICE_ADDRESS, reg_data[0],
                               MEM_ADDRESS_SIZE_8BIT, &reg_data[1], 1,
                               I2C_TIMEOUT_MS);
-                rtos.delay(REGISTER_SETTLE_DELAY_MS);
+                rtos.delay_ms(REGISTER_SETTLE_DELAY_MS);
 
                 uint8_t reg_value = 0;
                 i2c.mem_read(I2C_BUS, DEVICE_ADDRESS, reg_data[0],
                              MEM_ADDRESS_SIZE_8BIT, &reg_value, 1,
                              I2C_TIMEOUT_MS);
-                rtos.delay(REGISTER_SETTLE_DELAY_MS);
+                rtos.delay_ms(REGISTER_SETTLE_DELAY_MS);
 
                 ASSERT(reg_value == reg_data[1],
                        "IST8310 register verification failed.");

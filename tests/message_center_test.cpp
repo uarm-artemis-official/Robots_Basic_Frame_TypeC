@@ -58,7 +58,7 @@ class MessageCenterTest : public ::testing::Test {
         rtos = new MW_RTOS::TestRTOS();
         mc2 = new mc2::MC2<TopicRegistry>(*rtos);
         mc2->init();
-        rtos->delay(start_ts);
+        rtos->delay_ms(start_ts);
     }
 
     void TearDown() override {
@@ -132,7 +132,7 @@ TEST_F(MessageCenterTest, TimestampUpdatesCorrectly) {
     FloatTopic value;
     value.field = 99.0f;
     auto ts1 = mc2->pub_message(value);
-    rtos->delay(5);
+    rtos->delay_ms(5);
     auto ts2 = mc2->pub_message(value);
     ASSERT_TRUE(ts1.has_value());
     ASSERT_TRUE(ts2.has_value());

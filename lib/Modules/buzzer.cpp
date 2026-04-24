@@ -12,7 +12,7 @@ void Buzzer::play_note(Note note, uint32_t duration_ms, uint32_t compare) {
     pwm.set_counter(timer, 0);
     pwm.set_autoreload(timer, static_cast<uint32_t>(note));
     pwm.set_compare(timer, channel, compare);
-    rtos.delay(duration_ms);
+    rtos.delay_ms(duration_ms);
     pwm.set_compare(timer, channel, 0);
 }
 
@@ -22,7 +22,7 @@ void Buzzer::alarm_times(uint8_t times, uint16_t duration_ms) {
         play_note(Note::C1, duration_ms, 100);
         // Phase 2: silence for 200ms
         pwm.set_compare(timer, channel, 0);
-        rtos.delay(200);
+        rtos.delay_ms(200);
     }
 }
 
@@ -32,13 +32,13 @@ void Buzzer::play_mario(int32_t bpm) {
 
     play_note(Note::E1, eighth);
     play_note(Note::E1, eighth);
-    rtos.delay(eighth);
+    rtos.delay_ms(eighth);
     play_note(Note::E1, eighth);
-    rtos.delay(eighth);
+    rtos.delay_ms(eighth);
     play_note(Note::C1, eighth);
     play_note(Note::E1, quarter);
     play_note(Note::G1, quarter);
-    rtos.delay(quarter);
+    rtos.delay_ms(quarter);
     play_note(Note::G0, quarter);
 }
 
@@ -54,7 +54,7 @@ void Buzzer::play_happy_birthday(int32_t bpm) {
     play_note(Note::C1, quarter);
     play_note(Note::F1, quarter);
     play_note(Note::E1, half);
-    rtos.delay(eighth);
+    rtos.delay_ms(eighth);
 
     play_note(Note::C1, quarter);
     play_note(Note::C1, eighth);
@@ -62,7 +62,7 @@ void Buzzer::play_happy_birthday(int32_t bpm) {
     play_note(Note::C1, quarter);
     play_note(Note::G1, quarter);
     play_note(Note::F1, half);
-    rtos.delay(eighth);
+    rtos.delay_ms(eighth);
 
     play_note(Note::C1, quarter);
     play_note(Note::C1, quarter);
@@ -71,7 +71,7 @@ void Buzzer::play_happy_birthday(int32_t bpm) {
     play_note(Note::F1, quarter);
     play_note(Note::E1, quarter);
     play_note(Note::D1, quarter + eighth);
-    rtos.delay(eighth);
+    rtos.delay_ms(eighth);
 
     play_note(Note::AS1, quarter);
     play_note(Note::AS1, quarter);

@@ -7,6 +7,10 @@
 #include "uarm_lib.hpp"
 
 namespace MW_GPIO {
+    bool TestGPIO::init() {
+        return true;
+    }
+
     void TestGPIO::write_pin(Port port, Pin pin, State state) {
         (void) port;
         (void) pin;
@@ -27,6 +31,10 @@ namespace MW_GPIO {
 }  // namespace MW_GPIO
 
 namespace MW_TIM {
+    bool TestTIM::init() {
+        return true;
+    }
+
     bool TestTIM::base_start(Timer timer, BaseStartMode mode) {
         (void) timer;
         (void) mode;
@@ -40,6 +48,10 @@ namespace MW_TIM {
         // TODO: Implement PWM start logic
         return true;
     }
+    bool TestPWM::init() {
+        return true;
+    }
+
     void TestPWM::stop(Timer timer, Channel channel) {
         (void) timer;
         (void) channel;
@@ -52,13 +64,13 @@ namespace MW_TIM {
         // TODO: Implement PWM duty cycle logic
     }
 
-    void set_autoreload(Timer timer, uint32_t autoreload) {
+    void TestPWM::set_autoreload(Timer timer, uint32_t autoreload) {
         (void) timer;
         (void) autoreload;
         // TODO: Implement
     }
 
-    void set_counter(Timer timer, uint32_t counter) {
+    void TestPWM::set_counter(Timer timer, uint32_t counter) {
         (void) timer;
         (void) counter;
         // TODO: Implement
@@ -66,6 +78,10 @@ namespace MW_TIM {
 }  // namespace MW_TIM
 
 namespace MW_CAN {
+    bool TestCAN::init() {
+        return true;
+    }
+
     bool TestCAN::send_data(BUS bus, uint32_t id, uint32_t ext_id,
                             const uint8_t* data, uint32_t length) {
         (void) bus;
@@ -113,6 +129,10 @@ namespace MW_CAN {
 }  // namespace MW_CAN
 
 namespace MW_UART {
+    bool TestUART::init() {
+        return true;
+    }
+
     void TestUART::send_data(Peripheral uart, const uint8_t* data,
                              uint32_t length, uint32_t timeout) {
         (void) uart;
@@ -152,6 +172,10 @@ namespace MW_UART {
 }  // namespace MW_UART
 
 namespace MW_I2C {
+    bool TestI2C::init() {
+        return true;
+    }
+
     void TestI2C::master_transmit(Periperhal i2c, uint8_t device_address,
                                   const uint8_t* data, size_t size,
                                   uint32_t timeout) {
@@ -218,6 +242,10 @@ namespace MW_I2C {
 }  // namespace MW_I2C
 
 namespace MW_SPI {
+    bool TestSPI::init() {
+        return true;
+    }
+
     bool TestSPI::transmit(Peripheral spi, const uint8_t* data, size_t size,
                            uint32_t timeout) {
         (void) spi;
@@ -251,6 +279,10 @@ namespace MW_SPI {
 }  // namespace MW_SPI
 
 namespace MW_RTOS {
+    bool TestRTOS::init() {
+        return true;
+    }
+
     bool TestRTOS::task_create(TaskHandle& task, const char* task_name,
                                TaskRoutine task_routine, void* task_arg,
                                size_t stack_depth, TaskPriority priority) {
@@ -270,13 +302,31 @@ namespace MW_RTOS {
         return true;
     }
 
-    void TestRTOS::delay_until(uint32_t* previous_wake, uint32_t ms) {
+    void TestRTOS::critical_section_enter() {
+        // No-op in test middleware.
+    }
+
+    void TestRTOS::critical_section_exit() {
+        // No-op in test middleware.
+    }
+
+    void TestRTOS::delay_until_ms(uint32_t* previous_wake, uint32_t ms) {
         current_tick_ms = *previous_wake + ms;
         *previous_wake += current_tick_ms;
     }
 
-    void TestRTOS::delay(uint32_t ms) {
+    void TestRTOS::delay_ms(uint32_t ms) {
         current_tick_ms += ms;
+    }
+
+    void TestRTOS::delay_until_us(uint32_t* previous_wake, uint32_t us) {
+        const uint32_t converted_ms = (us + 999U) / 1000U;
+        delay_until_ms(previous_wake, converted_ms);
+    }
+
+    void TestRTOS::delay_us(uint32_t us) {
+        const uint32_t converted_ms = (us + 999U) / 1000U;
+        delay_ms(converted_ms);
     }
 
     TickType TestRTOS::get_current_tick() {

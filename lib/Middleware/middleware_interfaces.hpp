@@ -18,6 +18,8 @@ namespace MW_GPIO {
      */
     class IGPIO {
        public:
+        virtual bool init() = 0;
+
         /**
         * @brief Set the state of a GPIO pin.
         * @param[in] port The GPIO port of the pin to set.
@@ -46,6 +48,8 @@ namespace MW_GPIO {
 namespace MW_TIM {
     class ITIM {
        public:
+    virtual bool init() = 0;
+
         /**
          * @brief Start a timer base in normal or interrupt mode.
          * @param[in] timer Timer to start.
@@ -66,6 +70,8 @@ namespace MW_TIM {
      */
     class IPWM {
        public:
+        virtual bool init() = 0;
+
         /**
          * @brief Start PWM generation for a specific timer and channel.
          * @param[in] timer Timer to start.
@@ -123,6 +129,8 @@ namespace MW_CAN {
      */
     class ICAN {
        public:
+        virtual bool init() = 0;
+
         /**
          * @brief Send data over the CAN bus.
          * Must support sending variable-length data frames with a maximum length of 8 bytes.
@@ -186,6 +194,8 @@ namespace MW_UART {
      */
     class IUART {
        public:
+        virtual bool init() = 0;
+
         /**
          * @brief Send data over UART.
          * @param[in] uart The UART peripheral to send data on.
@@ -239,6 +249,8 @@ namespace MW_I2C {
      */
     class II2C {
        public:
+        virtual bool init() = 0;
+
         /**
          * @brief Master transmit: send data to a slave device.
          * @param[in] i2c The I2C peripheral to use.
@@ -323,6 +335,8 @@ namespace MW_SPI {
      */
     class ISPI {
        public:
+        virtual bool init() = 0;
+
         /**
          * @brief Transmit data over SPI.
          * @param[in] spi The SPI peripheral to use.
@@ -363,14 +377,22 @@ namespace MW_SPI {
 namespace MW_RTOS {
     class IRTOS {
        public:
+        virtual bool init() = 0;
+
         // Task creation.
         virtual bool task_create(TaskHandle& task, const char* task_name,
                                  TaskRoutine task_routine, void* task_arg,
                                  size_t stack_depth, TaskPriority priority) = 0;
 
+        // Critical sections.
+        virtual void critical_section_enter() = 0;
+        virtual void critical_section_exit() = 0;
+
         // Task delays and task ticks.
-        virtual void delay_until(uint32_t* previous_wake, uint32_t ms) = 0;
-        virtual void delay(uint32_t ms) = 0;
+        virtual void delay_until_ms(uint32_t* previous_wake, uint32_t ms) = 0;
+        virtual void delay_ms(uint32_t ms) = 0;
+        virtual void delay_until_us(uint32_t* previous_wake, uint32_t us) = 0;
+        virtual void delay_us(uint32_t us) = 0;
         virtual TickType get_current_tick() = 0;
         virtual TickType ms_to_ticks(uint32_t ms) = 0;
 

@@ -148,21 +148,21 @@ namespace bmi088_driver {
         bool accel_init() {
             uint8_t res =
                 read_single_register(Sensor::ACCELEROMETER, BMI088_ACC_CHIP_ID);
-            rtos.delay(SENSOR_WAIT_MS);
+            rtos.delay_ms(SENSOR_WAIT_MS);
             res =
                 read_single_register(Sensor::ACCELEROMETER, BMI088_ACC_CHIP_ID);
-            rtos.delay(SENSOR_WAIT_MS);
+            rtos.delay_ms(SENSOR_WAIT_MS);
 
             write_single_register(Sensor::ACCELEROMETER, BMI088_ACC_SOFTRESET,
                                   BMI088_ACC_SOFTRESET_VALUE);
-            rtos.delay(SENSOR_RESET_WAIT_MS);
+            rtos.delay_ms(SENSOR_RESET_WAIT_MS);
 
             res =
                 read_single_register(Sensor::ACCELEROMETER, BMI088_ACC_CHIP_ID);
-            rtos.delay(SENSOR_WAIT_MS);
+            rtos.delay_ms(SENSOR_WAIT_MS);
             res =
                 read_single_register(Sensor::ACCELEROMETER, BMI088_ACC_CHIP_ID);
-            rtos.delay(SENSOR_WAIT_MS);
+            rtos.delay_ms(SENSOR_WAIT_MS);
             if (res != BMI088_ACC_CHIP_ID_VALUE) {
                 return false;
             }
@@ -185,11 +185,11 @@ namespace bmi088_driver {
                  i < (sizeof(accel_config) / sizeof(accel_config[0])); i++) {
                 write_single_register(Sensor::ACCELEROMETER, accel_config[i][0],
                                       accel_config[i][1]);
-                rtos.delay(SENSOR_WAIT_MS);
+                rtos.delay_ms(SENSOR_WAIT_MS);
 
                 res = read_single_register(Sensor::ACCELEROMETER,
                                            accel_config[i][0]);
-                rtos.delay(SENSOR_WAIT_MS);
+                rtos.delay_ms(SENSOR_WAIT_MS);
                 if (res != accel_config[i][1]) {
                     return false;
                 }
@@ -201,18 +201,18 @@ namespace bmi088_driver {
         bool gyro_init() {
             uint8_t res =
                 read_single_register(Sensor::GYRO, BMI088_GYRO_CHIP_ID);
-            rtos.delay(SENSOR_WAIT_MS);
+            rtos.delay_ms(SENSOR_WAIT_MS);
             res = read_single_register(Sensor::GYRO, BMI088_GYRO_CHIP_ID);
-            rtos.delay(SENSOR_WAIT_MS);
+            rtos.delay_ms(SENSOR_WAIT_MS);
 
             write_single_register(Sensor::GYRO, BMI088_GYRO_SOFTRESET,
                                   BMI088_GYRO_SOFTRESET_VALUE);
-            rtos.delay(SENSOR_RESET_WAIT_MS);
+            rtos.delay_ms(SENSOR_RESET_WAIT_MS);
 
             res = read_single_register(Sensor::GYRO, BMI088_GYRO_CHIP_ID);
-            rtos.delay(SENSOR_WAIT_MS);
+            rtos.delay_ms(SENSOR_WAIT_MS);
             res = read_single_register(Sensor::GYRO, BMI088_GYRO_CHIP_ID);
-            rtos.delay(SENSOR_WAIT_MS);
+            rtos.delay_ms(SENSOR_WAIT_MS);
             if (res != BMI088_GYRO_CHIP_ID_VALUE) {
                 return false;
             }
@@ -234,10 +234,10 @@ namespace bmi088_driver {
                  i < (sizeof(gyro_config) / sizeof(gyro_config[0])); i++) {
                 write_single_register(Sensor::GYRO, gyro_config[i][0],
                                       gyro_config[i][1]);
-                rtos.delay(SENSOR_WAIT_MS);
+                rtos.delay_ms(SENSOR_WAIT_MS);
 
                 res = read_single_register(Sensor::GYRO, gyro_config[i][0]);
-                rtos.delay(SENSOR_WAIT_MS);
+                rtos.delay_ms(SENSOR_WAIT_MS);
                 if (res != gyro_config[i][1]) {
                     return false;
                 }

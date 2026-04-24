@@ -17,6 +17,8 @@ class FakeUART : public MW_UART::IUART {
     std::vector<uint8_t> rx_queue;  // placeholder for future use
     std::vector<Call> calls;
 
+    bool init() override { return true; }
+
     void enqueue_rx_bytes(const std::vector<uint8_t>& b) {
         rx_queue.insert(rx_queue.end(), b.begin(), b.end());
     }

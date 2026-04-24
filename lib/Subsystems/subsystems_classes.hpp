@@ -47,6 +47,7 @@ class Imu : public IImu {
    private:
     bmi088_driver::BMI088& bmi088;
     ist8310_driver::IST8310& ist8310;
+    MW_RTOS::IRTOS& rtos;
     Madgewick_Filter madgewick;
     float temperature;
     float gyro[3], accel[3], mag[3];
@@ -65,7 +66,8 @@ class Imu : public IImu {
 
    public:
     Imu(bmi088_driver::BMI088& bmi088_, ist8310_driver::IST8310& ist8310_,
-        uint32_t sampling_rate_, float beta_, const float orientation_[3][3]);
+        MW_RTOS::IRTOS& rtos_, uint32_t sampling_rate_, float beta_,
+        const float orientation_[3][3]);
     void init() override;
     float get_temp() override;
     void get_attitude(Attitude_t& attitude) override;
