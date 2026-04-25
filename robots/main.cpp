@@ -153,7 +153,7 @@ void init_robot_apps() {
         rtos.task_create(
             timer_task_handle, const_cast<char*>("TimerTask"),
             [](void* arg) { timer_app.run(static_cast<const void*>(arg)); },
-            nullptr, 256, static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+            nullptr, 256, MW_RTOS::TaskPriority::High),
         "Failed to create TimerTask.");
 
     // osThreadDef(
@@ -168,14 +168,14 @@ void init_robot_apps() {
                        chassis_app.run(static_cast<const void*>(arg));
                    },
                    nullptr, 256,
-                   static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+                   MW_RTOS::TaskPriority::High),
                "Failed to create ChassisTask.");
 
         ASSERT(rtos.task_create(
                    rc_task_handle, const_cast<char*>("RCTask"),
                    [](void* arg) { rc_app.run(static_cast<const void*>(arg)); },
                    nullptr, 384,
-                   static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+                   MW_RTOS::TaskPriority::High),
                "Failed to create RCTask.");
 
         ASSERT(rtos.task_create(
@@ -184,7 +184,7 @@ void init_robot_apps() {
                        referee_app.run(static_cast<const void*>(arg));
                    },
                    nullptr, 384,
-                   static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+                   MW_RTOS::TaskPriority::High),
                "Failed to create RefTask.");
 
     } else if (board_status == modules::debug::BoardConfig::GIMBAL) {
@@ -194,7 +194,7 @@ void init_robot_apps() {
                        gimbal_app.run(static_cast<const void*>(arg));
                    },
                    nullptr, 512,
-                   static_cast<MW_RTOS::TaskPriority>(osPriorityRealtime)),
+                   MW_RTOS::TaskPriority::Realtime),
                "Failed to create GimbalTask.");
 
         ASSERT(
@@ -202,7 +202,7 @@ void init_robot_apps() {
                 shoot_task_handle, const_cast<char*>("ShootTask"),
                 [](void* arg) { shoot_app.run(static_cast<const void*>(arg)); },
                 nullptr, 256,
-                static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+                MW_RTOS::TaskPriority::High),
             "Failed to create ShootTask.");
 
         ASSERT(
@@ -210,7 +210,7 @@ void init_robot_apps() {
                 imu_task_handle, const_cast<char*>("IMUTask"),
                 [](void* arg) { imu_app.run(static_cast<const void*>(arg)); },
                 nullptr, 256,
-                static_cast<MW_RTOS::TaskPriority>(osPriorityRealtime)),
+                MW_RTOS::TaskPriority::Realtime),
             "Failed to create IMUTask.");
     }
 }
@@ -223,28 +223,28 @@ void init_auto_aim_apps() {
                gimbal_task_handle, const_cast<char*>("GimbalTask"),
                [](void* arg) { gimbal_app.run(static_cast<const void*>(arg)); },
                nullptr, 512,
-               static_cast<MW_RTOS::TaskPriority>(osPriorityRealtime)),
+               MW_RTOS::TaskPriority::Realtime),
            "Failed to create GimbalTask.");
 
     ASSERT(rtos.task_create(
                imu_task_handle, const_cast<char*>("IMUTask"),
                [](void* arg) { imu_app.run(static_cast<const void*>(arg)); },
                nullptr, 256,
-               static_cast<MW_RTOS::TaskPriority>(osPriorityRealtime)),
+               MW_RTOS::TaskPriority::Realtime),
            "Failed to create IMUTask.");
 
     ASSERT(
         rtos.task_create(
             timer_task_handle, const_cast<char*>("TimerTask"),
             [](void* arg) { timer_app.run(static_cast<const void*>(arg)); },
-            nullptr, 256, static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+            nullptr, 256, MW_RTOS::TaskPriority::High),
         "Failed to create TimerTask.");
 
     ASSERT(
         rtos.task_create(
             rc_task_handle, const_cast<char*>("RCTask"),
             [](void* arg) { rc_app.run(static_cast<const void*>(arg)); },
-            nullptr, 384, static_cast<MW_RTOS::TaskPriority>(osPriorityHigh)),
+            nullptr, 384, MW_RTOS::TaskPriority::High),
         "Failed to create RCTask.");
 }
 
@@ -277,6 +277,11 @@ void can_filter_enable(MW_CAN::BUS bus) {
 }
 
 bool firmware_and_system_init(void) {
+	ASSERT(rtos.init(), "Failed to init RTOS middleware.");
+	ASSERT(can.init(), "Failed to init CAN middleware.");
+	ASSERT(i2c.init(), "Failed to init I2C middleware.");
+	ASSERT(spi.init(), "Failed to init SPI middleware.");
+
     /* CAN1 & CAN2 Init */
     ASSERT(can.start(MW_CAN::BUS::CAN_1), "Failed to start CAN bus 1.");
     ASSERT(can.start(MW_CAN::BUS::CAN_2), "Failed to start CAN bus 2.");

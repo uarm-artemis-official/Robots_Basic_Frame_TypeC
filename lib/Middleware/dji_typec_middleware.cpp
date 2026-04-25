@@ -948,7 +948,8 @@ namespace MW_RTOS {
 
         return xTaskCreate(task_routine, task_name,
                            static_cast<configSTACK_DEPTH_TYPE>(stack_depth),
-                           task_arg, priority, &task) == pdPASS;
+                           task_arg, ToNativeTaskPriority(priority),
+                           &task) == pdPASS;
     }
 
     void RTOS::critical_section_enter() {
