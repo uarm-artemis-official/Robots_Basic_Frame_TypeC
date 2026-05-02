@@ -6,10 +6,6 @@
 #include <cstdint>
 #include "middleware_defines.hpp"
 
-#if !defined(GTEST) && defined(MW_ENABLE_RTOS)
-#include "cmsis_os.h"
-#endif
-
 namespace MW_GPIO {
     enum class Pin {
         PIN_0,
@@ -149,12 +145,47 @@ namespace MW_SPI {
 }
 
 namespace MW_RTOS {
-#if defined(GTEST)
+#if defined(GTEST) || defined(MW_RTOS_ENABLE)
     using TickType = uint32_t;
     using EventBits = uint32_t;
     using TaskRoutine = void (*)(void*);
-    using TaskPriority = uint32_t;
+    using NativeTaskPriority = uint32_t;
+#else
+#include "cmsis_os.h"
+    using TickType = TickType_t;
+    using EventBits = uint32_t;
+    using TaskRoutine = TaskFunction_t;
+    using NativeTaskPriority = UBaseType_t;
+#endif
 
+    /**
+     * @brief Portable task priority enum mapped to CMSIS/FreeRTOS priorities.
+     */
+    enum class TaskPriority : uint32_t {
+#if defined(MW_RTOS_ENABLE)
+        Idle = static_cast<uint32_t>(osPriorityIdle),
+        Low = static_cast<uint32_t>(osPriorityLow),
+        BelowNormal = static_cast<uint32_t>(osPriorityBelowNormal),
+        Normal = static_cast<uint32_t>(osPriorityNormal),
+        AboveNormal = static_cast<uint32_t>(osPriorityAboveNormal),
+        High = static_cast<uint32_t>(osPriorityHigh),
+        Realtime = static_cast<uint32_t>(osPriorityRealtime),
+#else
+        Idle = 0,
+        Low,
+        BelowNormal,
+        Normal,
+        AboveNormal,
+        High,
+        Realtime,
+#endif
+    };
+
+    inline constexpr NativeTaskPriority ToNativeTaskPriority(TaskPriority p) {
+        return static_cast<NativeTaskPriority>(p);
+    }
+
+#if defined(GTEST) || defined(MW_RTOS_ENABLE)
     struct MockRTOSTask {
         const char* name;
         TaskRoutine routine;
@@ -168,7 +199,7 @@ namespace MW_RTOS {
      * @brief Mock RTOS queue for testing message passing in a non-RTOS setting.
      * Queues can only arbitrarily large data types in bytes and can be
      * manipulated through IRTOS methods.
-     * 
+     *
      * Depending on the implementation, @ref front_index and @ref back_index may
      * have different meanings. In the test implementation, the queue uses
      * 0-based indexing and items are added with wrap around starting from 0.
@@ -191,12 +222,8 @@ namespace MW_RTOS {
     };
     using EventGroupHandle = MockRTOSEventGroup*;
 #else
-    using TickType = TickType_t;
-    using EventBits = uint32_t;
     using QueueHandle = QueueHandle_t;
     using EventGroupHandle = EventGroupHandle_t;
-    using TaskRoutine = TaskFunction_t;
-    using TaskPriority = UBaseType_t;
     using TaskHandle = TaskHandle_t;
 #endif
 }  // namespace MW_RTOS
