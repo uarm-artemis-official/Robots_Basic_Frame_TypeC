@@ -18,6 +18,14 @@
 #include "tim.h"
 #endif
 
+namespace MW_BASE {
+    bool Base::init() { return true; }
+
+    void Base::delay_ms(uint32_t ms) {
+        HAL_Delay(ms);
+    }
+}  // namespace MW_BASE
+
 #ifdef MW_ENABLE_UART
 #include "usart.h"
 #endif

@@ -7,6 +7,22 @@
 #include "middleware_defines.hpp"
 #include "middleware_types.hpp"
 
+namespace MW_BASE {
+    /**
+     * @brief Base middleware interface for methods that are always available.
+     */
+    class IBase {
+       public:
+        virtual bool init() = 0;
+
+        /**
+         * @brief Delay for a specific amount of milliseconds.
+         * @param[in] ms The number of milliseconds to delay.
+         */
+        virtual void delay_ms(uint32_t ms) = 0;
+    };
+}  // namespace MW_BASE
+
 namespace MW_GPIO {
     /**
      * @brief Interface describing GPIO functionality required from middleware.

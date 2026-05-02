@@ -6,6 +6,14 @@
 #include "middleware_interfaces.hpp"
 #include "uarm_lib.hpp"
 
+namespace MW_BASE {
+    bool TestBase::init() { return true; }
+
+    void TestBase::delay_ms(uint32_t ms) {
+        (void)ms;
+    }
+}  // namespace MW_BASE
+
 namespace MW_GPIO {
     bool TestGPIO::init() {
         return true;

@@ -3,6 +3,23 @@
 
 #include "middleware_interfaces.hpp"
 
+namespace MW_BASE {
+    class TestBase : public IBase {
+       public:
+        bool init() override;
+        void delay_ms(uint32_t ms) override;
+    };
+
+    /**
+     * @brief Implementation of IBase interface.
+     */
+    class Base : public IBase {
+       public:
+        bool init() override;
+        void delay_ms(uint32_t ms) override;
+    };
+}  // namespace MW_BASE
+
 namespace MW_GPIO {
     class TestGPIO : public IGPIO {
        public:
