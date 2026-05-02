@@ -136,7 +136,7 @@ namespace MW_CAN {
 }  // namespace MW_CAN
 
 namespace MW_UART {
-    enum class Peripheral { UART1, UART3, UART6, None };
+    enum class Peripheral { UART1, UART3, UART6, UART8, None };
 }
 
 namespace MW_I2C {

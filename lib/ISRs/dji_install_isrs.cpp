@@ -26,11 +26,6 @@ bool isr::can::install_isr(CAN_ISR& can_isr_ref) {
     return true;
 }
 
-bool isr::uart::install_isr(UART_ISR& uart_isr_ref) {
-    uart_isr = std::make_shared<isr::uart::UART_ISR>(uart_isr_ref);
-    return true;
-}
-
 #if defined(MW_ENABLE_TIM)
 
 /**
@@ -74,6 +69,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 
 #if defined(MW_ENABLE_UART)
 
+static UART_HandleTypeDef* ;
+
+bool isr::uart::install_isr(UART_ISR& uart_isr_ref) {
+    uart_isr = std::make_shared<isr::uart::UART_ISR>(uart_isr_ref);
+    return true;
+}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
     if (!uart_isr || !uart_isr->is_initialized()) {
         return;
@@ -115,10 +117,18 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
     }
 
     MW_UART::Peripheral peripheral;
+    #ifdef ROBOTS3V3
     if (huart == &huart1) {
         peripheral = MW_UART::Peripheral::UART1;
     } else if (huart == &huart3) {
         peripheral = MW_UART::Peripheral::UART3;
+    } else if (huart == &huart6) {
+        peripheral = MW_UART::Peripheral::UART6;
+    #endif
+    #ifdef ENGINEER
+    if (huart == &huart8) {
+        peripheral = MW_UART::Peripheral::UART8;
+    #endif
     } else {
         ASSERT(false, "Transmit complete on unknown huart.");
     }

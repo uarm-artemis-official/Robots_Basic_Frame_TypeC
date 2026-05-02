@@ -1,4 +1,5 @@
 #include "middleware_classes.hpp"
+#include "platforms/mapper.hpp"
 #include "stm32f4xx_hal.h"
 #include "uarm_lib.hpp"
 
@@ -34,79 +35,6 @@ namespace MW_GPIO {
 #ifdef MW_ENABLE_GPIO
     // Mapping functions between enum classes and HAL types.
     // ============================================================
-    /**
-     * @brief Get the GPIO port from the Port enum.
-     * @param port The Port enum value.
-     * @return The corresponding GPIO_TypeDef pointer.
-     */
-    GPIO_TypeDef* get_hal_port(Port port) {
-        switch (port) {
-            case Port::PORT_A:
-                return GPIOA;
-            case Port::PORT_B:
-                return GPIOB;
-            case Port::PORT_C:
-                return GPIOC;
-            case Port::PORT_D:
-                return GPIOD;
-            case Port::PORT_E:
-                return GPIOE;
-            case Port::PORT_F:
-                return GPIOF;
-            case Port::PORT_G:
-                return GPIOG;
-            case Port::PORT_H:
-                return GPIOH;
-            case Port::PORT_I:
-                return GPIOI;
-            default:
-                ASSERT(false, "Invalid GPIO port");
-        }
-    }
-
-    /**
-     * @brief Get the GPIO pin number from the Pin enum.
-     * @param pin The Pin enum value.
-     * @return The corresponding GPIO pin number value.
-     */
-    uint16_t get_hal_pin(Pin pin) {
-        switch (pin) {
-            case Pin::PIN_0:
-                return GPIO_PIN_0;
-            case Pin::PIN_1:
-                return GPIO_PIN_1;
-            case Pin::PIN_2:
-                return GPIO_PIN_2;
-            case Pin::PIN_3:
-                return GPIO_PIN_3;
-            case Pin::PIN_4:
-                return GPIO_PIN_4;
-            case Pin::PIN_5:
-                return GPIO_PIN_5;
-            case Pin::PIN_6:
-                return GPIO_PIN_6;
-            case Pin::PIN_7:
-                return GPIO_PIN_7;
-            case Pin::PIN_8:
-                return GPIO_PIN_8;
-            case Pin::PIN_9:
-                return GPIO_PIN_9;
-            case Pin::PIN_10:
-                return GPIO_PIN_10;
-            case Pin::PIN_11:
-                return GPIO_PIN_11;
-            case Pin::PIN_12:
-                return GPIO_PIN_12;
-            case Pin::PIN_13:
-                return GPIO_PIN_13;
-            case Pin::PIN_14:
-                return GPIO_PIN_14;
-            case Pin::PIN_15:
-                return GPIO_PIN_15;
-            default:
-                ASSERT(false, "Invalid GPIO pin");
-        }
-    }
 
     /**
      * @brief Convert the State enum to the corresponding HAL GPIO_PinState.
@@ -151,7 +79,7 @@ namespace MW_GPIO {
      * @param state The desired state (HIGH or LOW) to write to the pin.
      */
     void GPIO::write_pin(Port port, Pin pin, State state) {
-        HAL_GPIO_WritePin(get_hal_port(port), get_hal_pin(pin),
+        HAL_GPIO_WritePin(platform::get_hal_gpio_port(port), platform::get_hal_gpio_pin(pin),
                           get_hal_state(state));
     }
 
@@ -163,7 +91,7 @@ namespace MW_GPIO {
      */
     State GPIO::read_pin(Port port, Pin pin) {
         return get_state_from_hal(
-            HAL_GPIO_ReadPin(get_hal_port(port), get_hal_pin(pin)));
+            HAL_GPIO_ReadPin(platform::get_hal_gpio_port(port), platform::get_hal_gpio_pin(pin)));
     }
 
     /**
@@ -172,7 +100,7 @@ namespace MW_GPIO {
      * @param pin The GPIO pin.
      */
     void GPIO::toggle_pin(Port port, Pin pin) {
-        HAL_GPIO_TogglePin(get_hal_port(port), get_hal_pin(pin));
+        HAL_GPIO_TogglePin(platform::get_hal_gpio_port(port), platform::get_hal_gpio_pin(pin));
     }
 #else
     bool GPIO::init() {
@@ -204,56 +132,12 @@ namespace MW_GPIO {
 
 namespace MW_TIM {
 #ifdef MW_ENABLE_TIM
-    /**
-     * @brief Get HAL Timer handle for a Timer enum.
-     * @param[in] timer Timer enum to get.
-     * @return HAL Timer handle.
-     */
-    TIM_HandleTypeDef* get_hal_tim_handle(Timer timer) {
-        switch (timer) {
-            case Timer::TIM_1:
-                return &htim1;
-            case Timer::TIM_4:
-                return &htim4;
-            case Timer::TIM_5:
-                return &htim5;
-            case Timer::TIM_8:
-                return &htim5;
-            case Timer::TIM_10:
-                return &htim5;
-            case Timer::TIM_13:
-                return &htim5;
-            default:
-                ASSERT(false, "Trying to get unsupported Timer.");
-        }
-    }
-
-    /**
-     * @brief Get HAL timer channel for a Channel enum.
-     * @param[in] channel Channel enum to get.
-     * @return HAL timer channel value.
-     */
-    uint32_t get_hal_tim_channel(Channel channel) {
-        switch (channel) {
-            case Channel::CHANNEL_1:
-                return TIM_CHANNEL_1;
-            case Channel::CHANNEL_2:
-                return TIM_CHANNEL_2;
-            case Channel::CHANNEL_3:
-                return TIM_CHANNEL_3;
-            case Channel::CHANNEL_4:
-                return TIM_CHANNEL_4;
-            default:
-                ASSERT(false, "Trying to get unsupported Timer channel.");
-        }
-    }
-
     bool TIM::init() {
         return true;
     }
 
     bool TIM::base_start(Timer timer, BaseStartMode mode) {
-        TIM_HandleTypeDef* htim = get_hal_tim_handle(timer);
+        TIM_HandleTypeDef* htim = platform::get_hal_tim(timer);
         switch (mode) {
             case BaseStartMode::Normal:
                 return HAL_TIM_Base_Start(htim) == HAL_OK;
@@ -272,8 +156,8 @@ namespace MW_TIM {
      * @param[in] channel Channel of timer to start.
      */
     bool PWM::start(Timer timer, Channel channel) {
-        return HAL_TIM_PWM_Start(get_hal_tim_handle(timer),
-                                 get_hal_tim_channel(channel)) == HAL_OK;
+        return HAL_TIM_PWM_Start(platform::get_hal_tim(timer),
+                                 platform::get_hal_tim_channel(channel)) == HAL_OK;
     }
 
     bool PWM::init() {
@@ -286,8 +170,8 @@ namespace MW_TIM {
      * @param[in] channel Channel of timer to stop.
      */
     void PWM::stop(Timer timer, Channel channel) {
-        HAL_TIM_PWM_Stop(get_hal_tim_handle(timer),
-                         get_hal_tim_channel(channel));
+        HAL_TIM_PWM_Stop(platform::get_hal_tim(timer),
+                         platform::get_hal_tim_channel(channel));
     }
 
     /**
@@ -301,16 +185,16 @@ namespace MW_TIM {
      * @param[in] compare_value The compare value for the PWM signal.
      */
     void PWM::set_compare(Timer timer, Channel channel, uint32_t compare) {
-        __HAL_TIM_SET_COMPARE(get_hal_tim_handle(timer),
-                              get_hal_tim_channel(channel), compare);
+        __HAL_TIM_SET_COMPARE(platform::get_hal_tim(timer),
+                              platform::get_hal_tim_channel(channel), compare);
     }
 
     void PWM::set_autoreload(Timer timer, uint32_t autoreload) {
-        __HAL_TIM_SET_AUTORELOAD(get_hal_tim_handle(timer), autoreload);
+        __HAL_TIM_SET_AUTORELOAD(platform::get_hal_tim(timer), autoreload);
     }
 
     void PWM::set_counter(Timer timer, uint32_t counter) {
-        __HAL_TIM_SET_COUNTER(get_hal_tim_handle(timer), counter);
+        __HAL_TIM_SET_COUNTER(platform::get_hal_tim(timer), counter);
     }
 #else
     bool TIM::init() {
@@ -367,26 +251,6 @@ namespace MW_TIM {
 namespace MW_CAN {
 #ifdef MW_ENABLE_CAN
     /**
-     * @brief Get the HAL CAN handle from the BUS enum.
-     * @param bus The BUS enum value.
-     * @return The corresponding CAN_HandleTypeDef pointer.
-     */
-    CAN_HandleTypeDef* get_hal_can_handle(BUS bus) {
-        switch (bus) {
-            case BUS::CAN_1:
-                [[fallthrough]];
-            case BUS::CAN_1B:
-                return &hcan1;
-            case BUS::CAN_2:
-                [[fallthrough]];
-            case BUS::CAN_2B:
-                return &hcan2;
-            default:
-                ASSERT(false, "Unsupported CAN bus");
-        }
-    }
-
-    /**
      * @brief Get the HAL FIFO value from the FIFO enum.
      * @param fifo The FIFO enum value.
      * @return The corresponding HAL FIFO value.
@@ -438,7 +302,7 @@ namespace MW_CAN {
         }
         tx_header.RTR = CAN_RTR_DATA;
         tx_header.DLC = length;
-        return HAL_CAN_AddTxMessage(get_hal_can_handle(bus), &tx_header, data,
+        return HAL_CAN_AddTxMessage(platform::get_hal_can(bus), &tx_header, data,
                                     nullptr) == HAL_OK;
     }
 
@@ -454,7 +318,7 @@ namespace MW_CAN {
                            uint8_t* dst, uint32_t& length) {
         // TODO implement receiving extended ID messages.
         CAN_RxHeaderTypeDef rx_header;
-        if (HAL_CAN_GetRxMessage(get_hal_can_handle(bus), get_hal_fifo(fifo),
+        if (HAL_CAN_GetRxMessage(platform::get_hal_can(bus), get_hal_fifo(fifo),
                                  &rx_header, dst) != HAL_OK) {
             return false;  // Error in receiving message
         } else {
@@ -477,7 +341,7 @@ namespace MW_CAN {
      * @param[in] bus The CAN bus to start.
      */
     bool CAN::start(BUS bus) {
-        return HAL_CAN_Start(get_hal_can_handle(bus)) == HAL_OK;
+        return HAL_CAN_Start(platform::get_hal_can(bus)) == HAL_OK;
     }
 
     /**
@@ -485,7 +349,7 @@ namespace MW_CAN {
      * @param[in] bus The CAN bus to stop.
      */
     bool CAN::stop(BUS bus) {
-        return HAL_CAN_Stop(get_hal_can_handle(bus)) == HAL_OK;
+        return HAL_CAN_Stop(platform::get_hal_can(bus)) == HAL_OK;
     }
 
     /**
@@ -497,7 +361,7 @@ namespace MW_CAN {
         switch (notification) {
             case Notification::RX_FIFO0_MSG_PENDING:
                 return HAL_CAN_ActivateNotification(
-                           get_hal_can_handle(bus),
+                           platform::get_hal_can(bus),
                            CAN_IT_RX_FIFO0_MSG_PENDING) == HAL_OK;
             default:
                 ASSERT(false, "Unsupported CAN notification");
@@ -526,7 +390,7 @@ namespace MW_CAN {
                 : CAN_FILTERMODE_IDLIST;
         filter_config.FilterActivation =
             (filter_configuration.is_activated) ? ENABLE : DISABLE;
-        return HAL_CAN_ConfigFilter(get_hal_can_handle(bus), &filter_config) ==
+        return HAL_CAN_ConfigFilter(platform::get_hal_can(bus), &filter_config) ==
                HAL_OK;
     }
 #else
@@ -588,24 +452,6 @@ namespace MW_CAN {
 
 namespace MW_UART {
 #ifdef MW_ENABLE_UART
-    /**
-     * @brief Get the HAL UART handle from the Peripheral enum.
-     * @param uart The Peripheral enum value.
-     * @return The corresponding UART_HandleTypeDef pointer.
-     */
-    UART_HandleTypeDef* get_hal_uart_handle(Peripheral uart) {
-        switch (uart) {
-            case Peripheral::UART1:
-                return &huart1;
-            case Peripheral::UART3:
-                return &huart3;
-            case Peripheral::UART6:
-                return &huart6;
-            default:
-                ASSERT(false, "Unsupported UART peripheral");
-        }
-    }
-
     bool UART::init() {
         return true;
     }
@@ -621,7 +467,7 @@ namespace MW_UART {
     void UART::send_data(Peripheral uart, const uint8_t* data, uint32_t length,
                          uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot transfer data from nullptr.");
-        HAL_UART_Transmit(get_hal_uart_handle(uart), data, length, timeout);
+        HAL_UART_Transmit(platform::get_hal_uart(uart), data, length, timeout);
     }
 
     /**
@@ -634,7 +480,7 @@ namespace MW_UART {
      */
     void UART::send_data(Peripheral uart, std::span<const std::byte> data,
                          uint32_t timeout) {
-        HAL_UART_Transmit(get_hal_uart_handle(uart),
+        HAL_UART_Transmit(platform::get_hal_uart(uart),
                           reinterpret_cast<const uint8_t*>(data.data()),
                           data.size(), timeout);
     }
@@ -650,7 +496,7 @@ namespace MW_UART {
     bool UART::receive_data(Peripheral uart, uint8_t* data, uint32_t length) {
         ASSERT(data != nullptr, "Cannot receive data to nullptr.");
         HAL_StatusTypeDef res =
-            HAL_UART_Receive_DMA(get_hal_uart_handle(uart), data, length);
+            HAL_UART_Receive_DMA(platform::get_hal_uart(uart), data, length);
         return res == HAL_OK;  // Placeholder for actual implementation
     }
 
@@ -659,7 +505,7 @@ namespace MW_UART {
      * @param[in] uart The UART peripheral to abort receiving data on.
      */
     void UART::abort_receive(Peripheral uart) {
-        HAL_UART_AbortReceive(get_hal_uart_handle(uart));
+        HAL_UART_AbortReceive(platform::get_hal_uart(uart));
     }
 
     /**
@@ -667,11 +513,11 @@ namespace MW_UART {
      * @param[in] uart The UART peripheral to abort.
      */
     void UART::abort_transmit(Peripheral uart) {
-        HAL_UART_AbortTransmit(get_hal_uart_handle(uart));
+        HAL_UART_AbortTransmit(platform::get_hal_uart(uart));
     }
 
     void UART::clear_flags(Peripheral uart, uint32_t flags_to_clear) {
-        __HAL_UART_CLEAR_FLAG(get_hal_uart_handle(uart), flags_to_clear);
+        __HAL_UART_CLEAR_FLAG(platform::get_hal_uart(uart), flags_to_clear);
     }
 #else
     bool UART::init() {
@@ -728,30 +574,19 @@ namespace MW_I2C {
         return true;
     }
 
-    I2C_HandleTypeDef* get_hal_i2c_handle(Periperhal i2c) {
-        switch (i2c) {
-            case Periperhal::I2C_2:
-                return &hi2c2;
-            case Periperhal::I2C_3:
-                return &hi2c3;
-            default:
-                ASSERT(false, "Unsupported I2C peripheral");
-        }
-    }
-
     void I2C::master_transmit(Periperhal i2c, uint8_t device_address,
                               const uint8_t* data, size_t size,
                               uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot transmit I2C data from nullptr.");
         HAL_I2C_Master_Transmit(
-            get_hal_i2c_handle(i2c), static_cast<uint16_t>(device_address << 1),
+            platform::get_hal_i2c(i2c), static_cast<uint16_t>(device_address << 1),
             const_cast<uint8_t*>(data), static_cast<uint16_t>(size), timeout);
     }
 
     void I2C::master_receive(Periperhal i2c, uint8_t device_address,
                              uint8_t* data, size_t size, uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot receive I2C data to nullptr.");
-        HAL_I2C_Master_Receive(get_hal_i2c_handle(i2c),
+        HAL_I2C_Master_Receive(platform::get_hal_i2c(i2c),
                                static_cast<uint16_t>(device_address << 1), data,
                                static_cast<uint16_t>(size), timeout);
     }
@@ -759,7 +594,7 @@ namespace MW_I2C {
     void I2C::slave_transmit(Periperhal i2c, const uint8_t* data, size_t size,
                              uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot transmit I2C data from nullptr.");
-        HAL_I2C_Slave_Transmit(get_hal_i2c_handle(i2c),
+        HAL_I2C_Slave_Transmit(platform::get_hal_i2c(i2c),
                                const_cast<uint8_t*>(data),
                                static_cast<uint16_t>(size), timeout);
     }
@@ -767,7 +602,7 @@ namespace MW_I2C {
     void I2C::slave_receive(Periperhal i2c, uint8_t* data, size_t size,
                             uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot receive I2C data to nullptr.");
-        HAL_I2C_Slave_Receive(get_hal_i2c_handle(i2c), data,
+        HAL_I2C_Slave_Receive(platform::get_hal_i2c(i2c), data,
                               static_cast<uint16_t>(size), timeout);
     }
 
@@ -776,7 +611,7 @@ namespace MW_I2C {
                         const uint8_t* data, size_t size, uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot transmit I2C data from nullptr.");
         HAL_I2C_Mem_Write(
-            get_hal_i2c_handle(i2c), static_cast<uint16_t>(device_address << 1),
+            platform::get_hal_i2c(i2c), static_cast<uint16_t>(device_address << 1),
             memory_address, memory_address_size, const_cast<uint8_t*>(data),
             static_cast<uint16_t>(size), timeout);
     }
@@ -785,7 +620,7 @@ namespace MW_I2C {
                        uint16_t memory_address, uint16_t memory_address_size,
                        uint8_t* data, size_t size, uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot receive I2C data to nullptr.");
-        HAL_I2C_Mem_Read(get_hal_i2c_handle(i2c),
+        HAL_I2C_Mem_Read(platform::get_hal_i2c(i2c),
                          static_cast<uint16_t>(device_address << 1),
                          memory_address, memory_address_size, data,
                          static_cast<uint16_t>(size), timeout);
@@ -869,26 +704,17 @@ namespace MW_SPI {
         return true;
     }
 
-    SPI_HandleTypeDef* get_hal_spi_handle(Peripheral spi) {
-        switch (spi) {
-            case Peripheral::SPI_1:
-                return &hspi1;
-            default:
-                ASSERT(false, "Unsupported SPI peripheral");
-        }
-    }
-
     bool SPI::transmit(Peripheral spi, const uint8_t* data, size_t size,
                        uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot transmit SPI data from nullptr.");
-        return HAL_SPI_Transmit(get_hal_spi_handle(spi), data,
+        return HAL_SPI_Transmit(platform::get_hal_spi(spi), data,
                                 static_cast<uint16_t>(size), timeout) == HAL_OK;
     }
 
     bool SPI::receive(Peripheral spi, uint8_t* data, size_t size,
                       uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot receive SPI data to nullptr.");
-        return HAL_SPI_Receive(get_hal_spi_handle(spi), data,
+        return HAL_SPI_Receive(platform::get_hal_spi(spi), data,
                                static_cast<uint16_t>(size), timeout) == HAL_OK;
     }
 
@@ -896,7 +722,7 @@ namespace MW_SPI {
                                size_t size, uint32_t timeout) {
         ASSERT(tx != nullptr, "Cannot transmit SPI data from nullptr.");
         ASSERT(rx != nullptr, "Cannot receive SPI data to nullptr.");
-        return HAL_SPI_TransmitReceive(get_hal_spi_handle(spi), tx, rx,
+        return HAL_SPI_TransmitReceive(platform::get_hal_spi(spi), tx, rx,
                                        static_cast<uint16_t>(size),
                                        timeout) == HAL_OK;
     }

@@ -4,6 +4,14 @@ target_include_directories(MIDDLEWARE
         ${CMAKE_CURRENT_SOURCE_DIR})
 add_library(MW::MIDDLEWARE ALIAS MIDDLEWARE)
 
+if (PLATFORM_MCU)
+    if (PLATFORM_MCU STREQUAL "STM32F407XX" OR PLATFORM_MCU STREQUAL "STM32F427XX")
+        add_subdirectory(platforms)
+    else()
+        message(FATAL_ERROR "Unsupported MCU: ${PLATFORM_MCU}")
+    endif()
+endif()
+
 if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     add_library(DJI_TYPEC_MIDDLEWARE STATIC dji_typec_middleware.cpp)
     target_include_directories(DJI_TYPEC_MIDDLEWARE 
