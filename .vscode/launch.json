@@ -13,8 +13,8 @@
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
             "servertype": "stlink",
-            "serverpath": "/opt/st/stm32cubeclt_1.19.0/STLink-gdb-server/bin/ST-LINK_gdbserver",
-            "stm32cubeprogrammer": "/opt/st/stm32cubeclt_1.19.0/STM32CubeProgrammer/bin"
+            "serverpath": "${config:stlink_gdbserver_path}",
+            "stm32cubeprogrammer": "${config:cubeprogrammer_path}"
         },
         {
             // =========================================================

@@ -90,7 +90,7 @@ int main(void)
   MX_CAN1_Init();
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
-
+  main_cpp();
   /* USER CODE END 2 */
 
   /* Infinite loop */
