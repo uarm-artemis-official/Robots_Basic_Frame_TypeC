@@ -187,6 +187,84 @@ namespace lk_motor {
             return true;
         }
     }  // namespace can
+
+    namespace rs485 {
+        struct MotorState1 {
+            int8_t temperature;
+            uint16_t voltage;
+            uint8_t error_state;
+            bool is_motor_on;
+        };
+
+        struct MotorState2 {
+            int8_t temperature;
+            int16_t torque_current;
+            int16_t motor_speed;
+            uint16_t encoder_position;
+        };
+
+        std::byte calculate_checksum(const std::span<std::byte> message) {
+            uint8_t checksum = 0;
+            for (size_t i = 0; i < message.size(); ++i) {
+                checksum += std::to_integer<uint8_t>(message[i]);
+            }
+            return static_cast<std::byte>(checksum);
+        }
+
+        void format_read_motor_state_1(uint8_t motor_id,
+                                       std::span<std::byte, 5> message) {
+            message[0] = std::byte {0x3E};
+            message[1] = std::byte {0x9A};
+            message[2] = std::byte {motor_id};
+            message[3] = std::byte {0x00};
+            message[4] = calculate_checksum(message.subspan<0, 4>());
+        }
+
+        void parse_motor_state_1(const std::span<std::byte, 13> message,
+                                 MotorState1& state) {
+            ASSERT(message.size() == 13,
+                   "Invalid RS485 message length for LK motor state feedback");
+            state.temperature = std::to_integer<uint8_t>(message[5]);
+            state.voltage = (std::to_integer<uint8_t>(message[6]) << 8) |
+                            std::to_integer<uint8_t>(message[7]);
+            state.is_motor_on = message[10] == std::byte {0x10};
+            state.error_state = std::to_integer<uint8_t>(message[11]);
+            // TODO: Check frame and data checksums.
+        }
+
+        void parse_motor_state_2(const std::span<std::byte, 13> message,
+                                 MotorState2& state) {
+            ASSERT(message.size() == 13,
+                   "Invalid RS485 message length for LK motor state feedback");
+            state.temperature = std::to_integer<uint8_t>(message[5]);
+            state.torque_current = std::to_integer<uint8_t>(message[6]) |
+                                   (std::to_integer<uint8_t>(message[8]) << 8);
+            state.motor_speed = std::to_integer<uint8_t>(message[9]) |
+                                (std::to_integer<uint8_t>(message[10]) << 8);
+            state.encoder_position =
+                std::to_integer<uint8_t>(message[10]) |
+                (std::to_integer<uint8_t>(message[11]) << 8);
+        }
+
+        void format_single_angle_control_2(uint8_t motor_id, uint16_t angle,
+                                           uint32_t max_speed, bool ccw,
+                                           std::span<std::byte, 14> message) {
+            message[0] = std::byte {0x3E};
+            message[1] = std::byte {0xA6};
+            message[2] = std::byte {motor_id};
+            message[3] = std::byte {0x08};
+            message[4] = calculate_checksum(message.subspan<0, 4>());
+            message[5] = ccw ? std::byte {0x01} : std::byte {0x00};
+            message[6] = static_cast<std::byte>(angle & 0xFFU);
+            message[7] = static_cast<std::byte>((angle >> 8) & 0xFFU);
+            message[8] = std::byte {0x00};
+            message[9] = static_cast<std::byte>(max_speed & 0xFFU);
+            message[10] = static_cast<std::byte>((max_speed >> 8) & 0xFFU);
+            message[11] = static_cast<std::byte>((max_speed >> 16) & 0xFFU);
+            message[12] = static_cast<std::byte>((max_speed >> 24) & 0xFFU);
+            message[13] = calculate_checksum(message.subspan<5, 13>());
+        }
+    }  // namespace rs485
 }  // namespace lk_motor
 
 #endif
