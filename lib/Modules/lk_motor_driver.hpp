@@ -262,7 +262,7 @@ namespace lk_motor {
             message[10] = static_cast<std::byte>((max_speed >> 8) & 0xFFU);
             message[11] = static_cast<std::byte>((max_speed >> 16) & 0xFFU);
             message[12] = static_cast<std::byte>((max_speed >> 24) & 0xFFU);
-            message[13] = calculate_checksum(message.subspan<5, 13>());
+            message[13] = calculate_checksum(message.subspan<5, 8>());
         }
     }  // namespace rs485
 }  // namespace lk_motor

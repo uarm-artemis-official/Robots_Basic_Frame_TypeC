@@ -4,7 +4,12 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+
 #include "middleware_defines.hpp"
+
+#if defined(MW_ENABLE_RTOS)
+#include "cmsis_os.h"
+#endif
 
 namespace MW_GPIO {
     enum class Pin {
@@ -132,7 +137,7 @@ namespace MW_CAN {
 
 namespace MW_UART {
     enum class Peripheral { UART1, UART3, UART6, None };
-}  // namespace MW_UART
+}
 
 namespace MW_I2C {
     enum class Periperhal { I2C_2, I2C_3 };
@@ -145,24 +150,23 @@ namespace MW_SPI {
 }
 
 namespace MW_RTOS {
-#if defined(GTEST) || defined(MW_RTOS_ENABLE)
-    using TickType = uint32_t;
     using EventBits = uint32_t;
-    using TaskRoutine = void (*)(void*);
-    using NativeTaskPriority = uint32_t;
-#else
-#include "cmsis_os.h"
+
+#if defined(MW_ENABLE_RTOS)
     using TickType = TickType_t;
-    using EventBits = uint32_t;
     using TaskRoutine = TaskFunction_t;
     using NativeTaskPriority = UBaseType_t;
+#else
+    using TickType = uint32_t;
+    using TaskRoutine = void (*)(void*);
+    using NativeTaskPriority = uint32_t;
 #endif
 
     /**
      * @brief Portable task priority enum mapped to CMSIS/FreeRTOS priorities.
      */
     enum class TaskPriority : uint32_t {
-#if defined(MW_RTOS_ENABLE)
+#if defined(MW_ENABLE_RTOS)
         Idle = static_cast<uint32_t>(osPriorityIdle),
         Low = static_cast<uint32_t>(osPriorityLow),
         BelowNormal = static_cast<uint32_t>(osPriorityBelowNormal),
@@ -185,7 +189,7 @@ namespace MW_RTOS {
         return static_cast<NativeTaskPriority>(p);
     }
 
-#if defined(GTEST) || defined(MW_RTOS_ENABLE)
+#if defined(GTEST)
     struct MockRTOSTask {
         const char* name;
         TaskRoutine routine;
@@ -221,11 +225,20 @@ namespace MW_RTOS {
         EventBits bits;
     };
     using EventGroupHandle = MockRTOSEventGroup*;
-#else
+#elif defined(MW_ENABLE_RTOS)
+    using TaskHandle = TaskHandle_t;
     using QueueHandle = QueueHandle_t;
     using EventGroupHandle = EventGroupHandle_t;
-    using TaskHandle = TaskHandle_t;
+#else
+    struct DummyRTOSTask {};
+    using TaskHandle = DummyRTOSTask*;
+
+    struct DummyRTOSQueue {};
+    using QueueHandle = DummyRTOSQueue*;
+
+    struct DummyRTOSEventGroup {};
+    using EventGroupHandle = DummyRTOSEventGroup*;
 #endif
 }  // namespace MW_RTOS
 
-#endif  // __MIDDLEWARE_TYPES_HPP
+#endif

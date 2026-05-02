@@ -20,7 +20,13 @@
 
 #else
 
+#if defined(STM32F407xx)
 #include "stm32f407xx.h"
+#elif defined(STM32F427xx)
+#include "stm32f427xx.h"
+#else
+#error "Unknown STM32 MCU. Please define either STM32F407xx or STM32F427xx."
+#endif
 
 __attribute__((noreturn)) __attribute__((weak)) void on_error(const char* msg) {
     (void) msg;

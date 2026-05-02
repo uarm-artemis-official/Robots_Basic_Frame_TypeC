@@ -57,9 +57,20 @@
         {
             "name": "Telemetry",
             "inherits": "default",
+            "toolchainFile": "${sourceDir}/bases/telemetry_system/cmake/gcc-arm-none-eabi.cmake",
             "cacheVariables": {
                 "BASE_TYPE": "telemetry",
                 "CMAKE_BUILD_TYPE": "Telemetry",
+                "CMAKE_VERBOSE_MAKEFILE": "ON"
+            }
+        },
+        {
+            "name": "Engineer",
+            "inherits": "default",
+            "toolchainFile": "${sourceDir}/bases/engineer/cmake/gcc-arm-none-eabi.cmake",
+            "cacheVariables": {
+                "BASE_TYPE": "engineer",
+                "CMAKE_BUILD_TYPE": "Engineer",
                 "CMAKE_VERBOSE_MAKEFILE": "ON"
             }
         },
@@ -98,6 +109,10 @@
         {
             "name": "Telemetry",
             "configurePreset": "Telemetry"
+        },
+        {
+            "name": "Engineer",
+            "configurePreset": "Engineer"
         },
         {
             "name": "GTest",

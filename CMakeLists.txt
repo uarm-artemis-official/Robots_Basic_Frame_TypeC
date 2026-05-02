@@ -21,25 +21,57 @@ if (NOT CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "CMAKE_BUILD_TYPE must be set.")
 endif()
 
-set(BASE_TYPE "" CACHE STRING "Base type for firmware builds: robots3v3 or telemetry")
-set_property(CACHE BASE_TYPE PROPERTY STRINGS robots3v3 telemetry)
-
-if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest" AND NOT ${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
-    if (NOT BASE_TYPE)
-        message(FATAL_ERROR "BASE_TYPE must be set to either 'robots3v3' or 'telemetry'.")
-    endif()
-
-    if (BASE_TYPE STREQUAL "robots3v3")
-        set(BASE_DIR "${CMAKE_SOURCE_DIR}/bases/robots3v3")
-    elseif (BASE_TYPE STREQUAL "telemetry")
-        set(BASE_DIR "${CMAKE_SOURCE_DIR}/bases/telemetry_system")
+if (PLATFORM_MCU)
+    if (PLATFORM_MCU STREQUAL "STM32F407XX")
+        add_compile_definitions(STM32F407xx)
+    elseif (PLATFORM_MCU STREQUAL "STM32F427XX")
+        add_compile_definitions(STM32F427xx)
     else()
-        message(FATAL_ERROR "Unrecognized BASE_TYPE: ${BASE_TYPE}. Supported values are 'robots3v3' and 'telemetry'.")
+        message(FATAL_ERROR "Unsupported MCU: ${PLATFORM_MCU}")
     endif()
-
-    set(BASE_CMAKE_DIR "${BASE_DIR}/cmake")
 endif()
 
+if (ENABLE_CAN_MIDDLEWARE)
+    add_compile_definitions(MW_ENABLE_CAN)
+endif()
+
+if (ENABLE_GPIO_MIDDLEWARE)
+    add_compile_definitions(MW_ENABLE_GPIO)
+endif()
+
+if (ENABLE_I2C_MIDDLEWARE)
+    add_compile_definitions(MW_ENABLE_I2C)
+endif()
+
+if (ENABLE_SPI_MIDDLEWARE)
+    add_compile_definitions(MW_ENABLE_SPI)
+endif()
+
+if (ENABLE_TIM_MIDDLEWARE)
+    add_compile_definitions(MW_ENABLE_TIM)
+endif()
+
+if (ENABLE_UART_MIDDLEWARE)
+    add_compile_definitions(MW_ENABLE_UART)
+endif()
+
+if (ENABLE_RTOS_MIDDLEWARE)
+    add_compile_definitions(MW_ENABLE_RTOS)
+endif()
+
+
+if (BASE_TYPE STREQUAL "robots3v3")
+    set(BASE_DIR "${CMAKE_SOURCE_DIR}/bases/robots3v3")
+elseif (BASE_TYPE STREQUAL "telemetry")
+    set(BASE_DIR "${CMAKE_SOURCE_DIR}/bases/telemetry_system")
+elseif (BASE_TYPE STREQUAL "engineer")
+    set(BASE_DIR "${CMAKE_SOURCE_DIR}/bases/engineer")
+    # Intentionally no middleware feature macros for engineer builds.
+else()
+    message("No base type defined")
+endif()
+
+set(BASE_CMAKE_DIR "${BASE_DIR}/cmake")
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Test)
@@ -66,6 +98,16 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Auto_Aim_Rig")
     include("${BASE_CMAKE_DIR}/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_AUTO_AIM_RIG "-O0 -g3 -DAUTO_AIM_RIG")
     set(CMAKE_CXX_FLAGS_AUTO_AIM_RIG "-O0 -g3 -DAUTO_AIM_RIG")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Telemetry")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Telemetry)
+    include("${BASE_CMAKE_DIR}/gcc-arm-none-eabi.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_TELEMETRY "-O0 -g3 -DTELEMETRY")
+    set(CMAKE_CXX_FLAGS_TELEMETRY "-O0 -g3 -DTELEMETRY")
+elseif (${CMAKE_BUILD_TYPE} STREQUAL "Engineer")
+    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Engineer)
+    include("${BASE_CMAKE_DIR}/gcc-arm-none-eabi.cmake") # toolchain file
+    set(CMAKE_C_FLAGS_ENGINEER "-O0 -g3 -DENGINEER")
+    set(CMAKE_CXX_FLAGS_ENGINEER "-O0 -g3 -DENGINEER")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Kiddie_Mode")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Kiddie_Mode)
     include("${BASE_CMAKE_DIR}/gcc-arm-none-eabi.cmake") # toolchain file
@@ -85,6 +127,7 @@ project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
 enable_language(C CXX ASM)
+
 
 set(ROBOTS_PATH ${PROJECT_SOURCE_DIR}/robots)
 set(APPLICATIONS_PATH ${PROJECT_SOURCE_DIR}/robots/Applications)
@@ -132,6 +175,8 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
     endif()
 else()
     add_executable(${CMAKE_PROJECT_NAME})
+
+    message("(ROOT) Adding Project name: " ${CMAKE_PROJECT_NAME})
 
     add_subdirectory(${BASE_DIR})
     add_subdirectory(${PROJECT_SOURCE_DIR}/lib)

@@ -2,12 +2,21 @@
 #define __INIT_ISRS_HPP
 
 #include <memory>
-#include "can.h"
 #include "can_isr.hpp"
 #include "middleware_interfaces.hpp"
-#include "tim.h"
 #include "uart_isr.hpp"
+
+#if defined(MW_ENABLE_TIM)
+#include "tim.h"
+#endif
+
+#if defined(MW_ENABLE_CAN)
+#include "can.h"
+#endif
+
+#if defined(MW_ENABLE_UART)
 #include "usart.h"
+#endif
 
 static std::shared_ptr<isr::can::CAN_ISR> can_isr;
 static std::shared_ptr<isr::uart::UART_ISR> uart_isr;
@@ -22,6 +31,8 @@ bool isr::uart::install_isr(UART_ISR& uart_isr_ref) {
     return true;
 }
 
+#if defined(MW_ENABLE_TIM)
+
 /**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM5 interrupt took place, inside
@@ -35,6 +46,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
         HAL_IncTick();
     }
 }
+#endif
+
+#if defined(MW_ENABLE_CAN)
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
     if (!can_isr || !can_isr->is_initialized()) {
@@ -56,6 +70,9 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
     }
     can_isr->run_isr_routines(isr::can::ECallbacks::MESSAGE_PENDING, bus);
 }
+#endif
+
+#if defined(MW_ENABLE_UART)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
     if (!uart_isr || !uart_isr->is_initialized()) {
@@ -109,5 +126,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
     uart_isr->run_isr_routines(isr::uart::ECallbacks::TRANSMIT_COMPLETE,
                                peripheral);
 }
+
+#endif
 
 #endif

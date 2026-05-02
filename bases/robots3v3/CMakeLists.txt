@@ -145,3 +145,13 @@ configure_file(
     "${LINKER_SCRIPT_BUILD}"
     COPYONLY # Use COPYONLY to simply copy the file
 )
+
+# Set middleware and MCU platform options for this base.
+set(PLATFORM_MCU "STM32F407XX" CACHE STRING "Target MCU for the build")
+set(ENABLE_CAN_MIDDLEWARE ON CACHE BOOL "Enable CAN middleware for the project")
+set(ENABLE_RTOS_MIDDLEWARE ON CACHE BOOL "Enable FreeRTOS for the project")
+set(ENABLE_GPIO_MIDDLEWARE ON CACHE BOOL "Enable GPIO middleware for the project")
+set(ENABLE_I2C_MIDDLEWARE ON CACHE BOOL "Enable I2C middleware for the project")
+set(ENABLE_SPI_MIDDLEWARE ON CACHE BOOL "Enable SPI middleware for the project")
+set(ENABLE_TIM_MIDDLEWARE ON CACHE BOOL "Enable TIM middleware for the project")
+set(ENABLE_UART_MIDDLEWARE ON CACHE BOOL "Enable UART middleware for the project")

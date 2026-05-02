@@ -128,13 +128,14 @@ namespace comm {
         }
 
         void process_command_message(const simple_comm::SimpleMessage& msg) {
+            (void) msg;
             // TODO: Implement.
         }
 
         void can_isr_message_pending(MW_CAN::BUS bus, MW_CAN::CANFrame frame) {
             if (bus == MW_CAN::BUS::CAN_2B) {
                 simple_comm::SimpleMessage in_msg;
-                
+
                 bool d_ok = simple_comm_codec.from_can_message(frame, in_msg);
                 if (d_ok) {
                     if (in_msg.destination !=
@@ -154,19 +155,27 @@ namespace comm {
                                      ++i) {
                                     if (deserializer_map[i].first ==
                                         in_msg.id) {
-                                        const mc2::TopicMeta& topic_meta = message_center.get_topic_meta(in_msg.id);
+                                        const mc2::TopicMeta& topic_meta =
+                                            message_center.get_topic_meta(
+                                                in_msg.id);
 
                                         bool success =
                                             deserializer_map[i].second(
-                                                std::span(byte_out_buffer).first(topic_meta.item_size),
-                                                std::span(in_msg.payload).first(in_msg.payload_size));
+                                                std::span(byte_out_buffer)
+                                                    .first(
+                                                        topic_meta.item_size),
+                                                std::span(in_msg.payload)
+                                                    .first(
+                                                        in_msg.payload_size));
                                         ASSERT(success,
                                                "Deserialization failed for "
                                                "message with ID %d");
 
                                         message_center
                                             .template pub_byte_message_from_isr(
-                                                std::span(byte_out_buffer).first(topic_meta.item_size),
+                                                std::span(byte_out_buffer)
+                                                    .first(
+                                                        topic_meta.item_size),
                                                 in_msg.id);
                                         break;
                                     }

@@ -288,7 +288,14 @@
 #ifndef _ARM_MATH_H
 #define _ARM_MATH_H
 
+#if defined(STM32F407xx)
 #include "stm32f407xx.h"  // required since has FPU definitions for MPU.
+
+#elif defined(STM32F427xx)
+#include "stm32f427xx.h"  // required since has FPU definitions for MPU.
+#else
+#error "Unknown STM32 MCU. Please define either STM32F407 or STM32F427."
+#endif
 
 /* Compiler specific diagnostic adjustment */
 #if defined(__CC_ARM)

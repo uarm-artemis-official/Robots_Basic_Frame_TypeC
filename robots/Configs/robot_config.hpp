@@ -4,7 +4,7 @@
 #include <type_traits>
 
 namespace robot_config {
-    enum class ConfigType { Hero, Infantry, Sentry, AutoAim, Test };
+    enum class ConfigType { Hero, Infantry, Sentry, AutoAim, Test, None };
     enum class ChassisType { Mecanum, Omni, Swerve };
     enum class GimbalType { DJI };
 
@@ -26,6 +26,10 @@ namespace robot_config {
 
 #ifdef GTEST
     constexpr ConfigType config_type = ConfigType::Test;
+#endif
+
+#ifdef ENGINEER
+    constexpr ConfigType config_type = ConfigType::None;
 #endif
 
 #ifdef OMNI_INFANTRY
@@ -54,6 +58,10 @@ namespace robot_config {
 #include "kiddie_mode_config.hpp"
     constexpr ChassisType chassis_type = ChassisType::Omni;
     constexpr GimbalType gimbal_type = GimbalType::DJI;
+#endif
+
+#ifdef ENGINEER
+#include "engineer_config.hpp"
 #endif
 
 #ifdef GTEST
