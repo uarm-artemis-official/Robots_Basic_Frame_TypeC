@@ -6,7 +6,7 @@ add_library(MW::MIDDLEWARE ALIAS MIDDLEWARE)
 
 if (PLATFORM_MCU)
     if (PLATFORM_MCU STREQUAL "STM32F407XX" OR PLATFORM_MCU STREQUAL "STM32F427XX")
-        add_subdirectory(platforms)
+        add_subdirectory(mappings)
     else()
         message(FATAL_ERROR "Unsupported MCU: ${PLATFORM_MCU}")
     endif()

@@ -1,4 +1,4 @@
-#include "mapper.hpp"
+#include "mapping_api.hpp"
 #include "uarm_lib.hpp"
 
 #ifdef MW_ENABLE_CAN
@@ -24,57 +24,99 @@ namespace platform {
 #ifdef MW_ENABLE_UART
 
     UART_HandleTypeDef* get_hal_uart(MW_UART::Peripheral peripheral) {
-        (void)peripheral;
-        ASSERT(false, "Unimplemented mapper method: get_hal_uart");
-        return nullptr;
+        switch (peripheral) {
+            case MW_UART::Peripheral::UART1:
+                return &huart1;
+            case MW_UART::Peripheral::UART3:
+                return &huart3;
+            case MW_UART::Peripheral::UART6:
+                return &huart6;
+            default:
+                ASSERT(false, "Unsupported UART peripheral");
+                return nullptr;
+        }
     }
 
     MW_UART::Peripheral get_uart_from_hal(UART_HandleTypeDef* huart) {
-        (void)huart;
-        ASSERT(false, "Unimplemented mapper method: get_uart_from_hal");
-        return MW_UART::Peripheral::None;
+        if (huart == &huart1) {
+            return MW_UART::Peripheral::UART1;
+        } else if (huart == &huart3) {
+            return MW_UART::Peripheral::UART3;
+        } else if (huart == &huart6) {
+            return MW_UART::Peripheral::UART6;
+        }
+        ASSERT(false, "Unsupported UART handle");
+        return MW_UART::Peripheral::Unknown;
     }
 #endif
 
 #ifdef MW_ENABLE_I2C
     I2C_HandleTypeDef* get_hal_i2c(MW_I2C::Periperhal peripheral) {
-        (void)peripheral;
-        ASSERT(false, "Unimplemented mapper method: get_hal_i2c");
-        return nullptr;
+        switch (peripheral) {
+            case MW_I2C::Periperhal::I2C_2:
+                return &hi2c2;
+            case MW_I2C::Periperhal::I2C_3:
+                return &hi2c3;
+            default:
+                ASSERT(false, "Unsupported I2C peripheral");
+                return nullptr;
+        }
     }
 
     MW_I2C::Periperhal get_i2c_from_hal(I2C_HandleTypeDef* hi2c) {
-        (void)hi2c;
-        ASSERT(false, "Unimplemented mapper method: get_i2c_from_hal");
-        return MW_I2C::Periperhal::I2C_2;
+        if (hi2c == &hi2c2) {
+            return MW_I2C::Periperhal::I2C_2;
+        } else if (hi2c == &hi2c3) {
+            return MW_I2C::Periperhal::I2C_3;
+        }
+        ASSERT(false, "Unsupported I2C handle");
+        return MW_I2C::Periperhal::Unknown;
     }
 #endif
 
 #ifdef MW_ENABLE_CAN
     CAN_HandleTypeDef* get_hal_can(MW_CAN::BUS bus) {
-        (void)bus;
-        ASSERT(false, "Unimplemented mapper method: get_hal_can");
-        return nullptr;
+        switch (bus) {
+            case MW_CAN::BUS::CAN_1:
+            case MW_CAN::BUS::CAN_1B:
+                return &hcan1;
+            case MW_CAN::BUS::CAN_2:
+            case MW_CAN::BUS::CAN_2B:
+                return &hcan2;
+            default:
+                ASSERT(false, "Unsupported CAN bus");
+                return nullptr;
+        }
     }
 
     MW_CAN::BUS get_can_from_hal(CAN_HandleTypeDef* hcan) {
-        (void)hcan;
-        ASSERT(false, "Unimplemented mapper method: get_can_from_hal");
-        return MW_CAN::BUS::CAN_1;
+        if (hcan == &hcan1) {
+            return MW_CAN::BUS::CAN_1;
+        } else if (hcan == &hcan2) {
+            return MW_CAN::BUS::CAN_2;
+        }
+        ASSERT(false, "Unsupported CAN handle");
+        return MW_CAN::BUS::Unknown;
     }
 #endif
 
 #ifdef MW_ENABLE_SPI
     SPI_HandleTypeDef* get_hal_spi(MW_SPI::Peripheral peripheral) {
-        (void)peripheral;
-        ASSERT(false, "Unimplemented mapper method: get_hal_spi");
-        return nullptr;
+        switch (peripheral) {
+            case MW_SPI::Peripheral::SPI_1:
+                return &hspi1;
+            default:
+                ASSERT(false, "Unsupported SPI peripheral");
+                return nullptr;
+        }
     }
 
     MW_SPI::Peripheral get_spi_from_hal(SPI_HandleTypeDef* hspi) {
-        (void)hspi;
-        ASSERT(false, "Unimplemented mapper method: get_spi_from_hal");
-        return MW_SPI::Peripheral::SPI_1;
+        if (hspi == &hspi1) {
+            return MW_SPI::Peripheral::SPI_1;
+        }
+        ASSERT(false, "Unsupported SPI handle");
+        return MW_SPI::Peripheral::Unknown;
     }
 #endif
 
@@ -88,21 +130,31 @@ namespace platform {
             case Timer::TIM_5:
                 return &htim5;
             case Timer::TIM_8:
-                return &htim5;
+                return &htim8;
             case Timer::TIM_10:
-                return &htim5;
+                return &htim10;
             case Timer::TIM_13:
-                return &htim5;
+                return &htim13;
             default:
                 ASSERT(false, "Trying to get unsupported Timer.");
+                return nullptr;
         }
-        return nullptr;
     }
 
     uint32_t get_hal_tim_channel(MW_TIM::Channel channel) {
-        (void)channel;
-        ASSERT(false, "Unimplemented mapper method: get_hal_tim_channel");
-        return 0;
+        switch (channel) {
+            case MW_TIM::Channel::CHANNEL_1:
+                return TIM_CHANNEL_1;
+            case MW_TIM::Channel::CHANNEL_2:
+                return TIM_CHANNEL_2;
+            case MW_TIM::Channel::CHANNEL_3:
+                return TIM_CHANNEL_3;
+            case MW_TIM::Channel::CHANNEL_4:
+                return TIM_CHANNEL_4;
+            default:
+                ASSERT(false, "Unsupported TIM channel");
+                return 0;
+        }
     }
 #endif
 

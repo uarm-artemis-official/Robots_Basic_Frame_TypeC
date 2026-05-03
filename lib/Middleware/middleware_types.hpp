@@ -56,6 +56,7 @@ namespace MW_TIM {
         TIM_8,
         TIM_10,
         TIM_13,
+        Unknown,
     };
 
     enum class Channel {
@@ -80,6 +81,7 @@ namespace MW_CAN {
         CAN_1B,
         CAN_2,
         CAN_2B,
+        Unknown,
     };
 
     enum class Notification {
@@ -136,16 +138,17 @@ namespace MW_CAN {
 }  // namespace MW_CAN
 
 namespace MW_UART {
-    enum class Peripheral { UART1, UART3, UART6, UART8, None };
+    enum class Peripheral { UART1, UART3, UART6, UART8, None, Unknown };
 }
 
 namespace MW_I2C {
-    enum class Periperhal { I2C_2, I2C_3 };
+    enum class Periperhal { I2C_2, I2C_3, Unknown };
 }
 
 namespace MW_SPI {
     enum class Peripheral {
         SPI_1,
+        Unknown,
     };
 }
 

@@ -1,5 +1,5 @@
 #include "middleware_classes.hpp"
-#include "platforms/mapper.hpp"
+#include "mappings/mapping_api.hpp"
 #include "stm32f4xx_hal.h"
 #include "uarm_lib.hpp"
 
