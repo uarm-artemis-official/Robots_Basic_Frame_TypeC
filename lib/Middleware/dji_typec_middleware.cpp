@@ -1,5 +1,5 @@
+#include "mapping_api.hpp"
 #include "middleware_classes.hpp"
-#include "mappings/mapping_api.hpp"
 #include "stm32f4xx_hal.h"
 #include "uarm_lib.hpp"
 
@@ -20,7 +20,9 @@
 #endif
 
 namespace MW_BASE {
-    bool Base::init() { return true; }
+    bool Base::init() {
+        return true;
+    }
 
     void Base::delay_ms(uint32_t ms) {
         HAL_Delay(ms);
@@ -79,7 +81,8 @@ namespace MW_GPIO {
      * @param state The desired state (HIGH or LOW) to write to the pin.
      */
     void GPIO::write_pin(Port port, Pin pin, State state) {
-        HAL_GPIO_WritePin(platform::get_hal_gpio_port(port), platform::get_hal_gpio_pin(pin),
+        HAL_GPIO_WritePin(platform::get_hal_gpio_port(port),
+                          platform::get_hal_gpio_pin(pin),
                           get_hal_state(state));
     }
 
@@ -91,7 +94,8 @@ namespace MW_GPIO {
      */
     State GPIO::read_pin(Port port, Pin pin) {
         return get_state_from_hal(
-            HAL_GPIO_ReadPin(platform::get_hal_gpio_port(port), platform::get_hal_gpio_pin(pin)));
+            HAL_GPIO_ReadPin(platform::get_hal_gpio_port(port),
+                             platform::get_hal_gpio_pin(pin)));
     }
 
     /**
@@ -100,7 +104,8 @@ namespace MW_GPIO {
      * @param pin The GPIO pin.
      */
     void GPIO::toggle_pin(Port port, Pin pin) {
-        HAL_GPIO_TogglePin(platform::get_hal_gpio_port(port), platform::get_hal_gpio_pin(pin));
+        HAL_GPIO_TogglePin(platform::get_hal_gpio_port(port),
+                           platform::get_hal_gpio_pin(pin));
     }
 #else
     bool GPIO::init() {
@@ -157,7 +162,8 @@ namespace MW_TIM {
      */
     bool PWM::start(Timer timer, Channel channel) {
         return HAL_TIM_PWM_Start(platform::get_hal_tim(timer),
-                                 platform::get_hal_tim_channel(channel)) == HAL_OK;
+                                 platform::get_hal_tim_channel(channel)) ==
+               HAL_OK;
     }
 
     bool PWM::init() {
@@ -302,8 +308,8 @@ namespace MW_CAN {
         }
         tx_header.RTR = CAN_RTR_DATA;
         tx_header.DLC = length;
-        return HAL_CAN_AddTxMessage(platform::get_hal_can(bus), &tx_header, data,
-                                    nullptr) == HAL_OK;
+        return HAL_CAN_AddTxMessage(platform::get_hal_can(bus), &tx_header,
+                                    data, nullptr) == HAL_OK;
     }
 
     /**
@@ -390,8 +396,8 @@ namespace MW_CAN {
                 : CAN_FILTERMODE_IDLIST;
         filter_config.FilterActivation =
             (filter_configuration.is_activated) ? ENABLE : DISABLE;
-        return HAL_CAN_ConfigFilter(platform::get_hal_can(bus), &filter_config) ==
-               HAL_OK;
+        return HAL_CAN_ConfigFilter(platform::get_hal_can(bus),
+                                    &filter_config) == HAL_OK;
     }
 #else
     bool CAN::init() {
@@ -578,9 +584,10 @@ namespace MW_I2C {
                               const uint8_t* data, size_t size,
                               uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot transmit I2C data from nullptr.");
-        HAL_I2C_Master_Transmit(
-            platform::get_hal_i2c(i2c), static_cast<uint16_t>(device_address << 1),
-            const_cast<uint8_t*>(data), static_cast<uint16_t>(size), timeout);
+        HAL_I2C_Master_Transmit(platform::get_hal_i2c(i2c),
+                                static_cast<uint16_t>(device_address << 1),
+                                const_cast<uint8_t*>(data),
+                                static_cast<uint16_t>(size), timeout);
     }
 
     void I2C::master_receive(Periperhal i2c, uint8_t device_address,
@@ -610,10 +617,11 @@ namespace MW_I2C {
                         uint16_t memory_address, uint16_t memory_address_size,
                         const uint8_t* data, size_t size, uint32_t timeout) {
         ASSERT(data != nullptr, "Cannot transmit I2C data from nullptr.");
-        HAL_I2C_Mem_Write(
-            platform::get_hal_i2c(i2c), static_cast<uint16_t>(device_address << 1),
-            memory_address, memory_address_size, const_cast<uint8_t*>(data),
-            static_cast<uint16_t>(size), timeout);
+        HAL_I2C_Mem_Write(platform::get_hal_i2c(i2c),
+                          static_cast<uint16_t>(device_address << 1),
+                          memory_address, memory_address_size,
+                          const_cast<uint8_t*>(data),
+                          static_cast<uint16_t>(size), timeout);
     }
 
     void I2C::mem_read(Periperhal i2c, uint8_t device_address,

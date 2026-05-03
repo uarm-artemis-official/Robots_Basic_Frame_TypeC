@@ -21,7 +21,7 @@ namespace modules {
             MW_GPIO::IGPIO& gpio;
             MW_UART::IUART& uart;
             MW_UART::Peripheral uart_debug_peripheral =
-                MW_UART::Peripheral::None;
+                MW_UART::Peripheral::Unknown;
 
             UARTAccessToken current_token = 0;
             bool is_initialized = false;
@@ -33,10 +33,10 @@ namespace modules {
             bool init() {
                 switch (get_board_config()) {
                     case BoardConfig::CHASSIS:
-                        uart_debug_peripheral = MW_UART::Peripheral::UART1;
+                        uart_debug_peripheral = MW_UART::Peripheral::UART_1;
                         break;
                     case BoardConfig::GIMBAL:
-                        uart_debug_peripheral = MW_UART::Peripheral::UART6;
+                        uart_debug_peripheral = MW_UART::Peripheral::UART_6;
                         break;
                     default:
                         ASSERT(false, "Unknown board configuration.");

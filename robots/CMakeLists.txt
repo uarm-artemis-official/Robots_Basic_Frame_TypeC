@@ -4,3 +4,4 @@ target_link_libraries(MESSAGES INTERFACE LIB::UARM_LIB)
 add_library(ROBOTS::MESSAGES ALIAS MESSAGES)
 
 add_subdirectory(Applications)
+add_subdirectory(platforms)

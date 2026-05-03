@@ -387,14 +387,14 @@ namespace simple_comm {
              * 
              * This function sets up the UART to begin receiving data and
              * initializes the FSM state for parsing incoming messages. Simple
-             * Comm UART operates on UART1 peripheral (which is the four-pin 
+             * Comm UART operates on UART_1 peripheral (which is the four-pin 
              * UART on the Type-C).
              * 
              * @param uart Reference to the UART interface.
              * @return true if initialization was successful, false otherwise.
              */
             bool uart_isr_init(MW_UART::IUART& uart) {
-                bool res = uart.receive_data(MW_UART::Peripheral::UART1,
+                bool res = uart.receive_data(MW_UART::Peripheral::UART_1,
                                              uart_temp_rx_buffer.data(), 1);
                 uart_rx_fsm_state = UARTFSMState::WAIT_FOR_TRIBIT;
                 return res;
@@ -434,7 +434,7 @@ namespace simple_comm {
              */
             void uart_isr_receive_complete(MW_UART::IUART& uart,
                                            MW_UART::Peripheral peripheral) {
-                if (peripheral != MW_UART::Peripheral::UART1) {
+                if (peripheral != MW_UART::Peripheral::UART_1) {
                     return;
                 }
 
@@ -442,13 +442,13 @@ namespace simple_comm {
                     case UARTFSMState::WAIT_FOR_TRIBIT: {
                         if (codec.is_recognized_magic(uart_temp_rx_buffer[0])) {
                             // Move to receive header state
-                            uart.receive_data(MW_UART::Peripheral::UART1,
+                            uart.receive_data(MW_UART::Peripheral::UART_1,
                                               uart_temp_rx_buffer.data() + 1,
                                               UART_HEADER_SIZE - 1);
                             uart_rx_fsm_state = UARTFSMState::WAIT_FOR_HEADER;
                         } else {
                             // Continue waiting for tribit
-                            uart.receive_data(MW_UART::Peripheral::UART1,
+                            uart.receive_data(MW_UART::Peripheral::UART_1,
                                               uart_temp_rx_buffer.data(), 1);
                         }
                         break;
@@ -460,14 +460,14 @@ namespace simple_comm {
                             payload_size <= MAX_PAYLOAD_SIZE) {
                             // Move to receive payload state
                             uart.receive_data(
-                                MW_UART::Peripheral::UART1,
+                                MW_UART::Peripheral::UART_1,
                                 uart_temp_rx_buffer.data() + UART_HEADER_SIZE,
                                 payload_size + UART_TRAILER_SIZE);
                             uart_rx_fsm_state =
                                 UARTFSMState::WAIT_FOR_REST_MESSAGE;
                         } else {
                             // Invalid payload size, restart reception
-                            uart.receive_data(MW_UART::Peripheral::UART1,
+                            uart.receive_data(MW_UART::Peripheral::UART_1,
                                               uart_temp_rx_buffer.data(), 1);
                             uart_rx_fsm_state = UARTFSMState::WAIT_FOR_TRIBIT;
                         }
@@ -517,7 +517,7 @@ namespace simple_comm {
                             uart_rx_fsm_state = UARTFSMState::WAIT_FOR_TRIBIT;
                         }
 
-                        uart.receive_data(MW_UART::Peripheral::UART1,
+                        uart.receive_data(MW_UART::Peripheral::UART_1,
                                           uart_temp_rx_buffer.data(), 1);
                         uart_rx_fsm_state = UARTFSMState::WAIT_FOR_TRIBIT;
                         break;

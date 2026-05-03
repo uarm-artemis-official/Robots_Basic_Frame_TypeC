@@ -102,7 +102,7 @@ namespace comm {
                                                  uart_buffer.size()),
                             message_size);
 
-                        uart.send_data(MW_UART::Peripheral::UART1,
+                        uart.send_data(MW_UART::Peripheral::UART_1,
                                        reinterpret_cast<const uint8_t*>(
                                            uart_buffer.data()),
                                        uart_buffer.size(), 1);

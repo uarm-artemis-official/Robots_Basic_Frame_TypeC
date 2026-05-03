@@ -24,7 +24,7 @@ namespace platform {
 #ifdef MW_ENABLE_UART
     UART_HandleTypeDef* get_hal_uart(MW_UART::Peripheral peripheral) {
         switch (peripheral) {
-            case MW_UART::Peripheral::UART8:
+            case MW_UART::Peripheral::UART_8:
                 return &huart8;
             default:
                 ASSERT(false, "Unsupported UART peripheral");
@@ -34,7 +34,7 @@ namespace platform {
 
     MW_UART::Peripheral get_uart_from_hal(UART_HandleTypeDef* huart) {
         if (huart == &huart8) {
-            return MW_UART::Peripheral::UART8;
+            return MW_UART::Peripheral::UART_8;
         }
         ASSERT(false, "Unsupported UART handle");
         return MW_UART::Peripheral::Unknown;
@@ -43,13 +43,13 @@ namespace platform {
 
 #ifdef MW_ENABLE_I2C
     I2C_HandleTypeDef* get_hal_i2c(MW_I2C::Periperhal peripheral) {
-        (void)peripheral;
+        (void) peripheral;
         ASSERT(false, "Unsupported I2C peripheral");
         return nullptr;
     }
 
     MW_I2C::Periperhal get_i2c_from_hal(I2C_HandleTypeDef* hi2c) {
-        (void)hi2c;
+        (void) hi2c;
         ASSERT(false, "Unsupported I2C handle");
         return MW_I2C::Periperhal::Unknown;
     }
@@ -83,13 +83,13 @@ namespace platform {
 
 #ifdef MW_ENABLE_SPI
     SPI_HandleTypeDef* get_hal_spi(MW_SPI::Peripheral peripheral) {
-        (void)peripheral;
+        (void) peripheral;
         ASSERT(false, "Unsupported SPI peripheral");
         return nullptr;
     }
 
     MW_SPI::Peripheral get_spi_from_hal(SPI_HandleTypeDef* hspi) {
-        (void)hspi;
+        (void) hspi;
         ASSERT(false, "Unsupported SPI handle");
         return MW_SPI::Peripheral::Unknown;
     }
@@ -97,13 +97,13 @@ namespace platform {
 
 #ifdef MW_ENABLE_TIM
     TIM_HandleTypeDef* get_hal_tim(MW_TIM::Timer timer) {
-        (void)timer;
+        (void) timer;
         ASSERT(false, "Unsupported Timer");
         return nullptr;
     }
 
     uint32_t get_hal_tim_channel(MW_TIM::Channel channel) {
-        (void)channel;
+        (void) channel;
         ASSERT(false, "Unsupported TIM channel");
         return 0;
     }
@@ -111,15 +111,15 @@ namespace platform {
 
 #ifdef MW_ENABLE_GPIO
     GPIO_TypeDef* get_hal_gpio_port(MW_GPIO::Port port) {
-        (void)port;
+        (void) port;
         ASSERT(false, "Unimplemented mapper method: get_hal_gpio_port");
         return nullptr;
     }
 
     uint16_t get_hal_gpio_pin(MW_GPIO::Pin pin) {
-        (void)pin;
+        (void) pin;
         ASSERT(false, "Unimplemented mapper method: get_hal_gpio_pin");
         return 0;
     }
 #endif
-}
+}  // namespace platform

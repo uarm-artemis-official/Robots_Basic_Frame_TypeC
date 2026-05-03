@@ -31,7 +31,7 @@
 // extern uint8_t referee_timeout_check_flag;
 // /*
 // *  @Referee System Note
-// *		JUL, 2023: Use UART3 DMA IT to read the data from referee system intead of freertos task
+// *		JUL, 2023: Use UART_3 DMA IT to read the data from referee system intead of freertos task
 // *
 // * 	Helpful cmd index
 // * 		0x0001  Competition status data				 3 Hz
@@ -53,16 +53,14 @@
 //  * @param[in] None
 //  * @retval    None
 //  */
-RefereeApp::RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                                             comm::Communication<mc2::RobotMC,
-                                                                                     mc2::RobotMC::Topics>&
-                                                     communication_ref,
-                                             IEventCenter& evt_center,
-                                             modules::debug::Debug& _debug, IRefUI& ref_ui,
-                                             isr::uart::UART_ISR& _uart_isr)
+RefereeApp::RefereeApp(
+    MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
+    IEventCenter& evt_center, modules::debug::Debug& _debug, IRefUI& ref_ui,
+    isr::uart::UART_ISR& _uart_isr)
     : RTOSApp(_rtos),
       mc(mc_ref),
-            communication(communication_ref),
+      communication(communication_ref),
       event_center(evt_center),
       debug(_debug),
       ref_ui(ref_ui),
@@ -135,18 +133,18 @@ void RefereeApp::loop() {
 }
 
 bool RefereeApp::uart_isr_init(MW_UART::IUART& uart) {
-    return uart.receive_data(MW_UART::Peripheral::UART1,
+    return uart.receive_data(MW_UART::Peripheral::UART_1,
                              uart_referee_in.ref_bytes.data(),
                              uart_referee_in.ref_bytes.size());
 }
 
 void RefereeApp::uart_isr_receive_complete(MW_UART::IUART& uart,
                                            MW_UART::Peripheral peripheral) {
-    if (peripheral == MW_UART::Peripheral::UART1) {
+    if (peripheral == MW_UART::Peripheral::UART_1) {
         mc.pub_message_from_isr(uart_referee_in);
         memset(uart_referee_in.ref_bytes.data(), 0,
                uart_referee_in.ref_bytes.size());
-        ASSERT(uart.receive_data(MW_UART::Peripheral::UART1,
+        ASSERT(uart.receive_data(MW_UART::Peripheral::UART_1,
                                  uart_referee_in.ref_bytes.data(),
                                  uart_referee_in.ref_bytes.size()),
                "Failed to start another receive after receive complete.");
@@ -155,7 +153,7 @@ void RefereeApp::uart_isr_receive_complete(MW_UART::IUART& uart,
 
 void RefereeApp::uart_isr_on_error(MW_UART::IUART& uart,
                                    MW_UART::Peripheral peripheral) {
-    if (peripheral == MW_UART::Peripheral::UART1) {
+    if (peripheral == MW_UART::Peripheral::UART_1) {
         uart.abort_receive(peripheral);
         // Clear buffer
         memset(uart_referee_in.ref_bytes.data(), 0,

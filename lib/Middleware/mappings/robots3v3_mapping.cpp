@@ -25,11 +25,11 @@ namespace platform {
 
     UART_HandleTypeDef* get_hal_uart(MW_UART::Peripheral peripheral) {
         switch (peripheral) {
-            case MW_UART::Peripheral::UART1:
+            case MW_UART::Peripheral::UART_1:
                 return &huart1;
-            case MW_UART::Peripheral::UART3:
+            case MW_UART::Peripheral::UART_3:
                 return &huart3;
-            case MW_UART::Peripheral::UART6:
+            case MW_UART::Peripheral::UART_6:
                 return &huart6;
             default:
                 ASSERT(false, "Unsupported UART peripheral");
@@ -39,11 +39,11 @@ namespace platform {
 
     MW_UART::Peripheral get_uart_from_hal(UART_HandleTypeDef* huart) {
         if (huart == &huart1) {
-            return MW_UART::Peripheral::UART1;
+            return MW_UART::Peripheral::UART_1;
         } else if (huart == &huart3) {
-            return MW_UART::Peripheral::UART3;
+            return MW_UART::Peripheral::UART_3;
         } else if (huart == &huart6) {
-            return MW_UART::Peripheral::UART6;
+            return MW_UART::Peripheral::UART_6;
         }
         ASSERT(false, "Unsupported UART handle");
         return MW_UART::Peripheral::Unknown;
@@ -123,17 +123,17 @@ namespace platform {
 #ifdef MW_ENABLE_TIM
     TIM_HandleTypeDef* get_hal_tim(MW_TIM::Timer timer) {
         switch (timer) {
-            case Timer::TIM_1:
+            case MW_TIM::Timer::TIM_1:
                 return &htim1;
-            case Timer::TIM_4:
+            case MW_TIM::Timer::TIM_4:
                 return &htim4;
-            case Timer::TIM_5:
+            case MW_TIM::Timer::TIM_5:
                 return &htim5;
-            case Timer::TIM_8:
+            case MW_TIM::Timer::TIM_8:
                 return &htim8;
-            case Timer::TIM_10:
+            case MW_TIM::Timer::TIM_10:
                 return &htim10;
-            case Timer::TIM_13:
+            case MW_TIM::Timer::TIM_13:
                 return &htim13;
             default:
                 ASSERT(false, "Trying to get unsupported Timer.");
@@ -161,23 +161,23 @@ namespace platform {
 #ifdef MW_ENABLE_GPIO
     GPIO_TypeDef* get_hal_gpio_port(MW_GPIO::Port port) {
         switch (port) {
-            case Port::PORT_A:
+            case MW_GPIO::Port::PORT_A:
                 return GPIOA;
-            case Port::PORT_B:
+            case MW_GPIO::Port::PORT_B:
                 return GPIOB;
-            case Port::PORT_C:
+            case MW_GPIO::Port::PORT_C:
                 return GPIOC;
-            case Port::PORT_D:
+            case MW_GPIO::Port::PORT_D:
                 return GPIOD;
-            case Port::PORT_E:
+            case MW_GPIO::Port::PORT_E:
                 return GPIOE;
-            case Port::PORT_F:
+            case MW_GPIO::Port::PORT_F:
                 return GPIOF;
-            case Port::PORT_G:
+            case MW_GPIO::Port::PORT_G:
                 return GPIOG;
-            case Port::PORT_H:
+            case MW_GPIO::Port::PORT_H:
                 return GPIOH;
-            case Port::PORT_I:
+            case MW_GPIO::Port::PORT_I:
                 return GPIOI;
             default:
                 ASSERT(false, "Invalid GPIO port");
@@ -187,37 +187,37 @@ namespace platform {
 
     uint16_t get_hal_gpio_pin(MW_GPIO::Pin pin) {
         switch (pin) {
-            case Pin::PIN_0:
+            case MW_GPIO::Pin::PIN_0:
                 return GPIO_PIN_0;
-            case Pin::PIN_1:
+            case MW_GPIO::Pin::PIN_1:
                 return GPIO_PIN_1;
-            case Pin::PIN_2:
+            case MW_GPIO::Pin::PIN_2:
                 return GPIO_PIN_2;
-            case Pin::PIN_3:
+            case MW_GPIO::Pin::PIN_3:
                 return GPIO_PIN_3;
-            case Pin::PIN_4:
+            case MW_GPIO::Pin::PIN_4:
                 return GPIO_PIN_4;
-            case Pin::PIN_5:
+            case MW_GPIO::Pin::PIN_5:
                 return GPIO_PIN_5;
-            case Pin::PIN_6:
+            case MW_GPIO::Pin::PIN_6:
                 return GPIO_PIN_6;
-            case Pin::PIN_7:
+            case MW_GPIO::Pin::PIN_7:
                 return GPIO_PIN_7;
-            case Pin::PIN_8:
+            case MW_GPIO::Pin::PIN_8:
                 return GPIO_PIN_8;
-            case Pin::PIN_9:
+            case MW_GPIO::Pin::PIN_9:
                 return GPIO_PIN_9;
-            case Pin::PIN_10:
+            case MW_GPIO::Pin::PIN_10:
                 return GPIO_PIN_10;
-            case Pin::PIN_11:
+            case MW_GPIO::Pin::PIN_11:
                 return GPIO_PIN_11;
-            case Pin::PIN_12:
+            case MW_GPIO::Pin::PIN_12:
                 return GPIO_PIN_12;
-            case Pin::PIN_13:
+            case MW_GPIO::Pin::PIN_13:
                 return GPIO_PIN_13;
-            case Pin::PIN_14:
+            case MW_GPIO::Pin::PIN_14:
                 return GPIO_PIN_14;
-            case Pin::PIN_15:
+            case MW_GPIO::Pin::PIN_15:
                 return GPIO_PIN_15;
             default:
                 ASSERT(false, "Invalid GPIO pin");

@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "can_isr.hpp"
+#include "mappings/mapping_api.hpp"
 #include "middleware_interfaces.hpp"
 #include "uart_isr.hpp"
 
@@ -56,20 +57,25 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
     uint32_t frame_ide =
         CAN_RI0R_IDE & hcan->Instance->sFIFOMailBox[CAN_RX_FIFO0].RIR;
     bool is_extended_id = frame_ide == CAN_ID_EXT;
-    if (hcan == &hcan1) {
-        bus = is_extended_id ? MW_CAN::BUS::CAN_1B : MW_CAN::BUS::CAN_1;
-    } else if (hcan == &hcan2) {
-        bus = is_extended_id ? MW_CAN::BUS::CAN_2B : MW_CAN::BUS::CAN_2;
-    } else {
-        ASSERT(false, "Received message on unknown hcan.");
+
+    bus = platform::get_can_from_hal(hcan);
+    ASSERT(bus != MW_CAN::BUS::Unknown, "Received message on unknown hcan.");
+
+    if (is_extended_id) {
+        if (bus == MW_CAN::BUS::CAN_1) {
+            bus = MW_CAN::BUS::CAN_1B;
+        } else if (bus == MW_CAN::BUS::CAN_2) {
+            bus = MW_CAN::BUS::CAN_2B;
+        } else {
+            ASSERT(false, "Invalid bus for extended ID message.");
+        }
     }
+
     can_isr->run_isr_routines(isr::can::ECallbacks::MESSAGE_PENDING, bus);
 }
 #endif
 
 #if defined(MW_ENABLE_UART)
-
-static UART_HandleTypeDef* ;
 
 bool isr::uart::install_isr(UART_ISR& uart_isr_ref) {
     uart_isr = std::make_shared<isr::uart::UART_ISR>(uart_isr_ref);
@@ -81,14 +87,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
         return;
     }
 
-    MW_UART::Peripheral peripheral;
-    if (huart == &huart1) {
-        peripheral = MW_UART::Peripheral::UART1;
-    } else if (huart == &huart3) {
-        peripheral = MW_UART::Peripheral::UART3;
-    } else {
-        ASSERT(false, "Receive complete on unknown huart.");
-    }
+    MW_UART::Peripheral peripheral = platform::get_uart_from_hal(huart);
+    ASSERT(peripheral != MW_UART::Peripheral::Unknown,
+           "Receive complete on unknown huart.");
 
     uart_isr->run_isr_routines(isr::uart::ECallbacks::RECEIVE_COMPLETE,
                                peripheral);
@@ -99,14 +100,9 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
         return;
     }
 
-    MW_UART::Peripheral peripheral;
-    if (huart == &huart1) {
-        peripheral = MW_UART::Peripheral::UART1;
-    } else if (huart == &huart3) {
-        peripheral = MW_UART::Peripheral::UART3;
-    } else {
-        ASSERT(false, "Receive complete on unknown huart.");
-    }
+    MW_UART::Peripheral peripheral = platform::get_uart_from_hal(huart);
+    ASSERT(peripheral != MW_UART::Peripheral::Unknown,
+           "Error on unknown huart.");
 
     uart_isr->run_isr_routines(isr::uart::ECallbacks::ON_ERROR, peripheral);
 }
@@ -116,22 +112,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
         return;
     }
 
-    MW_UART::Peripheral peripheral;
-    #ifdef ROBOTS3V3
-    if (huart == &huart1) {
-        peripheral = MW_UART::Peripheral::UART1;
-    } else if (huart == &huart3) {
-        peripheral = MW_UART::Peripheral::UART3;
-    } else if (huart == &huart6) {
-        peripheral = MW_UART::Peripheral::UART6;
-    #endif
-    #ifdef ENGINEER
-    if (huart == &huart8) {
-        peripheral = MW_UART::Peripheral::UART8;
-    #endif
-    } else {
-        ASSERT(false, "Transmit complete on unknown huart.");
-    }
+    MW_UART::Peripheral peripheral = platform::get_uart_from_hal(huart);
+    ASSERT(peripheral != MW_UART::Peripheral::Unknown,
+           "Transmit complete on unknown huart.");
 
     uart_isr->run_isr_routines(isr::uart::ECallbacks::TRANSMIT_COMPLETE,
                                peripheral);

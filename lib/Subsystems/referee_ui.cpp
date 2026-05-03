@@ -138,7 +138,7 @@ void RefereeUI::send_ui_data(uint16_t cmd_id, uint16_t len,
 
     // HAL_UART_Transmit_DMA(&huart1, ref_tx_frame, frame_length);
     if (frame_length > 0 && ref_tx_frame != NULL) {
-        uart.send_data(MW_UART::Peripheral::UART1, ref_tx_frame, frame_length,
+        uart.send_data(MW_UART::Peripheral::UART_1, ref_tx_frame, frame_length,
                        50);
     }
 }

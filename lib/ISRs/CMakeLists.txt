@@ -9,7 +9,8 @@ else()
     target_link_libraries(ISR_INTERFACES 
         PUBLIC 
             LIB::UARM_LIB
-            MW::MIDDLEWARE)
+            MW::MIDDLEWARE
+            MAPPER)
     add_library(ISRS::ISR_INTERFACES ALIAS ISR_INTERFACES)
 endif()
 

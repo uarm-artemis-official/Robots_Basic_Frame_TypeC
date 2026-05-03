@@ -1,5 +1,6 @@
 add_library(MAPPER)
 target_include_directories(MAPPER PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(MAPPER PUBLIC MIDDLEWARE)
 
 if (BASE_TYPE STREQUAL "robots3v3")
     target_sources(MAPPER 

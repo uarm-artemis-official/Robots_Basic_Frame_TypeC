@@ -23,9 +23,9 @@ endif()
 
 if (PLATFORM_MCU)
     if (PLATFORM_MCU STREQUAL "STM32F407XX")
-        add_compile_definitions(STM32F407xx)
+        add_compile_definitions(STM32F407XX)
     elseif (PLATFORM_MCU STREQUAL "STM32F427XX")
-        add_compile_definitions(STM32F427xx)
+        add_compile_definitions(STM32F427XX)
     else()
         message(FATAL_ERROR "Unsupported MCU: ${PLATFORM_MCU}")
     endif()
@@ -213,5 +213,6 @@ else()
         SUBSYSTEMS::EVENT_CENTER
         SUBSYSTEMS::IMU
         SUBSYSTEMS::REF_UI
+        ROBOTS::PLATFORMS
         stm32cubemx)
 endif()

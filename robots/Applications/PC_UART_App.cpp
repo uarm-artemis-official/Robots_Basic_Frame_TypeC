@@ -15,15 +15,13 @@
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
-PCUARTApp::PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                                         comm::Communication<mc2::RobotMC,
-                                                                                 mc2::RobotMC::Topics>&
-                                                 communication_ref,
-                     IMotors& motors_, IPCComm& pc_comm_,
-                     isr::uart::UART_ISR& _uart_isr)
+PCUARTApp::PCUARTApp(
+    MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
+    IMotors& motors_, IPCComm& pc_comm_, isr::uart::UART_ISR& _uart_isr)
     : RTOSApp(_rtos),
       mc(mc_ref),
-            communication(communication_ref),
+      communication(communication_ref),
       motors(motors_),
       pc_comm(pc_comm_),
       uart_isr(_uart_isr) {
@@ -111,16 +109,16 @@ void PCUARTApp::loop() {
 }
 
 bool PCUARTApp::uart_isr_init(MW_UART::IUART& uart) {
-    return uart.receive_data(MW_UART::Peripheral::UART1,
+    return uart.receive_data(MW_UART::Peripheral::UART_1,
                              uart_pack_in.bytes.data(),
                              uart_pack_in.bytes.size());
 }
 
 void PCUARTApp::uart_isr_receive_complete(MW_UART::IUART& uart,
                                           MW_UART::Peripheral peripheral) {
-    if (peripheral == MW_UART::Peripheral::UART1) {
+    if (peripheral == MW_UART::Peripheral::UART_1) {
         mc.pub_message_from_isr(uart_pack_in);
-        ASSERT(uart.receive_data(MW_UART::Peripheral::UART1,
+        ASSERT(uart.receive_data(MW_UART::Peripheral::UART_1,
                                  uart_pack_in.bytes.data(),
                                  uart_pack_in.bytes.size()),
                "Failed to start another UART receive after receive complete.");

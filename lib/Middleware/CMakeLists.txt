@@ -21,6 +21,7 @@ if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "GTest")
     target_link_libraries(DJI_TYPEC_MIDDLEWARE 
         PUBLIC 
             COMMON_INCLUDES
+            MAPPER
             LIB::UARM_LIB)
     
     target_link_libraries(MIDDLEWARE 
