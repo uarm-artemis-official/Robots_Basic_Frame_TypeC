@@ -215,11 +215,12 @@ class ShootApp
     LoaderSpeedControl speed_loader_control;
     LoaderPositionControl position_loader_control;
     Motor_Feedback_t loader_feedback;
-    FlyWheelControl flywheel_controls[2];
-    Motor_Feedback_t left_flywheel_feedback, right_flywheel_feedback;
+    FlyWheelControl flywheel_controls[3];
+    Motor_Feedback_t left_flywheel_feedback, right_flywheel_feedback, third_flywheel_feedback;
     const float LOADER_ACTIVE_RPM;
     const float FLYWHEEL_ACTIVE_TARGET_RPM;
     const float MAX_FLYWHEEL_ACCEL;
+    bool is_hero;
 
    public:
     explicit ShootApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
@@ -228,7 +229,7 @@ class ShootApp
                           communication_ref,
                       IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
                       float loader_active_rpm_, float flywheel_target_rpm_,
-                      float max_flywheel_accel);
+                      float max_flywheel_accel, bool is_hero);
 
     void init();
     void loop();

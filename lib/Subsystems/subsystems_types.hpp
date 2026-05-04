@@ -46,6 +46,7 @@ typedef enum {
     // SHOOT
     SHOOT_LEFT_FRIC = 0x201,
     SHOOT_RIGHT_FRIC = 0x202,
+    SHOOT_THIRD_FRIC = 0x203,
     SHOOT_LOADER = 0x207,
 
     // GIMBAL

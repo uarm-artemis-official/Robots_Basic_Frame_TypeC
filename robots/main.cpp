@@ -208,6 +208,12 @@ static CommApp::CommApp comm_app(rtos, mc, debug, can, comm_config, can_isr);
 // static CommApp::v4::CommApp();
 #endif
 
+#ifdef HERO
+static constexpr bool is_hero = true;
+#else
+static constexpr bool is_hero = false;
+#endif
+
 static TimerApp timer_app(rtos, motors, mc, communication, debug, can_isr);
 static PCUARTApp pc_uart_app(rtos, mc, communication, no_init_motors, pc_comm,
                              uart_isr);
@@ -220,7 +226,7 @@ static ShootApp shoot_app(
     rtos, mc, communication, ammo_lid_, no_init_motors,
     robot_config::shoot_params::LOADER_ACTIVE_RPM,
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
-    robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
+    robot_config::shoot_params::MAX_FLYWHEEL_ACCEL, is_hero);
 
 void init_robot_apps() {
     modules::debug::BoardConfig board_status = debug.get_board_config();

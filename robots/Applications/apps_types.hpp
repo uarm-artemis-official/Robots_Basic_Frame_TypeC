@@ -213,6 +213,7 @@ struct Shoot {
     int32_t loader_output;
     int32_t left_flywheel_output;
     int32_t right_flywheel_output;
+    int32_t third_flywheel_output;
 };
 
 struct LoaderSpeedControl {

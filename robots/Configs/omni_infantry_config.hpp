@@ -80,8 +80,8 @@ namespace gimbal_params {
     constexpr float KD_GIMBAL_PITCH_SPEED = 0;    //0.01 0.05
     constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
     constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
-    constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -30000;
-    constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 30000;
+    constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
+    constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
     static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
     static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 }  // namespace gimbal_params

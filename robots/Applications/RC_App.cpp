@@ -384,11 +384,11 @@ void RCApp::pub_command_messages() {
         float yaw = in_out_map(rc.ctrl.ch0,
                                -apps_defines::rc::joystick_max_offset_magnitude,
                                apps_defines::rc::joystick_max_offset_magnitude,
-                               -5.0f * DEGREE2RAD, 5.0f * DEGREE2RAD);
+                               -1.0f * DEGREE2RAD, 1.0f * DEGREE2RAD);
         float pitch = in_out_map(
             rc.ctrl.ch1, -apps_defines::rc::joystick_max_offset_magnitude,
-            apps_defines::rc::joystick_max_offset_magnitude, -5.0f * DEGREE2RAD,
-            5.0f * DEGREE2RAD);
+            apps_defines::rc::joystick_max_offset_magnitude, -1.0f * DEGREE2RAD,
+            1.0f * DEGREE2RAD);
 
         // Command delta deadbands.
         if (fabs(yaw) < apps_defines::rc::gimbal_joystick_send_threshold)

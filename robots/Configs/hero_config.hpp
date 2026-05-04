@@ -5,8 +5,8 @@
 
 namespace gimbal_params {
     // Motor encoder zero-position
-    constexpr int16_t YAW_ECD_CENTER = 3100;
-    constexpr int16_t PITCH_ECD_CENTER = 6800;
+    constexpr int16_t YAW_ECD_CENTER = 1380;
+    constexpr int16_t PITCH_ECD_CENTER = 0;
     constexpr float LOADER_GEAR_RATIO = 3591 / 187;
 
     // Software pitch limits.
@@ -24,7 +24,7 @@ namespace gimbal_params {
     };
     // 1 = CCW positive (i.e. rotating CCW pitches up)
     // 1 = CW positive (i.e. rotating CW pitches up)
-    constexpr float PITCH_ORIENTATION = 1;
+    constexpr float PITCH_ORIENTATION = -1;
 
     // Gimbal yaw PID.
     constexpr float KP_GIMBAL_YAW_ANGLE = 250;
@@ -41,8 +41,12 @@ namespace gimbal_params {
     constexpr float KD_GIMBAL_YAW_SPEED = 0;
     constexpr float BETA_GIMBAL_YAW_SPEED = 1;
     constexpr float YETA_GIMBAL_YAW_SPEED = 1;
+    // constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -5000;
+    // constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 5000;
     constexpr float MIN_OUT_GIMBAL_YAW_SPEED = -20000;
     constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 20000;
+    // constexpr float MIN_OUT_GIMBAL_YAW_SPEED = 0;
+    // constexpr float MAX_OUT_GIMBAL_YAW_SPEED = 0;
     static_assert(MAX_OUT_GIMBAL_YAW_SPEED >= MIN_OUT_GIMBAL_YAW_SPEED);
 
     // Gimbal pitch PID.
@@ -60,26 +64,30 @@ namespace gimbal_params {
     constexpr float KD_GIMBAL_PITCH_SPEED = 0;
     constexpr float BETA_GIMBAL_PITCH_SPEED = 1;
     constexpr float YETA_GIMBAL_PITCH_SPEED = 0;
+    // constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -5000;
+    // constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 5000;
     constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = -20000;
     constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 20000;
+    // constexpr float MIN_OUT_GIMBAL_PITCH_SPEED = 0;
+    // constexpr float MAX_OUT_GIMBAL_PITCH_SPEED = 0;
     static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 }  // namespace gimbal_params
 
 namespace shoot_params {
     // Shoot targets.
-    constexpr float LOADER_ACTIVE_RPM = 33;
+    constexpr float LOADER_ACTIVE_RPM = 300;
     constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 10000;
     constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
     static_assert(MAX_FLYWHEEL_ACCEL >= 0);
 
     // Loader PID.
     constexpr float KP_LOADER_SPEED = 15;
-    constexpr float KI_LOADER_SPEED = 0;
+    constexpr float KI_LOADER_SPEED = 4;
     constexpr float KD_LOADER_SPEED = 0;
     constexpr float BETA_LOADER_SPEED = 1;
     constexpr float YETA_LOADER_SPEED = 0;
-    constexpr float MIN_OUT_LOADER_SPEED = -5000;
-    constexpr float MAX_OUT_LOADER_SPEED = 5000;
+    constexpr float MIN_OUT_LOADER_SPEED = -10000;
+    constexpr float MAX_OUT_LOADER_SPEED = 10000;
     static_assert(MAX_OUT_LOADER_SPEED >= MIN_OUT_LOADER_SPEED);
 
     // Loader PID.

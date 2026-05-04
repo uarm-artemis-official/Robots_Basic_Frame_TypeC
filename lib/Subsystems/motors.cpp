@@ -21,6 +21,7 @@ void Motors::init(Motor_Config_t config) {
             this->motors[2] = Generic_Motor_t {GIMBAL_YAW, 0, DJI};
             this->motors[3] = Generic_Motor_t {GIMBAL_PITCH, 0, DJI};
             this->motors[4] = Generic_Motor_t {SHOOT_LOADER, 0, DJI};
+            this->motors[5] = Generic_Motor_t {SHOOT_THIRD_FRIC, 0, DJI};
             break;
         }
         case DJI_CHASSIS: {
@@ -112,7 +113,7 @@ void Motors::send_motor_voltage() {
                                    this->motors[3].tx_data,
                                    this->motors[4].tx_data, 0);
             dji_motor_send_voltage((int32_t) M3508, this->motors[0].tx_data,
-                                   this->motors[1].tx_data, 0, 0);
+                                   this->motors[1].tx_data, this->motors[5].tx_data, 0);
             break;
         case DJI_CHASSIS:
             dji_motor_send_voltage((int32_t) M3508, this->motors[0].tx_data,
