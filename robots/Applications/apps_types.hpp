@@ -211,8 +211,6 @@ struct Shoot {
     uint32_t loader_delay_counter;
 
     int32_t loader_output;
-    int32_t left_flywheel_output;
-    int32_t right_flywheel_output;
 };
 
 struct LoaderSpeedControl {

@@ -5,9 +5,11 @@
 
 namespace gimbal_params {
     // Motor encoder zero-position
-    constexpr int16_t YAW_ECD_CENTER = 3100;
-    constexpr int16_t PITCH_ECD_CENTER = 6800;
-    constexpr float LOADER_GEAR_RATIO = 3591 / 187;
+    constexpr int16_t YAW_ECD_CENTER = 1380;
+    constexpr int16_t PITCH_ECD_CENTER = 0;
+    
+    // Motor gear box ratio multiplied by loader gear ratio.
+    constexpr float LOADER_GEAR_RATIO = 36 * 6;
 
     // Software pitch limits.
     constexpr float PITCH_MIN_ANGLE = -0.20;
@@ -24,7 +26,8 @@ namespace gimbal_params {
     };
     // 1 = CCW positive (i.e. rotating CCW pitches up)
     // 1 = CW positive (i.e. rotating CW pitches up)
-    constexpr float PITCH_ORIENTATION = 1;
+    // TODO Verify.
+    constexpr float PITCH_ORIENTATION = -1;
 
     // Gimbal yaw PID.
     constexpr float KP_GIMBAL_YAW_ANGLE = 250;
@@ -67,7 +70,7 @@ namespace gimbal_params {
 
 namespace shoot_params {
     // Shoot targets.
-    constexpr float LOADER_ACTIVE_RPM = 33;
+    constexpr float LOADER_ACTIVE_RPM = 75;
     constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 10000;
     constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
     static_assert(MAX_FLYWHEEL_ACCEL >= 0);

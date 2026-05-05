@@ -4,13 +4,13 @@
 #include <array>
 #include "apps_interfaces.hpp"
 #include "apps_types.hpp"
+#include "can_isr.hpp"
 #include "communication.hpp"
 #include "debug.hpp"
 #include "message_center.hpp"
 #include "messages.hpp"
 #include "simple_comm.hpp"
 #include "subsystems_interfaces.hpp"
-#include "can_isr.hpp"
 #include "uart_isr.hpp"
 
 template <class DriveTrain>
@@ -31,8 +31,7 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
 
     explicit ChassisApp(MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
                         mc2::RobotMC& mc_ref,
-                        comm::Communication<mc2::RobotMC,
-                                            mc2::RobotMC::Topics>&
+                        comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                             communication_ref,
                         modules::debug::Debug& _debug);
     void init();
@@ -159,8 +158,7 @@ class GimbalApp
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
     explicit GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                       comm::Communication<mc2::RobotMC,
-                                           mc2::RobotMC::Topics>&
+                       comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                            communication_ref,
                        IEventCenter& event_center, IMotors& motors_ref,
                        modules::debug::Debug& _debug);
@@ -203,49 +201,68 @@ class GimbalApp
     void send_rel_angles();
 };
 
-class ShootApp
-    : public RTOSApp<ShootApp, apps_defines::shoot_task_loop_period_ms> {
-   private:
-    mc2::RobotMC& mc;
-    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
-    IAmmoLid& ammo_lid;
-    IMotors& motors;
+namespace ShootApp {
 
-    Shoot shoot;
-    LoaderSpeedControl speed_loader_control;
-    LoaderPositionControl position_loader_control;
-    Motor_Feedback_t loader_feedback;
-    FlyWheelControl flywheel_controls[2];
-    Motor_Feedback_t left_flywheel_feedback, right_flywheel_feedback;
-    const float LOADER_ACTIVE_RPM;
-    const float FLYWHEEL_ACTIVE_TARGET_RPM;
-    const float MAX_FLYWHEEL_ACCEL;
+    inline namespace v1 {
+        enum class ShootAppConfig { DUAL, TRIPLE, UNKNOWN };
 
-   public:
-    explicit ShootApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                      comm::Communication<mc2::RobotMC,
-                                          mc2::RobotMC::Topics>&
-                          communication_ref,
-                      IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
-                      float loader_active_rpm_, float flywheel_target_rpm_,
-                      float max_flywheel_accel);
+        class ShootApp
+            : public RTOSApp<ShootApp,
+                             apps_defines::shoot_task_loop_period_ms> {
+           private:
+            mc2::RobotMC& mc;
+            comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
+                communication;
+            IAmmoLid& ammo_lid;
+            IMotors& motors;
 
-    void init();
-    void loop();
+            Shoot shoot;
+            LoaderSpeedControl speed_loader_control;
+            LoaderPositionControl position_loader_control;
+            Motor_Feedback_t loader_feedback;
 
-    void get_motor_feedback();
-    void detect_loader_stall();
+            /**
+     * (Two flywheel configurations)
+     *  [0] - left flywheel.
+     *  [1] - right flywheel.
+     * (Three flywheel configurations)
+     *  [0] - left flywheel.
+     *  [1] - right flywheel.
+     *  [2] - top flywheel.
+     */
+            FlyWheelControl flywheel_controls[3];
+            const float LOADER_ACTIVE_RPM;
+            const float FLYWHEEL_ACTIVE_TARGET_RPM;
+            const float MAX_FLYWHEEL_ACCEL;
+            const ShootAppConfig CONFIG;
 
-    void process_commands();
+           public:
+            explicit ShootApp(
+                MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
+                    communication_ref,
+                IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
+                float loader_active_rpm_, float flywheel_target_rpm_,
+                float max_flywheel_accel, ShootAppConfig config_);
 
-    void calc_targets();
-    void calc_motor_outputs();
-    void send_motor_outputs();
+            void init();
+            void loop();
 
-    void set_shoot_mode(ShootActMode_t new_mode);
-    void set_loader_target(float new_target);
-    void set_flywheel_target(float new_target);
-};
+            void get_motor_feedback();
+            void detect_loader_stall();
+
+            void process_commands();
+
+            void calc_targets();
+            void calc_motor_outputs();
+            void send_motor_outputs();
+
+            void set_shoot_mode(ShootActMode_t new_mode);
+            void set_loader_target(float new_target);
+            void set_flywheel_target(float new_target);
+        };
+    }  // namespace v1
+}  // namespace ShootApp
 
 class IMUApp
     : public ExtendedRTOSApp<IMUApp, apps_defines::imu_task_loop_period_ms> {
@@ -267,8 +284,7 @@ class IMUApp
     static constexpr float IMU_RESET_THRESHOLD = 7.0f;
 
     explicit IMUApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                    comm::Communication<mc2::RobotMC,
-                                        mc2::RobotMC::Topics>&
+                    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                         communication_ref,
                     IEventCenter& event_center_ref, IImu& imu_ref,
                     modules::debug::Debug& _debug);
@@ -300,8 +316,7 @@ class RefereeApp
 
    public:
     explicit RefereeApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                        comm::Communication<mc2::RobotMC,
-                                            mc2::RobotMC::Topics>&
+                        comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                             communication_ref,
                         IEventCenter& evt_center, modules::debug::Debug& _debug,
                         IRefUI& ref_ui, isr::uart::UART_ISR& _uart_isr);
@@ -339,8 +354,7 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
 
    public:
     explicit RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                   comm::Communication<mc2::RobotMC,
-                                       mc2::RobotMC::Topics>&
+                   comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                        communication_ref,
                    IRCComm& rc_comm_ref, isr::uart::UART_ISR& uart_isr);
 
@@ -385,8 +399,7 @@ class TimerApp
    public:
     explicit TimerApp(MW_RTOS::IRTOS& _rtos, IMotors& system_motors_ref,
                       mc2::RobotMC& mc2_ref,
-                      comm::Communication<mc2::RobotMC,
-                                          mc2::RobotMC::Topics>&
+                      comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                           communication_ref,
                       modules::debug::Debug& _debug,
                       isr::can::CAN_ISR& can_isr);
@@ -414,8 +427,7 @@ class PCUARTApp
 
    public:
     explicit PCUARTApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
-                       comm::Communication<mc2::RobotMC,
-                                           mc2::RobotMC::Topics>&
+                       comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                            communication_ref,
                        IMotors& motors_, IPCComm& pc_comm_,
                        isr::uart::UART_ISR& _uart_isr);
@@ -478,7 +490,8 @@ namespace CommApp {
     //     };
     // }  // namespace v3
     inline namespace v4 {
-        class CommApp : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
+        class CommApp
+            : public RTOSApp<CommApp, apps_defines::comm_task_loop_period_ms> {
            private:
            public:
             explicit CommApp();
@@ -486,7 +499,7 @@ namespace CommApp {
             bool init();
             void loop();
         };
-    }
+    }  // namespace v4
 }  // namespace CommApp
 
 #endif

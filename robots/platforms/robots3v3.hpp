@@ -66,11 +66,17 @@ static RefereeApp referee_app(rtos, mc, communication, event_center, debug,
                               ref_ui, uart_isr);
 static GimbalApp gimbal_app(rtos, mc, communication, event_center,
                             no_init_motors, debug);
-static ShootApp shoot_app(
+
+#if defined(HERO)
+ShootApp::ShootAppConfig shoot_app_config = ShootApp::ShootAppConfig::TRIPLE;
+#else
+ShootApp::ShootAppConfig shoot_app_config = ShootApp::ShootAppConfig::DUAL;
+#endif
+static ShootApp::ShootApp shoot_app(
     rtos, mc, communication, ammo_lid_, no_init_motors,
     robot_config::shoot_params::LOADER_ACTIVE_RPM,
     robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
-    robot_config::shoot_params::MAX_FLYWHEEL_ACCEL);
+    robot_config::shoot_params::MAX_FLYWHEEL_ACCEL, shoot_app_config);
 
 static MW_RTOS::TaskHandle timer_task_handle = nullptr;
 static MW_RTOS::TaskHandle chassis_task_handle = nullptr;
@@ -151,23 +157,24 @@ bool firmware_and_system_init(void) {
     // Initialize communication submodule
     ASSERT(communication.init(), "Communication init failed.");
     ASSERT(can_isr.register_routine(
-        isr::can::ECallbacks::MESSAGE_PENDING,
-        [](MW_CAN::BUS bus, isr::can::CANFrame frame) {
-            MW_CAN::CANFrame mw_frame;
-            mw_frame.sid = frame.stdid;
-            mw_frame.eid = frame.extid;
-            mw_frame.is_extended_id =
-                (bus == MW_CAN::BUS::CAN_1B || bus == MW_CAN::BUS::CAN_2B);
+               isr::can::ECallbacks::MESSAGE_PENDING,
+               [](MW_CAN::BUS bus, isr::can::CANFrame frame) {
+                   MW_CAN::CANFrame mw_frame;
+                   mw_frame.sid = frame.stdid;
+                   mw_frame.eid = frame.extid;
+                   mw_frame.is_extended_id = (bus == MW_CAN::BUS::CAN_1B ||
+                                              bus == MW_CAN::BUS::CAN_2B);
 
-            ASSERT(frame.payload_length <= mw_frame.payload.size(),
-                   "Invalid CAN ISR frame length.");
-            mw_frame.dlc = static_cast<uint8_t>(frame.payload_length);
-            for (size_t i = 0; i < frame.payload_length; ++i) {
-                mw_frame.payload[i] = std::byte {frame.payload[i]};
-            }
+                   ASSERT(frame.payload_length <= mw_frame.payload.size(),
+                          "Invalid CAN ISR frame length.");
+                   mw_frame.dlc = static_cast<uint8_t>(frame.payload_length);
+                   for (size_t i = 0; i < frame.payload_length; ++i) {
+                       mw_frame.payload[i] = std::byte {frame.payload[i]};
+                   }
 
-            communication.can_isr_message_pending(bus, mw_frame);
-        }), "Failed to register CAN ISR routine for message pending.");
+                   communication.can_isr_message_pending(bus, mw_frame);
+               }),
+           "Failed to register CAN ISR routine for message pending.");
 
     return true;
 }
@@ -177,7 +184,12 @@ void init_robot_apps() {
 
     ASSERT(rtos.task_create(
                default_task_handle, const_cast<char*>("DefaultTask"),
-               [](void* arg) { (void)arg; while (true) {rtos.delay_ms(1);}},
+               [](void* arg) {
+                   (void) arg;
+                   while (true) {
+                       rtos.delay_ms(1);
+                   }
+               },
                nullptr, 256, MW_RTOS::TaskPriority::Low),
            "Failed to create DefaultTask.");
 
