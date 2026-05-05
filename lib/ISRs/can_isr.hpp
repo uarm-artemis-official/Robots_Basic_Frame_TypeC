@@ -67,7 +67,7 @@ namespace isr {
             }
         };
 
-        bool install_isr(CAN_ISR& can_isr_ref);
+        bool install_isr(CAN_ISR* can_isr_ref);
     }  // namespace can
 }  // namespace isr
 

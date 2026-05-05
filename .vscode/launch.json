@@ -14,7 +14,11 @@
             "showDevDebugOutput": "none",
             "servertype": "stlink",
             "serverpath": "${config:stlink_gdbserver_path}",
-            "stm32cubeprogrammer": "${config:cubeprogrammer_path}"
+            "stm32cubeprogrammer": "${config:cubeprogrammer_path}",
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 4
+            }
         },
         {
             // =========================================================

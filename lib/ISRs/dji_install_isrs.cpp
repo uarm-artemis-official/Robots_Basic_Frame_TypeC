@@ -19,11 +19,12 @@
 #include "usart.h"
 #endif
 
-static std::shared_ptr<isr::can::CAN_ISR> can_isr;
-static std::shared_ptr<isr::uart::UART_ISR> uart_isr;
+static isr::can::CAN_ISR *installed_can_isr;
+static isr::uart::UART_ISR* installed_uart_isr;
 
-bool isr::can::install_isr(CAN_ISR& can_isr_ref) {
-    can_isr = std::make_shared<isr::can::CAN_ISR>(can_isr_ref);
+bool isr::can::install_isr(CAN_ISR* installed_can_isr_ref) {
+    ASSERT(installed_can_isr_ref != nullptr, "Cannot install null CAN ISR.");
+    installed_can_isr = installed_can_isr_ref;
     return true;
 }
 
@@ -45,11 +46,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 #endif
 
 #if defined(MW_ENABLE_CAN)
-
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-    if (!can_isr || !can_isr->is_initialized()) {
-        return;
-    }
+    // if (!installed_can_isr || !installed_can_isr->is_initialized()) {
+    //     CAN_RxHeaderTypeDef dummy_frame;
+    //     uint8_t data[8] = {0};
+    //     HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &dummy_frame, data);
+    //     return;
+    // }
 
     MW_CAN::BUS bus;
 
@@ -71,19 +74,20 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
         }
     }
 
-    can_isr->run_isr_routines(isr::can::ECallbacks::MESSAGE_PENDING, bus);
+    installed_can_isr->run_isr_routines(isr::can::ECallbacks::MESSAGE_PENDING, bus);
 }
 #endif
 
 #if defined(MW_ENABLE_UART)
 
-bool isr::uart::install_isr(UART_ISR& uart_isr_ref) {
-    uart_isr = std::make_shared<isr::uart::UART_ISR>(uart_isr_ref);
+bool isr::uart::install_isr(UART_ISR* installed_uart_isr_ref) {
+    ASSERT(installed_uart_isr_ref != nullptr, "Cannot install null UART ISR.");
+    installed_uart_isr = installed_uart_isr_ref;
     return true;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
-    if (!uart_isr || !uart_isr->is_initialized()) {
+    if (!installed_uart_isr || !installed_uart_isr->is_initialized()) {
         return;
     }
 
@@ -91,12 +95,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
     ASSERT(peripheral != MW_UART::Peripheral::Unknown,
            "Receive complete on unknown huart.");
 
-    uart_isr->run_isr_routines(isr::uart::ECallbacks::RECEIVE_COMPLETE,
+    installed_uart_isr->run_isr_routines(isr::uart::ECallbacks::RECEIVE_COMPLETE,
                                peripheral);
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
-    if (!uart_isr || !uart_isr->is_initialized()) {
+    if (!installed_uart_isr || !installed_uart_isr->is_initialized()) {
         return;
     }
 
@@ -104,11 +108,11 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart) {
     ASSERT(peripheral != MW_UART::Peripheral::Unknown,
            "Error on unknown huart.");
 
-    uart_isr->run_isr_routines(isr::uart::ECallbacks::ON_ERROR, peripheral);
+    installed_uart_isr->run_isr_routines(isr::uart::ECallbacks::ON_ERROR, peripheral);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
-    if (!uart_isr || !uart_isr->is_initialized()) {
+    if (!installed_uart_isr || !installed_uart_isr->is_initialized()) {
         return;
     }
 
@@ -116,7 +120,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
     ASSERT(peripheral != MW_UART::Peripheral::Unknown,
            "Transmit complete on unknown huart.");
 
-    uart_isr->run_isr_routines(isr::uart::ECallbacks::TRANSMIT_COMPLETE,
+    installed_uart_isr->run_isr_routines(isr::uart::ECallbacks::TRANSMIT_COMPLETE,
                                peripheral);
 }
 

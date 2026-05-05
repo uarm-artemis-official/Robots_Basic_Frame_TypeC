@@ -21,45 +21,6 @@ if (NOT CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "CMAKE_BUILD_TYPE must be set.")
 endif()
 
-if (PLATFORM_MCU)
-    if (PLATFORM_MCU STREQUAL "STM32F407XX")
-        message("Setting up: STM32F407XX")
-        add_compile_definitions(STM32F407XX)
-    elseif (PLATFORM_MCU STREQUAL "STM32F427XX")
-        message("Setting up: STM32F427XX")
-        add_compile_definitions(STM32F427XX)
-    else()
-        message(FATAL_ERROR "Unsupported MCU: ${PLATFORM_MCU}")
-    endif()
-endif()
-
-if (ENABLE_CAN_MIDDLEWARE)
-    add_compile_definitions(MW_ENABLE_CAN)
-endif()
-
-if (ENABLE_GPIO_MIDDLEWARE)
-    add_compile_definitions(MW_ENABLE_GPIO)
-endif()
-
-if (ENABLE_I2C_MIDDLEWARE)
-    add_compile_definitions(MW_ENABLE_I2C)
-endif()
-
-if (ENABLE_SPI_MIDDLEWARE)
-    add_compile_definitions(MW_ENABLE_SPI)
-endif()
-
-if (ENABLE_TIM_MIDDLEWARE)
-    add_compile_definitions(MW_ENABLE_TIM)
-endif()
-
-if (ENABLE_UART_MIDDLEWARE)
-    add_compile_definitions(MW_ENABLE_UART)
-endif()
-
-if (ENABLE_RTOS_MIDDLEWARE)
-    add_compile_definitions(MW_ENABLE_RTOS)
-endif()
 
 
 if (BASE_TYPE STREQUAL "robots3v3")
@@ -183,6 +144,49 @@ else()
     message("(ROOT) Adding Project name: " ${CMAKE_PROJECT_NAME})
 
     add_subdirectory(${BASE_DIR})
+
+    if (PLATFORM_MCU)
+        if (PLATFORM_MCU STREQUAL "STM32F407XX")
+            message("Setting up: STM32F407XX")
+            add_compile_definitions(STM32F407XX)
+        elseif (PLATFORM_MCU STREQUAL "STM32F427XX")
+            message("Setting up: STM32F427XX")
+            add_compile_definitions(STM32F427XX)
+        else()
+            message(FATAL_ERROR "Unsupported MCU: ${PLATFORM_MCU}")
+        endif()
+    else()
+        message(FATAL_ERROR "PLATFORM_MCU must be defined.")
+    endif()
+
+    if (ENABLE_CAN_MIDDLEWARE)
+        add_compile_definitions(MW_ENABLE_CAN)
+    endif()
+
+    if (ENABLE_GPIO_MIDDLEWARE)
+        add_compile_definitions(MW_ENABLE_GPIO)
+    endif()
+
+    if (ENABLE_I2C_MIDDLEWARE)
+        add_compile_definitions(MW_ENABLE_I2C)
+    endif()
+
+    if (ENABLE_SPI_MIDDLEWARE)
+        add_compile_definitions(MW_ENABLE_SPI)
+    endif()
+
+    if (ENABLE_TIM_MIDDLEWARE)
+        add_compile_definitions(MW_ENABLE_TIM)
+    endif()
+
+    if (ENABLE_UART_MIDDLEWARE)
+        add_compile_definitions(MW_ENABLE_UART)
+    endif()
+
+    if (ENABLE_RTOS_MIDDLEWARE)
+        add_compile_definitions(MW_ENABLE_RTOS)
+    endif()
+
     add_subdirectory(${PROJECT_SOURCE_DIR}/lib)
     add_subdirectory(${PROJECT_SOURCE_DIR}/robots)
 

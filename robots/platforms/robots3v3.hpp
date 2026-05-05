@@ -79,6 +79,7 @@ static MW_RTOS::TaskHandle ref_task_handle = nullptr;
 static MW_RTOS::TaskHandle gimbal_task_handle = nullptr;
 static MW_RTOS::TaskHandle shoot_task_handle = nullptr;
 static MW_RTOS::TaskHandle imu_task_handle = nullptr;
+static MW_RTOS::TaskHandle default_task_handle = nullptr;
 
 void can_filter_enable(MW_CAN::BUS bus) {
     MW_CAN::Filter filter = {
@@ -115,11 +116,11 @@ bool firmware_and_system_init(void) {
     ASSERT(spi.init(), "Failed to init SPI middleware.");
 
     /* CAN1 & CAN2 Init */
-    ASSERT(can.start(MW_CAN::BUS::CAN_1), "Failed to start CAN bus 1.");
-    ASSERT(can.start(MW_CAN::BUS::CAN_2), "Failed to start CAN bus 2.");
+    // ASSERT(can.start(MW_CAN::BUS::CAN_1), "Failed to start CAN bus 1.");
+    // ASSERT(can.start(MW_CAN::BUS::CAN_2), "Failed to start CAN bus 2.");
     /* CAN1 & CAN2 filter Init */
-    can_filter_enable(MW_CAN::BUS::CAN_1);
-    can_filter_enable(MW_CAN::BUS::CAN_2);
+    // can_filter_enable(MW_CAN::BUS::CAN_1);
+    // can_filter_enable(MW_CAN::BUS::CAN_2);
 
     ASSERT(
         tim.base_start(MW_TIM::Timer::TIM_13, MW_TIM::BaseStartMode::Interrupt),
@@ -130,9 +131,9 @@ bool firmware_and_system_init(void) {
     // referee_init(&referee);
 
     ASSERT(uart_isr.init(), "UART ISR init failed.");
-    ASSERT(isr::uart::install_isr(uart_isr), "UART ISR installation failed.");
+    ASSERT(isr::uart::install_isr(&uart_isr), "UART ISR installation failed.");
     ASSERT(can_isr.init(), "CAN ISR init failed.");
-    ASSERT(isr::can::install_isr(can_isr), "CAN ISR installation failed.");
+    ASSERT(isr::can::install_isr(&can_isr), "CAN ISR installation failed.");
     ASSERT(mc.init(), "MC init failed.");
     ASSERT(debug.init(), "Debug init failed.");
     event_center.init();
@@ -149,7 +150,7 @@ bool firmware_and_system_init(void) {
 
     // Initialize communication submodule
     ASSERT(communication.init(), "Communication init failed.");
-    can_isr.register_routine(
+    ASSERT(can_isr.register_routine(
         isr::can::ECallbacks::MESSAGE_PENDING,
         [](MW_CAN::BUS bus, isr::can::CANFrame frame) {
             MW_CAN::CANFrame mw_frame;
@@ -166,13 +167,19 @@ bool firmware_and_system_init(void) {
             }
 
             communication.can_isr_message_pending(bus, mw_frame);
-        });
+        }), "Failed to register CAN ISR routine for message pending.");
 
     return true;
 }
 
 void init_robot_apps() {
     modules::debug::BoardConfig board_status = debug.get_board_config();
+
+    ASSERT(rtos.task_create(
+               default_task_handle, const_cast<char*>("DefaultTask"),
+               [](void* arg) { (void)arg; while (true) {rtos.delay_ms(1);}},
+               nullptr, 256, MW_RTOS::TaskPriority::Low),
+           "Failed to create DefaultTask.");
 
     ASSERT(rtos.task_create(
                timer_task_handle, const_cast<char*>("TimerTask"),

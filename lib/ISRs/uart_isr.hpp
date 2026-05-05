@@ -61,7 +61,7 @@ namespace isr {
             }
         };
 
-        bool install_isr(UART_ISR& uart_isr_ref);
+        bool install_isr(UART_ISR* uart_isr_ref);
     }  // namespace uart
 }  // namespace isr
 
