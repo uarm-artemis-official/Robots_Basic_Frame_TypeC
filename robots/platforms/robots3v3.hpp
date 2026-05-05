@@ -204,6 +204,12 @@ void init_robot_apps() {
     //     256);
     // osThreadCreate(osThread(CommTask), NULL);
 
+    ASSERT(rtos.task_create(
+               imu_task_handle, const_cast<char*>("IMUTask"),
+               [](void* arg) { imu_app.run(static_cast<const void*>(arg)); },
+               nullptr, 256, MW_RTOS::TaskPriority::Realtime),
+           "Failed to create IMUTask.");
+
     if (board_status == modules::debug::BoardConfig::CHASSIS) {
         ASSERT(rtos.task_create(
                    chassis_task_handle, const_cast<char*>("ChassisTask"),
@@ -242,13 +248,6 @@ void init_robot_apps() {
                 [](void* arg) { shoot_app.run(static_cast<const void*>(arg)); },
                 nullptr, 256, MW_RTOS::TaskPriority::High),
             "Failed to create ShootTask.");
-
-        ASSERT(
-            rtos.task_create(
-                imu_task_handle, const_cast<char*>("IMUTask"),
-                [](void* arg) { imu_app.run(static_cast<const void*>(arg)); },
-                nullptr, 256, MW_RTOS::TaskPriority::Realtime),
-            "Failed to create IMUTask.");
     }
 }
 

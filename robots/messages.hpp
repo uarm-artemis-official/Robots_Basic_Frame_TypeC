@@ -284,15 +284,73 @@ namespace mc2 {
         }
     };
 
+    // TODO: Finish
     struct ChassisMovement {
         static constexpr uint8_t TOPIC_ID = 68;
+        static constexpr uint8_t MESSAGE_ID = TOPIC_ID;
         static constexpr size_t QUEUE_SIZE = 1;
         static constexpr size_t SERIALIZED_SIZE = 6;
-        static constexpr MessageNode destination = MessageNode::Gimbal;
+        static constexpr simple_comm::MessageType MESSAGE_TYPE =
+            simple_comm::MessageType::DATA;
 
-        float vx;
-        float vy;
-        float wz;
+        // WIP
+        MetersPerSecond vx;
+        MetersPerSecond vy;
+
+        // Only component currently used.
+        RadiansPerSecond wz;
+
+        static bool serialize_payload(
+            const ChassisMovement& msg,
+            std::span<std::byte, SERIALIZED_SIZE> dst) {
+            if (fabs(msg.vx.get()) > 100 || fabs(msg.vy.get()) > 100 ||
+                fabs(msg.wz.get()) > 100) {
+                // Data components too large to serialize.
+                // Serialization limits should be too unrealistic to be exceeded under normal operations.
+                return false;
+            }
+            int quantized_vx = msg.vx.get() * 1000;
+            int quantized_vy = msg.vy.get() * 1000;
+            int quantized_wz = msg.wz.get() * 1000;
+
+            dst[0] = std::byte {static_cast<uint8_t>(quantized_vx & 0xFF)};
+            dst[1] =
+                std::byte {static_cast<uint8_t>((quantized_vx >> 8) & 0xFF)};
+            dst[2] = std::byte {static_cast<uint8_t>(quantized_vy & 0xFF)};
+            dst[3] =
+                std::byte {static_cast<uint8_t>((quantized_vy >> 8) & 0xFF)};
+            dst[4] = std::byte {static_cast<uint8_t>(quantized_wz & 0xFF)};
+            dst[5] =
+                std::byte {static_cast<uint8_t>((quantized_wz >> 8) & 0xFF)};
+            return true;
+        }
+
+        static bool deserialize_payload(
+            std::span<const std::byte, SERIALIZED_SIZE> src,
+            ChassisMovement& msg) {
+            int quantized_vx =
+                static_cast<int>(std::to_integer<uint8_t>(src[0])) |
+                (static_cast<int>(std::to_integer<uint8_t>(src[1])) << 8);
+            int quantized_vy =
+                static_cast<int>(std::to_integer<uint8_t>(src[2])) |
+                (static_cast<int>(std::to_integer<uint8_t>(src[3])) << 8);
+            int quantized_wz =
+                static_cast<int>(std::to_integer<uint8_t>(src[4])) |
+                (static_cast<int>(std::to_integer<uint8_t>(src[5])) << 8);
+
+            if (abs(quantized_vx) > 100000 || abs(quantized_vy) > 100000 ||
+                abs(quantized_wz) > 100000) {
+                // Data components too large to be valid.
+                // Serialization limits should be too unrealistic to be exceeded under normal operations, so this likely indicates data corruption.
+                return false;
+            } else {
+                msg.vx = MetersPerSecond(quantized_vx / 1000.0f);
+                msg.vy = MetersPerSecond(quantized_vy / 1000.0f);
+                msg.wz = RadiansPerSecond(quantized_wz / 1000.0f);
+
+                return true;
+            }
+        }
     };
 
     struct MotorSet {

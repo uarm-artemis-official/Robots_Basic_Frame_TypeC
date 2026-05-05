@@ -23,13 +23,10 @@ template class ChassisApp<OmniDrive>;
 template class ChassisApp<SwerveDrive>;
 
 template <class DriveTrain>
-ChassisApp<DriveTrain>::ChassisApp(MW_RTOS::IRTOS& _rtos,
-                                   DriveTrain& drive_train_ref,
-                                   mc2::RobotMC& mc_ref,
-                                   comm::Communication<
-                                       mc2::RobotMC,
-                                       mc2::RobotMC::Topics>& communication_ref,
-                                   modules::debug::Debug& _debug)
+ChassisApp<DriveTrain>::ChassisApp(
+    MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
+    modules::debug::Debug& _debug)
     : RTOSApp<ChassisApp<DriveTrain>, ChassisApp<DriveTrain>::loop_period_ms>(
           _rtos),
       drive_train(drive_train_ref),
@@ -87,6 +84,7 @@ void ChassisApp<DriveTrain>::loop() {
     calc_movement_vectors();
 
     drive_train.drive(chassis.vx, chassis.vy, chassis.wz);
+    sending_chassis_movement();
 }
 
 /**
@@ -200,5 +198,23 @@ void ChassisApp<DriveTrain>::set_act_mode(BoardActMode_t new_act_mode) {
             break;
         default:
             return;
+    }
+}
+
+template <class DriveTrain>
+void ChassisApp<DriveTrain>::sending_chassis_movement() {
+    mc2::ImuReadings imu_readings;
+    if (mc.get_message(imu_readings).has_value()) {
+        mc2::ChassisMovement chassis_movement;
+
+        // TODO: implement vx and vy in the future
+        chassis_movement.vx = MetersPerSecond(0);
+        chassis_movement.vy = MetersPerSecond(0);
+
+        chassis_movement.wz = RadiansPerSecond(imu_readings.yaw);
+
+        communication.transmit_external_message(chassis_movement,
+                                                simmple_comm::NodeID::CHASSIS,
+                                                simmple_comm::NodeID::GIMBAL);
     }
 }

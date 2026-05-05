@@ -46,6 +46,8 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
 
     void set_board_mode(BoardMode_t new_board_mode);
     void set_act_mode(BoardActMode_t new_act_mode);
+    
+    void sending_chassis_movement();
 };
 
 // TODO: Move DriveTrains into policies or some other kind of subdirectory.
