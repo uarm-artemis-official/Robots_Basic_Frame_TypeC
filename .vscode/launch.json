@@ -13,12 +13,13 @@
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
             "servertype": "stlink",
-            "serverpath": "${config:stlink_gdbserver_path}",
+            "serverpath": "${config:stlink_serverpath}",
+            "armToolchainPath": "${config:armtoolchain_path}",
             "stm32cubeprogrammer": "${config:cubeprogrammer_path}",
             "liveWatch": {
                 "enabled": true,
                 "samplesPerSecond": 4
-            },
+            }
         },
         {
             // =========================================================
@@ -31,7 +32,8 @@
             "executable": "${command:cmake.launchTargetPath}",
             "request": "launch",
             "servertype": "openocd",
-            "serverpath": "${config:OpenOCD.server_path}",
+            "serverpath": "${config:openocd_serverpath}",
+            "armToolchainPath": "${config:armtoolchain_path}",
             "configFiles": [
                 "dap.cfg"
             ],
