@@ -8,7 +8,7 @@ namespace lk_motor {
     inline namespace can {
         enum class MotorCommand : uint8_t {
             RESET_ZEROS = 0x19,
-            IDLE = 0x80,
+            OFF = 0x80,
             STOP = 0x81,
             START = 0x88,
             READ_ENCODER_FB = 0x90,
@@ -36,6 +36,40 @@ namespace lk_motor {
             int16_t speed;
             uint16_t ecd_position;
         };
+
+        void format_off_message(uint32_t id, MW_CAN::CANFrame& message) {
+            message.sid = id;
+            message.eid = 0U;
+            message.is_extended_id = false;
+            message.dlc = 8U;
+
+            message.payload[0] =
+                static_cast<std::byte>(static_cast<uint8_t>(MotorCommand::OFF));
+            message.payload[1] = std::byte {0};
+            message.payload[2] = std::byte {0};
+            message.payload[3] = std::byte {0};
+            message.payload[4] = std::byte {0};
+            message.payload[5] = std::byte {0};
+            message.payload[6] = std::byte {0};
+            message.payload[7] = std::byte {0};
+        }
+
+        void format_on_message(uint32_t id, MW_CAN::CANFrame& message) {
+            message.sid = id;
+            message.eid = 0U;
+            message.is_extended_id = false;
+            message.dlc = 8U;
+
+            message.payload[0] = static_cast<std::byte>(
+                static_cast<uint8_t>(MotorCommand::START));
+            message.payload[1] = std::byte {0};
+            message.payload[2] = std::byte {0};
+            message.payload[3] = std::byte {0};
+            message.payload[4] = std::byte {0};
+            message.payload[5] = std::byte {0};
+            message.payload[6] = std::byte {0};
+            message.payload[7] = std::byte {0};
+        }
 
         void format_control_message(uint32_t id, MotorCommand control_cmd,
                                     int32_t send_value,

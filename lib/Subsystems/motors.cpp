@@ -8,7 +8,7 @@
 
 namespace {
     // TODO: Remove
-    constexpr MW_CAN::BUS k_motor_bus = MW_CAN::BUS::CAN_2;
+    constexpr MW_CAN::BUS k_motor_bus = MW_CAN::BUS::CAN_1;
 
     bool send_motor_frame(MW_CAN::ICAN& can, const MW_CAN::CANFrame& frame) {
         uint8_t payload[8] = {0};
@@ -164,14 +164,16 @@ void Motors::send_motor_voltage() {
 
     switch (this->config) {
         case DJI_GIMBAL:
+            // Gimbal and loader.
             dji_motor::format_voltage_message(
-                dji_motor::MotorType::GM6020, this->motors[2].tx_data,
-                this->motors[3].tx_data, this->motors[4].tx_data, 0, message);
+                dji_motor::MotorType::GM6020, this->motors[3].tx_data,
+                this->motors[4].tx_data, this->motors[5].tx_data, 0, message);
             (void) send_motor_frame(can, message);
 
+            // Flywheels
             dji_motor::format_voltage_message(
                 dji_motor::MotorType::GM3510, this->motors[0].tx_data,
-                this->motors[1].tx_data, 0, 0, message);
+                this->motors[1].tx_data, this->motors[2].tx_data, 0, message);
             (void) send_motor_frame(can, message);
             break;
         case DJI_CHASSIS:

@@ -289,6 +289,9 @@ namespace MW_CAN {
         // TODO implement sending extended ID messages.
         ASSERT(0 < length && length <= 8,
                "0 bytes < CAN data length <= 8 bytes.");
+        if (HAL_CAN_GetTxMailboxesFreeLevel(platform::get_hal_can(bus)) == 0) {
+            return false;  // No free mailbox to send message
+        }
         CAN_TxHeaderTypeDef tx_header;
         switch (bus) {
             case BUS::CAN_1:
@@ -305,6 +308,8 @@ namespace MW_CAN {
                 tx_header.StdId = 0;
                 tx_header.ExtId = ext_id;
                 break;
+            default:
+                ASSERT(false, "Unsupported CAN bus.");
         }
         tx_header.RTR = CAN_RTR_DATA;
         tx_header.DLC = length;
