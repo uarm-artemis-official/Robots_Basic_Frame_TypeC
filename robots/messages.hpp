@@ -300,6 +300,8 @@ namespace mc2 {
         // Only component currently used.
         RadiansPerSecond wz;
 
+        ChassisMovement() : vx(0), vy(0), wz(0) {}
+
         static bool serialize_payload(
             const ChassisMovement& msg,
             std::span<std::byte, SERIALIZED_SIZE> dst) {

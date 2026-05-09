@@ -214,7 +214,7 @@ void ChassisApp<DriveTrain>::sending_chassis_movement() {
         chassis_movement.wz = RadiansPerSecond(imu_readings.yaw);
 
         communication.transmit_external_message(chassis_movement,
-                                                simmple_comm::NodeID::CHASSIS,
-                                                simmple_comm::NodeID::GIMBAL);
+                                                simple_comm::NodeID::Chassis,
+                                                simple_comm::NodeID::Gimbal);
     }
 }
