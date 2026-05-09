@@ -13,8 +13,9 @@
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
             "servertype": "stlink",
-            "serverpath": "${config:stlink_gdbserver_path}",
+            "serverpath": "${config:stlink_serverpath}",
             "stm32cubeprogrammer": "${config:cubeprogrammer_path}",
+            "armToolchainPath": "${config:armtoolchain_path}",
             "liveWatch": {
                 "enabled": true,
                 "samplesPerSecond": 4
@@ -32,6 +33,7 @@
             "request": "launch",
             "servertype": "openocd",
             "serverpath": "${config:OpenOCD.server_path}",
+            "armToolchainPath": "${config:armtoolchain_path}",
             "configFiles": [
                 "dap.cfg"
             ],
