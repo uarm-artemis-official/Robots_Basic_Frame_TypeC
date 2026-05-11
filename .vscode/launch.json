@@ -33,7 +33,6 @@
             "request": "launch",
             "servertype": "openocd",
             "serverpath": "${config:OpenOCD.server_path}",
-            "armToolchainPath": "${config:armtoolchain_path}",
             "configFiles": [
                 "dap.cfg"
             ],

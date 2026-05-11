@@ -293,12 +293,6 @@ namespace mc2 {
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
             simple_comm::MessageType::DATA;
 
-        constexpr explicit ChassisMovement(
-            MetersPerSecond vx = MetersPerSecond(0),
-            MetersPerSecond vy = MetersPerSecond(0),
-            RadiansPerSecond wz = RadiansPerSecond(0))
-            : vx(vx), vy(vy), wz(wz) {}
-
         // WIP
         MetersPerSecond vx;
         MetersPerSecond vy;
