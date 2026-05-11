@@ -14,21 +14,20 @@
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
+#include "messages.hpp"
 #include "pid.h"
 #include "robot_config.hpp"
-#include "messages.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
-GimbalApp::GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                                         comm::Communication<mc2::RobotMC,
-                                                                                 mc2::RobotMC::Topics>&
-                                                 communication_ref,
-                     IEventCenter& event_center_ref, IMotors& motors_ref,
-                     modules::debug::Debug& _debug)
+GimbalApp::GimbalApp(
+    MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
+    IEventCenter& event_center_ref, IMotors& motors_ref,
+    modules::debug::Debug& _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
-            communication(communication_ref),
+      communication(communication_ref),
       event_center(event_center_ref),
       motors(motors_ref),
       debug(_debug) {}
@@ -131,10 +130,9 @@ void GimbalApp::set_initial_state() {
 
 bool GimbalApp::exit_calibrate_cond() {
     // return fabs(gimbal.yaw_rel_angle) <
-    //            (robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA *
-    //             DEGREE2RAD) &&
+    //            degrees_to_radians(robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA) &&
     //        abs(motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm) < 2 &&
-    //        fabs(gimbal.pitch_rel_angle) < (2.0f * DEGREE2RAD) &&
+    //        fabs(gimbal.pitch_rel_angle) < degrees_to_radians(2.0f) &&
     //        abs(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_rpm) < 2;
     return true;
 }
@@ -418,8 +416,9 @@ void GimbalApp::process_commands() {
     mc2::GimbalCommand gimbal_command;
     auto message_ts = mc.get_message(gimbal_command);
     if (message_ts.has_value()) {
-        command_deltas[0] = gimbal_command.delta_yaw;
-        command_deltas[1] = gimbal_command.delta_pitch;
+        // TODO: Convert deltas to use strong types.
+        command_deltas[0] = gimbal_command.delta_yaw.get();
+        command_deltas[1] = gimbal_command.delta_pitch.get();
 
         if (fabs(command_deltas[0]) < 0.001)
             command_deltas[0] = 0;
@@ -449,10 +448,11 @@ void GimbalApp::process_commands() {
 }
 
 void GimbalApp::send_rel_angles() {
-    mc2::GimbalRelativeAngles relative_angles;
-    relative_angles.yaw = gimbal.yaw_ecd_angle;
-    relative_angles.pitch = gimbal.pitch_ecd_angle;
-    communication.transmit_external_message(relative_angles, simple_comm::NodeID::Gimbal, simple_comm::NodeID::Chassis);
+    mc2::GimbalRelativeAngles relative_angles(gimbal.yaw_ecd_angle,
+                                              gimbal.pitch_ecd_angle);
+    communication.transmit_external_message(relative_angles,
+                                            simple_comm::NodeID::Gimbal,
+                                            simple_comm::NodeID::Chassis);
 }
 
 void GimbalApp::update_headings() {

@@ -150,7 +150,8 @@ void ChassisApp<DriveTrain>::chassis_get_gimbal_rel_angles() {
     mc2::GimbalRelativeAngles rel_angles;
     auto message_ts = mc.peek_message(rel_angles);
     if (message_ts.has_value()) {
-        chassis.gimbal_yaw_rel_angle = rel_angles.yaw;
+        // TODO: Update class structs to use strong types.
+        chassis.gimbal_yaw_rel_angle = rel_angles.yaw.get();
     }
 }
 
@@ -208,10 +209,11 @@ void ChassisApp<DriveTrain>::sending_chassis_movement() {
         mc2::ChassisMovement chassis_movement;
 
         // TODO: implement vx and vy in the future
-        chassis_movement.vx = MetersPerSecond(0);
-        chassis_movement.vy = MetersPerSecond(0);
+        chassis_movement.vx = uarm::strong_types::MetersPerSecond(0);
+        chassis_movement.vy = uarm::strong_types::MetersPerSecond(0);
 
-        chassis_movement.wz = RadiansPerSecond(imu_readings.yaw);
+        chassis_movement.wz =
+            uarm::strong_types::RadiansPerSecond(imu_readings.yaw);
 
         communication.transmit_external_message(chassis_movement,
                                                 simple_comm::NodeID::Chassis,

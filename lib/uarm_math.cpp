@@ -288,7 +288,7 @@ float ewma_filter(ewma_filter_t* ewma, float cur_data) {
 void init_swm_filter(sliding_mean_filter_t* filter, size_t window_size) {
     /* window size should not be greater than max window size */
     filter->window_size =
-        (window_size <= MAX_WINDOW_SIZE) ? window_size : MAX_WINDOW_SIZE;
+        (window_size <= max_window_size) ? window_size : max_window_size;
     filter->current_index = 0;
     filter->sum = 0.0f;
     memset(filter->window, 0, filter->window_size * sizeof(float));

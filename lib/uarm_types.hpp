@@ -36,7 +36,7 @@ typedef struct {
 } ewma_filter_t;
 
 typedef struct {
-    float window[MAX_WINDOW_SIZE];  // buffer to the data window
+    float window[max_window_size];  // buffer to the data window
     size_t window_size;             // size of the window
     size_t current_index;           // current position in the window
     float sum;                      // sum of the window's elements
@@ -45,47 +45,50 @@ typedef struct {
 /* =========================================================================
  * UARM STRONG TYPES
  * ====================================================================== */
-template <typename T, typename Parameter>
-class NamedType {
-   public:
-    constexpr explicit NamedType(T const& value) : value_(value) {}
-    explicit NamedType(T&& value) : value_(std::move(value)) {}
-    T& get() { return value_; }
-    T const& get() const { return value_; }
+namespace uarm::strong_types {
+    template <typename T, typename Parameter>
+    class NamedType {
+       public:
+        constexpr explicit NamedType(T const& value) : value_(value) {}
+        explicit NamedType(T&& value) : value_(std::move(value)) {}
+        T& get() { return value_; }
+        T const& get() const { return value_; }
 
-   private:
-    T value_;
-};
+       private:
+        T value_;
+    };
 
-struct MeterParameter {};
-using Meter = NamedType<float, MeterParameter>;
+    struct MeterParameter {};
+    using Meter = NamedType<float, MeterParameter>;
 
-struct MetersPerSecondParameter {};
-using MetersPerSecond = NamedType<float, MetersPerSecondParameter>;
+    struct MetersPerSecondParameter {};
+    using MetersPerSecond = NamedType<float, MetersPerSecondParameter>;
 
-struct MetersPerSecondSecondParameter {};
-using MetersPerSecondSecond = NamedType<float, MetersPerSecondSecondParameter>;
+    struct MetersPerSecondSecondParameter {};
+    using MetersPerSecondSecond =
+        NamedType<float, MetersPerSecondSecondParameter>;
 
-struct RadianParameter {};
-using Radian = NamedType<float, RadianParameter>;
+    struct RadianParameter {};
+    using Radian = NamedType<float, RadianParameter>;
 
-struct RadiansPerSecondParameter {};
-using RadiansPerSecond = NamedType<float, RadiansPerSecondParameter>;
+    struct RadiansPerSecondParameter {};
+    using RadiansPerSecond = NamedType<float, RadiansPerSecondParameter>;
 
-struct RadiansPerSecondSecondParameter {};
-using RadiansPerSecondSecond =
-    NamedType<float, RadiansPerSecondSecondParameter>;
+    struct RadiansPerSecondSecondParameter {};
+    using RadiansPerSecondSecond =
+        NamedType<float, RadiansPerSecondSecondParameter>;
 
-struct WidthParameter {};
-using Width = NamedType<Meter, WidthParameter>;
+    struct WidthParameter {};
+    using Width = NamedType<Meter, WidthParameter>;
 
-struct HeightParameter {};
-using Height = NamedType<Meter, HeightParameter>;
+    struct HeightParameter {};
+    using Height = NamedType<Meter, HeightParameter>;
 
-struct LengthParameter {};
-using Length = NamedType<Meter, LengthParameter>;
+    struct LengthParameter {};
+    using Length = NamedType<Meter, LengthParameter>;
 
-struct AngleParameter {};
-using Angle = NamedType<Radian, AngleParameter>;
+    struct AngleParameter {};
+    using Angle = NamedType<Radian, AngleParameter>;
+}  // namespace uarm::strong_types
 
 #endif

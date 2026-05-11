@@ -258,12 +258,9 @@ void RCApp::detect_rc_loss() {
 
 void RCApp::send_gimbal_command(float yaw, float pitch, BoardMode_t board_mode,
                                 BoardActMode_t act_mode) {
-    mc2::GimbalCommand gimbal_command;
-    gimbal_command.delta_yaw = yaw;
-    gimbal_command.delta_pitch = pitch;
-    gimbal_command.command_bits =
-        ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
-        (static_cast<uint8_t>(act_mode) & 0x7);
+    uint32_t command_bits = ((static_cast<uint8_t>(board_mode) & 0x7) << 3) |
+                            (static_cast<uint8_t>(act_mode) & 0x7);
+    mc2::GimbalCommand gimbal_command(yaw, pitch, command_bits);
     communication.transmit_external_message(gimbal_command,
                                             simple_comm::NodeID::Chassis,
                                             simple_comm::NodeID::Gimbal);
@@ -385,14 +382,14 @@ void RCApp::pub_command_messages() {
 
         send_chassis_command(v_parallel, v_perp, wz, board_mode, act_mode);
 
-        float yaw = in_out_map(rc.ctrl.ch0,
-                               -apps_defines::rc::joystick_max_offset_magnitude,
-                               apps_defines::rc::joystick_max_offset_magnitude,
-                               -5.0f * DEGREE2RAD, 5.0f * DEGREE2RAD);
+        float yaw = in_out_map(
+            rc.ctrl.ch0, -apps_defines::rc::joystick_max_offset_magnitude,
+            apps_defines::rc::joystick_max_offset_magnitude,
+            degrees_to_radians(-5.0f), degrees_to_radians(5.0f));
         float pitch = in_out_map(
             rc.ctrl.ch1, -apps_defines::rc::joystick_max_offset_magnitude,
-            apps_defines::rc::joystick_max_offset_magnitude, -5.0f * DEGREE2RAD,
-            5.0f * DEGREE2RAD);
+            apps_defines::rc::joystick_max_offset_magnitude,
+            degrees_to_radians(-5.0f), degrees_to_radians(5.0f));
 
         // Command delta deadbands.
         if (fabs(yaw) < apps_defines::rc::gimbal_joystick_send_threshold)
