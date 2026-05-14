@@ -21,6 +21,21 @@ typedef struct {
  * PID TYPES
  * ====================================================================== */
 
+namespace pid {
+    /**
+     * @brief PID 2 Controller Constants
+     */
+    struct PID2Config {
+        float k_p;     /**< Proportional gain coefficient */
+        float k_i;     /**< Integral gain coefficient */
+        float k_d;     /**< Derivative gain coefficient */
+        float beta;    /**< Setpoint weighting coefficient */
+        float yeta;    /**< Setpoint weighting coefficient */
+        float max_out; /**< Maximum output limit */
+        float min_out; /**< Minimum output limit */
+    };
+}  // namespace pid
+
 /**
  * @brief Enhanced PID controller structure with additional parameters
  *
@@ -30,11 +45,7 @@ typedef struct {
  * https://jckantor.github.io/CBE30338/04.02-PID_Control_with_Setpoint_Weighting.html
  */
 typedef struct {
-    float k_p;  /**< Proportional gain coefficient */
-    float k_i;  /**< Integral gain coefficient */
-    float k_d;  /**< Derivative gain coefficient */
-    float beta; /**< Setpoint weighting coefficient */
-    float yeta; /**< Setpoint weighting coefficient */
+    pid::PID2Config config;
 
     float plant_value; /**< Current process value */
     float setpoint;    /**< Desired setpoint value */
@@ -47,9 +58,6 @@ typedef struct {
     float p_out; /**< Proportional term output */
     float i_out; /**< Integral term output */
     float d_out; /**< Derivative term output */
-
-    float max_out; /**< Maximum output limit */
-    float min_out; /**< Minimum output limit */
 
     float prev_total_out; /**< Previous total output */
     float total_out;      /**< Current total output */

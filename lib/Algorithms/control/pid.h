@@ -51,6 +51,8 @@
 void pid2_init(PID2_t& pid, float k_p, float k_i, float k_d, float beta,
                float yeta, float min_out, float max_out);
 
+void pid2_init(PID2_t& pid, pid::PID2Config config);
+
 /**
  * @brief Sets new output limits for PID2_t controller.
  *

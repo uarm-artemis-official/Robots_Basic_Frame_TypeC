@@ -4,11 +4,11 @@
 TEST(PidCorrectness, Pid2InitBasic) {
     PID2_t pid2;
     pid2_init(pid2, 0.f, 1.f, 2.f, 3.f, 4.f, 0.f, 100.f);
-    EXPECT_FLOAT_EQ(pid2.k_p, 0.f);
-    EXPECT_FLOAT_EQ(pid2.k_i, 1.f);
-    EXPECT_FLOAT_EQ(pid2.k_d, 2.f);
-    EXPECT_FLOAT_EQ(pid2.beta, 3.f);
-    EXPECT_FLOAT_EQ(pid2.yeta, 4.f);
+    EXPECT_FLOAT_EQ(pid2.config.k_p, 0.f);
+    EXPECT_FLOAT_EQ(pid2.config.k_i, 1.f);
+    EXPECT_FLOAT_EQ(pid2.config.k_d, 2.f);
+    EXPECT_FLOAT_EQ(pid2.config.beta, 3.f);
+    EXPECT_FLOAT_EQ(pid2.config.yeta, 4.f);
 
     EXPECT_FLOAT_EQ(pid2.plant_value, 0.f);
     EXPECT_FLOAT_EQ(pid2.setpoint, 0.f);
@@ -22,8 +22,8 @@ TEST(PidCorrectness, Pid2InitBasic) {
     EXPECT_FLOAT_EQ(pid2.i_out, 0.f);
     EXPECT_FLOAT_EQ(pid2.d_out, 0.f);
 
-    EXPECT_FLOAT_EQ(pid2.max_out, 100.f);
-    EXPECT_FLOAT_EQ(pid2.min_out, 0.f);
+    EXPECT_FLOAT_EQ(pid2.config.max_out, 100.f);
+    EXPECT_FLOAT_EQ(pid2.config.min_out, 0.f);
 
     EXPECT_FLOAT_EQ(pid2.prev_total_out, 0.f);
     EXPECT_FLOAT_EQ(pid2.total_out, 0.f);
@@ -49,8 +49,8 @@ TEST(PidCorrectness, Pid2SetLimitsValid) {
     PID2_t pid2;
     pid2_init(pid2, 1.f, 2.f, 3.f, 4.f, 5.f, 0.f, 100.f);
     pid2_set_limits(pid2, -50.f, 50.f);
-    EXPECT_FLOAT_EQ(pid2.min_out, -50.f);
-    EXPECT_FLOAT_EQ(pid2.max_out, 50.f);
+    EXPECT_FLOAT_EQ(pid2.config.min_out, -50.f);
+    EXPECT_FLOAT_EQ(pid2.config.max_out, 50.f);
 }
 
 TEST(PidFuzz, Pid2InitInvalidMaxes) {
@@ -86,13 +86,13 @@ TEST(PidCorrectness, PrescaledPid2InitBasic) {
     Prescaled_PID2_t prescaled;
     prescaled_pid2_init(&prescaled, 5, 1.f, 2.f, 3.f, 4.f, 5.f, -100.f, 100.f);
     EXPECT_EQ(prescaled.prescalar, 5u);
-    EXPECT_FLOAT_EQ(prescaled.pid.k_p, 1.f);
-    EXPECT_FLOAT_EQ(prescaled.pid.k_i, 2.f);
-    EXPECT_FLOAT_EQ(prescaled.pid.k_d, 3.f);
-    EXPECT_FLOAT_EQ(prescaled.pid.beta, 4.f);
-    EXPECT_FLOAT_EQ(prescaled.pid.yeta, 5.f);
-    EXPECT_FLOAT_EQ(prescaled.pid.min_out, -100.f);
-    EXPECT_FLOAT_EQ(prescaled.pid.max_out, 100.f);
+    EXPECT_FLOAT_EQ(prescaled.pid.config.k_p, 1.f);
+    EXPECT_FLOAT_EQ(prescaled.pid.config.k_i, 2.f);
+    EXPECT_FLOAT_EQ(prescaled.pid.config.k_d, 3.f);
+    EXPECT_FLOAT_EQ(prescaled.pid.config.beta, 4.f);
+    EXPECT_FLOAT_EQ(prescaled.pid.config.yeta, 5.f);
+    EXPECT_FLOAT_EQ(prescaled.pid.config.min_out, -100.f);
+    EXPECT_FLOAT_EQ(prescaled.pid.config.max_out, 100.f);
 }
 
 TEST(PidCorrectness, PrescaledPid2SingleLoopControlAccumulates) {
@@ -128,8 +128,8 @@ TEST(PidCorrectness, Pid2DualLoopControlBasic) {
                                        outer_dt, inner_dt);
 
     // Output should be within limits
-    EXPECT_GE(out, inner.min_out);
-    EXPECT_LE(out, inner.max_out);
+    EXPECT_GE(out, inner.config.min_out);
+    EXPECT_LE(out, inner.config.max_out);
 }
 
 TEST(PidCorrectness, Pid2TripleLoopControlBasic) {
@@ -151,6 +151,6 @@ TEST(PidCorrectness, Pid2TripleLoopControlBasic) {
                                  inner_pv, outer_dt, middle_dt, inner_dt);
 
     // Output should be within limits
-    EXPECT_GE(out, inner.min_out);
-    EXPECT_LE(out, inner.max_out);
+    EXPECT_GE(out, inner.config.min_out);
+    EXPECT_LE(out, inner.config.max_out);
 }

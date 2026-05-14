@@ -17,11 +17,13 @@ void pid2_init(PID2_t& pid, float k_p, float k_i, float k_d, float beta,
                float yeta, float min_out, float max_out) {
     ASSERT(max_out >= min_out, "max_out has to be greater or equal to min_out");
 
-    pid.k_p = k_p;
-    pid.k_i = k_i;
-    pid.k_d = k_d;
-    pid.beta = beta;
-    pid.yeta = yeta;
+    pid.config.k_p = k_p;
+    pid.config.k_i = k_i;
+    pid.config.k_d = k_d;
+    pid.config.beta = beta;
+    pid.config.yeta = yeta;
+    pid.config.max_out = max_out;
+    pid.config.min_out = min_out;
 
     pid.plant_value = 0;
     pid.setpoint = 0;
@@ -35,8 +37,24 @@ void pid2_init(PID2_t& pid, float k_p, float k_i, float k_d, float beta,
     pid.i_out = 0;
     pid.d_out = 0;
 
-    pid.max_out = max_out;
-    pid.min_out = min_out;
+    pid.prev_total_out = 0;
+    pid.total_out = 0;
+}
+
+void pid2_init(PID2_t& pid, pid::PID2Config config) {
+    pid.config = config;
+
+    pid.plant_value = 0;
+    pid.setpoint = 0;
+
+    pid.p_error = 0;
+    pid.i_error = 0;
+    pid.d_error = 0;
+    pid.prev_d_error = 0;
+
+    pid.p_out = 0;
+    pid.i_out = 0;
+    pid.d_out = 0;
 
     pid.prev_total_out = 0;
     pid.total_out = 0;
@@ -46,8 +64,8 @@ void pid2_set_limits(PID2_t& pid, float new_min_out, float new_max_out) {
     ASSERT(new_max_out >= new_min_out,
            "new_max_out has to be greater or equal to new_min_out.");
 
-    pid.max_out = new_max_out;
-    pid.min_out = new_min_out;
+    pid.config.max_out = new_max_out;
+    pid.config.min_out = new_min_out;
 
     // TODO: Implement anti-integrator windup
 }
@@ -60,21 +78,23 @@ float pid2_calculate(PID2_t& pid, float sp, float pv, float dt) {
     pid.prev_total_out = pid.total_out;
 
     // Calculate error terms.
-    pid.p_error = pid.beta * sp - pv;
+    pid.p_error = pid.config.beta * sp - pv;
     pid.i_error = sp - pv;
-    pid.d_error = pid.yeta * sp - pv;
+    pid.d_error = pid.config.yeta * sp - pv;
 
-    pid.p_out = pid.k_p * pid.p_error;
+    pid.p_out = pid.config.k_p * pid.p_error;
 
     // Anti-integrator windup
-    if (pid.min_out < pid.prev_total_out && pid.prev_total_out < pid.max_out) {
-        pid.i_out += pid.k_i * pid.i_error * dt;
+    if (pid.config.min_out < pid.prev_total_out &&
+        pid.prev_total_out < pid.config.max_out) {
+        pid.i_out += pid.config.k_i * pid.i_error * dt;
     }
 
-    pid.d_out = pid.k_d * (pid.d_error - pid.prev_d_error) / dt;
+    pid.d_out = pid.config.k_d * (pid.d_error - pid.prev_d_error) / dt;
     pid.total_out = pid.p_out + pid.i_out + pid.d_out;
 
-    pid.total_out = value_limit(pid.total_out, pid.min_out, pid.max_out);
+    pid.total_out =
+        value_limit(pid.total_out, pid.config.min_out, pid.config.max_out);
     return pid.total_out;
 }
 
