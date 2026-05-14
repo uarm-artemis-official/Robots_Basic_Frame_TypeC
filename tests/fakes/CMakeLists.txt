@@ -16,3 +16,11 @@ target_link_libraries(FAKE_UART
     INTERFACE
         MW::MIDDLEWARE)
 add_library(LIB::FAKE_UART ALIAS FAKE_UART)
+add_library(FAKE_CHASSIS_DRIVE INTERFACE)
+target_include_directories(FAKE_CHASSIS_DRIVE 
+    INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(FAKE_CHASSIS_DRIVE 
+    INTERFACE
+        APPS_INCLUDE)
+add_library(LIB::FAKE_CHASSIS_DRIVE ALIAS FAKE_CHASSIS_DRIVE)

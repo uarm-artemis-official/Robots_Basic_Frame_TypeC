@@ -85,6 +85,17 @@ target_link_libraries(SIMPLE_COMM_CODEC_TEST
         MW::MIDDLEWARE
         MODULES::SIMPLE_COMM)
 
+add_executable(CHASSIS_APP_TEST chassis_app_test.cpp)
+target_link_libraries(CHASSIS_APP_TEST
+    PRIVATE
+        GTest::gtest_main
+        TEST_TARGET
+        LIB::FAKE_CHASSIS_DRIVE
+        LIB::FAKE_MESSAGE_CENTER
+        MIDDLEWARE_MOCKS
+        BASIC_APPS
+        SUBSYSTEMS::COMMUNICATION)
+
 gtest_discover_tests(SIMPLE_COMM_TEST)
 gtest_discover_tests(PID_TEST)
 gtest_discover_tests(UARM_MATH_TEST)
@@ -93,5 +104,6 @@ gtest_discover_tests(MOCK_RTOS_QUEUE_TEST)
 gtest_discover_tests(MESSAGE_CENTER_TEST)
 gtest_discover_tests(FAKE_MESSAGE_CENTER_TEST)
 gtest_discover_tests(COMMUNICATION_TEST)
+gtest_discover_tests(CHASSIS_APP_TEST)
 gtest_discover_tests(FIFO_TEST)
 gtest_discover_tests(SIMPLE_COMM_CODEC_TEST)

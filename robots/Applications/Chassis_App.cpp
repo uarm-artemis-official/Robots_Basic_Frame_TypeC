@@ -22,6 +22,11 @@
 template class ChassisApp<OmniDrive>;
 template class ChassisApp<SwerveDrive>;
 
+#ifdef GTEST
+#include "../../tests/fakes/fake_chassis_drive.hpp"
+template class ChassisApp<FakeChassisDrive>;
+#endif
+
 template <class DriveTrain>
 ChassisApp<DriveTrain>::ChassisApp(
     MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
@@ -32,12 +37,7 @@ ChassisApp<DriveTrain>::ChassisApp(
       drive_train(drive_train_ref),
       mc(mc_ref),
       communication(communication_ref),
-      debug(_debug) {
-    static_assert(
-        std::is_same<DriveTrain, OmniDrive>::value ||
-            std::is_same<DriveTrain, SwerveDrive>::value,
-        "Attempt to initialize ChassisApp with unsupported DriveTrain.");
-}
+      debug(_debug) {}
 
 template <class DriveTrain>
 void ChassisApp<DriveTrain>::init() {
@@ -219,4 +219,9 @@ void ChassisApp<DriveTrain>::send_chassis_movement() {
                                                 simple_comm::NodeID::Chassis,
                                                 simple_comm::NodeID::Gimbal);
     }
+}
+
+template <class DriveTrain>
+Chassis_t ChassisApp<DriveTrain>::get_chassis_state() {
+    return chassis;
 }
