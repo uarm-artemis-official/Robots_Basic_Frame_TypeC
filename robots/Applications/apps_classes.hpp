@@ -18,21 +18,22 @@ template <class DriveTrain>
 class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
                                   apps_defines::chassis_task_loop_period_ms> {
    private:
+    const apps::chassis::ChassisConfig config;
     ChassisDrive<DriveTrain>& drive_train;
     mc2::RobotMC& mc;
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     modules::debug::Debug& debug;
 
     Chassis_t chassis;
-    const apps::chassis::ChassisConfig& config;
 
    public:
     static constexpr float MAX_TRANSLATION = 2;  // in m/s
     static constexpr float MAX_ROTATION = pi;    // rad/s
     static constexpr float GYRO_SPEED = pi;
 
-    explicit ChassisApp(const apps::chassis::ChassisConfig& config_ref, MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
-                        mc2::RobotMC& mc_ref,
+    explicit ChassisApp(MW_RTOS::IRTOS& _rtos,
+                        const apps::chassis::ChassisConfig& config_ref,
+                        DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
                         comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                             communication_ref,
                         modules::debug::Debug& _debug);
@@ -60,17 +61,15 @@ class OmniDrive : public ChassisDrive<OmniDrive> {
     std::array<Chassis_Wheel_Control_t, 4> motor_controls;
     std::array<float, 4> motor_angular_vel;
     std::array<float, 4> wheel_power_consumption;
+    apps::chassis::OmniDriveState state;
+
+    const apps::chassis::OmniDriveConfig config;
     mc2::RobotMC& mc;
     IMotors& motors;
-    float width, length, power_limit, chassis_dt;
-    const float a = 0;
-    const float k1 = 0;
-    const float k2 = 0;
 
    public:
-    explicit OmniDrive(mc2::RobotMC& mc2_ref, IMotors& motors,
-                       float chassis_width, float chassis_length,
-                       float power_limit_, float chassis_dt_);
+    explicit OmniDrive(const apps::chassis::OmniDriveConfig& config_ref,
+                       mc2::RobotMC& mc2_ref, IMotors& motors);
 
     void init_impl();
 
@@ -93,10 +92,9 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     static constexpr size_t NUM_STEER_MOTORS = 4;
     static constexpr size_t NUM_DRIVE_MOTORS = 4;
 
+    const apps::chassis::SwerveDriveConfig config;
     mc2::RobotMC& mc;
     IMotors& motors;
-    const float width;
-    const float dt;
 
     std::array<Swerve_Drive_Control_t, NUM_DRIVE_MOTORS> drive_motors;
     std::array<Swerve_Steer_Control_t, NUM_STEER_MOTORS> steer_motors;
@@ -117,8 +115,8 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     static int32_t pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                          uint32_t angle);
 
-    explicit SwerveDrive(mc2::RobotMC& mc2_ref, IMotors& motors_ref,
-                         float width_, float dt_);
+    explicit SwerveDrive(const apps::chassis::SwerveDriveConfig& config_ref,
+                         mc2::RobotMC& mc2_ref, IMotors& motors_ref);
 
     void init_impl();
     void get_motor_feedback();
@@ -344,6 +342,7 @@ class RefereeApp
 
 class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
    private:
+    const apps::rc::RCConfig config;
     mc2::RobotMC& mc;
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IRCComm& rc_comm;
@@ -362,7 +361,8 @@ class RCApp : public RTOSApp<RCApp, apps_defines::rc_task_loop_period_ms> {
     ammo_lid::LidStatus pc_ammo_status;
 
    public:
-    explicit RCApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+    explicit RCApp(MW_RTOS::IRTOS& _rtos, const apps::rc::RCConfig& config_ref,
+                   mc2::RobotMC& mc2_ref,
                    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                        communication_ref,
                    IRCComm& rc_comm_ref, isr::uart::UART_ISR& uart_isr);

@@ -10,9 +10,9 @@
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
-SwerveDrive::SwerveDrive(mc2::RobotMC& mc_ref, IMotors& motors_ref,
-                         float width_, float dt_)
-    : mc(mc_ref), motors(motors_ref), width(width_), dt(dt_) {}
+SwerveDrive::SwerveDrive(const apps::chassis::SwerveDriveConfig& config_ref,
+                         mc2::RobotMC& mc_ref, IMotors& motors_ref)
+    : config(config_ref), mc(mc_ref), motors(motors_ref) {}
 
 void SwerveDrive::init_impl() {
     steer_curr_angle = {0};
@@ -29,14 +29,7 @@ void SwerveDrive::init_impl() {
 
     for (size_t i = 0; i < drive_motors.size(); i++) {
         drive_motors.at(i).stdid = 0;
-        pid2_init(drive_motors.at(i).f_pid,
-                  robot_config::chassis_params::KP_DRIVE_WHEEL,
-                  robot_config::chassis_params::KI_DRIVE_WHEEL,
-                  robot_config::chassis_params::KD_DRIVE_WHEEL,
-                  robot_config::chassis_params::BETA_DRIVE_WHEEL,
-                  robot_config::chassis_params::YETA_DRIVE_WHEEL,
-                  robot_config::chassis_params::MIN_OUT_DRIVE_WHEEL,
-                  robot_config::chassis_params::MAX_OUT_DRIVE_WHEEL);
+        pid2_init(drive_motors.at(i).f_pid, config.drive_wheel_pid_config);
         drive_motors.at(i).feedback.rx_angle = 0;
         drive_motors.at(i).feedback.rx_current = 0;
         drive_motors.at(i).feedback.rx_rpm = 0;
@@ -103,10 +96,10 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
 	 *		 v4	 [] ---- [] v3     <Rear>              ----> vx  				 
 	 *										
      */
-    float A = vx - wz * (width * 0.5);
-    float B = vx + wz * (width * 0.5);
-    float C = vy - wz * (width * 0.5);
-    float D = vy + wz * (width * 0.5);
+    float A = vx - wz * (config.chassis_width.get() * 0.5);
+    float B = vx + wz * (config.chassis_width.get() * 0.5);
+    float C = vy - wz * (config.chassis_width.get() * 0.5);
+    float D = vy + wz * (config.chassis_width.get() * 0.5);
     float theta1 = atan2(B, D) * 180 / pi;
     float theta2 = atan2(B, C) * 180 / pi;
     float theta3 = atan2(A, C) * 180 / pi;
@@ -164,7 +157,8 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
             drive_target_speed.at(i) * RADS_TO_RPM *
                 apps_defines::chassis::wheel_motor_reduction_ratio *
                 inverse_wheel_radius,
-            static_cast<float>(drive_motors.at(i).feedback.rx_rpm), dt);
+            static_cast<float>(drive_motors.at(i).feedback.rx_rpm),
+            config.chassis_app_dt.get());
         drive_output.at(i) =
             static_cast<int32_t>(drive_motors.at(i).f_pid.total_out);
     }

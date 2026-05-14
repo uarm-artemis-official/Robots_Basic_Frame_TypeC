@@ -103,10 +103,12 @@
  *
  *********************************************************************************/
 RCApp::RCApp(
-    MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+    MW_RTOS::IRTOS& _rtos, const apps::rc::RCConfig& config_ref,
+    mc2::RobotMC& mc_ref,
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
     IRCComm& rc_comm_ref, isr::uart::UART_ISR& _uart_isr)
     : RTOSApp(_rtos),
+      config(config_ref),
       mc(mc_ref),
       communication(communication_ref),
       rc_comm(rc_comm_ref),
@@ -325,16 +327,16 @@ void RCApp::pub_command_messages() {
         float v_perp = 0, v_parallel = 0;
 
         if (rc.pc.keyboard.W.status == EKeyStatus::PRESSED)
-            v_parallel += robot_config::chassis_params::MAX_TRANSLATION;
+            v_parallel += config.chassis_translation_speed.get();
 
         if (rc.pc.keyboard.A.status == EKeyStatus::PRESSED)
-            v_perp -= robot_config::chassis_params::MAX_TRANSLATION;
+            v_perp -= config.chassis_translation_speed.get();
 
         if (rc.pc.keyboard.S.status == EKeyStatus::PRESSED)
-            v_parallel -= robot_config::chassis_params::MAX_TRANSLATION;
+            v_parallel -= config.chassis_translation_speed.get();
 
         if (rc.pc.keyboard.D.status == EKeyStatus::PRESSED)
-            v_perp += robot_config::chassis_params::MAX_TRANSLATION;
+            v_perp += config.chassis_translation_speed.get();
 
         float yaw = in_out_map(rc.pc.mouse.x, -MOUSE_MAX_SPEED, MOUSE_MAX_SPEED,
                                -apps_defines::rc::mouse_max_yaw_magnitude_out,
@@ -359,18 +361,18 @@ void RCApp::pub_command_messages() {
         float v_perp = in_out_map(
             rc.ctrl.ch2, -apps_defines::rc::joystick_max_offset_magnitude,
             apps_defines::rc::joystick_max_offset_magnitude,
-            -robot_config::chassis_params::MAX_TRANSLATION,
-            robot_config::chassis_params::MAX_TRANSLATION);
+            -config.chassis_translation_speed.get(),
+            config.chassis_translation_speed.get());
         float v_parallel = in_out_map(
             rc.ctrl.ch3, -apps_defines::rc::joystick_max_offset_magnitude,
             apps_defines::rc::joystick_max_offset_magnitude,
-            -robot_config::chassis_params::MAX_TRANSLATION,
-            robot_config::chassis_params::MAX_TRANSLATION);
+            -config.chassis_translation_speed.get(),
+            config.chassis_translation_speed.get());
         float wz = in_out_map(rc.ctrl.ch0,
                               -apps_defines::rc::joystick_max_offset_magnitude,
                               apps_defines::rc::joystick_max_offset_magnitude,
-                              -robot_config::chassis_params::MAX_ROTATION,
-                              robot_config::chassis_params::MAX_ROTATION);
+                              -config.chassis_rotation_speed.get(),
+                              config.chassis_rotation_speed.get());
 
         if (fabs(v_perp) < apps_defines::rc::chassis_joystick_send_threshold)
             v_perp = 0;

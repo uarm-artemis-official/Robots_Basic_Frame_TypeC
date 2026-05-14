@@ -8,31 +8,18 @@
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
-OmniDrive::OmniDrive(mc2::RobotMC& mc_ref, IMotors& motors_ref,
-                     float chassis_width, float chassis_length,
-                     float power_limit_, float chassis_dt_)
-    : mc(mc_ref),
-      motors(motors_ref),
-      width(chassis_width),
-      length(chassis_length),
-      power_limit(power_limit_),
-      chassis_dt(chassis_dt_) {}
+OmniDrive::OmniDrive(const apps::chassis::OmniDriveConfig& config_ref,
+                     mc2::RobotMC& mc_ref, IMotors& motors_ref)
+    : config(config_ref), mc(mc_ref), motors(motors_ref) {}
 
 void OmniDrive::init_impl() {
     for (size_t i = 0; i < motor_controls.size(); i++) {
         motor_angular_vel.at(i) = 0;
         std::memset(&(motor_controls.at(i)), 0,
                     sizeof(Chassis_Wheel_Control_t));
-        pid2_init(motor_controls.at(i).f_pid,
-                  robot_config::chassis_params::KP_DRIVE_WHEEL,
-                  robot_config::chassis_params::KI_DRIVE_WHEEL,
-                  robot_config::chassis_params::KD_DRIVE_WHEEL,
-                  robot_config::chassis_params::BETA_DRIVE_WHEEL,
-                  robot_config::chassis_params::YETA_DRIVE_WHEEL,
-                  robot_config::chassis_params::MIN_OUT_DRIVE_WHEEL,
-                  robot_config::chassis_params::MAX_OUT_DRIVE_WHEEL);
+        pid2_init(motor_controls.at(i).f_pid, config.wheel_pid_config);
         ramp_init(motor_controls.at(i).sp_ramp,
-                  robot_config::chassis_params::WHEEL_RAMP_MAX_ACCEL);
+                  config.max_wheel_ramp_accel.get());
     }
 
     std::get<0>(motor_controls).stdid = CHASSIS_WHEEL1;
@@ -90,15 +77,27 @@ void OmniDrive::calc_target_motor_speeds(float vx, float vy, float wz) {
     constexpr float inverse_wheel_radius =
         1 / apps_defines::chassis::omni_wheel_radius;
     std::get<0>(motor_angular_vel) =
-        (vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius;
+        (vx + vy +
+         wz * (config.chassis_width.get() + config.chassis_length.get()) *
+             0.5) *
+        inverse_wheel_radius;
     std::get<1>(
         motor_angular_vel) = /* We will put a negative infront of the eq. as motor install is flipped*/
-        -((-vx + vy - wz * (width + length) * 0.5) * inverse_wheel_radius);
+        -((-vx + vy -
+           wz * (config.chassis_width.get() + config.chassis_length.get()) *
+               0.5) *
+          inverse_wheel_radius);
     std::get<2>(
         motor_angular_vel) = /* We will put a negative infront of the eq. as motor install is flipped*/
-        -((vx + vy - wz * (width + length) * 0.5) * inverse_wheel_radius);
+        -((vx + vy -
+           wz * (config.chassis_width.get() + config.chassis_length.get()) *
+               0.5) *
+          inverse_wheel_radius);
     std::get<3>(motor_angular_vel) =
-        (-vx + vy + wz * (width + length) * 0.5) * inverse_wheel_radius;
+        (-vx + vy +
+         wz * (config.chassis_width.get() + config.chassis_length.get()) *
+             0.5) *
+        inverse_wheel_radius;
 }
 
 void OmniDrive::calc_wheel_power_consumption() {
@@ -110,9 +109,10 @@ void OmniDrive::calc_wheel_power_consumption() {
                                   : motor_controls.at(i).feedback.rx_rpm;
         float torque = motor_controls.at(i).feedback.rx_current *
                        CURRENT_RESOLUTION * OUTPUT_TORQUE_CONSTANT;
-        wheel_power_consumption.at(i) = torque * angular_speed / 9.55 +
-                                        k1 * angular_speed * angular_speed +
-                                        k2 * torque * torque + a;
+        wheel_power_consumption.at(i) =
+            torque * angular_speed / 9.55 +
+            config.k1 * angular_speed * angular_speed +
+            config.k2 * torque * torque + config.a;
     }
 }
 
@@ -130,10 +130,10 @@ void OmniDrive::calc_power_limits() {
     for (size_t i = 0; i < motor_controls.size(); i++) {
         float allocated_motor_power;
         if (vel_sum == 0) {
-            allocated_motor_power = power_limit / 4;
+            allocated_motor_power = state.power_limit.get() / 4;
         } else {
-            allocated_motor_power =
-                fabs(motor_angular_vel.at(i)) / vel_sum * power_limit / 2;
+            allocated_motor_power = fabs(motor_angular_vel.at(i)) / vel_sum *
+                                    state.power_limit.get() / 2;
         }
         float angular_speed = motor_controls.at(i).feedback.rx_rpm == 0
                                   ? 0.01
@@ -162,7 +162,8 @@ void OmniDrive::calc_motor_volts() {
                             apps_defines::chassis::wheel_motor_reduction_ratio,
                         motor_target);
 
-        ramp_calc_output(motor_controls.at(i).sp_ramp, chassis_dt);
+        ramp_calc_output(motor_controls.at(i).sp_ramp,
+                         config.chassis_app_dt.get());
 
         pid2_single_loop_control(
             motor_controls.at(i).f_pid,
@@ -201,5 +202,5 @@ float OmniDrive::calc_power_consumption() {
 }
 
 void OmniDrive::set_max_power_impl(float new_max_power) {
-    power_limit = new_max_power;
+    state.power_limit = uarm::strong_types::Watt(new_max_power);
 }

@@ -50,15 +50,28 @@ static ChassisApp<SwerveDrive> chassis_app(rtos, swerve_drive, mc,
                                            communication, debug);
 #else
 static constexpr float omni_chassis_width = 0.40f;
-static OmniDrive omni_drive(mc, no_init_motors, omni_chassis_width,
-                            omni_chassis_width, 80,
-                            ChassisApp<OmniDrive>::get_loop_period());
+static const apps::chassis::OmniDriveConfig omni_drive_config = {
+    .wheel_pid_config = robot_config::chassis_config.wheel_pid_config,
+    .max_wheel_ramp_accel = robot_config::chassis_config.max_wheel_ramp_accel,
+    .chassis_width = uarm::strong_types::Meter(0.40f),
+    .chassis_length = uarm::strong_types::Meter(0.40f),
+    .chassis_app_dt = uarm::strong_types::Second(
+        ChassisApp<OmniDrive>::get_loop_period() / 1000.0f),
+    .a = 0,
+    .k1 = 0,
+    .k2 = 0};
+static OmniDrive omni_drive(omni_drive_config, mc, no_init_motors);
 
-static ChassisApp<OmniDrive> chassis_app(robot_config::chassis_config, rtos,
+static ChassisApp<OmniDrive> chassis_app(rtos, robot_config::chassis_config,
                                          omni_drive, mc, communication, debug);
 #endif
 
-static RCApp rc_app(rtos, mc, communication, rc_comm, uart_isr);
+static const apps::rc::RCConfig rc_config = {
+    .chassis_translation_speed =
+        robot_config::chassis_config.max_translation_speed,
+    .chassis_rotation_speed = robot_config::chassis_config.max_rotation_speed,
+};
+static RCApp rc_app(rtos, rc_config, mc, communication, rc_comm, uart_isr);
 
 static TimerApp timer_app(rtos, motors, mc, communication, debug, can_isr);
 static IMUApp imu_app(rtos, mc, communication, event_center, imu, debug);

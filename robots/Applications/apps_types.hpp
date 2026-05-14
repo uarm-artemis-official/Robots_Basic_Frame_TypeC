@@ -52,10 +52,35 @@ typedef struct {
 namespace apps::chassis {
     struct ChassisConfig {
         pid::PID2Config spin_pid_config;
+        pid::PID2Config wheel_pid_config;
         uarm::strong_types::MetersPerSecond max_translation_speed;
         uarm::strong_types::RadiansPerSecond max_rotation_speed;
         uarm::strong_types::RadiansPerSecond gyro_speed;
         uarm::strong_types::RadiansPerSecondSecond max_wheel_ramp_accel;
+    };
+
+    struct OmniDriveConfig {
+        pid::PID2Config wheel_pid_config;
+        uarm::strong_types::RadiansPerSecondSecond max_wheel_ramp_accel;
+        uarm::strong_types::Meter chassis_width;
+        uarm::strong_types::Meter chassis_length;
+        uarm::strong_types::Second chassis_app_dt;
+
+        float a;
+        float k1;
+        float k2;
+    };
+
+    struct OmniDriveState {
+        uarm::strong_types::Watt power_limit = uarm::strong_types::Watt(0);
+    };
+
+    struct SwerveDriveConfig {
+        pid::PID2Config drive_wheel_pid_config;
+        uarm::strong_types::RadiansPerSecondSecond max_wheel_ramp_accel;
+        uarm::strong_types::Meter chassis_width;
+        uarm::strong_types::Meter chassis_length;
+        uarm::strong_types::Second chassis_app_dt;
     };
 }  // namespace apps::chassis
 
@@ -276,6 +301,18 @@ typedef struct {
 /* =========================================================================
  * RC TYPES
  * ====================================================================== */
+namespace apps::rc {
+    struct RCConfig {
+        // Translation magnitude of chassis movement when joystick is at maximum deflection.
+        // This is used for calculating chassis velocity commands from joystick inputs.
+        uarm::strong_types::MetersPerSecond chassis_translation_speed;
+
+        // Rotation speed of chassis when joystick is at maximum deflection.
+        // This is used for calculating chassis velocity commands from joystick inputs.
+        uarm::strong_types::RadiansPerSecond chassis_rotation_speed;
+    };
+}  // namespace apps::rc
+
 typedef struct {
     /* controll mode selection */
     Controller ctrl;

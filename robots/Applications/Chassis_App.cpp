@@ -29,7 +29,7 @@ template class ChassisApp<FakeChassisDrive>;
 
 template <class DriveTrain>
 ChassisApp<DriveTrain>::ChassisApp(
-    const apps::chassis::ChassisConfig& config_ref, MW_RTOS::IRTOS& _rtos,
+    MW_RTOS::IRTOS& _rtos, const apps::chassis::ChassisConfig& config_ref,
     DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
     modules::debug::Debug& _debug)

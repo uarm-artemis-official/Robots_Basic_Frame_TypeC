@@ -78,17 +78,11 @@ namespace uarm::strong_types {
     using RadiansPerSecondSecond =
         NamedType<float, RadiansPerSecondSecondParameter>;
 
-    struct WidthParameter {};
-    using Width = NamedType<Meter, WidthParameter>;
+    struct WattParameter {};
+    using Watt = NamedType<float, WattParameter>;
 
-    struct HeightParameter {};
-    using Height = NamedType<Meter, HeightParameter>;
-
-    struct LengthParameter {};
-    using Length = NamedType<Meter, LengthParameter>;
-
-    struct AngleParameter {};
-    using Angle = NamedType<Radian, AngleParameter>;
+    struct SecondParameter {};
+    using Second = NamedType<float, SecondParameter>;
 }  // namespace uarm::strong_types
 
 #endif

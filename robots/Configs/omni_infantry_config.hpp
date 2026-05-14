@@ -129,6 +129,16 @@ namespace shoot_params {
 static const apps::chassis::ChassisConfig chassis_config = {
     .spin_pid_config =
         pid::PID2Config {
+            .k_p = 1,
+            .k_i = 0,
+            .k_d = 0,
+            .beta = 1,
+            .yeta = 0,
+            .max_out = 2,
+            .min_out = -2,
+        },
+    .wheel_pid_config =
+        pid::PID2Config {
             .k_p = 5,
             .k_i = 0,
             .k_d = 0,
