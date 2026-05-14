@@ -306,7 +306,7 @@ void GimbalApp::update_imu_angle(float yaw, float pitch) {
 /**
  * Calculates the smallest relative angle of angle2 relative to angle1.
  *
- * Assumes angle1 and angle2 are both in radians ([0, 2 * PI] or (-PI, PI).
+ * Assumes angle1 and angle2 are both in radians ([0, 2 * pi] or (-pi, pi).
  * angle1 and angle2 must have the same origin!!!
  *
  * The resulting angle assumes clockwise is negative and counter-clockwise is positive.
@@ -314,11 +314,11 @@ void GimbalApp::update_imu_angle(float yaw, float pitch) {
 float GimbalApp::calc_rel_angle(float angle1, float angle2) {
     float cw_magnitude = angle1 - angle2;
     if (cw_magnitude < 0)
-        cw_magnitude += 2 * PI;
+        cw_magnitude += 2 * pi;
 
     float ccw_magnitude = angle2 - angle1;
     if (ccw_magnitude < 0)
-        ccw_magnitude += 2 * PI;
+        ccw_magnitude += 2 * pi;
 
     if (cw_magnitude < ccw_magnitude) {
         return -cw_magnitude;
@@ -378,9 +378,9 @@ void GimbalApp::update_ecd_angles() {
             motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_angle,
             gimbal.pitch_ecd_center);
 
-    gimbal.yaw_ecd_angle = in_out_map(yaw_ecd_rel_angle, -4095, 4096, -PI, PI);
+    gimbal.yaw_ecd_angle = in_out_map(yaw_ecd_rel_angle, -4095, 4096, -pi, pi);
     gimbal.pitch_ecd_angle =
-        in_out_map(pitch_ecd_rel_angle, -4095, 4096, -PI, PI);
+        in_out_map(pitch_ecd_rel_angle, -4095, 4096, -pi, pi);
 }
 
 /*
@@ -497,10 +497,10 @@ void GimbalApp::update_targets() {
             gimbal.pitch_target_angle =
                 gimbal.pitch_rel_angle + auto_aim.delta_pitch;
 
-            if (gimbal.yaw_target_angle > PI)
-                gimbal.yaw_target_angle -= 2.0f * PI;
-            if (gimbal.yaw_target_angle < -PI)
-                gimbal.yaw_target_angle += 2.0f * PI;
+            if (gimbal.yaw_target_angle > pi)
+                gimbal.yaw_target_angle -= 2.0f * pi;
+            if (gimbal.yaw_target_angle < -pi)
+                gimbal.yaw_target_angle += 2.0f * pi;
         }
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                gimbal.gimbal_act_mode == INDPET_MODE) {
@@ -515,10 +515,10 @@ void GimbalApp::update_targets() {
                 gimbal.gimbal_act_mode == GIMBAL_CENTER ||
                 gimbal.gimbal_act_mode == SELF_GYRO)) {
         gimbal.yaw_target_angle -= command_deltas[0];
-        if (gimbal.yaw_target_angle > PI)
-            gimbal.yaw_target_angle -= 2.0f * PI;
-        if (gimbal.yaw_target_angle < -PI)
-            gimbal.yaw_target_angle += 2.0f * PI;
+        if (gimbal.yaw_target_angle > pi)
+            gimbal.yaw_target_angle -= 2.0f * pi;
+        if (gimbal.yaw_target_angle < -pi)
+            gimbal.yaw_target_angle += 2.0f * pi;
 
         gimbal.pitch_target_angle =
             value_limit(gimbal.pitch_target_angle + command_deltas[1],
@@ -537,8 +537,8 @@ void GimbalApp::update_targets() {
 
 // TODO: Small shaking/doesn't fully limit pitch within range.
 void GimbalApp::limit_pitch_target() {
-    static_assert(-PI / 2 <= robot_config::gimbal_params::PITCH_MIN_ANGLE);
-    static_assert(robot_config::gimbal_params::PITCH_MAX_ANGLE <= PI / 2);
+    static_assert(-pi / 2 <= robot_config::gimbal_params::PITCH_MIN_ANGLE);
+    static_assert(robot_config::gimbal_params::PITCH_MAX_ANGLE <= pi / 2);
     gimbal.pitch_target_angle =
         value_limit(gimbal.pitch_target_angle,
                     robot_config::gimbal_params::PITCH_MIN_ANGLE -

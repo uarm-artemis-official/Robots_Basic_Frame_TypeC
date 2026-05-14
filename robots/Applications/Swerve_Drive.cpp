@@ -107,10 +107,10 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     float B = vx + wz * (width * 0.5);
     float C = vy - wz * (width * 0.5);
     float D = vy + wz * (width * 0.5);
-    float theta1 = atan2(B, D) * 180 / PI;
-    float theta2 = atan2(B, C) * 180 / PI;
-    float theta3 = atan2(A, C) * 180 / PI;
-    float theta4 = atan2(A, D) * 180 / PI;
+    float theta1 = atan2(B, D) * 180 / pi;
+    float theta2 = atan2(B, C) * 180 / pi;
+    float theta3 = atan2(A, C) * 180 / pi;
+    float theta4 = atan2(A, D) * 180 / pi;
 
     /* Zero position of MG4005 (only needed if motor zero are not pointing in the "forward" direction) */
     float zero1 = 340;
@@ -157,7 +157,7 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     std::get<3>(drive_target_speed) = sqrt(pow(A, 2) + pow(D, 2));
 
     constexpr float inverse_wheel_radius = 1 / 0.0508;
-    constexpr float RADS_TO_RPM = 60 / (2 * PI);
+    constexpr float RADS_TO_RPM = 60 / (2 * pi);
     for (size_t i = 0; i < NUM_DRIVE_MOTORS; i++) {
         pid2_single_loop_control(
             drive_motors.at(i).f_pid,

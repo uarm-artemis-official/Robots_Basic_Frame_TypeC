@@ -225,10 +225,10 @@ namespace mc2 {
             constexpr float endpoint_magnitude = pi + TOLERANCE;
             ASSERT(-endpoint_magnitude < msg.yaw.get() &&
                        msg.yaw.get() < endpoint_magnitude,
-                   "Outgoing yaw out of acceptable range (-PI, PI).");
+                   "Outgoing yaw out of acceptable range (-pi, pi).");
             ASSERT(-endpoint_magnitude < msg.pitch.get() &&
                        msg.pitch.get() < endpoint_magnitude,
-                   "Outgoing pitch out of acceptable range (-PI, PI).");
+                   "Outgoing pitch out of acceptable range (-pi, pi).");
             int16_t encoded_yaw = value_limit(msg.yaw.get(), -pi, pi) * 10000;
             int16_t encoded_pitch =
                 value_limit(msg.pitch.get(), -pi, pi) * 10000;
@@ -261,10 +261,10 @@ namespace mc2 {
             constexpr float endpoint_magnitude = pi + TOLERANCE;
             ASSERT(-endpoint_magnitude < msg.yaw.get() &&
                        msg.yaw.get() < endpoint_magnitude,
-                   "Incoming yaw out of acceptable range (-PI, PI).");
+                   "Incoming yaw out of acceptable range (-pi, pi).");
             ASSERT(-endpoint_magnitude < msg.pitch.get() &&
                        msg.pitch.get() < endpoint_magnitude,
-                   "Incoming pitch out of acceptable range (-PI, PI).");
+                   "Incoming pitch out of acceptable range (-pi, pi).");
             return true;
         }
     };

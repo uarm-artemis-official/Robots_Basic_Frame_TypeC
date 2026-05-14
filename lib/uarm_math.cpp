@@ -184,7 +184,7 @@ float relative_angle(float angle1, float angle2) {
  * between [0, 2PI).
  */
 float relative_angle_rad(float angle1, float angle2) {
-    return fmodf(angle2 - angle1 + 2 * PI, 2 * PI);
+    return fmodf(angle2 - angle1 + 2 * pi, 2 * pi);
 }
 
 /**
@@ -194,7 +194,7 @@ float relative_angle_rad(float angle1, float angle2) {
  * @retval Speed in radians per second.
  */
 float rpm_to_radps(float rpm) {
-    return (rpm * 2.0f * PI) / 60.0f;
+    return (rpm * 2.0f * pi) / 60.0f;
 }
 
 /******************************************************************************

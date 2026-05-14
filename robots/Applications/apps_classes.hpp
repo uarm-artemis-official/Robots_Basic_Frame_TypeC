@@ -27,8 +27,8 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
 
    public:
     static constexpr float MAX_TRANSLATION = 2;  // in m/s
-    static constexpr float MAX_ROTATION = PI;    // rad/s
-    static constexpr float GYRO_SPEED = PI;
+    static constexpr float MAX_ROTATION = pi;    // rad/s
+    static constexpr float GYRO_SPEED = pi;
 
     explicit ChassisApp(MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
                         mc2::RobotMC& mc_ref,

@@ -152,7 +152,7 @@ void OmniDrive::calc_power_limits() {
 void OmniDrive::calc_motor_volts() {
     calc_power_limits();
 
-    constexpr float RADS_TO_RPM = 60 / (2 * PI);
+    constexpr float RADS_TO_RPM = 60 / (2 * pi);
     for (size_t i = 0; i < motor_controls.size(); i++) {
         int16_t motor_target = value_limit(
             motor_angular_vel.at(i), -apps_defines::chassis::motor_max_output,
