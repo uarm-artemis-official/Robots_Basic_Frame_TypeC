@@ -59,9 +59,9 @@ void PCUARTApp::loop() {
                                 uc_pack_in.bytes.data() + PACK_HEADER_SIZE,
                                 pc_comm.get_data_size(uc_pack_in.bytes[0]));
                     if (auto_aim.target_num > 0) {
-                        auto_aim.delta_yaw = value_limit(auto_aim.delta_yaw,
-                                                         -(15.f * DEGREE2RAD),
-                                                         15.f * DEGREE2RAD);
+                        auto_aim.delta_yaw = value_limit(
+                            auto_aim.delta_yaw, degrees_to_radians(-15.f),
+                            degrees_to_radians(15.f));
                         recent_deltas[0] = auto_aim.delta_yaw;
                         recent_deltas[1] = auto_aim.delta_pitch;
                         mc.pub_message(auto_aim);

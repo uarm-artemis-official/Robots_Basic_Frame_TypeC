@@ -144,7 +144,8 @@ class GimbalApp
     Gimbal_Motor_Control_t motor_controls[GIMBAL_MOTOR_COUNT];
     int16_t gimbal_channels[2];
     float command_deltas[2];
-    RadiansPerSecond chassis_wz = RadiansPerSecond(0);
+    uarm::strong_types::RadiansPerSecond chassis_wz =
+        uarm::strong_types::RadiansPerSecond(0);
 
     mc2::RobotMC& mc;
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;

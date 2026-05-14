@@ -111,15 +111,68 @@ namespace platform {
 
 #ifdef MW_ENABLE_GPIO
     GPIO_TypeDef* get_hal_gpio_port(MW_GPIO::Port port) {
-        (void) port;
-        ASSERT(false, "Unimplemented mapper method: get_hal_gpio_port");
+        switch (port) {
+            case MW_GPIO::Port::PORT_A:
+                return GPIOA;
+            case MW_GPIO::Port::PORT_B:
+                return GPIOB;
+            case MW_GPIO::Port::PORT_C:
+                return GPIOC;
+            case MW_GPIO::Port::PORT_D:
+                return GPIOD;
+            case MW_GPIO::Port::PORT_E:
+                return GPIOE;
+            case MW_GPIO::Port::PORT_F:
+                return GPIOF;
+            case MW_GPIO::Port::PORT_G:
+                return GPIOG;
+            case MW_GPIO::Port::PORT_H:
+                return GPIOH;
+            case MW_GPIO::Port::PORT_I:
+                return GPIOI;
+            default:
+                ASSERT(false, "Invalid GPIO port");
+        }
         return nullptr;
     }
 
     uint16_t get_hal_gpio_pin(MW_GPIO::Pin pin) {
-        (void) pin;
-        ASSERT(false, "Unimplemented mapper method: get_hal_gpio_pin");
-        return 0;
+        switch (pin) {
+            case MW_GPIO::Pin::PIN_0:
+                return GPIO_PIN_0;
+            case MW_GPIO::Pin::PIN_1:
+                return GPIO_PIN_1;
+            case MW_GPIO::Pin::PIN_2:
+                return GPIO_PIN_2;
+            case MW_GPIO::Pin::PIN_3:
+                return GPIO_PIN_3;
+            case MW_GPIO::Pin::PIN_4:
+                return GPIO_PIN_4;
+            case MW_GPIO::Pin::PIN_5:
+                return GPIO_PIN_5;
+            case MW_GPIO::Pin::PIN_6:
+                return GPIO_PIN_6;
+            case MW_GPIO::Pin::PIN_7:
+                return GPIO_PIN_7;
+            case MW_GPIO::Pin::PIN_8:
+                return GPIO_PIN_8;
+            case MW_GPIO::Pin::PIN_9:
+                return GPIO_PIN_9;
+            case MW_GPIO::Pin::PIN_10:
+                return GPIO_PIN_10;
+            case MW_GPIO::Pin::PIN_11:
+                return GPIO_PIN_11;
+            case MW_GPIO::Pin::PIN_12:
+                return GPIO_PIN_12;
+            case MW_GPIO::Pin::PIN_13:
+                return GPIO_PIN_13;
+            case MW_GPIO::Pin::PIN_14:
+                return GPIO_PIN_14;
+            case MW_GPIO::Pin::PIN_15:
+                return GPIO_PIN_15;
+            default:
+                ASSERT(false, "Invalid GPIO pin");
+        }
     }
 #endif
 }  // namespace platform

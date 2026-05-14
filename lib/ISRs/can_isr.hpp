@@ -50,12 +50,15 @@ namespace isr {
                 switch (callback_running) {
                     case ECallbacks::MESSAGE_PENDING: {
                         CANFrame frame;
-                        can.receive_data(callback_state, MW_CAN::FIFO::FIFO_0,
-                                         frame.stdid, frame.extid,
-                                         frame.payload, frame.payload_length);
-                        for (size_t i = 0; i < routines_size; i++) {
-                            if (routines[i].second == callback_running) {
-                                routines[i].first(callback_state, frame);
+                        bool received_new_message = can.receive_data(
+                            callback_state, MW_CAN::FIFO::FIFO_0, frame.stdid,
+                            frame.extid, frame.payload, frame.payload_length);
+
+                        if (received_new_message) {
+                            for (size_t i = 0; i < routines_size; i++) {
+                                if (routines[i].second == callback_running) {
+                                    routines[i].first(callback_state, frame);
+                                }
                             }
                         }
                         break;

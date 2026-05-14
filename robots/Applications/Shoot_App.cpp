@@ -229,7 +229,8 @@ namespace ShootApp {
                             3;
                         if (average_flywheel_rpm >=
                             FLYWHEEL_ACTIVE_TARGET_RPM * 0.8) {
-                            set_loader_target(LOADER_ACTIVE_RPM);
+                            // TODO: Change to accomodate hero loader (reverse direction).
+                            set_loader_target(-LOADER_ACTIVE_RPM);
                         }
                     } else if (shoot.shoot_state == ShootState::ANTIJAM) {
                         set_loader_target(shoot.antijam_direction *
@@ -313,14 +314,17 @@ namespace ShootApp {
         void ShootApp::send_motor_outputs() {
             mc2::MotorSet motor_set {};
             motor_set.motor_can_volts[0] =
-                flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid.total_out;
+                speed_loader_control.speed_pid.total_out;
             motor_set.can_ids[0] = SHOOT_LOADER;
             motor_set.motor_can_volts[1] =
-                flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid.total_out;
+                flywheel_controls[LEFT_FLYWHEEL_INDEX].speed_pid.total_out;
             motor_set.can_ids[1] = SHOOT_LEFT_FRIC;
             motor_set.motor_can_volts[2] =
-                flywheel_controls[TOP_FLYWHEEL_INDEX].speed_pid.total_out;
+                flywheel_controls[RIGHT_FLYWHEEL_INDEX].speed_pid.total_out;
             motor_set.can_ids[2] = SHOOT_RIGHT_FRIC;
+            motor_set.motor_can_volts[3] =
+                flywheel_controls[TOP_FLYWHEEL_INDEX].speed_pid.total_out;
+            motor_set.can_ids[3] = SHOOT_TOP_FRIC;
             mc.pub_message(motor_set);
         }
 

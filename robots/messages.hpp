@@ -126,24 +126,32 @@ namespace mc2 {
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
             simple_comm::MessageType::DATA;
 
-        // yaw and pitch fields are in radians and requested changes in yaw/pitch (deltas).
-        float delta_yaw;
-        float delta_pitch;
+        uarm::strong_types::Radian delta_yaw;
+        uarm::strong_types::Radian delta_pitch;
         uint32_t command_bits;  // TODO: Implement and remove AUTO_AIM topic.
+
+        GimbalCommand() : delta_yaw(0), delta_pitch(0), command_bits(0) {}
+        constexpr GimbalCommand(float _delta_yaw, float _delta_pitch,
+                                uint32_t _command_bits)
+            : delta_yaw(_delta_yaw),
+              delta_pitch(_delta_pitch),
+              command_bits(_command_bits) {}
 
         static bool serialize_payload(
             const GimbalCommand& msg,
             std::span<std::byte, SERIALIZED_SIZE> dst) {
-            ASSERT(-2 * PI < msg.delta_yaw && msg.delta_yaw < 2 * PI,
-                   "Outgoing delta_yaw out of acceptable range (-2PI, 2PI).");
-            ASSERT(-2 * PI < msg.delta_pitch && msg.delta_pitch < 2 * PI,
+            ASSERT(
+                -2 * pi < msg.delta_yaw.get() && msg.delta_yaw.get() < 2 * pi,
+                "Outgoing delta_yaw out of acceptable range (-2PI, 2PI).");
+            ASSERT(-2 * pi < msg.delta_pitch.get() &&
+                       msg.delta_pitch.get() < 2 * pi,
                    "Outgoing delta_pitch out of acceptable range (-2PI, 2PI).");
             ASSERT((msg.command_bits & 0xffff0000) == 0,
                    "Outgoing command_bits must not have 8 MSB set.");
             int16_t encoded_delta_yaw =
-                value_limit(msg.delta_yaw, -PI * 2, PI * 2) * 5000;
+                value_limit(msg.delta_yaw.get(), -pi * 2, pi * 2) * 5000;
             int16_t encoded_delta_pitch =
-                value_limit(msg.delta_pitch, -PI * 2, PI * 2) * 5000;
+                value_limit(msg.delta_pitch.get(), -pi * 2, pi * 2) * 5000;
             uint16_t encoded_command_bits = msg.command_bits & 0xffff;
             dst[0] = std::byte {static_cast<uint8_t>(encoded_delta_yaw & 0xFF)};
             dst[1] = std::byte {
@@ -175,12 +183,16 @@ namespace mc2 {
             encoded_command_bits = static_cast<uint16_t>(
                 static_cast<uint16_t>(std::to_integer<uint8_t>(src[4])) |
                 (static_cast<uint16_t>(std::to_integer<uint8_t>(src[5])) << 8));
-            msg.delta_yaw = static_cast<float>(encoded_delta_yaw) / 5000;
-            msg.delta_pitch = static_cast<float>(encoded_delta_pitch) / 5000;
+            msg.delta_yaw = uarm::strong_types::Radian(
+                static_cast<float>(encoded_delta_yaw) / 5000);
+            msg.delta_pitch = uarm::strong_types::Radian(
+                static_cast<float>(encoded_delta_pitch) / 5000);
             msg.command_bits = static_cast<uint32_t>(encoded_command_bits);
-            ASSERT(-2 * PI < msg.delta_yaw && msg.delta_yaw < 2 * PI,
-                   "Incoming delta_yaw out of acceptable range (-2PI, 2PI).");
-            ASSERT(-2 * PI < msg.delta_pitch && msg.delta_pitch < 2 * PI,
+            ASSERT(
+                -2 * pi < msg.delta_yaw.get() && msg.delta_yaw.get() < 2 * pi,
+                "Incoming delta_yaw out of acceptable range (-2PI, 2PI).");
+            ASSERT(-2 * pi < msg.delta_pitch.get() &&
+                       msg.delta_pitch.get() < 2 * pi,
                    "Incoming delta_pitch out of acceptable range (-2PI, 2PI).");
             ASSERT((msg.command_bits & 0xffff0000) == 0,
                    "Incoming command_bits must not have 8 MSB set.");
@@ -196,26 +208,30 @@ namespace mc2 {
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
             simple_comm::MessageType::DATA;
 
-        // yaw and pitch are relative to chassis front and in radians.
-
         // TODO: Verify sign conventions.
         // Sign convention follows CCW-positive for yaw, and up-positive for pitch.
-        float yaw;
-        float pitch;
+        // Yaw and pitch are relative to chassis front (robot reference frame).
+        uarm::strong_types::Radian yaw;
+        uarm::strong_types::Radian pitch;
+
+        GimbalRelativeAngles() : yaw(0), pitch(0) {}
+        constexpr GimbalRelativeAngles(float _yaw, float _pitch)
+            : yaw(_yaw), pitch(_pitch) {}
 
         static bool serialize_payload(
             const GimbalRelativeAngles& msg,
             std::span<std::byte, SERIALIZED_SIZE> dst) {
             constexpr float TOLERANCE = 0.0001f;
-            constexpr float endpoint_magnitude = PI + TOLERANCE;
-            ASSERT(
-                -endpoint_magnitude < msg.yaw && msg.yaw < endpoint_magnitude,
-                "Outgoing yaw out of acceptable range (-PI, PI).");
-            ASSERT(-endpoint_magnitude < msg.pitch &&
-                       msg.pitch < endpoint_magnitude,
+            constexpr float endpoint_magnitude = pi + TOLERANCE;
+            ASSERT(-endpoint_magnitude < msg.yaw.get() &&
+                       msg.yaw.get() < endpoint_magnitude,
+                   "Outgoing yaw out of acceptable range (-PI, PI).");
+            ASSERT(-endpoint_magnitude < msg.pitch.get() &&
+                       msg.pitch.get() < endpoint_magnitude,
                    "Outgoing pitch out of acceptable range (-PI, PI).");
-            int16_t encoded_yaw = value_limit(msg.yaw, -PI, PI) * 10000;
-            int16_t encoded_pitch = value_limit(msg.pitch, -PI, PI) * 10000;
+            int16_t encoded_yaw = value_limit(msg.yaw.get(), -pi, pi) * 10000;
+            int16_t encoded_pitch =
+                value_limit(msg.pitch.get(), -pi, pi) * 10000;
             dst[0] = std::byte {static_cast<uint8_t>(encoded_yaw & 0xFF)};
             dst[1] =
                 std::byte {static_cast<uint8_t>((encoded_yaw >> 8) & 0xFF)};
@@ -236,18 +252,18 @@ namespace mc2 {
             encoded_pitch = static_cast<int16_t>(
                 static_cast<uint16_t>(std::to_integer<uint8_t>(src[2])) |
                 (static_cast<uint16_t>(std::to_integer<uint8_t>(src[3])) << 8));
-            msg.yaw =
-                value_limit(static_cast<float>(encoded_yaw) / 10000, -PI, PI);
-            msg.pitch =
-                value_limit(static_cast<float>(encoded_pitch) / 10000, -PI, PI);
+            msg.yaw = uarm::strong_types::Radian(
+                value_limit(static_cast<float>(encoded_yaw) / 10000, -pi, pi));
+            msg.pitch = uarm::strong_types::Radian(value_limit(
+                static_cast<float>(encoded_pitch) / 10000, -pi, pi));
 
             constexpr float TOLERANCE = 0.0001f;
-            constexpr float endpoint_magnitude = PI + TOLERANCE;
-            ASSERT(
-                -endpoint_magnitude < msg.yaw && msg.yaw < endpoint_magnitude,
-                "Incoming yaw out of acceptable range (-PI, PI).");
-            ASSERT(-endpoint_magnitude < msg.pitch &&
-                       msg.pitch < endpoint_magnitude,
+            constexpr float endpoint_magnitude = pi + TOLERANCE;
+            ASSERT(-endpoint_magnitude < msg.yaw.get() &&
+                       msg.yaw.get() < endpoint_magnitude,
+                   "Incoming yaw out of acceptable range (-PI, PI).");
+            ASSERT(-endpoint_magnitude < msg.pitch.get() &&
+                       msg.pitch.get() < endpoint_magnitude,
                    "Incoming pitch out of acceptable range (-PI, PI).");
             return true;
         }
@@ -284,7 +300,13 @@ namespace mc2 {
         }
     };
 
-    // TODO: Finish
+    /**
+     * @brief Data message from about current 3 DoF movement of Chassis.
+     * 
+     * This message is intended to be sent from chassis to gimbal/mini-pc so they may be
+     * aware of how chassis is currently moving. This is necessary for feed-forward control
+     * of gimbal as well as odometry (WIP) for auto-navigation on sentry.
+     */
     struct ChassisMovement {
         static constexpr uint8_t TOPIC_ID = 68;
         static constexpr uint8_t MESSAGE_ID = TOPIC_ID;
@@ -293,14 +315,19 @@ namespace mc2 {
         static constexpr simple_comm::MessageType MESSAGE_TYPE =
             simple_comm::MessageType::DATA;
 
-        // WIP
-        MetersPerSecond vx;
-        MetersPerSecond vy;
+        // TODO: Add support for calculating estimations for vx and vy at any given time.
+        // Possible solution is using forward-kinematics.
+        uarm::strong_types::MetersPerSecond vx;
+        uarm::strong_types::MetersPerSecond vy;
 
         // Only component currently used.
-        RadiansPerSecond wz;
+        uarm::strong_types::RadiansPerSecond wz;
 
         ChassisMovement() : vx(0), vy(0), wz(0) {}
+        constexpr ChassisMovement(uarm::strong_types::MetersPerSecond _vx,
+                                  uarm::strong_types::MetersPerSecond _vy,
+                                  uarm::strong_types::RadiansPerSecond _wz)
+            : vx(_vx), vy(_vy), wz(_wz) {}
 
         static bool serialize_payload(
             const ChassisMovement& msg,
@@ -346,9 +373,12 @@ namespace mc2 {
                 // Serialization limits should be too unrealistic to be exceeded under normal operations, so this likely indicates data corruption.
                 return false;
             } else {
-                msg.vx = MetersPerSecond(quantized_vx / 1000.0f);
-                msg.vy = MetersPerSecond(quantized_vy / 1000.0f);
-                msg.wz = RadiansPerSecond(quantized_wz / 1000.0f);
+                msg.vx =
+                    uarm::strong_types::MetersPerSecond(quantized_vx / 1000.0f);
+                msg.vy =
+                    uarm::strong_types::MetersPerSecond(quantized_vy / 1000.0f);
+                msg.wz = uarm::strong_types::RadiansPerSecond(quantized_wz /
+                                                              1000.0f);
 
                 return true;
             }

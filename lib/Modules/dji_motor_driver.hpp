@@ -23,7 +23,27 @@ namespace dji_motor {
     void format_voltage_message(MotorType motor_type, int32_t v1, int32_t v2,
                                 int32_t v3, int32_t v4,
                                 MW_CAN::CANFrame& message) {
-        message.sid = (motor_type == MotorType::GM3510) ? 0x200U : 0x1FFU;
+        uint32_t stdid;
+        switch (motor_type) {
+            case MotorType::GM6020:
+                // 0x2FF can be used for GM6020 with IDs 5-7 but that is currently not supported.
+                // TOOD: Create more robust driver that can handle IDs from 1-7.
+                stdid = 0x1FFU;
+                break;
+
+            case MotorType::M2006:
+                [[fallthrough]];
+            case MotorType::GM3510:
+                // These commands are for current control and only support IDs from 1-4.
+                // TODO: Create new methods to distinguish current from voltage control.
+                // TODO: Create more robust driver that can handle IDs 1-7.
+                stdid = 0x200U;
+                break;
+            default:
+                ASSERT(false,
+                       "Unsupported motor type for CAN message formatting.");
+        }
+        message.sid = stdid;
         message.eid = 0U;
         message.is_extended_id = false;
         message.dlc = 0x08U;
