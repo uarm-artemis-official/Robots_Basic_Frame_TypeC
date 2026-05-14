@@ -104,12 +104,12 @@ namespace {
 
         // Simulate ISR triggers after each receive completion
         comm.uart_isr_receive_complete(
-            fake, MW_UART::Peripheral::UART1);  // tribit -> request header
+            fake, MW_UART::Peripheral::UART_1);  // tribit -> request header
         comm.uart_isr_receive_complete(
             fake,
-            MW_UART::Peripheral::UART1);  // header -> request payload+trailer
+            MW_UART::Peripheral::UART_1);  // header -> request payload+trailer
         comm.uart_isr_receive_complete(
-            fake, MW_UART::Peripheral::UART1);  // payload+trailer -> process
+            fake, MW_UART::Peripheral::UART_1);  // payload+trailer -> process
 
         SimpleMessage m;
         ASSERT_TRUE(comm.get_rx_message(m));
