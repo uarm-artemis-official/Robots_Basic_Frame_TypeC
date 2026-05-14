@@ -49,6 +49,16 @@ typedef struct {
 /* =========================================================================
  * CHASSIS TYPES
  * ====================================================================== */
+namespace apps::chassis {
+    struct ChassisConfig {
+        pid::PID2Config spin_pid_config;
+        uarm::strong_types::MetersPerSecond max_translation_speed;
+        uarm::strong_types::RadiansPerSecond max_rotation_speed;
+        uarm::strong_types::RadiansPerSecond gyro_speed;
+        uarm::strong_types::RadiansPerSecondSecond max_wheel_ramp_accel;
+    };
+}  // namespace apps::chassis
+
 typedef enum {
     AUTO_GEAR = 0,  //referee system up, auto-adjust chassis spd limit
     MANUAL_GEAR     //referee system down, manual-adjust chassis spd limit
@@ -292,9 +302,5 @@ namespace CommApp {
  * TIMER TYPES
  * ====================================================================== */
 enum class CANISRConfig { SentryChassis, OtherRobot, None };
-
-/* =========================================================================
- * PC UART TYPES
- * ====================================================================== */
 
 #endif

@@ -124,28 +124,23 @@ namespace shoot_params {
     static_assert(MAX_OUT_FLYWHEEL_SPEED >= MIN_OUT_FLYWHEEL_SPEED);
 }  // namespace shoot_params
 
-namespace chassis_params {
-    // Movement targets.
-    constexpr float MAX_TRANSLATION = 8;  // m/s
-    constexpr float MAX_ROTATION = 5;     // rad/s
-    constexpr float GYRO_SPEED = 5;       // rad/s
-    static_assert(MAX_TRANSLATION >= 0);
-    static_assert(MAX_ROTATION >= 0);
-    static_assert(MAX_ROTATION >= GYRO_SPEED);
+#include "apps_types.hpp"
 
-    // Drive wheel PID.
-    constexpr float KP_DRIVE_WHEEL = 5;
-    constexpr float KI_DRIVE_WHEEL = 0;
-    constexpr float KD_DRIVE_WHEEL = 0;
-    constexpr float BETA_DRIVE_WHEEL = 1;
-    constexpr float YETA_DRIVE_WHEEL = 0;
-    constexpr float MIN_OUT_DRIVE_WHEEL = -5000;
-    constexpr float MAX_OUT_DRIVE_WHEEL = 5000;
-    static_assert(MAX_OUT_DRIVE_WHEEL >= MIN_OUT_DRIVE_WHEEL);
-
-    // Drive wheel ramp.
-    constexpr float WHEEL_RAMP_MAX_ACCEL = 400;  // rad/s^2
-    static_assert(WHEEL_RAMP_MAX_ACCEL >= 0);
-}  // namespace chassis_params
+static const apps::chassis::ChassisConfig chassis_config = {
+    .spin_pid_config =
+        pid::PID2Config {
+            .k_p = 5,
+            .k_i = 0,
+            .k_d = 0,
+            .beta = 1,
+            .yeta = 0,
+            .max_out = 5000,
+            .min_out = -5000,
+        },
+    .max_translation_speed = uarm::strong_types::MetersPerSecond(8),
+    .max_rotation_speed = uarm::strong_types::RadiansPerSecond(5),
+    .gyro_speed = uarm::strong_types::RadiansPerSecond(5),
+    .max_wheel_ramp_accel = uarm::strong_types::RadiansPerSecondSecond(400),
+};
 
 #endif

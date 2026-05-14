@@ -54,8 +54,8 @@ static OmniDrive omni_drive(mc, no_init_motors, omni_chassis_width,
                             omni_chassis_width, 80,
                             ChassisApp<OmniDrive>::get_loop_period());
 
-static ChassisApp<OmniDrive> chassis_app(rtos, omni_drive, mc, communication,
-                                         debug);
+static ChassisApp<OmniDrive> chassis_app(robot_config::chassis_config, rtos,
+                                         omni_drive, mc, communication, debug);
 #endif
 
 static RCApp rc_app(rtos, mc, communication, rc_comm, uart_isr);

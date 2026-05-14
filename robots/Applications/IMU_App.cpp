@@ -121,9 +121,9 @@ int32_t IMUApp::imu_temp_pid_control() {
         set_imu_temp_status(ABNORMAL);
 
         if (imu_app_state.temp > IMUApp::TARGET_IMU_TEMP) {
-            imu.set_heat_pwm(imu_heating_control.pid.pid.min_out);
+            imu.set_heat_pwm(imu_heating_control.pid.pid.config.min_out);
         } else {
-            imu.set_heat_pwm(imu_heating_control.pid.pid.max_out);
+            imu.set_heat_pwm(imu_heating_control.pid.pid.config.max_out);
         }
     } else {
         prescaled_pid2_single_loop_control(

@@ -24,13 +24,14 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
     modules::debug::Debug& debug;
 
     Chassis_t chassis;
+    const apps::chassis::ChassisConfig& config;
 
    public:
     static constexpr float MAX_TRANSLATION = 2;  // in m/s
     static constexpr float MAX_ROTATION = pi;    // rad/s
     static constexpr float GYRO_SPEED = pi;
 
-    explicit ChassisApp(MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
+    explicit ChassisApp(const apps::chassis::ChassisConfig& config_ref, MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref,
                         mc2::RobotMC& mc_ref,
                         comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                             communication_ref,

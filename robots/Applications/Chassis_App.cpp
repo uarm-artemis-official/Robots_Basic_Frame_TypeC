@@ -29,10 +29,12 @@ template class ChassisApp<FakeChassisDrive>;
 
 template <class DriveTrain>
 ChassisApp<DriveTrain>::ChassisApp(
-    MW_RTOS::IRTOS& _rtos, DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
+    const apps::chassis::ChassisConfig& config_ref, MW_RTOS::IRTOS& _rtos,
+    DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
     modules::debug::Debug& _debug)
-    : RTOSApp<ChassisApp<DriveTrain>, ChassisApp<DriveTrain>::loop_period_ms>(
+    : config(config_ref),
+      RTOSApp<ChassisApp<DriveTrain>, ChassisApp<DriveTrain>::loop_period_ms>(
           _rtos),
       drive_train(drive_train_ref),
       mc(mc_ref),
@@ -43,12 +45,7 @@ template <class DriveTrain>
 void ChassisApp<DriveTrain>::init() {
     drive_train.init();
 
-    pid2_init(chassis.spin_pid, robot_config::chassis_params::KP_CHASSIS_SPIN,
-              robot_config::chassis_params::KI_CHASSIS_SPIN,
-              robot_config::chassis_params::KD_CHASSIS_SPIN,
-              robot_config::chassis_params::BETA_CHASSIS_SPIN,
-              robot_config::chassis_params::YETA_CHASSIS_SPIN,
-              -ChassisApp::MAX_ROTATION, ChassisApp::MAX_ROTATION);
+    pid2_init(chassis.spin_pid, config.spin_pid_config);
 
     /* set initial chassis mode to idle mode or debug mode */
     chassis.chassis_mode = IDLE_MODE;
@@ -63,9 +60,9 @@ void ChassisApp<DriveTrain>::set_initial_state() {
     chassis.vx = 0;
     chassis.vy = 0;
     chassis.wz = 0;
-    chassis.max_vx = robot_config::chassis_params::MAX_TRANSLATION;
-    chassis.max_vy = robot_config::chassis_params::MAX_TRANSLATION;
-    chassis.max_wz = robot_config::chassis_params::MAX_ROTATION;
+    chassis.max_vx = config.max_translation_speed.get();
+    chassis.max_vy = config.max_translation_speed.get();
+    chassis.max_wz = config.max_rotation_speed.get();
 
     chassis.v_perp = 0;
     chassis.v_parallel = 0;
@@ -129,9 +126,9 @@ void ChassisApp<DriveTrain>::calc_movement_vectors() {
                 chassis.v_parallel * arm_cos_f32(chassis.gimbal_yaw_rel_angle);
 
             if (fabs(chassis.v_perp) > 0.1 || fabs(chassis.v_parallel) > 0.1) {
-                chassis.wz = robot_config::chassis_params::GYRO_SPEED / 2;
+                chassis.wz = config.gyro_speed.get() / 2;
             } else {
-                chassis.wz = robot_config::chassis_params::GYRO_SPEED;
+                chassis.wz = config.gyro_speed.get();
             }
             break;
         default:
