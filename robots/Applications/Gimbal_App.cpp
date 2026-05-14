@@ -14,21 +14,20 @@
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"
+#include "messages.hpp"
 #include "pid.h"
 #include "robot_config.hpp"
-#include "messages.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
-GimbalApp::GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
-                                         comm::Communication<mc2::RobotMC,
-                                                                                 mc2::RobotMC::Topics>&
-                                                 communication_ref,
-                     IEventCenter& event_center_ref, IMotors& motors_ref,
-                     modules::debug::Debug& _debug)
+GimbalApp::GimbalApp(
+    MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
+    IEventCenter& event_center_ref, IMotors& motors_ref,
+    modules::debug::Debug& _debug)
     : ExtendedRTOSApp(_rtos),
       mc(mc_ref),
-            communication(communication_ref),
+      communication(communication_ref),
       event_center(event_center_ref),
       motors(motors_ref),
       debug(_debug) {}
@@ -159,6 +158,7 @@ void GimbalApp::loop() {
         std::span<const std::byte>(debug_msg, sizeof(debug_msg)), 1);
 
     get_motor_feedback();
+    get_chassis_movement();
 
     if (is_imu_calibrated()) {
         get_imu_headings();
@@ -278,6 +278,17 @@ void GimbalApp::get_motor_feedback() {
             // ASSERT(good == 0,
             //        "Gimbal motor ID is not provided in MOTOR_READ topic.");
         }
+    }
+}
+
+void GimbalApp::get_chassis_movement() {
+    mc2::ChassisMovement chassis_movement_msg;
+    auto message_ts = mc.get_message(chassis_movement_msg);
+    if (message_ts.has_value()) {
+        // wz (angular velocity about z-axis) is positive for counter-clockwise rotation
+        // and negative for clockwise rotation when viewed from above.
+        // This is the only component currently used by the gimbal system.
+        chassis_wz = chassis_movement_msg.wz;
     }
 }
 
@@ -452,7 +463,9 @@ void GimbalApp::send_rel_angles() {
     mc2::GimbalRelativeAngles relative_angles;
     relative_angles.yaw = gimbal.yaw_ecd_angle;
     relative_angles.pitch = gimbal.pitch_ecd_angle;
-    communication.transmit_external_message(relative_angles, simple_comm::NodeID::Gimbal, simple_comm::NodeID::Chassis);
+    communication.transmit_external_message(relative_angles,
+                                            simple_comm::NodeID::Gimbal,
+                                            simple_comm::NodeID::Chassis);
 }
 
 void GimbalApp::update_headings() {
@@ -547,7 +560,8 @@ void GimbalApp::calc_control_signals() {
     pid2_dual_loop_control(
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,
         motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid, 0, yaw_diff,
-        motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm,
+        motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm -
+            chassis_wz.get(),
         GimbalApp::get_loop_period(), GimbalApp::get_loop_period());
 
     pid2_dual_loop_control(

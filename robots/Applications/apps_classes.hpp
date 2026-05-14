@@ -11,6 +11,7 @@
 #include "messages.hpp"
 #include "simple_comm.hpp"
 #include "subsystems_interfaces.hpp"
+#include "uarm_types.hpp"
 #include "uart_isr.hpp"
 
 template <class DriveTrain>
@@ -46,8 +47,8 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
 
     void set_board_mode(BoardMode_t new_board_mode);
     void set_act_mode(BoardActMode_t new_act_mode);
-    
-    void sending_chassis_movement();
+
+    void send_chassis_movement();
 };
 
 // TODO: Move DriveTrains into policies or some other kind of subdirectory.
@@ -143,6 +144,7 @@ class GimbalApp
     Gimbal_Motor_Control_t motor_controls[GIMBAL_MOTOR_COUNT];
     int16_t gimbal_channels[2];
     float command_deltas[2];
+    RadiansPerSecond chassis_wz = RadiansPerSecond(0);
 
     mc2::RobotMC& mc;
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
@@ -183,6 +185,7 @@ class GimbalApp
     void safe_mode_switch();
 
     void get_motor_feedback();
+    void get_chassis_movement();
     void get_imu_headings();
 
     void process_commands();

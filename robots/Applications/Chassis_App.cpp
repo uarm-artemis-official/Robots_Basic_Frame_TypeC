@@ -84,7 +84,7 @@ void ChassisApp<DriveTrain>::loop() {
     calc_movement_vectors();
 
     drive_train.drive(chassis.vx, chassis.vy, chassis.wz);
-    sending_chassis_movement();
+    send_chassis_movement();
 }
 
 /**
@@ -202,7 +202,7 @@ void ChassisApp<DriveTrain>::set_act_mode(BoardActMode_t new_act_mode) {
 }
 
 template <class DriveTrain>
-void ChassisApp<DriveTrain>::sending_chassis_movement() {
+void ChassisApp<DriveTrain>::send_chassis_movement() {
     mc2::ImuReadings imu_readings;
     if (mc.get_message(imu_readings).has_value()) {
         mc2::ChassisMovement chassis_movement;
