@@ -174,6 +174,26 @@ typedef struct {
  * GIMBAL TYPES
  * ====================================================================== */
 
+namespace apps::gimbal {
+    struct GimbalConfig {
+        pid::PID2Config yaw_position_pid_config;
+        pid::PID2Config yaw_speed_pid_config;
+        pid::PID2Config pitch_position_pid_config;
+        pid::PID2Config pitch_speed_pid_config;
+
+        int16_t yaw_ecd_center;
+        int16_t pitch_ecd_center;
+
+        float upwards_pitch_orientation;
+        float max_pitch_angle;
+        float min_pitch_angle;
+
+        float imu_orientation[3][3];
+        float imu_yaw_lpf_gain;
+        float imu_pitch_lpf_gain;
+    };
+}  // namespace apps::gimbal
+
 typedef struct Gimbal_t {
     /* gimbal position related */
     float yaw_target_angle;
@@ -236,6 +256,8 @@ namespace apps::shoot {
             active_loader_speed;  // TODO: Deprecate
         uarm::strong_types::RotationsPerMinute active_flywheel_speed;
         uarm::strong_types::RotationsPerMinuteSecond max_flywheel_accel;
+
+        float loader_gear_ratio;
     };
 }  // namespace apps::shoot
 

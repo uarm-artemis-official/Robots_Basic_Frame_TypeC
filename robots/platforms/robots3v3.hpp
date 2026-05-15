@@ -29,7 +29,7 @@ static RefereeUI ref_ui(uart);
 static Motors no_init_motors(
     can);  // TODO: Refactor? -> remove or split responsibilities into another module?
 static Imu imu(bmi088, ist8310, rtos, 1000 / IMUApp::loop_period_ms, 0.4,
-               robot_config::gimbal_params::IMU_ORIENTATION);
+               robot_config::gimbal_config.imu_orientation);
 static ammo_lid::AmmoLid ammo_lid_(pwm);
 static RCComm rc_comm;
 
@@ -77,8 +77,8 @@ static TimerApp timer_app(rtos, motors, mc, communication, debug, can_isr);
 static IMUApp imu_app(rtos, mc, communication, event_center, imu, debug);
 static RefereeApp referee_app(rtos, mc, communication, event_center, debug,
                               ref_ui, uart_isr);
-static GimbalApp gimbal_app(rtos, mc, communication, event_center,
-                            no_init_motors, debug);
+static GimbalApp gimbal_app(rtos, robot_config::gimbal_config, mc,
+                            communication, event_center, no_init_motors, debug);
 
 static ShootApp::ShootApp shoot_app(rtos, robot_config::shoot_config, mc,
                                     communication, ammo_lid_, no_init_motors);

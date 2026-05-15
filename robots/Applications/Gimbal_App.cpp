@@ -21,11 +21,13 @@
 #include "uarm_math.hpp"
 
 GimbalApp::GimbalApp(
-    MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+    MW_RTOS::IRTOS& _rtos, const apps::gimbal::GimbalConfig& config_ref,
+    mc2::RobotMC& mc_ref,
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
     IEventCenter& event_center_ref, IMotors& motors_ref,
     modules::debug::Debug& _debug)
     : ExtendedRTOSApp(_rtos),
+      config(config_ref),
       mc(mc_ref),
       communication(communication_ref),
       event_center(event_center_ref),
@@ -82,50 +84,24 @@ void GimbalApp::set_initial_state() {
     motor_controls[GIMBAL_YAW_MOTOR_INDEX].stdid = GIMBAL_YAW;
     motor_controls[GIMBAL_PITCH_MOTOR_INDEX].stdid = GIMBAL_PITCH;
     pid2_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].f_pid,
-              robot_config::gimbal_params::KP_GIMBAL_YAW_ANGLE,
-              robot_config::gimbal_params::KI_GIMBAL_YAW_ANGLE,
-              robot_config::gimbal_params::KD_GIMBAL_YAW_ANGLE,
-              robot_config::gimbal_params::BETA_GIMBAL_YAW_ANGLE,
-              robot_config::gimbal_params::YETA_GIMBAL_YAW_ANGLE,
-              robot_config::gimbal_params::MIN_OUT_GIMBAL_YAW_ANGLE,
-              robot_config::gimbal_params::MAX_OUT_GIMBAL_YAW_ANGLE);
+              config.yaw_position_pid_config);
 
     pid2_init(motor_controls[GIMBAL_YAW_MOTOR_INDEX].s_pid,
-              robot_config::gimbal_params::KP_GIMBAL_YAW_SPEED,
-              robot_config::gimbal_params::KI_GIMBAL_YAW_SPEED,
-              robot_config::gimbal_params::KD_GIMBAL_YAW_SPEED,
-              robot_config::gimbal_params::BETA_GIMBAL_YAW_SPEED,
-              robot_config::gimbal_params::YETA_GIMBAL_YAW_SPEED,
-              robot_config::gimbal_params::MIN_OUT_GIMBAL_YAW_SPEED,
-              robot_config::gimbal_params::MAX_OUT_GIMBAL_YAW_SPEED);
+              config.yaw_speed_pid_config);
 
     pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].f_pid,
-              robot_config::gimbal_params::KP_GIMBAL_PITCH_ANGLE,
-              robot_config::gimbal_params::KI_GIMBAL_PITCH_ANGLE,
-              robot_config::gimbal_params::KD_GIMBAL_PITCH_ANGLE,
-              robot_config::gimbal_params::BETA_GIMBAL_PITCH_ANGLE,
-              robot_config::gimbal_params::YETA_GIMBAL_PITCH_ANGLE,
-              robot_config::gimbal_params::MIN_OUT_GIMBAL_PITCH_ANGLE,
-              robot_config::gimbal_params::MAX_OUT_GIMBAL_PITCH_ANGLE);
+              config.pitch_position_pid_config);
 
     pid2_init(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].s_pid,
-              robot_config::gimbal_params::KP_GIMBAL_PITCH_SPEED,
-              robot_config::gimbal_params::KI_GIMBAL_PITCH_SPEED,
-              robot_config::gimbal_params::KD_GIMBAL_PITCH_SPEED,
-              robot_config::gimbal_params::BETA_GIMBAL_PITCH_SPEED,
-              robot_config::gimbal_params::YETA_GIMBAL_PITCH_SPEED,
-              robot_config::gimbal_params::MIN_OUT_GIMBAL_PITCH_SPEED,
-              robot_config::gimbal_params::MAX_OUT_GIMBAL_PITCH_SPEED);
+              config.pitch_speed_pid_config);
 
     // Initialize non-zero Gimbal_t fields.
     memset(&gimbal, 0, sizeof(Gimbal_t));
-    gimbal.yaw_ecd_center = robot_config::gimbal_params::YAW_ECD_CENTER;
-    gimbal.pitch_ecd_center = robot_config::gimbal_params::PITCH_ECD_CENTER;
+    gimbal.yaw_ecd_center = config.yaw_ecd_center;
+    gimbal.pitch_ecd_center = config.pitch_ecd_center;
 
-    init_folp_filter(&(gimbal.folp_f_yaw),
-                     robot_config::gimbal_params::IMU_YAW_LOW_PASS_GAIN);
-    init_folp_filter(&(gimbal.folp_f_pitch),
-                     robot_config::gimbal_params::IMU_PITCH_LOW_PASS_GAIN);
+    init_folp_filter(&(gimbal.folp_f_yaw), config.imu_yaw_lpf_gain);
+    init_folp_filter(&(gimbal.folp_f_pitch), config.imu_pitch_lpf_gain);
 }
 
 bool GimbalApp::exit_calibrate_cond() {
@@ -373,7 +349,7 @@ void GimbalApp::update_ecd_angles() {
 
     // Depending on the motor orientation on the robot, we may need to invert
     int16_t pitch_ecd_rel_angle =
-        robot_config::gimbal_params::PITCH_ORIENTATION *
+        config.upwards_pitch_orientation *
         GimbalApp::calc_ecd_rel_angle(
             motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_angle,
             gimbal.pitch_ecd_center);
@@ -507,9 +483,8 @@ void GimbalApp::update_targets() {
         gimbal.yaw_target_angle = 0;
         gimbal.pitch_target_angle =
             value_limit(gimbal.pitch_target_angle + command_deltas[1],
-                        robot_config::gimbal_params::PITCH_MIN_ANGLE,
-                        robot_config::gimbal_params::
-                            PITCH_MAX_ANGLE);  //- command_deltas[1]
+                        config.min_pitch_angle,
+                        config.max_pitch_angle);  //- command_deltas[1]
     } else if (gimbal.gimbal_mode == PATROL_MODE &&
                (gimbal.gimbal_act_mode == GIMBAL_FOLLOW ||
                 gimbal.gimbal_act_mode == GIMBAL_CENTER ||
@@ -522,9 +497,8 @@ void GimbalApp::update_targets() {
 
         gimbal.pitch_target_angle =
             value_limit(gimbal.pitch_target_angle + command_deltas[1],
-                        robot_config::gimbal_params::PITCH_MIN_ANGLE,
-                        robot_config::gimbal_params::
-                            PITCH_MAX_ANGLE);  //- command_deltas[1]
+                        config.min_pitch_angle,
+                        config.max_pitch_angle);  //- command_deltas[1]
         if (fabs(command_deltas[1]) > 0.001) {
             // limit_pitch_target();
         }
@@ -537,13 +511,11 @@ void GimbalApp::update_targets() {
 
 // TODO: Small shaking/doesn't fully limit pitch within range.
 void GimbalApp::limit_pitch_target() {
-    static_assert(-pi / 2 <= robot_config::gimbal_params::PITCH_MIN_ANGLE);
-    static_assert(robot_config::gimbal_params::PITCH_MAX_ANGLE <= pi / 2);
     gimbal.pitch_target_angle =
         value_limit(gimbal.pitch_target_angle,
-                    robot_config::gimbal_params::PITCH_MIN_ANGLE -
+                    robot_config::gimbal_config.min_pitch_angle -
                         (gimbal.pitch_rel_angle - gimbal.pitch_ecd_angle),
-                    robot_config::gimbal_params::PITCH_MAX_ANGLE -
+                    robot_config::gimbal_config.max_pitch_angle -
                         (gimbal.pitch_rel_angle - gimbal.pitch_ecd_angle));
 }
 
@@ -579,7 +551,7 @@ void GimbalApp::send_motor_volts() {
     // Pitch
     motor_set.motor_can_volts[1] =
         (int32_t) (motor_controls[1].s_pid.total_out *
-                   robot_config::gimbal_params::PITCH_ORIENTATION);
+                   config.upwards_pitch_orientation);
     motor_set.can_ids[1] = (Motor_CAN_ID_t) motor_controls[1].stdid;
 
     mc.pub_message(motor_set);
