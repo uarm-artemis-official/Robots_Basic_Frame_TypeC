@@ -42,12 +42,18 @@ static comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics> communication(
 
 // TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
 #ifdef SWERVE_CHASSIS
-static constexpr float swerve_chassis_width = 0.352728f;
-static constexpr float swerve_dt = ChassisApp<SwerveDrive>::get_loop_period();
-static SwerveDrive swerve_drive(mc, no_init_motors, swerve_chassis_width,
-                                swerve_dt);
-static ChassisApp<SwerveDrive> chassis_app(rtos, swerve_drive, mc,
-                                           communication, debug);
+static const apps::chassis::SwerveDriveConfig swerve_drive_config = {
+    .drive_wheel_pid_config = robot_config::chassis_config.wheel_pid_config,
+    .max_wheel_ramp_accel = robot_config::chassis_config.max_wheel_ramp_accel,
+    .chassis_width = uarm::strong_types::Meter(0.352728f),
+    .chassis_length = uarm::strong_types::Meter(0.352728f),
+    .chassis_app_dt = uarm::strong_types::Second(
+        ChassisApp<SwerveDrive>::get_loop_period() / 1000.0f),
+};
+
+static SwerveDrive swerve_drive(swerve_drive_config, mc, no_init_motors);
+static ChassisApp<SwerveDrive> chassis_app(
+    rtos, robot_config::chassis_config, swerve_drive, mc, communication, debug);
 #else
 static constexpr float omni_chassis_width = 0.40f;
 static const apps::chassis::OmniDriveConfig omni_drive_config = {
