@@ -148,6 +148,7 @@ class GimbalApp
     uarm::strong_types::RadiansPerSecond chassis_wz =
         uarm::strong_types::RadiansPerSecond(0);
 
+    const apps::gimbal::GimbalConfig config;
     mc2::RobotMC& mc;
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
     IEventCenter& event_center;
@@ -163,7 +164,9 @@ class GimbalApp
     static float calc_rel_angle(float angle1, float angle2);
     static int16_t calc_ecd_rel_angle(int16_t raw_ecd, int16_t center_offset);
 
-    explicit GimbalApp(MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+    explicit GimbalApp(MW_RTOS::IRTOS& _rtos,
+                       const apps::gimbal::GimbalConfig& config_ref,
+                       mc2::RobotMC& mc_ref,
                        comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                            communication_ref,
                        IEventCenter& event_center, IMotors& motors_ref,
@@ -215,6 +218,7 @@ namespace ShootApp {
             : public RTOSApp<ShootApp,
                              apps_defines::shoot_task_loop_period_ms> {
            private:
+            const apps::shoot::ShootConfig config;
             mc2::RobotMC& mc;
             comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                 communication;
@@ -236,7 +240,6 @@ namespace ShootApp {
      *  [2] - top flywheel.
      */
             FlyWheelControl flywheel_controls[3];
-            const apps::shoot::ShootConfig config;
 
            public:
             explicit ShootApp(

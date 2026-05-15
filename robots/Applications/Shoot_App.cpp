@@ -257,7 +257,7 @@ namespace ShootApp {
                     loader_feedback.rx_angle, 8192);
                 position_loader_control.current_relative_position +=
                     static_cast<float>(encoder_position_delta) / 8192 /
-                    robot_config::gimbal_params::LOADER_GEAR_RATIO;
+                    config.loader_gear_ratio;
                 position_loader_control.prev_encoder_position =
                     loader_feedback.rx_angle;
                 float position_pid_out = pid2_single_loop_control(
@@ -278,8 +278,7 @@ namespace ShootApp {
                 } else {
                     shoot.loader_output = pid2_single_loop_control(
                         speed_loader_control.speed_pid,
-                        shoot.loader_target_rpm *
-                            robot_config::gimbal_params::LOADER_GEAR_RATIO,
+                        shoot.loader_target_rpm * config.loader_gear_ratio,
                         loader_feedback.rx_rpm, ShootApp::get_loop_period());
                 }
             }
