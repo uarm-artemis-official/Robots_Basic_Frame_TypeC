@@ -83,6 +83,21 @@ namespace uarm::strong_types {
 
     struct SecondParameter {};
     using Second = NamedType<float, SecondParameter>;
+
+    struct RotationsPerSecondParameter {};
+    using RotationsPerSecond = NamedType<float, RotationsPerSecondParameter>;
+
+    struct RotationsPerSecondSecondParameter {};
+    using RotationsPerSecondSecond =
+        NamedType<float, RotationsPerSecondSecondParameter>;
+
+    struct RotationsPerMinuteParameter {};
+    using RotationsPerMinute = NamedType<float, RotationsPerMinuteParameter>;
+
+    struct RotationsPerMinuteSecondParameter {};
+    using RotationsPerMinuteSecond =
+        NamedType<float, RotationsPerMinuteSecondParameter>;
+
 }  // namespace uarm::strong_types
 
 #endif

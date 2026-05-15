@@ -29,65 +29,38 @@ namespace ShootApp {
     inline namespace v1 {
 
         ShootApp::ShootApp(
-            MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc_ref,
+            MW_RTOS::IRTOS& _rtos, const apps::shoot::ShootConfig& config_ref,
+            mc2::RobotMC& mc_ref,
             comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                 communication_ref,
-            IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
-            float loader_active_rpm_, float flywheel_target_rpm_,
-            float max_flywheel_accel, ShootAppConfig config_)
+            IAmmoLid& ammo_lid_ref, IMotors& motors_ref)
             : RTOSApp(_rtos),
+              config(config_ref),
               mc(mc_ref),
               communication(communication_ref),
               ammo_lid(ammo_lid_ref),
-              motors(motors_ref),
-              LOADER_ACTIVE_RPM(loader_active_rpm_),
-              FLYWHEEL_ACTIVE_TARGET_RPM(flywheel_target_rpm_),
-              MAX_FLYWHEEL_ACCEL(max_flywheel_accel),
-              CONFIG(config_) {}
+              motors(motors_ref) {}
 
         void ShootApp::init() {
             ammo_lid.init();
 
             pid2_init(speed_loader_control.speed_pid,
-                      robot_config::shoot_params::KP_LOADER_SPEED,
-                      robot_config::shoot_params::KI_LOADER_SPEED,
-                      robot_config::shoot_params::KD_LOADER_SPEED,
-                      robot_config::shoot_params::BETA_LOADER_SPEED,
-                      robot_config::shoot_params::YETA_LOADER_SPEED,
-                      robot_config::shoot_params::MIN_OUT_LOADER_SPEED,
-                      robot_config::shoot_params::MAX_OUT_LOADER_SPEED);
+                      config.loader_speed_pid_config);
 
             position_loader_control.is_processing_command = false;
             position_loader_control.current_relative_position = 0.0f;
             position_loader_control.at_target_counter = 0;
             pid2_init(position_loader_control.position_pid,
-                      robot_config::shoot_params::KP_LOADER_POSITION,
-                      robot_config::shoot_params::KI_LOADER_POSITION,
-                      robot_config::shoot_params::KD_LOADER_POSITION,
-                      robot_config::shoot_params::BETA_LOADER_POSITION,
-                      robot_config::shoot_params::YETA_LOADER_POSITION,
-                      robot_config::shoot_params::MIN_OUT_LOADER_POSITION,
-                      robot_config::shoot_params::MAX_OUT_LOADER_POSITION);
+                      config.loader_position_pid_config);
 
             pid2_init(position_loader_control.speed_pid,
-                      robot_config::shoot_params::KP_LOADER_SPEED,
-                      robot_config::shoot_params::KI_LOADER_SPEED,
-                      robot_config::shoot_params::KD_LOADER_SPEED,
-                      robot_config::shoot_params::BETA_LOADER_SPEED,
-                      robot_config::shoot_params::YETA_LOADER_SPEED,
-                      robot_config::shoot_params::MIN_OUT_LOADER_SPEED,
-                      robot_config::shoot_params::MAX_OUT_LOADER_SPEED);
+                      config.loader_speed_pid_config);
 
             for (size_t i = 0; i < 3; i++) {
                 pid2_init(flywheel_controls[i].speed_pid,
-                          robot_config::shoot_params::KP_FLYWHEEL_SPEED,
-                          robot_config::shoot_params::KI_FLYWHEEL_SPEED,
-                          robot_config::shoot_params::KD_FLYWHEEL_SPEED,
-                          robot_config::shoot_params::BETA_FLYWHEEL_SPEED,
-                          robot_config::shoot_params::YETA_FLYWHEEL_SPEED,
-                          robot_config::shoot_params::MIN_OUT_FLYWHEEL_SPEED,
-                          robot_config::shoot_params::MAX_OUT_FLYWHEEL_SPEED);
-                ramp_init(flywheel_controls[i].sp_ramp, MAX_FLYWHEEL_ACCEL);
+                          config.flywheel_speed_pid_config);
+                ramp_init(flywheel_controls[i].sp_ramp,
+                          config.max_flywheel_accel.get());
                 std::memset(&(flywheel_controls[i].feedback), 0,
                             sizeof(Motor_Feedback_t));
             }
@@ -217,7 +190,7 @@ namespace ShootApp {
                 case SHOOT_CONT:
                     shoot.loader_delay_counter = 0;
                     if (shoot.shoot_state == ShootState::NORMAL) {
-                        set_flywheel_target(FLYWHEEL_ACTIVE_TARGET_RPM);
+                        set_flywheel_target(config.active_flywheel_speed.get());
                         // TODO: Change so it waits for all flywheels to be at 80% speed.
                         float average_flywheel_rpm =
                             (fabs(flywheel_controls[LEFT_FLYWHEEL_INDEX]
@@ -228,15 +201,16 @@ namespace ShootApp {
                                       .feedback.rx_rpm)) /
                             3;
                         if (average_flywheel_rpm >=
-                            FLYWHEEL_ACTIVE_TARGET_RPM * 0.8) {
+                            config.active_flywheel_speed.get() * 0.8) {
                             // TODO: Change to accomodate hero loader (reverse direction).
-                            set_loader_target(-LOADER_ACTIVE_RPM);
+                            set_loader_target(
+                                -config.active_loader_speed.get());
                         }
                     } else if (shoot.shoot_state == ShootState::ANTIJAM) {
                         set_loader_target(shoot.antijam_direction *
-                                          LOADER_ACTIVE_RPM);
+                                          config.active_loader_speed.get());
                         set_flywheel_target(shoot.antijam_direction *
-                                            FLYWHEEL_ACTIVE_TARGET_RPM);
+                                            config.active_flywheel_speed.get());
                     } else {
                         ASSERT(false, "Unknown shoot state.");
                     }
@@ -345,8 +319,8 @@ namespace ShootApp {
 
         void ShootApp::set_flywheel_target(float new_target) {
             shoot.flywheel_target_rpm = new_target;
-            switch (CONFIG) {
-                case ShootAppConfig::TRIPLE:
+            switch (config.flywheel_config) {
+                case apps::shoot::FlywheelConfiguration::TRIPLE:
                     ramp_set_target(
                         flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp,
                         flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback.rx_rpm,
@@ -360,7 +334,7 @@ namespace ShootApp {
                         flywheel_controls[TOP_FLYWHEEL_INDEX].feedback.rx_rpm,
                         new_target);
                     break;
-                case ShootAppConfig::DUAL:
+                case apps::shoot::FlywheelConfiguration::DUAL:
                     ramp_set_target(
                         flywheel_controls[LEFT_FLYWHEEL_INDEX].sp_ramp,
                         flywheel_controls[LEFT_FLYWHEEL_INDEX].feedback.rx_rpm,

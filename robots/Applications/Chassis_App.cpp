@@ -33,9 +33,9 @@ ChassisApp<DriveTrain>::ChassisApp(
     DriveTrain& drive_train_ref, mc2::RobotMC& mc_ref,
     comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref,
     modules::debug::Debug& _debug)
-    : config(config_ref),
-      RTOSApp<ChassisApp<DriveTrain>, ChassisApp<DriveTrain>::loop_period_ms>(
+    : RTOSApp<ChassisApp<DriveTrain>, ChassisApp<DriveTrain>::loop_period_ms>(
           _rtos),
+      config(config_ref),
       drive_train(drive_train_ref),
       mc(mc_ref),
       communication(communication_ref),

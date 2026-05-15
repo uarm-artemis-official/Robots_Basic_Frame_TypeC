@@ -211,8 +211,6 @@ class GimbalApp
 namespace ShootApp {
 
     inline namespace v1 {
-        enum class ShootAppConfig { DUAL, TRIPLE, UNKNOWN };
-
         class ShootApp
             : public RTOSApp<ShootApp,
                              apps_defines::shoot_task_loop_period_ms> {
@@ -238,19 +236,16 @@ namespace ShootApp {
      *  [2] - top flywheel.
      */
             FlyWheelControl flywheel_controls[3];
-            const float LOADER_ACTIVE_RPM;
-            const float FLYWHEEL_ACTIVE_TARGET_RPM;
-            const float MAX_FLYWHEEL_ACCEL;
-            const ShootAppConfig CONFIG;
+            const apps::shoot::ShootConfig config;
 
            public:
             explicit ShootApp(
-                MW_RTOS::IRTOS& _rtos, mc2::RobotMC& mc2_ref,
+                MW_RTOS::IRTOS& _rtos,
+                const apps::shoot::ShootConfig& config_ref,
+                mc2::RobotMC& mc2_ref,
                 comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                     communication_ref,
-                IAmmoLid& ammo_lid_ref, IMotors& motors_ref,
-                float loader_active_rpm_, float flywheel_target_rpm_,
-                float max_flywheel_accel, ShootAppConfig config_);
+                IAmmoLid& ammo_lid_ref, IMotors& motors_ref);
 
             void init();
             void loop();

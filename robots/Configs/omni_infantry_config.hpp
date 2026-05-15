@@ -86,45 +86,44 @@ namespace gimbal_params {
     static_assert(MAX_OUT_GIMBAL_PITCH_SPEED >= MIN_OUT_GIMBAL_PITCH_SPEED);
 }  // namespace gimbal_params
 
-namespace shoot_params {
-    // Shoot targets.
-    constexpr float LOADER_ACTIVE_RPM = 75;
-    constexpr float FLYWHEEL_ACTIVE_TARGET_RPM = 7000;
-    constexpr float MAX_FLYWHEEL_ACCEL = 70000;  // rotations/min/second
-    static_assert(MAX_FLYWHEEL_ACCEL >= 0);
-
-    // Loader PID.
-    constexpr float KP_LOADER_SPEED = 30;
-    constexpr float KI_LOADER_SPEED = 0;
-    constexpr float KD_LOADER_SPEED = 0;
-    constexpr float BETA_LOADER_SPEED = 1;
-    constexpr float YETA_LOADER_SPEED = 0;
-    constexpr float MIN_OUT_LOADER_SPEED = -10000;
-    constexpr float MAX_OUT_LOADER_SPEED = 10000;
-    static_assert(MAX_OUT_LOADER_SPEED >= MIN_OUT_LOADER_SPEED);
-
-    // Loader PID.
-    constexpr float KP_LOADER_POSITION = 0;
-    constexpr float KI_LOADER_POSITION = 0;
-    constexpr float KD_LOADER_POSITION = 0;
-    constexpr float BETA_LOADER_POSITION = 1;
-    constexpr float YETA_LOADER_POSITION = 0;
-    constexpr float MIN_OUT_LOADER_POSITION = -10000;
-    constexpr float MAX_OUT_LOADER_POSITION = 10000;
-    static_assert(MAX_OUT_LOADER_POSITION >= MIN_OUT_LOADER_POSITION);
-
-    // Flywheel PID.
-    constexpr float KP_FLYWHEEL_SPEED = 27;
-    constexpr float KI_FLYWHEEL_SPEED = 5;
-    constexpr float KD_FLYWHEEL_SPEED = 0;
-    constexpr float BETA_FLYWHEEL_SPEED = 1;
-    constexpr float YETA_FLYWHEEL_SPEED = 0;
-    constexpr float MIN_OUT_FLYWHEEL_SPEED = -5000;
-    constexpr float MAX_OUT_FLYWHEEL_SPEED = 5000;
-    static_assert(MAX_OUT_FLYWHEEL_SPEED >= MIN_OUT_FLYWHEEL_SPEED);
-}  // namespace shoot_params
-
 #include "apps_types.hpp"
+
+static const apps::shoot::ShootConfig shoot_config = {
+    .flywheel_config = apps::shoot::FlywheelConfiguration::DUAL,
+    .flywheel_speed_pid_config =
+        pid::PID2Config {
+            .k_p = 27,
+            .k_i = 5,
+            .k_d = 0,
+            .beta = 1,
+            .yeta = 0,
+            .max_out = 5000,
+            .min_out = -5000,
+        },
+    .loader_speed_pid_config =
+        pid::PID2Config {
+            .k_p = 30,
+            .k_i = 0,
+            .k_d = 0,
+            .beta = 1,
+            .yeta = 0,
+            .max_out = 10000,
+            .min_out = -10000,
+        },
+    .loader_position_pid_config =
+        pid::PID2Config {
+            .k_p = 0,
+            .k_i = 0,
+            .k_d = 0,
+            .beta = 1,
+            .yeta = 0,
+            .max_out = 10000,
+            .min_out = -10000,
+        },
+    .active_loader_speed = uarm::strong_types::RotationsPerMinute(75),
+    .active_flywheel_speed = uarm::strong_types::RotationsPerMinute(7000),
+    .max_flywheel_accel = uarm::strong_types::RotationsPerMinuteSecond(70000),
+};
 
 static const apps::chassis::ChassisConfig chassis_config = {
     .spin_pid_config =

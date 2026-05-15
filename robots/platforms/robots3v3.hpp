@@ -80,16 +80,8 @@ static RefereeApp referee_app(rtos, mc, communication, event_center, debug,
 static GimbalApp gimbal_app(rtos, mc, communication, event_center,
                             no_init_motors, debug);
 
-#if defined(HERO)
-ShootApp::ShootAppConfig shoot_app_config = ShootApp::ShootAppConfig::TRIPLE;
-#else
-ShootApp::ShootAppConfig shoot_app_config = ShootApp::ShootAppConfig::DUAL;
-#endif
-static ShootApp::ShootApp shoot_app(
-    rtos, mc, communication, ammo_lid_, no_init_motors,
-    robot_config::shoot_params::LOADER_ACTIVE_RPM,
-    robot_config::shoot_params::FLYWHEEL_ACTIVE_TARGET_RPM,
-    robot_config::shoot_params::MAX_FLYWHEEL_ACCEL, shoot_app_config);
+static ShootApp::ShootApp shoot_app(rtos, robot_config::shoot_config, mc,
+                                    communication, ammo_lid_, no_init_motors);
 
 static MW_RTOS::TaskHandle timer_task_handle = nullptr;
 static MW_RTOS::TaskHandle chassis_task_handle = nullptr;

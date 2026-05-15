@@ -89,13 +89,6 @@ typedef enum {
     MANUAL_GEAR     //referee system down, manual-adjust chassis spd limit
 } ChassisGearMode_t;
 
-typedef enum {
-    NO_GEAR = 0,
-    GEAR_LOW = 500,
-    GEAR_MID = 1000,
-    GEAR_HIGH = 2000
-} ChassisGearValue_t;
-
 typedef struct {
     uint16_t current;
     float power;
@@ -228,6 +221,24 @@ typedef struct {
 /* =========================================================================
  * SHOOT TYPES
  * ====================================================================== */
+namespace apps::shoot {
+    enum class FlywheelConfiguration { DUAL, TRIPLE, UNKNOWN };
+
+    struct ShootConfig {
+        FlywheelConfiguration flywheel_config;
+
+        pid::PID2Config flywheel_speed_pid_config;
+        pid::PID2Config loader_speed_pid_config;
+        pid::PID2Config loader_position_pid_config;
+
+        // TODO: Convert to radians.
+        uarm::strong_types::RotationsPerMinute
+            active_loader_speed;  // TODO: Deprecate
+        uarm::strong_types::RotationsPerMinute active_flywheel_speed;
+        uarm::strong_types::RotationsPerMinuteSecond max_flywheel_accel;
+    };
+}  // namespace apps::shoot
+
 /**
   * @brief  shoot task main struct
   */
