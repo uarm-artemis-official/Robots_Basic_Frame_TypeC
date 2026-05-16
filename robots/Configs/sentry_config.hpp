@@ -56,7 +56,9 @@ static const apps::gimbal::GimbalConfig gimbal_config = {
             {0.0f, 0.0f, 1.0f},
         },
     .imu_yaw_lpf_gain = 1.0f,
-    .imu_pitch_lpf_gain = 0.90f};
+    .imu_pitch_lpf_gain = 0.90f,
+    .exit_calibration_yaw_angle_delta = uarm::strong_types::Degree(2.0f),
+};
 
 static const apps::shoot::ShootConfig shoot_config = {
     .flywheel_config = apps::shoot::FlywheelConfiguration::DUAL,
@@ -94,6 +96,11 @@ static const apps::shoot::ShootConfig shoot_config = {
     .active_flywheel_speed = uarm::strong_types::RotationsPerMinute(7000),
     .max_flywheel_accel = uarm::strong_types::RotationsPerMinuteSecond(70000),
     .loader_gear_ratio = 36.0f,
+    .jam_stall_duration_threshold = uarm::strong_types::Second(0.5),
+    .jam_loader_rpm_threshold = uarm::strong_types::RotationsPerMinute(5),
+    .jam_loader_current_relative_diff_threshold = 0.05f,
+    .jam_no_stall_duration_threshold = uarm::strong_types::Second(0.5),
+    .enable_loader_position_control = false,
 };
 
 static const apps::chassis::ChassisConfig chassis_config = {

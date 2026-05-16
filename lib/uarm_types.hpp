@@ -98,6 +98,9 @@ namespace uarm::strong_types {
     using RotationsPerMinuteSecond =
         NamedType<float, RotationsPerMinuteSecondParameter>;
 
+    struct DegreeParameter {};
+    using Degree = NamedType<float, DegreeParameter>;
+
 }  // namespace uarm::strong_types
 
 #endif
