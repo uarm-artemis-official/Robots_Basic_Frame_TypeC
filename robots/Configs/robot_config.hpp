@@ -53,21 +53,12 @@ namespace robot_config {
 #ifdef AUTO_AIM_RIG
 #include "auto_aim_rig_config.hpp"
 #endif
-
-#ifdef KIDDIE_MODE
-#include "kiddie_mode_config.hpp"
-    constexpr ChassisType chassis_type = ChassisType::Omni;
-    constexpr GimbalType gimbal_type = GimbalType::DJI;
-#endif
-
 #ifdef ENGINEER
 #include "engineer_config.hpp"
 #endif
 
 #ifdef GTEST
 #include "test_config.hpp"
-#else
-#include "shared_config.hpp"
 #endif
 
 }  // namespace robot_config
