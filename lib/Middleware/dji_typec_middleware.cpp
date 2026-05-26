@@ -273,6 +273,61 @@ namespace MW_CAN {
     }
 
     bool CAN::init() {
+        if (platform::get_hal_can(MW_CAN::BUS::CAN_1) != nullptr) {
+            MW_CAN::Filter can1_filter = {
+                .id_high = 0x0000,
+                .id_low = 0x0000,
+                .mask_id_high = 0x0000,
+                .mask_id_low = 0x0000,
+                .fifo_assignment = MW_CAN::FIFO::FIFO_0,
+                .mode = MW_CAN::FilterMode::IDMask,
+                .is_activated = true,
+                .filter_bank = 0,
+                .slave_start_filter_bank = 0,
+            };
+
+            bool can1_filter_enabled = can.configure_filter(bus, filter);
+            bool can1_notification_activated = can.activate_notification(
+                bus, MW_CAN::Notification::RX_FIFO0_MSG_PENDING);
+            ASSERT(can1_filter_enabled,
+                   "Failed to enable CAN filter for bus 1.");
+            ASSERT(can1_notification_activated,
+                   "Failed to activate CAN notification for bus 1.");
+
+            bool can1_started = can.start(MW_CAN::BUS::CAN_1);
+
+            if (!can1_filter_enabled || !can1_started) {
+                return false;
+            }
+        }
+
+        if (platform::get_hal_can(MW_CAN::BUS::CAN_2) != nullptr) {
+            MW_CAN::Filter filter = {
+                .id_high = 0x0000,
+                .id_low = 0x0000,
+                .mask_id_high = 0x0000,
+                .mask_id_low = 0x0000,
+                .fifo_assignment = MW_CAN::FIFO::FIFO_0,
+                .mode = MW_CAN::FilterMode::IDMask,
+                .is_activated = true,
+                .filter_bank = 14,
+                .slave_start_filter_bank = 14,
+            };
+
+            bool can2_filter_enabled = can.configure_filter(bus, filter);
+            bool can2_notification_activated = can.activate_notification(
+                bus, MW_CAN::Notification::RX_FIFO0_MSG_PENDING);
+            ASSERT(can2_filter_enabled,
+                   "Failed to enable CAN filter for bus 2.");
+            ASSERT(can2_notification_activated,
+                   "Failed to activate CAN notification for bus 2.");
+
+            bool can2_started = can.start(MW_CAN::BUS::CAN_2);
+
+            if (!can2_filter_enabled || !can2_started) {
+                return false;
+            }
+        }
         return true;
     }
 

@@ -10,6 +10,12 @@
 #include "subsystems_modules.hpp"
 #include "uart_isr.hpp"
 
+#if defined(SWERVE_CHASSIS)
+constexpr bool is_swerve = true;
+#else
+constexpr bool is_swerve = false;
+#endif
+
 static MW_RTOS::RTOS rtos;
 static MW_TIM::TIM tim;
 static MW_TIM::PWM pwm;
@@ -40,8 +46,6 @@ static simple_comm::SimpleCommCodec simple_comm_codec;
 static comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics> communication(
     mc, simple_comm_codec, can, uart);
 
-// TODO Make all parameters injectable via struct instead of apps including robot_config.hpp
-#ifdef SWERVE_CHASSIS
 static const apps::chassis::SwerveDriveConfig swerve_drive_config = {
     .drive_wheel_pid_config = robot_config::chassis_config.wheel_pid_config,
     .max_wheel_ramp_accel = robot_config::chassis_config.max_wheel_ramp_accel,
@@ -52,9 +56,10 @@ static const apps::chassis::SwerveDriveConfig swerve_drive_config = {
 };
 
 static SwerveDrive swerve_drive(swerve_drive_config, mc, no_init_motors);
-static ChassisApp<SwerveDrive> chassis_app(
-    rtos, robot_config::chassis_config, swerve_drive, mc, communication, debug);
-#else
+static ChassisApp<SwerveDrive> swerve_chassis_app(rtos,
+                                                  robot_config::chassis_config,
+                                                  swerve_drive, mc,
+                                                  communication, debug);
 static constexpr float omni_chassis_width = 0.40f;
 static const apps::chassis::OmniDriveConfig omni_drive_config = {
     .wheel_pid_config = robot_config::chassis_config.wheel_pid_config,
@@ -68,9 +73,10 @@ static const apps::chassis::OmniDriveConfig omni_drive_config = {
     .k2 = 0};
 static OmniDrive omni_drive(omni_drive_config, mc, no_init_motors);
 
-static ChassisApp<OmniDrive> chassis_app(rtos, robot_config::chassis_config,
-                                         omni_drive, mc, communication, debug);
-#endif
+static ChassisApp<OmniDrive> omni_chassis_app(rtos,
+                                              robot_config::chassis_config,
+                                              omni_drive, mc, communication,
+                                              debug);
 
 static const apps::rc::RCConfig rc_config = {
     .chassis_translation_speed =
@@ -90,7 +96,8 @@ static ShootApp::ShootApp shoot_app(rtos, robot_config::shoot_config, mc,
                                     communication, ammo_lid_, no_init_motors);
 
 static MW_RTOS::TaskHandle timer_task_handle = nullptr;
-static MW_RTOS::TaskHandle chassis_task_handle = nullptr;
+static MW_RTOS::TaskHandle omni_chassis_task_handle = nullptr;
+static MW_RTOS::TaskHandle swerve_chassis_task_handle = nullptr;
 static MW_RTOS::TaskHandle rc_task_handle = nullptr;
 static MW_RTOS::TaskHandle ref_task_handle = nullptr;
 static MW_RTOS::TaskHandle gimbal_task_handle = nullptr;
@@ -98,46 +105,11 @@ static MW_RTOS::TaskHandle shoot_task_handle = nullptr;
 static MW_RTOS::TaskHandle imu_task_handle = nullptr;
 static MW_RTOS::TaskHandle default_task_handle = nullptr;
 
-void can_filter_enable(MW_CAN::BUS bus) {
-    MW_CAN::Filter filter = {
-        .id_high = 0x0000,
-        .id_low = 0x0000,
-        .mask_id_high = 0x0000,
-        .mask_id_low = 0x0000,
-        .fifo_assignment = MW_CAN::FIFO::FIFO_0,
-        .mode = MW_CAN::FilterMode::IDMask,
-        .is_activated = true,
-        .filter_bank = 0,
-        .slave_start_filter_bank = 14,
-    };
-
-    if (bus == MW_CAN::BUS::CAN_1 || bus == MW_CAN::BUS::CAN_1B) {
-        filter.filter_bank = 0;
-    } else if (bus == MW_CAN::BUS::CAN_2 || bus == MW_CAN::BUS::CAN_2B) {
-        filter.filter_bank = 14;
-    } else {
-        ASSERT(false, "Trying to configure unknown CAN bus.");
-        return;
-    }
-
-    ASSERT(can.configure_filter(bus, filter), "CAN filter config failed.");
-    ASSERT(can.activate_notification(
-               bus, MW_CAN::Notification::RX_FIFO0_MSG_PENDING),
-           "CAN notification activation failed.");
-}
-
 bool firmware_and_system_init(void) {
     ASSERT(rtos.init(), "Failed to init RTOS middleware.");
     ASSERT(can.init(), "Failed to init CAN middleware.");
     ASSERT(i2c.init(), "Failed to init I2C middleware.");
     ASSERT(spi.init(), "Failed to init SPI middleware.");
-
-    /* CAN1 & CAN2 Init */
-    // ASSERT(can.start(MW_CAN::BUS::CAN_1), "Failed to start CAN bus 1.");
-    // ASSERT(can.start(MW_CAN::BUS::CAN_2), "Failed to start CAN bus 2.");
-    /* CAN1 & CAN2 filter Init */
-    // can_filter_enable(MW_CAN::BUS::CAN_1);
-    // can_filter_enable(MW_CAN::BUS::CAN_2);
 
     ASSERT(
         tim.base_start(MW_TIM::Timer::TIM_13, MW_TIM::BaseStartMode::Interrupt),
@@ -210,11 +182,6 @@ void init_robot_apps() {
                nullptr, 256, MW_RTOS::TaskPriority::High),
            "Failed to create TimerTask.");
 
-    // osThreadDef(
-    //     CommTask, [](const void* arg) { comm_app.run(arg); }, osPriorityHigh, 0,
-    //     256);
-    // osThreadCreate(osThread(CommTask), NULL);
-
     ASSERT(rtos.task_create(
                imu_task_handle, const_cast<char*>("IMUTask"),
                [](void* arg) { imu_app.run(static_cast<const void*>(arg)); },
@@ -222,13 +189,26 @@ void init_robot_apps() {
            "Failed to create IMUTask.");
 
     if (board_status == modules::debug::BoardConfig::CHASSIS) {
-        ASSERT(rtos.task_create(
-                   chassis_task_handle, const_cast<char*>("ChassisTask"),
-                   [](void* arg) {
-                       chassis_app.run(static_cast<const void*>(arg));
-                   },
-                   nullptr, 256, MW_RTOS::TaskPriority::High),
-               "Failed to create ChassisTask.");
+        if constexpr (is_swerve) {
+            ASSERT(
+                rtos.task_create(
+                    swerve_chassis_task_handle,
+                    const_cast<char*>("SwerveChassisTask"),
+                    [](void* arg) {
+                        swerve_chassis_app.run(static_cast<const void*>(arg));
+                    },
+                    nullptr, 256, MW_RTOS::TaskPriority::High),
+                "Failed to create SwerveChassisTask.");
+        } else {
+            ASSERT(rtos.task_create(
+                       omni_chassis_task_handle,
+                       const_cast<char*>("OmniChassisTask"),
+                       [](void* arg) {
+                           omni_chassis_app.run(static_cast<const void*>(arg));
+                       },
+                       nullptr, 256, MW_RTOS::TaskPriority::High),
+                   "Failed to create OmniChassisTask.");
+        }
 
         ASSERT(rtos.task_create(
                    rc_task_handle, const_cast<char*>("RCTask"),

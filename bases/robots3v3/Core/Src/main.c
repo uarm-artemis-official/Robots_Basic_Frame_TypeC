@@ -61,28 +61,6 @@ extern void main_cpp();
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void can_filter_enable(CAN_HandleTypeDef* hcan) {
-    CAN_FilterTypeDef CAN_FilterConfigStructure;
-
-    CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-    CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
-    CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_16BIT;
-    CAN_FilterConfigStructure.FilterActivation = ENABLE;
-    if (hcan == &hcan1) {
-        CAN_FilterConfigStructure.FilterBank = 0;
-    } else if (hcan == &hcan2) {
-        CAN_FilterConfigStructure.SlaveStartFilterBank = 14;
-        CAN_FilterConfigStructure.FilterBank = 14;
-    }
-
-    HAL_CAN_ConfigFilter(hcan, &CAN_FilterConfigStructure);
-    // activate the canx msg callback interrupt
-    HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
-}
 /* USER CODE END 0 */
 
 /**
@@ -129,16 +107,6 @@ int main(void) {
     MX_TIM1_Init();
     MX_I2C2_Init();
     /* USER CODE BEGIN 2 */
-    /* CAN1 & CAN2 filter Init */
-    can_filter_enable(&hcan1);
-    can_filter_enable(&hcan2);
-
-    if (HAL_CAN_Start(&hcan1) != HAL_OK) {
-        return HAL_ERROR;
-    }
-    if (HAL_CAN_Start(&hcan2) != HAL_OK) {
-        return HAL_ERROR;
-    }
     main_cpp();
     /* USER CODE END 2 */
 
