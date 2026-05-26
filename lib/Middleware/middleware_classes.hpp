@@ -84,7 +84,7 @@ namespace MW_TIM {
 namespace MW_CAN {
     class TestCAN : public ICAN {
        public:
-    bool init() override;
+        bool init() override;
         bool send_data(BUS bus, uint32_t id, uint32_t ext_id,
                        const uint8_t* data, uint32_t length) override;
         bool receive_data(BUS bus, FIFO fifo, uint32_t& id, uint32_t& ext_id,
@@ -117,7 +117,7 @@ namespace MW_CAN {
 namespace MW_UART {
     class TestUART : public IUART {
        public:
-    bool init() override;
+        bool init() override;
         void send_data(Peripheral uart, const uint8_t* data, uint32_t length,
                        uint32_t timeout) override;
         void send_data(Peripheral uart, std::span<const std::byte> data,
@@ -152,7 +152,7 @@ namespace MW_UART {
 namespace MW_I2C {
     class TestI2C : public II2C {
        public:
-    bool init() override;
+        bool init() override;
         void master_transmit(Periperhal i2c, uint8_t device_address,
                              const uint8_t* data, size_t size,
                              uint32_t timeout) override;
@@ -198,7 +198,7 @@ namespace MW_I2C {
 namespace MW_SPI {
     class TestSPI : public ISPI {
        public:
-    bool init() override;
+        bool init() override;
         bool transmit(Peripheral spi, const uint8_t* data, size_t size,
                       uint32_t timeout) override;
         bool receive(Peripheral spi, uint8_t* data, size_t size,
@@ -233,18 +233,18 @@ namespace MW_RTOS {
         void critical_section_exit() override;
         bool event_group_create(EventGroupHandle& event_group) override;
         EventBits event_group_set_bits(EventGroupHandle event_group,
-                                                                             EventBits bits_to_set) override;
+                                       EventBits bits_to_set) override;
         EventBits event_group_clear_bits(EventGroupHandle event_group,
-                                                                                 EventBits bits_to_clear) override;
+                                         EventBits bits_to_clear) override;
         EventBits event_group_wait_bits(EventGroupHandle event_group,
-                                                                                EventBits bits_to_wait_for,
-                        bool clear_on_exit,
-                        bool wait_for_all_bits,
-                        uint32_t ticks_to_wait) override;
+                                        EventBits bits_to_wait_for,
+                                        bool clear_on_exit,
+                                        bool wait_for_all_bits,
+                                        uint32_t ticks_to_wait) override;
         EventBits event_group_sync(EventGroupHandle event_group,
-                                                                     EventBits bits_to_set,
-                                                                     EventBits bits_to_wait_for,
-                       uint32_t ticks_to_wait) override;
+                                   EventBits bits_to_set,
+                                   EventBits bits_to_wait_for,
+                                   uint32_t ticks_to_wait) override;
 
         void delay_until_ms(uint32_t* previous_wake, uint32_t ms) override;
         void delay_ms(uint32_t ms) override;
@@ -268,6 +268,18 @@ namespace MW_RTOS {
                         TickType ticks_to_wait = 0) override;
         bool queue_get(QueueHandle queue, void* data_ptr,
                        TickType ticks_to_wait = 0) override;
+
+        bool timer_create(TimerHandle& timer, const char* timer_name,
+                          uint32_t duration_ms, TimerMode mode,
+                          TimerCallback callback) override;
+        bool timer_start(TimerHandle timer) override;
+        bool timer_start_from_isr(TimerHandle timer,
+                                  bool* awaken_higher_prio) override;
+        bool timer_reset(TimerHandle timer) override;
+        bool timer_stop(TimerHandle timer) override;
+        bool timer_stop_from_isr(TimerHandle timer,
+                                 bool* awaken_higher_prio) override;
+        bool timer_delete(TimerHandle timer) override;
     };
 
     class RTOS : public IRTOS {
@@ -280,18 +292,18 @@ namespace MW_RTOS {
         void critical_section_exit() override;
         bool event_group_create(EventGroupHandle& event_group) override;
         EventBits event_group_set_bits(EventGroupHandle event_group,
-                                                                             EventBits bits_to_set) override;
+                                       EventBits bits_to_set) override;
         EventBits event_group_clear_bits(EventGroupHandle event_group,
-                                                                                 EventBits bits_to_clear) override;
+                                         EventBits bits_to_clear) override;
         EventBits event_group_wait_bits(EventGroupHandle event_group,
-                                                                                EventBits bits_to_wait_for,
-                        bool clear_on_exit,
-                        bool wait_for_all_bits,
-                        uint32_t ticks_to_wait) override;
+                                        EventBits bits_to_wait_for,
+                                        bool clear_on_exit,
+                                        bool wait_for_all_bits,
+                                        uint32_t ticks_to_wait) override;
         EventBits event_group_sync(EventGroupHandle event_group,
-                                                                     EventBits bits_to_set,
-                                                                     EventBits bits_to_wait_for,
-                       uint32_t ticks_to_wait) override;
+                                   EventBits bits_to_set,
+                                   EventBits bits_to_wait_for,
+                                   uint32_t ticks_to_wait) override;
 
         void delay_until_ms(uint32_t* previous_wake, uint32_t ms) override;
         void delay_ms(uint32_t ms) override;
@@ -313,6 +325,18 @@ namespace MW_RTOS {
                         TickType ticks_to_wait) override;
         bool queue_get(QueueHandle queue, void* data_ptr,
                        TickType ticks_to_wait) override;
+
+        bool timer_create(TimerHandle& timer, const char* timer_name,
+                          uint32_t duration_ms, TimerMode mode,
+                          TimerCallback callback) override;
+        bool timer_start(TimerHandle timer) override;
+        bool timer_start_from_isr(TimerHandle timer,
+                                  bool* awaken_higher_prio) override;
+        bool timer_reset(TimerHandle timer) override;
+        bool timer_stop(TimerHandle timer) override;
+        bool timer_stop_from_isr(TimerHandle timer,
+                                 bool* awaken_higher_prio) override;
+        bool timer_delete(TimerHandle timer) override;
     };
 }  // namespace MW_RTOS
 

@@ -64,7 +64,7 @@ namespace MW_GPIO {
 namespace MW_TIM {
     class ITIM {
        public:
-    virtual bool init() = 0;
+        virtual bool init() = 0;
 
         /**
          * @brief Start a timer base in normal or interrupt mode.
@@ -407,16 +407,17 @@ namespace MW_RTOS {
         // Event groups.
         virtual bool event_group_create(EventGroupHandle& event_group) = 0;
         virtual EventBits event_group_set_bits(EventGroupHandle event_group,
-                                                                                             EventBits bits_to_set) = 0;
+                                               EventBits bits_to_set) = 0;
         virtual EventBits event_group_clear_bits(EventGroupHandle event_group,
-                                                                                                 EventBits bits_to_clear) = 0;
-        virtual EventBits event_group_wait_bits(
-                        EventGroupHandle event_group, EventBits bits_to_wait_for,
-            bool clear_on_exit, bool wait_for_all_bits,
-            uint32_t ticks_to_wait) = 0;
+                                                 EventBits bits_to_clear) = 0;
+        virtual EventBits event_group_wait_bits(EventGroupHandle event_group,
+                                                EventBits bits_to_wait_for,
+                                                bool clear_on_exit,
+                                                bool wait_for_all_bits,
+                                                uint32_t ticks_to_wait) = 0;
         virtual EventBits event_group_sync(EventGroupHandle event_group,
-                                                                                     EventBits bits_to_set,
-                                                                                     EventBits bits_to_wait_for,
+                                           EventBits bits_to_set,
+                                           EventBits bits_to_wait_for,
                                            uint32_t ticks_to_wait) = 0;
 
         // Task delays and task ticks.
@@ -443,6 +444,19 @@ namespace MW_RTOS {
                                 TickType ticks_to_wait = 0) = 0;
         virtual bool queue_get(QueueHandle queue, void* data_ptr,
                                TickType ticks_to_wait = 0) = 0;
+
+        // RTOS software timers.
+        virtual bool timer_create(TimerHandle& timer, const char* timer_name,
+                                  uint32_t duration_ms, TimerMode mode,
+                                  TimerCallback callback) = 0;
+        virtual bool timer_start(TimerHandle timer) = 0;
+        virtual bool timer_start_from_isr(TimerHandle timer,
+                                          bool* awaken_higher_prio) = 0;
+        virtual bool timer_reset(TimerHandle timer) = 0;
+        virtual bool timer_stop(TimerHandle timer) = 0;
+        virtual bool timer_stop_from_isr(TimerHandle timer,
+                                         bool* awaken_higher_prio) = 0;
+        virtual bool timer_delete(TimerHandle timer) = 0;
     };
 }  // namespace MW_RTOS
 

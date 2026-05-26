@@ -192,6 +192,11 @@ namespace MW_RTOS {
         return static_cast<NativeTaskPriority>(p);
     }
 
+    enum class TimerMode : uint8_t {
+        OneShot,
+        AutoReload,
+    };
+
 #if defined(GTEST)
     struct MockRTOSTask {
         const char* name;
@@ -228,10 +233,21 @@ namespace MW_RTOS {
         EventBits bits;
     };
     using EventGroupHandle = MockRTOSEventGroup*;
+
+    struct MockRTOSTimer {
+        const char* name;
+        uint32_t period_ms;
+        TimerMode mode;
+        bool is_active;
+    };
+    using TimerHandle = MockRTOSTimer*;
+    using TimerCallback = void (*)(TimerHandle timer);
 #elif defined(MW_ENABLE_RTOS)
     using TaskHandle = TaskHandle_t;
     using QueueHandle = QueueHandle_t;
     using EventGroupHandle = EventGroupHandle_t;
+    using TimerHandle = TimerHandle_t;
+    using TimerCallback = void (*)(TimerHandle timer);
 #else
     struct DummyRTOSTask {};
     using TaskHandle = DummyRTOSTask*;
@@ -241,6 +257,10 @@ namespace MW_RTOS {
 
     struct DummyRTOSEventGroup {};
     using EventGroupHandle = DummyRTOSEventGroup*;
+
+    struct DummyRTOSTimer {};
+    using TimerHandle = DummyRTOSTimer*;
+    using TimerCallback = void (*)(TimerHandle timer);
 #endif
 }  // namespace MW_RTOS
 

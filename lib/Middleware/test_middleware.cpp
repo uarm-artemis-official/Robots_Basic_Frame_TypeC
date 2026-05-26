@@ -7,10 +7,12 @@
 #include "uarm_lib.hpp"
 
 namespace MW_BASE {
-    bool TestBase::init() { return true; }
+    bool TestBase::init() {
+        return true;
+    }
 
     void TestBase::delay_ms(uint32_t ms) {
-        (void)ms;
+        (void) ms;
     }
 }  // namespace MW_BASE
 
@@ -319,8 +321,8 @@ namespace MW_RTOS {
     }
 
     bool TestRTOS::event_group_create(EventGroupHandle& event_group) {
-        event_group = static_cast<EventGroupHandle>(
-            malloc(sizeof(MockRTOSEventGroup)));
+        event_group =
+            static_cast<EventGroupHandle>(malloc(sizeof(MockRTOSEventGroup)));
         if (event_group == nullptr) {
             return false;
         }
@@ -358,8 +360,9 @@ namespace MW_RTOS {
 
         const EventBits current = event_group->bits;
         const bool condition_met =
-            wait_for_all_bits ? ((current & bits_to_wait_for) == bits_to_wait_for)
-                              : ((current & bits_to_wait_for) != 0);
+            wait_for_all_bits
+                ? ((current & bits_to_wait_for) == bits_to_wait_for)
+                : ((current & bits_to_wait_for) != 0);
 
         if (condition_met && clear_on_exit) {
             event_group->bits &= ~bits_to_wait_for;
@@ -560,6 +563,73 @@ namespace MW_RTOS {
         std::memcpy(data_ptr, src, queue->item_size);
         queue->front_index = (queue->front_index + 1) % queue->queue_length;
         queue->item_count--;
+        return true;
+    }
+
+    bool TestRTOS::timer_create(TimerHandle& timer, const char* timer_name,
+                                uint32_t duration_ms, TimerMode mode,
+                                TimerCallback callback) {
+        ASSERT(timer_name != nullptr, "Timer name cannot be nullptr.");
+        ASSERT(callback != nullptr, "Timer callback cannot be nullptr.");
+
+        timer = static_cast<TimerHandle>(malloc(sizeof(MockRTOSTimer)));
+        if (timer == nullptr) {
+            return false;
+        }
+
+        timer->name = timer_name;
+        timer->period_ms = duration_ms;
+        timer->mode = mode;
+        timer->is_active = false;
+        return true;
+    }
+
+    bool TestRTOS::timer_start(TimerHandle timer) {
+        if (timer == nullptr) {
+            return false;
+        }
+        timer->is_active = true;
+        return true;
+    }
+
+    bool TestRTOS::timer_start_from_isr(TimerHandle timer,
+                                        bool* awaken_higher_prio) {
+        if (awaken_higher_prio != nullptr) {
+            *awaken_higher_prio = false;
+        }
+        return timer_start(timer);
+    }
+
+    bool TestRTOS::timer_reset(TimerHandle timer) {
+        if (timer == nullptr) {
+            return false;
+        }
+        timer->is_active = true;
+        return true;
+    }
+
+    bool TestRTOS::timer_stop(TimerHandle timer) {
+        if (timer == nullptr) {
+            return false;
+        }
+        timer->is_active = false;
+        return true;
+    }
+
+    bool TestRTOS::timer_stop_from_isr(TimerHandle timer,
+                                       bool* awaken_higher_prio) {
+        if (awaken_higher_prio != nullptr) {
+            *awaken_higher_prio = false;
+        }
+        return timer_stop(timer);
+    }
+
+    bool TestRTOS::timer_delete(TimerHandle timer) {
+        if (timer == nullptr) {
+            return false;
+        }
+
+        free(timer);
         return true;
     }
 }  // namespace MW_RTOS

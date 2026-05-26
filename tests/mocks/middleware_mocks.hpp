@@ -170,6 +170,21 @@ class MockIRTOS : public MW_RTOS::IRTOS {
                 (MW_RTOS::QueueHandle queue, void* data_ptr,
                  MW_RTOS::TickType ticks_to_wait),
                 (override));
+    MOCK_METHOD(bool, timer_create,
+                (MW_RTOS::TimerHandle & timer, const char* timer_name,
+                 uint32_t duration_ms, MW_RTOS::TimerMode mode,
+                 MW_RTOS::TimerCallback callback),
+                (override));
+    MOCK_METHOD(bool, timer_start, (MW_RTOS::TimerHandle timer), (override));
+    MOCK_METHOD(bool, timer_start_from_isr,
+                (MW_RTOS::TimerHandle timer, bool* awaken_higher_prio),
+                (override));
+    MOCK_METHOD(bool, timer_reset, (MW_RTOS::TimerHandle timer), (override));
+    MOCK_METHOD(bool, timer_stop, (MW_RTOS::TimerHandle timer), (override));
+    MOCK_METHOD(bool, timer_stop_from_isr,
+                (MW_RTOS::TimerHandle timer, bool* awaken_higher_prio),
+                (override));
+    MOCK_METHOD(bool, timer_delete, (MW_RTOS::TimerHandle timer), (override));
 };
 
 #endif

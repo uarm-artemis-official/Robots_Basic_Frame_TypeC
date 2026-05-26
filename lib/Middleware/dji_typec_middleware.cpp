@@ -19,6 +19,10 @@
 #include "tim.h"
 #endif
 
+#ifdef MW_ENABLE_RTOS
+#include "timers.h"
+#endif
+
 namespace MW_BASE {
     bool Base::init() {
         return true;
@@ -1042,6 +1046,67 @@ namespace MW_RTOS {
                          TickType ticks_to_wait) {
         return xQueueReceive(queue, data_ptr, ticks_to_wait) == pdTRUE;
     }
+
+    bool RTOS::timer_create(TimerHandle& timer, const char* timer_name,
+                            uint32_t duration_ms, TimerMode mode,
+                            TimerCallback callback) {
+        ASSERT(timer_name != nullptr, "Timer name cannot be nullptr.");
+        ASSERT(callback != nullptr, "Timer callback cannot be nullptr.");
+
+        BaseType_t auto_reload;
+        switch (mode) {
+            case TimerMode::OneShot:
+                auto_reload = pdFALSE;
+                break;
+            case TimerMode::AutoReload:
+                auto_reload = pdTRUE;
+                break;
+            default:
+                ASSERT(false, "Invalid timer mode.");
+                return false;
+        }
+
+        timer = xTimerCreate(timer_name, pdMS_TO_TICKS(duration_ms),
+                             auto_reload, nullptr,
+                             static_cast<TimerCallbackFunction_t>(callback));
+        return timer != nullptr;
+    }
+
+    bool RTOS::timer_start(TimerHandle timer) {
+        return xTimerStart(timer, 0) == pdPASS;
+    }
+
+    bool RTOS::timer_start_from_isr(TimerHandle timer,
+                                    bool* awaken_higher_prio) {
+        BaseType_t awaken = pdFALSE;
+        const BaseType_t result = xTimerStartFromISR(timer, &awaken);
+        if (awaken_higher_prio != nullptr) {
+            *awaken_higher_prio = awaken == pdTRUE;
+        }
+        return result == pdPASS;
+    }
+
+    bool RTOS::timer_reset(TimerHandle timer) {
+        return xTimerReset(timer, 0) == pdPASS;
+    }
+
+    bool RTOS::timer_stop(TimerHandle timer) {
+        return xTimerStop(timer, 0) == pdPASS;
+    }
+
+    bool RTOS::timer_stop_from_isr(TimerHandle timer,
+                                   bool* awaken_higher_prio) {
+        BaseType_t awaken = pdFALSE;
+        const BaseType_t result = xTimerStopFromISR(timer, &awaken);
+        if (awaken_higher_prio != nullptr) {
+            *awaken_higher_prio = awaken == pdTRUE;
+        }
+        return result == pdPASS;
+    }
+
+    bool RTOS::timer_delete(TimerHandle timer) {
+        return xTimerDelete(timer, 0) == pdPASS;
+    }
 #else
     bool RTOS::init() {
         ASSERT(false, "MW_RTOS is disabled for this base.");
@@ -1207,6 +1272,58 @@ namespace MW_RTOS {
         (void) queue;
         (void) data_ptr;
         (void) ticks_to_wait;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::timer_create(TimerHandle& timer, const char* timer_name,
+                            uint32_t duration_ms, TimerMode mode,
+                            TimerCallback callback) {
+        (void) timer;
+        (void) timer_name;
+        (void) duration_ms;
+        (void) mode;
+        (void) callback;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::timer_start(TimerHandle timer) {
+        (void) timer;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::timer_start_from_isr(TimerHandle timer,
+                                    bool* awaken_higher_prio) {
+        (void) timer;
+        (void) awaken_higher_prio;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::timer_reset(TimerHandle timer) {
+        (void) timer;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::timer_stop(TimerHandle timer) {
+        (void) timer;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::timer_stop_from_isr(TimerHandle timer,
+                                   bool* awaken_higher_prio) {
+        (void) timer;
+        (void) awaken_higher_prio;
+        ASSERT(false, "MW_RTOS is disabled for this base.");
+        return false;
+    }
+
+    bool RTOS::timer_delete(TimerHandle timer) {
+        (void) timer;
         ASSERT(false, "MW_RTOS is disabled for this base.");
         return false;
     }
