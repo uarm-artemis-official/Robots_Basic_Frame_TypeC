@@ -37,15 +37,6 @@
             }
         },
         {
-            "name": "Kiddie_Mode",
-            "inherits": "default",
-            "cacheVariables": {
-                "BASE_TYPE": "robots3v3",
-                "CMAKE_BUILD_TYPE": "Kiddie_Mode",
-                "CMAKE_VERBOSE_MAKEFILE": "ON"
-            }
-        },
-        {
             "name": "Auto_Aim_Rig",
             "inherits": "default",
             "cacheVariables": {

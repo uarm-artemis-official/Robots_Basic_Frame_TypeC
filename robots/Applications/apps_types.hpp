@@ -191,6 +191,7 @@ namespace apps::gimbal {
         float imu_orientation[3][3];
         float imu_yaw_lpf_gain;
         float imu_pitch_lpf_gain;
+        uarm::strong_types::Degree exit_calibration_yaw_angle_delta;
     };
 }  // namespace apps::gimbal
 
@@ -258,6 +259,13 @@ namespace apps::shoot {
         uarm::strong_types::RotationsPerMinuteSecond max_flywheel_accel;
 
         float loader_gear_ratio;
+
+        // Anti-jam configuration
+        uarm::strong_types::Second jam_stall_duration_threshold;
+        uarm::strong_types::RotationsPerMinute jam_loader_rpm_threshold;
+        float jam_loader_current_relative_diff_threshold;
+        uarm::strong_types::Second jam_no_stall_duration_threshold;
+        bool enable_loader_position_control;
     };
 }  // namespace apps::shoot
 

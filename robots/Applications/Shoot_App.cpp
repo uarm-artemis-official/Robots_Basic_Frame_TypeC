@@ -14,7 +14,6 @@
 #include "pid.h"
 #include "ramp.hpp"
 #include "robot_config.hpp"
-#include "shared_config.hpp"
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
@@ -150,11 +149,10 @@ namespace ShootApp {
 
             if (fabs(current_loader_output) > 0 &&
                 abs(current_loader_rpm) <
-                    robot_config::shoot_params::JAM_LOADER_RPM_THRESHOLD &&
+                    config.jam_loader_rpm_threshold.get() &&
                 fabs(current_loader_current - current_loader_output) /
                         current_loader_current <
-                    robot_config::shoot_params::
-                        JAM_LOADER_CURRENT_RELATIVE_DIFF_THRESHOLD) {
+                    config.jam_loader_current_relative_diff_threshold) {
                 shoot.stall_duration += ShootApp::get_loop_period();
             } else {
                 shoot.stall_duration = 0;
@@ -162,14 +160,14 @@ namespace ShootApp {
             }
 
             if (shoot.stall_duration >
-                robot_config::shoot_params::JAM_STALL_DURATION_THRESHOLD) {
+                config.jam_stall_duration_threshold.get()) {
                 shoot.shoot_state = ShootState::ANTIJAM;
                 shoot.antijam_direction *= -1;
                 shoot.no_stall_duration = 0;
             }
 
             if (shoot.no_stall_duration >
-                robot_config::shoot_params::JAM_NO_STALL_DURATION_THRESHOLD) {
+                config.jam_no_stall_duration_threshold.get()) {
                 shoot.shoot_state = ShootState::NORMAL;
             }
         }
@@ -250,8 +248,7 @@ namespace ShootApp {
                 flywheel_controls[TOP_FLYWHEEL_INDEX].feedback.rx_rpm,
                 ShootApp::get_loop_period());
 
-            if constexpr (robot_config::shoot_params::
-                              ENABLE_LOADER_POSITION_CONTROL) {
+            if (config.enable_loader_position_control) {
                 int32_t encoder_position_delta = relative_difference(
                     position_loader_control.prev_encoder_position,
                     loader_feedback.rx_angle, 8192);

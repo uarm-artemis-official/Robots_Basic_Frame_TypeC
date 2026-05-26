@@ -106,11 +106,10 @@ void GimbalApp::set_initial_state() {
 
 bool GimbalApp::exit_calibrate_cond() {
     // return fabs(gimbal.yaw_rel_angle) <
-    //            degrees_to_radians(robot_config::gimbal_params::EXIT_CALIBRATION_YAW_ANGLE_DELTA) &&
+    //            degrees_to_radians(config.exit_calibration_yaw_angle_delta.get()) &&
     //        abs(motor_controls[GIMBAL_YAW_MOTOR_INDEX].feedback.rx_rpm) < 2 &&
     //        fabs(gimbal.pitch_rel_angle) < degrees_to_radians(2.0f) &&
     //        abs(motor_controls[GIMBAL_PITCH_MOTOR_INDEX].feedback.rx_rpm) < 2;
-    return true;
 }
 
 void GimbalApp::calibrate() {

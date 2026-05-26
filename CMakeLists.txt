@@ -73,11 +73,6 @@ elseif (${CMAKE_BUILD_TYPE} STREQUAL "Engineer")
     include("${BASE_CMAKE_DIR}/gcc-arm-none-eabi.cmake") # toolchain file
     set(CMAKE_C_FLAGS_ENGINEER "-O0 -g3 -DENGINEER")
     set(CMAKE_CXX_FLAGS_ENGINEER "-O0 -g3 -DENGINEER")
-elseif (${CMAKE_BUILD_TYPE} STREQUAL "Kiddie_Mode")
-    set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Kiddie_Mode)
-    include("${BASE_CMAKE_DIR}/gcc-arm-none-eabi.cmake") # toolchain file
-    set(CMAKE_C_FLAGS_KIDDIE_MODE "-O0 -g3 -DKIDDIE_MODE -DINFANTRY")
-    set(CMAKE_CXX_FLAGS_KIDDIE_MODE "-O0 -g3 -DKIDDIE_MODE -DINFANTRY")
 elseif (${CMAKE_BUILD_TYPE} STREQUAL "Doxygen")
     set(CMAKE_PROJECT_NAME Basic_Frame_TypeC_2023_Doxygen)
 else()
