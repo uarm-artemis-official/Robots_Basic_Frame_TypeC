@@ -95,6 +95,7 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
     const apps::chassis::SwerveDriveConfig config;
     mc2::RobotMC& mc;
     IMotors& motors;
+    isr::can::CAN_ISR& can_isr;
 
     std::array<Swerve_Drive_Control_t, NUM_DRIVE_MOTORS> drive_motors;
     std::array<Swerve_Steer_Control_t, NUM_STEER_MOTORS> steer_motors;
@@ -116,12 +117,15 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
                                          uint32_t angle);
 
     explicit SwerveDrive(const apps::chassis::SwerveDriveConfig& config_ref,
-                         mc2::RobotMC& mc2_ref, IMotors& motors_ref);
+                         mc2::RobotMC& mc2_ref, IMotors& motors_ref,
+                         isr::can::CAN_ISR& can_isr_ref);
 
     void init_impl();
     void get_motor_feedback();
     void calc_motor_outputs(float vx, float vy, float wz);
     void send_motor_messages();
+    void can_isr_message_pending(MW_CAN::BUS bus,
+                                 isr::can::CANFrame frame);
     float calc_power_consumption();
 };
 

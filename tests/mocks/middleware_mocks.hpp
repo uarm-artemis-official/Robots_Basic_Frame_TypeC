@@ -114,30 +114,28 @@ class MockIRTOS : public MW_RTOS::IRTOS {
                  MW_RTOS::TaskRoutine task_routine, void* task_arg,
                  size_t stack_depth, MW_RTOS::TaskPriority priority),
                 (override));
-   MOCK_METHOD(void, critical_section_enter, (), (override));
-   MOCK_METHOD(void, critical_section_exit, (), (override));
-   MOCK_METHOD(bool, event_group_create,
-            (MW_RTOS::EventGroupHandle & event_group),
-            (override));
-   MOCK_METHOD(MW_RTOS::EventBits, event_group_set_bits,
+    MOCK_METHOD(void, critical_section_enter, (), (override));
+    MOCK_METHOD(void, critical_section_exit, (), (override));
+    MOCK_METHOD(bool, event_group_create,
+                (MW_RTOS::EventGroupHandle & event_group), (override));
+    MOCK_METHOD(MW_RTOS::EventBits, event_group_set_bits,
                 (MW_RTOS::EventGroupHandle event_group,
                  MW_RTOS::EventBits bits_to_set),
-            (override));
-   MOCK_METHOD(MW_RTOS::EventBits, event_group_clear_bits,
-            (MW_RTOS::EventGroupHandle event_group,
+                (override));
+    MOCK_METHOD(MW_RTOS::EventBits, event_group_clear_bits,
+                (MW_RTOS::EventGroupHandle event_group,
                  MW_RTOS::EventBits bits_to_clear),
-            (override));
-   MOCK_METHOD(MW_RTOS::EventBits, event_group_wait_bits,
-            (MW_RTOS::EventGroupHandle event_group,
+                (override));
+    MOCK_METHOD(MW_RTOS::EventBits, event_group_wait_bits,
+                (MW_RTOS::EventGroupHandle event_group,
                  MW_RTOS::EventBits bits_to_wait_for, bool clear_on_exit,
-             bool wait_for_all_bits, uint32_t ticks_to_wait),
-            (override));
-   MOCK_METHOD(MW_RTOS::EventBits, event_group_sync,
+                 bool wait_for_all_bits, uint32_t ticks_to_wait),
+                (override));
+    MOCK_METHOD(MW_RTOS::EventBits, event_group_sync,
                 (MW_RTOS::EventGroupHandle event_group,
                  MW_RTOS::EventBits bits_to_set,
-                 MW_RTOS::EventBits bits_to_wait_for,
-                 uint32_t ticks_to_wait),
-            (override));
+                 MW_RTOS::EventBits bits_to_wait_for, uint32_t ticks_to_wait),
+                (override));
     MOCK_METHOD(void, delay_until_ms, (uint32_t* previous_wake, uint32_t ms),
                 (override));
     MOCK_METHOD(void, delay_ms, (uint32_t ms), (override));

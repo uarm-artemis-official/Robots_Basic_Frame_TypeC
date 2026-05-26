@@ -55,7 +55,8 @@ static const apps::chassis::SwerveDriveConfig swerve_drive_config = {
         ChassisApp<SwerveDrive>::get_loop_period() / 1000.0f),
 };
 
-static SwerveDrive swerve_drive(swerve_drive_config, mc, no_init_motors);
+static SwerveDrive swerve_drive(swerve_drive_config, mc, no_init_motors,
+                                can_isr);
 static ChassisApp<SwerveDrive> swerve_chassis_app(rtos,
                                                   robot_config::chassis_config,
                                                   swerve_drive, mc,

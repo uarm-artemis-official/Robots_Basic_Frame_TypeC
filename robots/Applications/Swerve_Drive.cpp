@@ -11,8 +11,9 @@
 #include "uarm_math.hpp"
 
 SwerveDrive::SwerveDrive(const apps::chassis::SwerveDriveConfig& config_ref,
-                         mc2::RobotMC& mc_ref, IMotors& motors_ref)
-    : config(config_ref), mc(mc_ref), motors(motors_ref) {}
+                         mc2::RobotMC& mc_ref, IMotors& motors_ref,
+                         isr::can::CAN_ISR& can_isr_ref)
+    : config(config_ref), mc(mc_ref), motors(motors_ref), can_isr(can_isr_ref) {}
 
 void SwerveDrive::init_impl() {
     steer_curr_angle = {0};
@@ -182,6 +183,12 @@ void SwerveDrive::send_motor_messages() {
     }
 
     mc.pub_message(motor_set);
+}
+
+void SwerveDrive::can_isr_message_pending(MW_CAN::BUS bus,
+                                          isr::can::CANFrame frame) {
+    (void) bus;
+    (void) frame;
 }
 
 int32_t SwerveDrive::pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
