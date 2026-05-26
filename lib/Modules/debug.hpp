@@ -81,6 +81,14 @@ namespace modules {
                 return current_token;
             }
 
+            bool release_debug_uart(UARTAccessToken token) {
+                if (token == current_token) {
+                    current_token = 0;
+                    return true;
+                }
+                return false;
+            }
+
             void send_debug_message(UARTAccessToken token,
                                     std::span<const std::byte> data,
                                     uint32_t timeout = 1) {
