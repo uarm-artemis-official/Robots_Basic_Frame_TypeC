@@ -57,51 +57,18 @@ static const apps::gimbal::GimbalConfig gimbal_config = {
     .exit_calibration_yaw_angle_delta = uarm::strong_types::Degree(2.0f),
 };
 
-static const apps::shoot::ShootConfig shoot_config = {
-    .flywheel_config_type = FlywheelConfiguration::UNKNOWN,
-    .flywheel_speed_pid_config =
-        pid::PID2Config {
-            .k_p = 27,
-            .k_i = 5,
-            .k_d = 0,
-            .beta = 1,
-            .yeta = 0,
-            .max_out = 5000,
-            .min_out = -5000,
-        },
-    .loader_speed_pid_config =
-        pid::PID2Config {
-            .k_p = 30,
-            .k_i = 0,
-            .k_d = 0,
-            .beta = 1,
-            .yeta = 0,
-            .max_out = 10000,
-            .min_out = -10000,
-        },
-    .loader_position_pid_config =
-        pid::PID2Config {
-            .k_p = 0,
-            .k_i = 0,
-            .k_d = 0,
-            .beta = 1,
-            .yeta = 0,
-            .max_out = 10000,
-            .min_out = -10000,
-        },
-    .loader_speed_target = uarm::strong_types::RotationsPerMinute(75),
-    .flywheel_speed_target = uarm::strong_types::RotationsPerMinute(7000),
-    .max_flywheel_accel = uarm::strong_types::RotationsPerMinuteSecond(70000),
-    .loader_gear_ratio = 36.0f,
-    .jam_stall_duration_threshold = uarm::strong_types::Second(0.5),
-    .jam_loader_rpm_threshold = uarm::strong_types::RotationsPerMinute(5),
-    .jam_loader_current_relative_diff_threshold = 0.05f,
-    .jam_no_stall_duration_threshold = uarm::strong_types::Second(0.5),
-    .enable_loader_position_control = false,
-};
-
 static const apps::chassis::ChassisConfig chassis_config = {
-    .spin_wheel_pid_config =
+    .spin_pid_config =
+        pid::PID2Config {
+            .k_p = 1,
+            .k_i = 0,
+            .k_d = 0,
+            .beta = 1,
+            .yeta = 0,
+            .max_out = 2,
+            .min_out = -2,
+        },
+    .wheel_pid_config =
         pid::PID2Config {
             .k_p = 5,
             .k_i = 0,
@@ -111,21 +78,10 @@ static const apps::chassis::ChassisConfig chassis_config = {
             .max_out = 5000,
             .min_out = -5000,
         },
-    .wheel_output_pid_config =
-        pid::PID2Config {
-            .k_p = 5,
-            .k_i = 0,
-            .k_d = 0,
-            .beta = 1,
-            .yeta = 0,
-            .max_out = 5000,
-            .min_out = -5000,
-        },
-    .max_translation_velocity = uarm::strong_types::MetersPerSecond(8),
-    .max_rotation_velocity = uarm::strong_types::RadiansPerSecond(5),
+    .max_translation_speed = uarm::strong_types::MetersPerSecond(8),
+    .max_rotation_speed = uarm::strong_types::RadiansPerSecond(5),
     .gyro_speed = uarm::strong_types::RadiansPerSecond(5),
-    .wheel_output_ramp_max_accel =
-        uarm::strong_types::RadiansPerSecondSecond(400),
+    .max_wheel_ramp_accel = uarm::strong_types::RadiansPerSecondSecond(400),
 };
 
 #endif

@@ -43,7 +43,7 @@ target_link_libraries(MOTORS
         LIB::UARM_INCLUDE
     MODULES::DJI_MOTOR
     MODULES::LK_MOTOR
-        ISRS::CAN_ISR)
+        SERVICES::CAN_ISR)
 add_library(SUBSYSTEMS::MOTORS ALIAS MOTORS)
 
 add_library(REF_UI STATIC referee_ui.cpp)

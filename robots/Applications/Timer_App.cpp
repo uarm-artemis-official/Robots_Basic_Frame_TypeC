@@ -12,7 +12,7 @@
 *******************************************************************************/
 
 #include <cstring>
-#include "ISRs/can_isr.hpp"
+#include "services/can_isr.hpp"
 #include "apps_classes.hpp"
 #include "apps_defines.hpp"
 #include "apps_types.hpp"

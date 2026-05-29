@@ -5,6 +5,7 @@
 #include "can_isr.hpp"
 #include "mappings/mapping_api.hpp"
 #include "middleware_interfaces.hpp"
+#include "timer_service.hpp"
 #include "uart_isr.hpp"
 
 #if defined(MW_ENABLE_TIM)
@@ -18,15 +19,6 @@
 #if defined(MW_ENABLE_UART)
 #include "usart.h"
 #endif
-
-static isr::can::CAN_ISR* installed_can_isr;
-static isr::uart::UART_ISR* installed_uart_isr;
-
-bool isr::can::install_isr(CAN_ISR* installed_can_isr_ref) {
-    ASSERT(installed_can_isr_ref != nullptr, "Cannot install null CAN ISR.");
-    installed_can_isr = installed_can_isr_ref;
-    return true;
-}
 
 #if defined(MW_ENABLE_TIM)
 
@@ -46,6 +38,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 #endif
 
 #if defined(MW_ENABLE_CAN)
+static isr::can::CAN_ISR* installed_can_isr;
+
+bool isr::can::install_isr(CAN_ISR* installed_can_isr_ref) {
+    ASSERT(installed_can_isr_ref != nullptr, "Cannot install null CAN ISR.");
+    installed_can_isr = installed_can_isr_ref;
+    return true;
+}
+
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
     if (!installed_can_isr || !installed_can_isr->is_initialized()) {
         CAN_RxHeaderTypeDef dummy_frame;
@@ -80,6 +80,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 #endif
 
 #if defined(MW_ENABLE_UART)
+static isr::uart::UART_ISR* installed_uart_isr;
 
 bool isr::uart::install_isr(UART_ISR* installed_uart_isr_ref) {
     ASSERT(installed_uart_isr_ref != nullptr, "Cannot install null UART ISR.");
@@ -124,6 +125,24 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
 
     installed_uart_isr->run_isr_routines(
         isr::uart::ECallbacks::TRANSMIT_COMPLETE, peripheral);
+}
+
+#endif
+
+#if defined(MW_ENABLE_RTOS)
+static services::timer::TimerService* installed_timer_service;
+
+bool services::timer::install_timer_service(TimerService* timer_service_ref) {
+    installed_timer_service = timer_service_ref;
+    return true;
+}
+
+void services::timer::on_timer_callback_cfunc(MW_RTOS::TimerHandle timer) {
+    if (!installed_timer_service ||
+        !installed_timer_service->is_initialized()) {
+        return;
+    }
+    installed_timer_service->on_timer_callback(timer);
 }
 
 #endif

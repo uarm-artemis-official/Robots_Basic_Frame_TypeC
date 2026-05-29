@@ -24,6 +24,6 @@ endif()
 
 add_subdirectory(Algorithms)
 add_subdirectory(Middleware)
-add_subdirectory(ISRs)
+add_subdirectory(services)
 add_subdirectory(Modules)
 add_subdirectory(Subsystems)
