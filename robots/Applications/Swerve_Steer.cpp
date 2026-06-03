@@ -10,26 +10,26 @@
 #include "uarm_lib.hpp"
 #include "uarm_math.hpp"
 
-SwerveDrive::SwerveDrive(const apps::chassis::SwerveDriveConfig& config_ref,
-                         mc2::RobotMC& mc_ref, IMotors& motors_ref,
-                         isr::can::CAN_ISR& can_isr_ref)
+SwerveSteer::SwerveSteer(
+    const apps::chassis::SwerveDriveConfig& config_ref, mc2::RobotMC& mc_ref,
+    IMotors& motors_ref,
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication_ref)
     : config(config_ref),
       mc(mc_ref),
       motors(motors_ref),
-      can_isr(can_isr_ref) {}
+      communication(communication_ref) {}
 
-bool SwerveDrive::init_impl() {
+bool SwerveSteer::init_impl() {
     steer_curr_angle = {0};
     steer_curr_speed = {0};
     steer_cw_mag = {0};
     steer_ccw_mag = {0};
     steer_target_angle = {0};
+    drive_target_speed = {0};
 
     steer_max_speed = {0};
     steer_ccw = {false};
     steer_output_angle = {0};
-    drive_target_speed = {0};
-
     drive_output = {0};
 
     for (size_t i = 0; i < drive_motors.size(); i++) {
@@ -62,13 +62,13 @@ bool SwerveDrive::init_impl() {
     return true;
 }
 
-void SwerveDrive::drive_impl(float vx, float vy, float wz) {
+void SwerveSteer::drive_impl(float vx, float vy, float wz) {
     get_motor_feedback();
     calc_motor_outputs(vx, vy, wz);
     send_motor_messages();
 }
 
-void SwerveDrive::get_motor_feedback() {
+void SwerveSteer::get_motor_feedback() {
     mc2::MotorRead motor_read;
     auto message_ts = mc.peek_message(motor_read);
     if (message_ts.has_value()) {
@@ -94,20 +94,15 @@ void SwerveDrive::get_motor_feedback() {
     }
 }
 
-/*
- * @brief 	  Inversely kinematics of swerve
- * @param[in] chassis_hdlr:chassis main struct
- * @retval    None
- */
-void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
+void SwerveSteer::calc_motor_outputs(float vx, float vy, float wz) {
     /* Assume wheels are calibriated to forward position (i.e. forward is 0 degrees)
      * These calculations will be in degrees for MG4005 since 3600 dps is 360 degrees
-	 *			 
-	 *		 v1  [] ---- [] v2     <Front>		   	 A      __		      0/360 deg
-	 *		      |      |					         | vy  /		 	    O  
-	 *		  	  |	     |                           |     \__>   wz       180  deg  
-	 *		 v4	 [] ---- [] v3     <Rear>              ----> vx  				 
-	 *										
+	 *
+	 *		 v1  [] ---- [] v2     <Front>	    A	      __		      0/360 deg
+	 *	      |      |				         | vy  /		    O  
+	 *	  	  |	     |                           |     \__>   wz       180  deg  
+	 *	 v4	 [] ---- [] v3     <Rear>              ----> vx  			 
+	 *						
      */
     float A = vx - wz * (config.chassis_width.get() * 0.5);
     float B = vx + wz * (config.chassis_width.get() * 0.5);
@@ -177,11 +172,11 @@ void SwerveDrive::calc_motor_outputs(float vx, float vy, float wz) {
     }
 }
 
-void SwerveDrive::send_motor_messages() {
+void SwerveSteer::send_motor_messages() {
     static_assert(NUM_STEER_MOTORS + NUM_DRIVE_MOTORS <= MAX_MOTOR_COUNT);
     mc2::MotorSet motor_set {};
     for (size_t i = 0; i < NUM_STEER_MOTORS; i++) {
-        motor_set.motor_can_volts[i] = SwerveDrive::pack_lk_motor_message(
+        motor_set.motor_can_volts[i] = SwerveSteer::pack_lk_motor_message(
             steer_ccw.at(i), steer_max_speed.at(i),
             steer_output_angle.at(i) * 100);
         motor_set.can_ids[i] =
@@ -197,15 +192,8 @@ void SwerveDrive::send_motor_messages() {
     mc.pub_message(motor_set);
 }
 
-void SwerveDrive::can_isr_message_pending(MW_CAN::BUS bus,
-                                          isr::can::CANFrame frame) {
-    (void) bus;
-    (void) frame;
-}
-
-int32_t SwerveDrive::pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
+int32_t SwerveSteer::pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
                                            uint32_t angle) {
-    // ASSERT(angle <= 36000, "LK angle cannot be greater than 36000");
     ASSERT(max_speed <= 16383,
            "Max speeds higher than 16383 are not supported");
     int32_t motor_message_value = 0;
@@ -216,7 +204,11 @@ int32_t SwerveDrive::pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
     return motor_message_value;
 }
 
-float SwerveDrive::calc_power_consumption() {
+float SwerveSteer::calc_power_consumption() {
     // TODO: Implement.
     return 0.f;
+}
+
+void SwerveSteer::set_max_power_impl(float new_max_power) {
+    (void) new_max_power;
 }

@@ -12,7 +12,7 @@ target_include_directories(APPS_INCLUDE
         ${LIB_PATH}/Middleware
         ${FIRMWARE_PATH}/Device/motors)
 
-add_library(CHASSIS_DRIVES STATIC Omni_Drive.cpp Swerve_Drive.cpp)
+add_library(CHASSIS_DRIVES STATIC Omni_Drive.cpp Swerve_Drive.cpp Swerve_Steer.cpp)
 target_link_libraries(CHASSIS_DRIVES 
     PUBLIC
         APPS_INCLUDE

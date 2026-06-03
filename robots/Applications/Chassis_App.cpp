@@ -42,8 +42,12 @@ ChassisApp<DriveTrain>::ChassisApp(
       debug(_debug) {}
 
 template <class DriveTrain>
-void ChassisApp<DriveTrain>::init() {
-    drive_train.init();
+bool ChassisApp<DriveTrain>::init() {
+    bool drive_train_initialized = drive_train.init();
+    ASSERT(drive_train_initialized, "Drive train init failed.");
+    if (!drive_train_initialized) {
+        return false;
+    }
 
     pid2_init(chassis.spin_pid, config.spin_pid_config);
 
@@ -53,6 +57,7 @@ void ChassisApp<DriveTrain>::init() {
     chassis.chassis_gear_mode = AUTO_GEAR;
 
     set_initial_state();
+    return true;
 }
 
 template <class DriveTrain>

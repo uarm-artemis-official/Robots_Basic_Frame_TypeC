@@ -57,16 +57,14 @@ class RTOSApp : public ExtendedRTOSApp<Derived, loop_period_ms> {
 template <class Derived>
 class ChassisDrive {
    public:
-    void init() {
+    bool init() {
         Derived* derived = static_cast<Derived*>(this);
-        derived->init_impl();
+        return derived->init_impl();
     }
 
     void drive(float vx, float vy, float wz) {
         Derived* derived = static_cast<Derived*>(this);
-        derived->get_motor_feedback();
-        derived->calc_motor_outputs(vx, vy, wz);
-        derived->send_motor_messages();
+        derived->drive_impl(vx, vy, wz);
     }
 
     float get_power_consumption() {

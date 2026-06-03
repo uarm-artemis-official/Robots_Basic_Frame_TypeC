@@ -10,7 +10,13 @@ class FakeChassisDrive : public ChassisDrive<FakeChassisDrive> {
     float last_vy = 0.0f;
     float last_wz = 0.0f;
 
-    void init_impl() {}
+    bool init_impl() { return true; }
+
+    void drive_impl(float vx, float vy, float wz) {
+        last_vx = vx;
+        last_vy = vy;
+        last_wz = wz;
+    }
 
     void get_motor_feedback() {}
 

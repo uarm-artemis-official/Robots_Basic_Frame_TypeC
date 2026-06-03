@@ -37,7 +37,7 @@ class ChassisApp : public RTOSApp<ChassisApp<DriveTrain>,
                         comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
                             communication_ref,
                         modules::debug::Debug& _debug);
-    void init();
+    bool init();
     void set_initial_state();
 
     void loop();
@@ -71,7 +71,8 @@ class OmniDrive : public ChassisDrive<OmniDrive> {
     explicit OmniDrive(const apps::chassis::OmniDriveConfig& config_ref,
                        mc2::RobotMC& mc2_ref, IMotors& motors);
 
-    void init_impl();
+    bool init_impl();
+    void drive_impl(float vx, float vy, float wz);
 
     void get_motor_feedback();
 
@@ -120,13 +121,57 @@ class SwerveDrive : public ChassisDrive<SwerveDrive> {
                          mc2::RobotMC& mc2_ref, IMotors& motors_ref,
                          isr::can::CAN_ISR& can_isr_ref);
 
-    void init_impl();
+    bool init_impl();
+    void drive_impl(float vx, float vy, float wz);
     void get_motor_feedback();
     void calc_motor_outputs(float vx, float vy, float wz);
     void send_motor_messages();
-    void can_isr_message_pending(MW_CAN::BUS bus,
-                                 isr::can::CANFrame frame);
+    void can_isr_message_pending(MW_CAN::BUS bus, isr::can::CANFrame frame);
     float calc_power_consumption();
+};
+
+class SwerveSteer : public ChassisDrive<SwerveSteer> {
+   private:
+    static constexpr size_t NUM_STEER_MOTORS = 4;
+    static constexpr size_t NUM_DRIVE_MOTORS = 4;
+
+    const apps::chassis::SwerveDriveConfig config;
+    mc2::RobotMC& mc;
+    IMotors& motors;
+    comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>& communication;
+
+    std::array<Swerve_Drive_Control_t, NUM_DRIVE_MOTORS> drive_motors;
+    std::array<Swerve_Steer_Control_t, NUM_STEER_MOTORS> steer_motors;
+
+    std::array<float, NUM_STEER_MOTORS> steer_curr_angle;
+    std::array<int16_t, NUM_STEER_MOTORS> steer_curr_speed;
+    std::array<float, NUM_STEER_MOTORS> steer_cw_mag;
+    std::array<float, NUM_STEER_MOTORS> steer_ccw_mag;
+    std::array<float, NUM_STEER_MOTORS> steer_target_angle;
+    std::array<float, NUM_DRIVE_MOTORS> drive_target_speed;
+
+    std::array<uint16_t, NUM_STEER_MOTORS> steer_max_speed;
+    std::array<bool, NUM_STEER_MOTORS> steer_ccw;
+    std::array<float, NUM_STEER_MOTORS> steer_output_angle;
+    std::array<int32_t, NUM_DRIVE_MOTORS> drive_output;
+
+   public:
+    explicit SwerveSteer(
+        const apps::chassis::SwerveDriveConfig& config_ref,
+        mc2::RobotMC& mc_ref, IMotors& motors_ref,
+        comm::Communication<mc2::RobotMC, mc2::RobotMC::Topics>&
+            communication_ref);
+
+    bool init_impl();
+    void drive_impl(float vx, float vy, float wz);
+    void get_motor_feedback();
+    void calc_motor_outputs(float vx, float vy, float wz);
+    void send_motor_messages();
+    float calc_power_consumption();
+    void set_max_power_impl(float new_max_power);
+
+    static int32_t pack_lk_motor_message(bool spin_ccw, uint16_t max_speed,
+                                         uint32_t angle);
 };
 
 /*

@@ -12,7 +12,7 @@ OmniDrive::OmniDrive(const apps::chassis::OmniDriveConfig& config_ref,
                      mc2::RobotMC& mc_ref, IMotors& motors_ref)
     : config(config_ref), mc(mc_ref), motors(motors_ref) {}
 
-void OmniDrive::init_impl() {
+bool OmniDrive::init_impl() {
     for (size_t i = 0; i < motor_controls.size(); i++) {
         motor_angular_vel.at(i) = 0;
         std::memset(&(motor_controls.at(i)), 0,
@@ -26,6 +26,14 @@ void OmniDrive::init_impl() {
     std::get<1>(motor_controls).stdid = CHASSIS_WHEEL2;
     std::get<2>(motor_controls).stdid = CHASSIS_WHEEL3;
     std::get<3>(motor_controls).stdid = CHASSIS_WHEEL4;
+
+    return true;
+}
+
+void OmniDrive::drive_impl(float vx, float vy, float wz) {
+    get_motor_feedback();
+    calc_motor_outputs(vx, vy, wz);
+    send_motor_messages();
 }
 
 void OmniDrive::get_motor_feedback() {
